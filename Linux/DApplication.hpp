@@ -141,9 +141,10 @@ private:
 
     void SetMode(int iNewMode, bool bFromAccel);
     void SetTool(int iNewTool);
-    void ToolsBreakCmd();
     void ToolsStatCmd();
     void ToolsScaleCmd();
+
+    void PathBreakCmd();
 
     void DrawCross(cairo_t *cr);
 

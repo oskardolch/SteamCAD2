@@ -42,7 +42,8 @@ DGuiobj = SteamCAD.o DMenu.o DApplication.o DDataTypes.o DMath.o DTopo.o \
     DDrawTypes.o DPrimitive.o DLine.o DCircle.o DEllipse.o DArcElps.o \
     DHyper.o DParabola.o DSpline.o DEvolv.o DExpCairo.o DParser.o \
     DFileMenu.o DModeMenu.o DEditMenu.o DViewToolsMenu.o DFileSetupDlg.o \
-    DLineStyleDlg.o DDimEditDlg.o DStatDlg.o DSnapDlg.o DScaleDlg.o DExpDXF.o
+    DLineStyleDlg.o DDimEditDlg.o DStatDlg.o DSnapDlg.o DScaleDlg.o DExpDXF.o \
+    DPathMenu.o
 DGuimod = $(addprefix $(BUILDDIR), $(DGuiobj)) \
 	-L./Build -Wl,-rpath,.
 
@@ -56,11 +57,12 @@ DApplication.o : Linux/DApplication.cpp Linux/DApplication.hpp Linux/DLxBaseDefs
     Linux/DSnapDlg.hpp Linux/DScaleDlg.hpp Source/DExpDXF.hpp
 DMenu.o : Linux/DMenu.cpp Linux/DMenu.hpp Linux/DApplication.hpp \
     Linux/DFileMenu.hpp Linux/DModeMenu.hpp Linux/DEditMenu.hpp \
-    Linux/DViewToolsMenu.hpp
+    Linux/DViewToolsMenu.hpp Linux/DPathMenu.hpp
 DFileMenu.o : Linux/DFileMenu.cpp Linux/DFileMenu.hpp Linux/DLxBaseDefs.h
 DModeMenu.o : Linux/DModeMenu.cpp Linux/DModeMenu.hpp Linux/DLxBaseDefs.h
 DEditMenu.o : Linux/DEditMenu.cpp Linux/DEditMenu.hpp Linux/DLxBaseDefs.h
 DViewToolsMenu.o : Linux/DViewToolsMenu.cpp Linux/DViewToolsMenu.hpp Linux/DLxBaseDefs.h
+DPathMenu.o : Linux/DPathMenu.cpp Linux/DPathMenu.hpp Linux/DLxBaseDefs.h
 DFileSetupDlg.o : Linux/DFileSetupDlg.cpp Linux/DFileSetupDlg.hpp Source/DParser.hpp \
     Linux/DLxBaseDefs.h
 DLineStyleDlg.o : Linux/DLineStyleDlg.cpp Linux/DLineStyleDlg.hpp Source/DDataTypes.hpp \

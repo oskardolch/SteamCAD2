@@ -3054,14 +3054,14 @@ void CDApplication::ToolsCommand(int iCmd, bool bFromAccel)
     case IDM_TOOLSMEASURE:
         SetTool(tolMeas);
         break;
-    case IDM_TOOLSBREAK:
-        ToolsBreakCmd();
-        break;
     case IDM_TOOLSCALE:
         ToolsScaleCmd();
         break;
     case IDM_TOOLSTAT:
         ToolsStatCmd();
+        break;
+    case IDM_PATHBREAK:
+        PathBreakCmd();
         break;
     }
     return;
@@ -4315,7 +4315,7 @@ void CDApplication::DisableSnap()
     if(m_pHighObject) m_pHighObject->SetSnapTo(false);
 }
 
-void CDApplication::ToolsBreakCmd()
+void CDApplication::PathBreakCmd()
 {
     GtkWidget *draw = GetDrawing();
 
