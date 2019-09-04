@@ -144,7 +144,15 @@ private:
     void ToolsStatCmd();
     void ToolsScaleCmd();
 
+    void PathCreateCmd();
     void PathBreakCmd();
+    void PathAreaCmd();
+    void PathGroupCmd();
+    void PathUngroupCmd();
+    void PathMoveUpCmd();
+    void PathMoveDownCmd();
+    void PathMoveTopCmd();
+    void PathMoveBottomCmd();
 
     void DrawCross(cairo_t *cr);
 
@@ -193,6 +201,7 @@ public:
     void EditCommand(int iCmd, bool bFromAccel);
     void ViewCommand(int iCmd, bool bFromAccel);
     void ToolsCommand(int iCmd, bool bFromAccel);
+    void PathCommand(int iCmd, bool bFromAccel);
 
     void EnableSnap();
     void DisableSnap();

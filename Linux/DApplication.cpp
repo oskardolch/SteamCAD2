@@ -3060,8 +3060,40 @@ void CDApplication::ToolsCommand(int iCmd, bool bFromAccel)
     case IDM_TOOLSTAT:
         ToolsStatCmd();
         break;
+    }
+    return;
+}
+
+void CDApplication::PathCommand(int iCmd, bool bFromAccel)
+{
+    switch(iCmd)
+    {
+    case IDM_PATHCREATE:
+        PathCreateCmd();
+        break;
     case IDM_PATHBREAK:
         PathBreakCmd();
+        break;
+    case IDM_PATHAREA:
+        PathAreaCmd();
+        break;
+    case IDM_PATHGROUP:
+        PathGroupCmd();
+        break;
+    case IDM_PATHUNGROUP:
+        PathUngroupCmd();
+        break;
+    case IDM_PATHMOVEUP:
+        PathMoveUpCmd();
+        break;
+    case IDM_PATHMOVEDOWN:
+        PathMoveDownCmd();
+        break;
+    case IDM_PATHMOVETOP:
+        PathMoveTopCmd();
+        break;
+    case IDM_PATHMOVEBOTTOM:
+        PathMoveBottomCmd();
         break;
     }
     return;
@@ -4315,34 +4347,6 @@ void CDApplication::DisableSnap()
     if(m_pHighObject) m_pHighObject->SetSnapTo(false);
 }
 
-void CDApplication::PathBreakCmd()
-{
-    GtkWidget *draw = GetDrawing();
-
-    int iWidth = gdk_window_get_width(draw->window);
-    int iHeight = gdk_window_get_height(draw->window);
-
-    CDRect cdr;
-    cdr.cPt1.x = -m_cViewOrigin.x/m_dUnitScale;
-    cdr.cPt1.y = -m_cViewOrigin.y/m_dUnitScale;
-    cdr.cPt2.x = (iWidth - m_cViewOrigin.x)/m_dUnitScale;
-    cdr.cPt2.y = (iHeight - m_cViewOrigin.y)/m_dUnitScale;
-
-    PDPtrList pRegions = new CDPtrList();
-    pRegions->SetDblVal(m_dUnitScale);
-
-    m_pDrawObjects->BreakSelObjects(&cdr, pRegions);
-    {
-        GdkRectangle cRect;
-        if(GetUpdateRegion(pRegions, &cRect))
-            gdk_window_invalidate_rect(draw->window, &cRect, FALSE);
-        SetTitle(m_pMainWnd, false);
-    }
-
-    ClearPolygonList(pRegions);
-    delete pRegions;
-}
-
 void CDApplication::ToolsScaleCmd()
 {
     CDFileAttrs cFA;
@@ -4392,5 +4396,65 @@ void CDApplication::ToolsScaleCmd()
         }
     }
     return;
+}
+
+void CDApplication::PathCreateCmd()
+{
+}
+
+void CDApplication::PathBreakCmd()
+{
+    GtkWidget *draw = GetDrawing();
+
+    int iWidth = gdk_window_get_width(draw->window);
+    int iHeight = gdk_window_get_height(draw->window);
+
+    CDRect cdr;
+    cdr.cPt1.x = -m_cViewOrigin.x/m_dUnitScale;
+    cdr.cPt1.y = -m_cViewOrigin.y/m_dUnitScale;
+    cdr.cPt2.x = (iWidth - m_cViewOrigin.x)/m_dUnitScale;
+    cdr.cPt2.y = (iHeight - m_cViewOrigin.y)/m_dUnitScale;
+
+    PDPtrList pRegions = new CDPtrList();
+    pRegions->SetDblVal(m_dUnitScale);
+
+    m_pDrawObjects->BreakSelObjects(&cdr, pRegions);
+    {
+        GdkRectangle cRect;
+        if(GetUpdateRegion(pRegions, &cRect))
+            gdk_window_invalidate_rect(draw->window, &cRect, FALSE);
+        SetTitle(m_pMainWnd, false);
+    }
+
+    ClearPolygonList(pRegions);
+    delete pRegions;
+}
+
+void CDApplication::PathAreaCmd()
+{
+}
+
+void CDApplication::PathGroupCmd()
+{
+}
+
+void CDApplication::PathUngroupCmd()
+{
+}
+
+void CDApplication::PathMoveUpCmd()
+{
+}
+
+void CDApplication::PathMoveDownCmd()
+{
+}
+
+void CDApplication::PathMoveTopCmd()
+{
+}
+
+void CDApplication::PathMoveBottomCmd()
+{
 }
 

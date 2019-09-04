@@ -6,109 +6,109 @@
 
 static void path_create_click(PDApplication pApp)
 {
-    pApp->ToolsCommand(IDM_PATHCREATE, false);
+    pApp->PathCommand(IDM_PATHCREATE, false);
     return;
 }
 
 static void path_create_accel(PDApplication pApp)
 {
-    pApp->ToolsCommand(IDM_PATHCREATE, true);
+    pApp->PathCommand(IDM_PATHCREATE, true);
     return;
 }
 
 static void path_break_click(PDApplication pApp)
 {
-    pApp->ToolsCommand(IDM_PATHBREAK, false);
+    pApp->PathCommand(IDM_PATHBREAK, false);
     return;
 }
 
 static void path_break_accel(PDApplication pApp)
 {
-    pApp->ToolsCommand(IDM_PATHBREAK, true);
+    pApp->PathCommand(IDM_PATHBREAK, true);
     return;
 }
 
 static void path_area_click(PDApplication pApp)
 {
-    pApp->ToolsCommand(IDM_PATHAREA, false);
+    pApp->PathCommand(IDM_PATHAREA, false);
     return;
 }
 
 static void path_area_accel(PDApplication pApp)
 {
-    pApp->ToolsCommand(IDM_PATHAREA, true);
+    pApp->PathCommand(IDM_PATHAREA, true);
     return;
 }
 
 static void path_group_click(PDApplication pApp)
 {
-    pApp->ToolsCommand(IDM_PATHGROUP, false);
+    pApp->PathCommand(IDM_PATHGROUP, false);
     return;
 }
 
 static void path_group_accel(PDApplication pApp)
 {
-    pApp->ToolsCommand(IDM_PATHGROUP, true);
+    pApp->PathCommand(IDM_PATHGROUP, true);
     return;
 }
 
 static void path_ungroup_click(PDApplication pApp)
 {
-    pApp->ToolsCommand(IDM_PATHUNGROUP, false);
+    pApp->PathCommand(IDM_PATHUNGROUP, false);
     return;
 }
 
 static void path_ungroup_accel(PDApplication pApp)
 {
-    pApp->ToolsCommand(IDM_PATHUNGROUP, true);
+    pApp->PathCommand(IDM_PATHUNGROUP, true);
     return;
 }
 
 static void path_moveup_click(PDApplication pApp)
 {
-    pApp->ToolsCommand(IDM_PATHMOVEUP, false);
+    pApp->PathCommand(IDM_PATHMOVEUP, false);
     return;
 }
 
 static void path_moveup_accel(PDApplication pApp)
 {
-    pApp->ToolsCommand(IDM_PATHMOVEUP, true);
+    pApp->PathCommand(IDM_PATHMOVEUP, true);
     return;
 }
 
 static void path_movedown_click(PDApplication pApp)
 {
-    pApp->ToolsCommand(IDM_PATHMOVEDOWN, false);
+    pApp->PathCommand(IDM_PATHMOVEDOWN, false);
     return;
 }
 
 static void path_movedown_accel(PDApplication pApp)
 {
-    pApp->ToolsCommand(IDM_PATHMOVEDOWN, true);
+    pApp->PathCommand(IDM_PATHMOVEDOWN, true);
     return;
 }
 
 static void path_movetop_click(PDApplication pApp)
 {
-    pApp->ToolsCommand(IDM_PATHMOVETOP, false);
+    pApp->PathCommand(IDM_PATHMOVETOP, false);
     return;
 }
 
 static void path_movetop_accel(PDApplication pApp)
 {
-    pApp->ToolsCommand(IDM_PATHMOVETOP, true);
+    pApp->PathCommand(IDM_PATHMOVETOP, true);
     return;
 }
 
 static void path_movebottom_click(PDApplication pApp)
 {
-    pApp->ToolsCommand(IDM_PATHMOVEBOTTOM, false);
+    pApp->PathCommand(IDM_PATHMOVEBOTTOM, false);
     return;
 }
 
 static void path_movebottom_accel(PDApplication pApp)
 {
-    pApp->ToolsCommand(IDM_PATHMOVEBOTTOM, true);
+    pApp->PathCommand(IDM_PATHMOVEBOTTOM, true);
     return;
 }
 
