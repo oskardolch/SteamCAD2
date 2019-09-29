@@ -57,10 +57,22 @@ CDObject::CDObject(CDDrawType iType, double dWidth)
     m_cTmpDim.psLab = m_sTmpDimBuf;
     m_sTmpDimBuf[0] = 0;
     m_bSnapTo = true;
+    m_pSubObjects = new CDPtrList();
 }
 
 CDObject::~CDObject()
 {
+    if(m_iType != dtArea)
+    {
+        PDObject pSubObj;
+        for(int i = 0; i < m_pSubObjects->GetCount(); i++)
+        {
+            pSubObj = (PDObject)m_pSubObjects->GetItem(i);
+            delete pSubObj;
+        }
+    }
+    delete m_pSubObjects;
+
     PDDimension pDim;
     for(int i = 0; i < m_pDimens->GetCount(); i++)
     {
@@ -110,6 +122,10 @@ bool CDObject::AddPoint(double x, double y, char iCtrl, bool bFromGui)
     case dtEvolvent:
         bRes = AddEvolvPoint(x, y, iCtrl, m_pInputPoints, iInputLines);
         break;
+    case dtPath:
+    case dtArea:
+    case dtGroup:
+        break;
     }
 
     return bRes;
@@ -140,6 +156,20 @@ void CDObject::Redo()
     m_pUndoPoints->Remove(iCnt - 1, -1);
 }
 
+bool CDObject::BuildSubCache(CDLine cTmpPt, int iMode)
+{
+    int n = m_pSubObjects->GetCount();
+    bool bRes = n > 0;
+    int i = 0;
+    PDObject pObj;
+    while(bRes && (i < n))
+    {
+        pObj = (PDObject)m_pSubObjects->GetItem(i++);
+        bRes = pObj->BuildCache(cTmpPt, iMode);
+    }
+    return bRes;
+}
+
 bool CDObject::BuildCache(CDLine cTmpPt, int iMode)
 {
     switch(m_iType)
@@ -161,7 +191,7 @@ bool CDObject::BuildCache(CDLine cTmpPt, int iMode)
     case dtEvolvent:
         return BuildEvolvCache(cTmpPt, iMode, m_pInputPoints, m_pCachePoints, m_cLines, &m_dMovedDist);
     default:
-        return false;
+        return BuildSubCache(cTmpPt, iMode);
     }
 }
 
@@ -192,6 +222,8 @@ void CDObject::AddCurveSegment(double dStart, double dEnd, PDRect pRect)
         break;
     case dtEvolvent:
         AddEvolvSegment(dStart, dEnd, m_pCachePoints, m_pPrimitive, pRect);
+        break;
+    default:
         break;
     }
 }

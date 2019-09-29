@@ -52,7 +52,22 @@ typedef struct CDLineStyle
     char bCapType;
     int iSegments;
     double dPattern[6];
+    char cColor[4];
+    double dBlend;
 } *PDLineStyle;
+
+enum CDGradMode
+{
+    gmNone = 0,
+    gmLinear = 1,
+    gmRadial = 2,
+    gmMesh = 3
+};
+
+typedef struct CDFillStyle
+{
+    CDGradMode cGradMode;
+} *PDFillStyle;
 
 typedef struct CDInputPoint
 {

@@ -14,7 +14,10 @@ enum CDDrawType
     dtHyperbola = 5,
     dtParabola = 6,
     dtSpline = 7,
-    dtEvolvent = 8
+    dtEvolvent = 8,
+    dtPath = 100,
+    dtArea = 110,
+    dtGroup = 120
 };
 
 enum CDDrawSubType
@@ -47,9 +50,11 @@ private:
     bool m_bSnapTo;
 
     int m_iAuxInt;
+    PDPtrList m_pSubObjects;
 
     int IsClosed();
     bool IsClosedShape();
+    bool BuildSubCache(CDLine cTmpPt, int iMode);
     void SavePoint(FILE *pf, bool bSwapBytes, CDPoint cPoint);
     void SaveInputPoint(FILE *pf, bool bSwapBytes, CDInputPoint cInPoint);
     void SaveReference(FILE *pf, bool bSwapBytes, double dRef);
@@ -210,3 +215,4 @@ public:
 } *PDataList;
 
 #endif
+
