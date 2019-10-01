@@ -62,7 +62,20 @@ CDObject::CDObject(CDDrawType iType, double dWidth)
 
 CDObject::~CDObject()
 {
-    if(m_iType != dtArea)
+    if(m_iType < dtBorder)
+    {
+        PDPathSeg pSubObj;
+        for(int i = 0; i < m_pSubObjects->GetCount(); i++)
+        {
+            pSubObj = (PDPathSeg)m_pSubObjects->GetItem(i);
+            if(m_iType != dtBorderPath)
+            {
+                delete pSubObj->pSegment;
+            }
+            free(pSubObj);
+        }
+    }
+    else
     {
         PDObject pSubObj;
         for(int i = 0; i < m_pSubObjects->GetCount(); i++)
@@ -123,6 +136,8 @@ bool CDObject::AddPoint(double x, double y, char iCtrl, bool bFromGui)
         bRes = AddEvolvPoint(x, y, iCtrl, m_pInputPoints, iInputLines);
         break;
     case dtPath:
+    case dtBorderPath:
+    case dtBorder:
     case dtArea:
     case dtGroup:
         break;
@@ -161,11 +176,23 @@ bool CDObject::BuildSubCache(CDLine cTmpPt, int iMode)
     int n = m_pSubObjects->GetCount();
     bool bRes = n > 0;
     int i = 0;
-    PDObject pObj;
-    while(bRes && (i < n))
+    if(m_iType == dtPath)
     {
-        pObj = (PDObject)m_pSubObjects->GetItem(i++);
-        bRes = pObj->BuildCache(cTmpPt, iMode);
+        PDPathSeg pObj;
+        while(bRes && (i < n))
+        {
+            pObj = (PDPathSeg)m_pSubObjects->GetItem(i++);
+            bRes = pObj->pSegment->BuildCache(cTmpPt, iMode);
+        }
+    }
+    else if(m_iType == dtGroup)
+    {
+        PDObject pObj;
+        while(bRes && (i < n))
+        {
+            pObj = (PDObject)m_pSubObjects->GetItem(i++);
+            bRes = pObj->BuildCache(cTmpPt, iMode);
+        }
     }
     return bRes;
 }
@@ -190,8 +217,11 @@ bool CDObject::BuildCache(CDLine cTmpPt, int iMode)
         return BuildSplineCache(cTmpPt, iMode, m_pInputPoints, m_pCachePoints, &m_dMovedDist);
     case dtEvolvent:
         return BuildEvolvCache(cTmpPt, iMode, m_pInputPoints, m_pCachePoints, m_cLines, &m_dMovedDist);
-    default:
+    case dtPath:
+    case dtGroup:
         return BuildSubCache(cTmpPt, iMode);
+    default:
+        return true;
     }
 }
 

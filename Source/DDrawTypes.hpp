@@ -5,6 +5,8 @@
 #include <stdio.h>
 #include "DParser.hpp"
 
+class CDObject;
+
 enum CDDrawType
 {
     dtLine = 1,
@@ -15,9 +17,11 @@ enum CDDrawType
     dtParabola = 6,
     dtSpline = 7,
     dtEvolvent = 8,
-    dtPath = 100,
-    dtArea = 110,
-    dtGroup = 120
+    dtPath = 100, // contains consecutive PDPathSeg objects
+    dtBorderPath = 101, // border path is a closed path solely constructed to form areas. It does not release its children
+    dtBorder = 110, // border should only contain border paths in m_pSubObjects, 1st path is the boundary, the rest are holes
+    dtArea = 111, // m_pSubObjects contain one or more dtBorder objects
+    dtGroup = 120 // contains dtArea, dtPath or any of the base types
 };
 
 enum CDDrawSubType
@@ -25,6 +29,12 @@ enum CDDrawSubType
     dstNone = 0,
     dstRectangle = 1
 };
+
+typedef struct CDPathSeg
+{
+    bool bReverse;
+    CDObject *pSegment;
+} *PDPathSeg;
 
 typedef class CDObject
 {
