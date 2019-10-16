@@ -12,6 +12,24 @@ typedef struct CDRect
     CDPoint cPt2;
 } *PDRect;
 
+typedef class CDIntList
+{
+private:
+    int m_iDataLen;
+    int m_iDataSize;
+    int *m_pData;
+public:
+    CDIntList();
+    ~CDIntList();
+    void Clear();
+    void AddPoint(int iVal);
+    void InsertPoint(int iPos, int iVal);
+    int GetCount();
+    int GetIndex(int iVal);
+    int GetPoint(int iIndex);
+    void Remove(int iIndex);
+} *PDIntList;
+
 // native reference point, the meaning differs for each curve type
 typedef class CDRefList
 {

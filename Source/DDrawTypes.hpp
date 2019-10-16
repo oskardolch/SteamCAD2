@@ -62,7 +62,6 @@ private:
     int m_iAuxInt;
     PDPtrList m_pSubObjects;
 
-    int IsClosed();
     bool IsClosedShape();
     bool BuildSubCache(CDLine cTmpPt, int iMode);
     void SavePoint(FILE *pf, bool bSwapBytes, CDPoint cPoint);
@@ -90,6 +89,7 @@ private:
     int AddDimenPrimitive(int iPos, PDDimension pDim, PDPrimObject pPrimitive, PDRect pRect);
     void SwapBounds();
     bool RemovePart(bool bDown, PDRefPoint pBounds);
+    bool IsClosedPath();
 public:
     CDObject(CDDrawType iType, double dWidth);
     ~CDObject();
@@ -162,6 +162,10 @@ public:
     int GetAuxInt();
     int GetNumParts();
     CDObject* SplitPart(PDRect pRect, PDPtrList pRegions);
+    int IsClosed();
+    bool IsBoundShape();
+    bool GetStartPoint(PDPoint pPt);
+    bool GetEndPoint(PDPoint pPt);
 } *PDObject;
 
 typedef class CDataList
@@ -221,6 +225,7 @@ public:
         bool bArrows, bool bLabels);
     bool GetSelSnapEnabled();
     void SetSelSnapEnabled(bool bEnable);
+    int CreatePath();
     bool BreakSelObjects(PDRect pRect, PDPtrList pRegions);
 } *PDataList;
 

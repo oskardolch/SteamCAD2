@@ -108,7 +108,7 @@ void CDApplication::CopyIniFiles(const char *psConfDir)
 	gchar *sFile1, *sFile2;
     GFile *gf1, *gf2;
 
-    gchar *cnfdir = g_strconcat(homedir, "/.SteamCAD", NULL);
+    gchar *cnfdir = g_strconcat(homedir, "/.SteamCAD2", NULL);
     g_mkdir(cnfdir, S_IRWXU | S_IRWXG);
 
     sFile1 = g_strconcat(cnfdir, "/DPapers.ini", NULL);
@@ -168,7 +168,7 @@ CDApplication::CDApplication(const char *psConfDir)
     /* create a new window */
     m_pMainWnd = gtk_window_new(GTK_WINDOW_TOPLEVEL);
     gtk_widget_set_size_request(m_pMainWnd, 400, 300);
-    gtk_window_set_title(GTK_WINDOW(m_pMainWnd), "SteamCAD");
+    gtk_window_set_title(GTK_WINDOW(m_pMainWnd), "SteamCAD2");
     g_signal_connect(G_OBJECT(m_pMainWnd), "delete-event", G_CALLBACK(app_delete), this);
 
     /* A vbox to put a menu and a button in: */
@@ -364,7 +364,7 @@ CDApplication::CDApplication(const char *psConfDir)
 
     if(psConfDir)
     {
-        gchar *sIcon = g_strconcat(psConfDir, "/steamcad.png", NULL);
+        gchar *sIcon = g_strconcat(psConfDir, "/steamcad2.png", NULL);
         gtk_window_set_icon_from_file(GTK_WINDOW(m_pMainWnd), (const gchar*)sIcon, NULL);
         g_free(sIcon);
     }
@@ -594,7 +594,7 @@ void od_text_elem(GMarkupParseContext *context, const gchar *text, gsize text_le
 void CDApplication::RestoreSettings()
 {
     const gchar *homedir = g_get_home_dir();
-    gchar *cnfname = g_strconcat(homedir, "/.SteamCAD/config.xml", NULL);
+    gchar *cnfname = g_strconcat(homedir, "/.SteamCAD2/config.xml", NULL);
 
     gchar *filecont = NULL;
     gsize slen = 0;
@@ -695,7 +695,7 @@ gchar* GetEscapedStr(gchar *sbuf, gchar *src, gboolean *pbFree)
 void CDApplication::SaveSettings()
 {
     const gchar *homedir = g_get_home_dir();
-    gchar *cnfdir = g_strconcat(homedir, "/.SteamCAD", NULL);
+    gchar *cnfdir = g_strconcat(homedir, "/.SteamCAD2", NULL);
     g_mkdir(cnfdir, S_IRWXU | S_IRWXG);
     gchar *cnfname = g_strconcat(cnfdir, "/config.xml", NULL);
     FILE *fp = g_fopen(cnfname, "w");
@@ -712,7 +712,7 @@ void CDApplication::SaveSettings()
     gchar *psVal1, *psVal2, *psVal3;
 
     gchar sbuf[256];
-    g_strlcpy(sbuf, "<?xml version=\"1.0\"?>\n<!--SteamCAD Workspace Settings-->\n<Settings>\n", 256);
+    g_strlcpy(sbuf, "<?xml version=\"1.0\"?>\n<!--SteamCAD2 Workspace Settings-->\n<Settings>\n", 256);
     fwrite(sbuf, sizeof(gchar), strlen(sbuf), fp);
     g_sprintf(sbuf, "  <MainForm Left=\"%d\" Top=\"%d\" Width=\"%d\" Height=\"%d\" Gravity=\"%d\"/>\n", 
         x, y, dx, dy, igr);
@@ -1835,7 +1835,7 @@ bool CDApplication::SaveFile(GtkWidget *widget, gchar **psFile, bool bSelectOnly
         g_object_set(dialog, "do_overwrite_confirmation", TRUE, NULL);
 
         GtkFileFilter *flt = gtk_file_filter_new();
-        gtk_file_filter_set_name(flt, _("SteamCAD Files"));
+        gtk_file_filter_set_name(flt, _("SteamCAD2 Files"));
         gtk_file_filter_add_pattern(flt, "*.sdr");
         gtk_file_chooser_add_filter((GtkFileChooser*)dialog, flt);
         flt = gtk_file_filter_new();
@@ -1882,7 +1882,7 @@ void CDApplication::SetTitle(GtkWidget *widget, bool bForce)
 
     m_bHasChanged = bNewHasChanged;
 
-    int iLen = strlen("SteamCAD - ");
+    int iLen = strlen("SteamCAD2 - ");
     gchar *sFileName = NULL;
     if(m_sFileName)
     {
@@ -1895,7 +1895,7 @@ void CDApplication::SetTitle(GtkWidget *widget, bool bForce)
     if(m_bHasChanged) iLen++;
 
     gchar *sCap = (gchar*)g_malloc((iLen + 1)*sizeof(gchar));
-    strcpy(sCap, "SteamCAD - ");
+    strcpy(sCap, "SteamCAD2 - ");
     if(sFileName) strcat(sCap, sFileName);
     else strcat(sCap, "new file");
     if(m_bHasChanged) strcat(sCap, "*");
@@ -2047,7 +2047,7 @@ bool CDApplication::LoadFile(GtkWidget *widget, gchar **psFile, bool bClear)
     GTK_WINDOW(widget), GTK_FILE_CHOOSER_ACTION_OPEN, GTK_STOCK_CANCEL,
     GTK_RESPONSE_CANCEL, GTK_STOCK_OPEN, GTK_RESPONSE_ACCEPT, NULL);
     GtkFileFilter *flt = gtk_file_filter_new();
-    gtk_file_filter_set_name(flt, _("SteamCAD Files"));
+    gtk_file_filter_set_name(flt, _("SteamCAD2 Files"));
     gtk_file_filter_add_pattern(flt, "*.sdr");
     gtk_file_chooser_add_filter((GtkFileChooser*)dialog, flt);
     flt = gtk_file_filter_new();
@@ -4400,6 +4400,7 @@ void CDApplication::ToolsScaleCmd()
 
 void CDApplication::PathCreateCmd()
 {
+    m_pDrawObjects->CreatePath();
 }
 
 void CDApplication::PathBreakCmd()
@@ -4418,7 +4419,7 @@ void CDApplication::PathBreakCmd()
     PDPtrList pRegions = new CDPtrList();
     pRegions->SetDblVal(m_dUnitScale);
 
-    m_pDrawObjects->BreakSelObjects(&cdr, pRegions);
+    if(m_pDrawObjects->BreakSelObjects(&cdr, pRegions))
     {
         GdkRectangle cRect;
         if(GetUpdateRegion(pRegions, &cRect))

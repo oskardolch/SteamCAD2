@@ -111,7 +111,7 @@ DExpDXF.o : Source/DExpDXF.cpp Source/DExpDXF.hpp Source/DDataTypes.hpp \
 
 
 main: $(DGuiobj)
-	$(CC) -o $(BUILDDIR)SteamCAD $(DGuimod) $(GARGS) -ldxflib
+	$(CC) -o $(BUILDDIR)SteamCAD2 $(DGuimod) $(GARGS) -ldxflib
 
 
 clean: 

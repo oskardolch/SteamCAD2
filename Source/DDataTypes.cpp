@@ -213,6 +213,82 @@ bool DPtInDRect(CDPoint cPt, PDRect pRect)
         (cPt.y < pRect->cPt2.y + g_dPrec);
 }
 
+// CDIntList
+
+CDIntList::CDIntList()
+{
+    m_iDataLen = 0;
+    m_iDataSize = 16;
+    m_pData = (int*)malloc(m_iDataSize*sizeof(int));
+}
+
+CDIntList::~CDIntList()
+{
+    free(m_pData);
+}
+
+void CDIntList::Clear()
+{
+    m_iDataLen = 0;
+}
+
+void CDIntList::AddPoint(int iVal)
+{
+    if(m_iDataLen >= m_iDataSize)
+    {
+        m_iDataSize += 16;
+        m_pData = (int*)realloc(m_pData, m_iDataSize*sizeof(int));
+    }
+    m_pData[m_iDataLen++] = iVal;
+    return;
+}
+
+void CDIntList::InsertPoint(int iPos, int iVal)
+{
+    if(m_iDataLen >= m_iDataSize)
+    {
+        m_iDataSize += 16;
+        m_pData = (int*)realloc(m_pData, m_iDataSize*sizeof(int));
+    }
+
+    memmove(&m_pData[iPos + 1], &m_pData[iPos], (m_iDataLen - iPos)*sizeof(int));
+
+    m_pData[iPos] = iVal;
+    m_iDataLen++;
+    return;
+}
+
+int CDIntList::GetCount()
+{
+    return m_iDataLen;
+}
+
+int CDIntList::GetIndex(int iVal)
+{
+    bool bFound = false;
+    int i = 0;
+    while(!bFound && (i < m_iDataLen))
+    {
+        bFound = (iVal == m_pData[i++]);
+    }
+    return bFound ? i - 1 : -1;
+}
+
+int CDIntList::GetPoint(int iIndex)
+{
+    return m_pData[iIndex];
+}
+
+void CDIntList::Remove(int iIndex)
+{
+    m_iDataLen--;
+    if(iIndex < m_iDataLen)
+    {
+        memmove(&m_pData[iIndex], &m_pData[iIndex + 1],
+            (m_iDataLen - iIndex)*sizeof(int));
+    }
+}
+
 
 // CDRefList
 

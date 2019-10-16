@@ -988,80 +988,11 @@ bool CDObject::GetBSplines(int iParts, double dScale, int *piCtrls, double **ppd
 
 bool CDObject::IsNearPoint(CDPoint cPt, double dTolerance, int *piDimen)
 {
-    *piDimen = -2;
-    double dDist = dTolerance + 1.0;
     CDLine cPtX;
     cPtX.bIsSet = false;
-    switch(m_iType)
-    {
-    case dtLine:
-        dDist = GetLineDistFromPt(cPt, m_pCachePoints, &cPtX);
-        break;
-    case dtCircle:
-        dDist = GetCircDistFromPt(cPt, cPt, true, m_pCachePoints, &cPtX);
-        break;
-    case dtEllipse:
-        dDist = GetElpsDistFromPt(cPt, cPt, 1, m_pCachePoints, &cPtX, m_cBounds);
-        break;
-    case dtArcEllipse:
-        dDist = GetArcElpsDistFromPt(cPt, cPt, 1, m_pCachePoints, &cPtX, m_cBounds);
-        break;
-    case dtHyperbola:
-        dDist = GetHyperDistFromPt(cPt, cPt, 1, m_pCachePoints, &cPtX, m_cBounds);
-        break;
-    case dtParabola:
-        dDist = GetParabDistFromPt(cPt, cPt, 1, m_pCachePoints, &cPtX, m_cBounds);
-        break;
-    case dtSpline:
-        dDist = GetSplineDistFromPt(cPt, cPt, m_pCachePoints, &cPtX);
-        break;
-    case dtEvolvent:
-        dDist = GetEvolvDistFromPt(cPt, cPt, m_pCachePoints, &cPtX);
-        break;
-    }
-
-    PDDimension pDim;
-    double dDist1;
-    CDPoint cPt1, cPt2;
-    for(int i = 0; i < m_pDimens->GetCount(); i++)
-    {
-        pDim = (PDDimension)m_pDimens->GetItem(i);
-        GetNativeRefPoint(pDim->dRef1, &cPt1);
-        dDist1 = GetDist(cPt, cPt1);
-        if(dDist1 < fabs(dDist))
-        {
-            dDist = dDist1;
-            *piDimen = i;
-            cPtX.bIsSet = true;
-            cPtX.cOrigin = cPt1;
-            cPtX.dRef = pDim->dRef1;
-        }
-        GetNativeRefPoint(pDim->dRef2, &cPt1);
-        dDist1 = GetDist(cPt, cPt1);
-        if(dDist1 < fabs(dDist))
-        {
-            dDist = dDist1;
-            *piDimen = i;
-            cPtX.bIsSet = true;
-            cPtX.cOrigin = cPt1;
-            cPtX.dRef = pDim->dRef2;
-        }
-        cPt1.x = -sin(pDim->cLabelPos.dOrientation);
-        cPt1.y = cos(pDim->cLabelPos.dOrientation);
-        cPt2 = Rotate(cPt - pDim->cLabelPos.cPoint, cPt1, false);
-        if(DPtInDRect(cPt2, &pDim->cExt))
-        {
-            dDist = 0.0;
-            *piDimen = i;
-            cPtX.bIsSet = true;
-            cPtX.cOrigin = pDim->cLabelPos.cPoint;
-            cPtX.dRef = (pDim->dRef1 + pDim->dRef2)/2.0;
-        }
-    }
+    double dDist = GetDistFromPt(cPt, cPt, true, &cPtX, piDimen);
 
     if(!cPtX.bIsSet) return false;
-
-    BoundPoint(cPt, &cPtX, &dDist);
 
     return fabs(dDist) < dTolerance;
 }
@@ -1556,6 +1487,24 @@ CDObject* CDObject::Copy()
     return pRes;
 }
 
+bool CDObject::IsClosedPath()
+{
+    int n = m_pSubObjects->GetCount();
+    if(n < 1) return false;
+    PDPathSeg pSeg = (PDPathSeg)m_pSubObjects->GetItem(0);
+    if(n < 2) return pSeg->pSegment->IsClosedShape();
+
+    CDPoint cPt1, cPt2;
+    if(pSeg->bReverse) pSeg->pSegment->GetEndPoint(&cPt1);
+    else pSeg->pSegment->GetStartPoint(&cPt1);
+
+    pSeg = (PDPathSeg)m_pSubObjects->GetItem(n - 1);
+    if(pSeg->bReverse) pSeg->pSegment->GetStartPoint(&cPt2);
+    else pSeg->pSegment->GetEndPoint(&cPt2);
+
+    return GetDist(cPt1, cPt2) < g_dPrec;
+}
+
 bool CDObject::IsClosedShape()
 {
     switch(m_iType)
@@ -1567,8 +1516,10 @@ bool CDObject::IsClosedShape()
     case dtSpline:
         if(m_pInputPoints->GetCount(1) < 1) return false;
         return true;
+    case dtPath:
+        return IsClosedPath();
     default:
-        return false;
+        return m_iType > dtPath;
     }
 }
 
@@ -1593,8 +1544,16 @@ int CDObject::IsClosed()
             return 1;
         }
         return 2;
-    default:
+    case dtPath:
+        if(IsClosedPath())
+        {
+            if(m_cBounds[0].bIsSet) return 1;
+            return 2;
+        }
         return 0;
+    default:
+        if(m_iType < dtPath) return 0;
+        return 2;
     }
 }
 
@@ -3296,6 +3255,37 @@ CDObject* CDObject::SplitPart(PDRect pRect, PDPtrList pRegions)
     return pNewObj;
 }
 
+bool CDObject::IsBoundShape()
+{
+    switch(m_iType)
+    {
+    case dtLine:
+    case dtHyperbola:
+    case dtParabola:
+        return m_cBounds[0].bIsSet && m_cBounds[1].bIsSet;
+    case dtEvolvent:
+        return m_cBounds[1].bIsSet;
+    default:
+        return true;
+    }
+}
+
+bool CDObject::GetStartPoint(PDPoint pPt)
+{
+    if(m_iType > dtPath) return false;
+    if(IsClosed() > 0) return false;
+    if(!m_cBounds[0].bIsSet) return false;
+    return GetNativeRefPoint(m_cBounds[0].dRef, pPt);
+}
+
+bool CDObject::GetEndPoint(PDPoint pPt)
+{
+    if(m_iType > dtPath) return false;
+    if(IsClosed() > 0) return false;
+    if(!m_cBounds[1].bIsSet) return false;
+    return GetNativeRefPoint(m_cBounds[1].dRef, pPt);
+}
+
 
 // CDataList
 
@@ -4421,6 +4411,31 @@ void CDataList::SetSelSnapEnabled(bool bEnable)
         pObj = m_ppObjects[i];
         if(pObj->GetSelected()) pObj->SetSnapTo(bEnable);
     }
+}
+
+int CDataList::CreatePath()
+{
+    PDObject pObj, pNewObj;
+    int iParts;
+    int iRes = 0;
+    int i = m_iDataLen;
+    PDIntList pSelObjs = new CDIntList();
+
+    //pNewObj = new CDObject(dtPath
+
+    while((i > 0) && (iRes == 0))
+    {
+        pObj = m_ppObjects[--i];
+        if(pObj->GetSelected())
+        {
+            if(pObj->IsBoundShape() && (pObj->IsClosed() < 2) && (pObj->GetType() <= dtPath))
+            {
+                pSelObjs->AddPoint(i);
+            }
+        }
+    }
+
+    return iRes;
 }
 
 bool CDataList::BreakSelObjects(PDRect pRect, PDPtrList pRegions)
