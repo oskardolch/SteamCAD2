@@ -22,12 +22,13 @@ public:
     CDIntList();
     ~CDIntList();
     void Clear();
-    void AddPoint(int iVal);
-    void InsertPoint(int iPos, int iVal);
+    void AddItem(int iVal);
+    void InsertItem(int iPos, int iVal);
     int GetCount();
     int GetIndex(int iVal);
-    int GetPoint(int iIndex);
+    int GetItem(int iIndex);
     void Remove(int iIndex);
+    void RemoveItem(int iVal);
 } *PDIntList;
 
 // native reference point, the meaning differs for each curve type

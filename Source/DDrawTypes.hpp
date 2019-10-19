@@ -166,6 +166,7 @@ public:
     bool IsBoundShape();
     bool GetStartPoint(PDPoint pPt);
     bool GetEndPoint(PDPoint pPt);
+    void BuildPath(CDObject **ppObjects, PDIntList pPath);
 } *PDObject;
 
 typedef class CDataList
@@ -177,6 +178,9 @@ private:
     CDFileAttrs m_cFileAttrs;
     bool m_bHasChanged;
     int GetTangSnap(CDPoint cPt, double dDist, bool bNewPt, PDLine pSnapPt, PDObject pObj, PDObject pDynObj);
+    int GetNextSeg(PDIntList pSelObjs, PDIntList pPath, CDPoint cPt, PDPoint pPt1, PDPoint pPt2);
+    bool BuildPath(PDIntList pSelObjs, PDIntList pSel2, PDIntList pPath);
+    bool BuildPaths(PDIntList pSelObjs, PDPtrList pPaths);
 public:
     CDataList();
     ~CDataList();

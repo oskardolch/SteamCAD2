@@ -3286,6 +3286,21 @@ bool CDObject::GetEndPoint(PDPoint pPt)
     return GetNativeRefPoint(m_cBounds[1].dRef, pPt);
 }
 
+void CDObject::BuildPath(CDObject **ppObjects, PDIntList pPath)
+{
+    int n = pPath->GetCount();
+    PDPathSeg pSeg;
+    int iIdx;
+    for(int i = 0; i < n; i++)
+    {
+        iIdx = pPath->GetItem(i);
+        pSeg = (PDPathSeg)malloc(sizeof(CDPathSeg));
+        pSeg->bReverse = iIdx < 0;
+        pSeg->pSegment = ppObjects[abs(iIdx)];
+        m_pSubObjects->Add(pSeg);
+    }
+}
+
 
 // CDataList
 
@@ -4413,27 +4428,163 @@ void CDataList::SetSelSnapEnabled(bool bEnable)
     }
 }
 
+int CDataList::GetNextSeg(PDIntList pSelObjs, PDIntList pPath, CDPoint cPt, PDPoint pPt1, PDPoint pPt2)
+{
+    int n = pPath->GetCount();
+    int iIdxLast = abs(pPath->GetItem(n - 1));
+
+    n = pSelObjs->GetCount();
+    if(n < 2) return 0;
+
+    int iIdx, i = 1;
+    bool bFound = false;
+    PDObject pObj;
+    double dDist;
+
+    while(!bFound && (i < n))
+    {
+        iIdx = pSelObjs->GetItem(i++);
+        if(iIdx != iIdxLast)
+        {
+            pObj = m_ppObjects[iIdx];
+            pObj->GetStartPoint(pPt1);
+            pObj->GetEndPoint(pPt2);
+            dDist = GetDist(cPt, *pPt1);
+            if(dDist < g_dPrec) bFound = true;
+            else
+            {
+                dDist = GetDist(cPt, *pPt2);
+                if(dDist < g_dPrec)
+                {
+                    iIdx *= -1;
+                    bFound = true;
+                }
+            }
+        }
+    }
+
+    return bFound ? iIdx : 0;
+}
+
+bool CDataList::BuildPath(PDIntList pSelObjs, PDIntList pSel2, PDIntList pPath)
+{
+    CDPoint cPt1, cPt2, cPt3, cPt4;
+    int n = pSel2->GetCount();
+    if(n < 2)
+    {
+        if(n > 0)
+        {
+            pSelObjs->RemoveItem(pSel2->GetItem(0));
+            pSel2->Remove(0);
+        }
+        return false;
+    }
+
+    int iSeg = pSel2->GetItem(0);
+    PDObject pObj = m_ppObjects[iSeg];
+    pObj->GetStartPoint(&cPt1);
+    pObj->GetEndPoint(&cPt2);
+
+    pPath->AddItem(iSeg);
+
+    iSeg = GetNextSeg(pSel2, pPath, cPt2, &cPt3, &cPt4);
+    double dDist;
+    while(iSeg != 0)
+    {
+        pPath->AddItem(iSeg);
+        if(iSeg > 0) dDist = GetDist(cPt1, cPt4);
+        else dDist - GetDist(cPt1, cPt3);
+        if(dDist < g_dPrec) iSeg = 0;
+        else iSeg = GetNextSeg(pSel2, pPath, cPt2, &cPt3, &cPt4);
+    }
+
+    n = pPath->GetCount();
+    if(n < 2)
+    {
+        for(int i = 0; i < n; i++) pSelObjs->RemoveItem(abs(pPath->GetItem(i)));
+    }
+    for(int i = 0; i < n; i++) pSel2->RemoveItem(abs(pPath->GetItem(i)));
+
+    return n > 1;    
+}
+
+bool CDataList::BuildPaths(PDIntList pSelObjs, PDPtrList pPaths)
+{
+    int n = pSelObjs->GetCount();
+    if(n < 1) return false;
+
+    PDIntList pPath, pSel2 = new CDIntList();
+    for(int i = 0; i < n; i++) pSel2->AddItem(pSelObjs->GetItem(i));
+
+    pPath = new CDIntList();
+    bool bRes;
+
+    while(n > 0)
+    {
+        bRes = BuildPath(pSelObjs, pSel2, pPath);
+        if(bRes)
+        {
+            pPaths->Add(pPath);
+            pPath = new CDIntList();
+        }
+        else pPath->Clear();
+
+        n = pSel2->GetCount();
+    }
+
+    delete pSel2;
+    return pPaths->GetCount() > 0;
+}
+
 int CDataList::CreatePath()
 {
     PDObject pObj, pNewObj;
-    int iParts;
-    int iRes = 0;
-    int i = m_iDataLen;
-    PDIntList pSelObjs = new CDIntList();
+    int n, i = m_iDataLen;
+    PDIntList pPath, pSelObjs;
+    pSelObjs = new CDIntList();
 
-    //pNewObj = new CDObject(dtPath
-
-    while((i > 0) && (iRes == 0))
+    while(i > 0)
     {
         pObj = m_ppObjects[--i];
         if(pObj->GetSelected())
         {
             if(pObj->IsBoundShape() && (pObj->IsClosed() < 2) && (pObj->GetType() <= dtPath))
             {
-                pSelObjs->AddPoint(i);
+                pSelObjs->AddItem(i);
             }
         }
     }
+
+    n = pSelObjs->GetCount();
+    if(n < 2)
+    {
+        delete pSelObjs;
+        return 0;
+    }
+
+    int iRes = 0;
+
+    PDPtrList pPaths = new CDPtrList();
+    CDLineStyle cSt;
+    if(BuildPaths(pSelObjs, pPaths))
+    {
+        iRes = pPaths->GetCount();
+        for(i = 0; i < iRes; i++)
+        {
+            pPath = (PDIntList)pPaths->GetItem(i);
+            pObj = m_ppObjects[pPath->GetItem(0)];
+            cSt = pObj->GetLineStyle();
+            pNewObj = new CDObject(dtPath, cSt.dWidth);
+            pNewObj->BuildPath(m_ppObjects, pPath);
+            Add(pNewObj);
+            delete pPath;
+        }
+
+        for(i = 0; i < n; i++) Remove(pSelObjs->GetItem(i), false);
+    }
+
+    delete pPaths;
+    delete pSelObjs;
 
     return iRes;
 }

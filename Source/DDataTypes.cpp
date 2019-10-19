@@ -232,7 +232,7 @@ void CDIntList::Clear()
     m_iDataLen = 0;
 }
 
-void CDIntList::AddPoint(int iVal)
+void CDIntList::AddItem(int iVal)
 {
     if(m_iDataLen >= m_iDataSize)
     {
@@ -243,7 +243,7 @@ void CDIntList::AddPoint(int iVal)
     return;
 }
 
-void CDIntList::InsertPoint(int iPos, int iVal)
+void CDIntList::InsertItem(int iPos, int iVal)
 {
     if(m_iDataLen >= m_iDataSize)
     {
@@ -274,7 +274,7 @@ int CDIntList::GetIndex(int iVal)
     return bFound ? i - 1 : -1;
 }
 
-int CDIntList::GetPoint(int iIndex)
+int CDIntList::GetItem(int iIndex)
 {
     return m_pData[iIndex];
 }
@@ -287,6 +287,12 @@ void CDIntList::Remove(int iIndex)
         memmove(&m_pData[iIndex], &m_pData[iIndex + 1],
             (m_iDataLen - iIndex)*sizeof(int));
     }
+}
+
+void CDIntList::RemoveItem(int iVal)
+{
+    int iPos = GetIndex(iVal);
+    if(iPos > -1) Remove(iPos);
 }
 
 
