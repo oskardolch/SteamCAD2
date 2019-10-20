@@ -90,6 +90,8 @@ private:
     void SwapBounds();
     bool RemovePart(bool bDown, PDRefPoint pBounds);
     bool IsClosedPath();
+    int BuildPathPrimitives(CDLine cTmpPt, int iMode, PDRect pRect, int iTemp, PDPrimObject plPrimitive,
+        double dExt, double *pdMovedDist, PDPoint pBnds);
 public:
     CDObject(CDDrawType iType, double dWidth);
     ~CDObject();
@@ -99,6 +101,8 @@ public:
     void Redo();
     // iMode: 0 - normal, 1 - inserting, 2 - buffering, 3 - rounding
     bool BuildCache(CDLine cTmpPt, int iMode);
+    int BuildPurePrimitives(CDLine cTmpPt, int iMode, PDRect pRect, int iTemp, PDPrimObject plPrimitive,
+        double dExt, double *pdMovedDist, PDPoint pBnds);
     // returns 0 - not in rect, 1 - partially in rect, 2 - full in rect
     int BuildPrimitives(CDLine cTmpPt, int iMode, PDRect pRect, int iTemp, PDFileAttrs pAttrs);
     void GetFirstPrimitive(PDPrimitive pPrim, double dScale, int iDimen);
@@ -178,6 +182,7 @@ private:
     CDFileAttrs m_cFileAttrs;
     bool m_bHasChanged;
     int GetTangSnap(CDPoint cPt, double dDist, bool bNewPt, PDLine pSnapPt, PDObject pObj, PDObject pDynObj);
+    int GetFirstSeg(PDIntList pSelObjs, PDIntList pPath, CDPoint cPt1, CDPoint cPt2, PDPoint pPt1, PDPoint pPt2, bool *pbReverseFirst);
     int GetNextSeg(PDIntList pSelObjs, PDIntList pPath, CDPoint cPt, PDPoint pPt1, PDPoint pPt2);
     bool BuildPath(PDIntList pSelObjs, PDIntList pSel2, PDIntList pPath);
     bool BuildPaths(PDIntList pSelObjs, PDPtrList pPaths);

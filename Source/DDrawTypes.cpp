@@ -405,12 +405,70 @@ int CDObject::AddDimenPrimitive(int iPos, PDDimension pDim, PDPrimObject pPrimit
     return 0;
 }
 
-int CDObject::BuildPrimitives(CDLine cTmpPt, int iMode, PDRect pRect, int iTemp, PDFileAttrs pAttrs)
+int CDObject::BuildPathPrimitives(CDLine cTmpPt, int iMode, PDRect pRect, int iTemp, PDPrimObject plPrimitive,
+    double dExt, double *pdMovedDist, PDPoint pBnds)
 {
-//wchar_t buf[128];
-//SendMessage(g_hStatus, SB_SETTEXT, 2, (LPARAM)L"");
+    PDPathSeg pSeg;
+    int n = m_pSubObjects->GetCount();
+    int iType, iCurRes;
     int iRes = 0;
 
+    for(int i = 0; i < n; i++)
+    {
+        pSeg = (PDPathSeg)m_pSubObjects->GetItem(i);
+        iCurRes = pSeg->pSegment->BuildPurePrimitives(cTmpPt, iMode, pRect, iTemp, plPrimitive, dExt, pdMovedDist, pBnds);
+        if((iRes < 1) || ((iCurRes > 0) && (iCurRes < iRes))) iRes = iCurRes;
+    }
+    return iRes;
+}
+
+int CDObject::BuildPurePrimitives(CDLine cTmpPt, int iMode, PDRect pRect, int iTemp, PDPrimObject plPrimitive,
+    double dExt, double *pdMovedDist, PDPoint pBnds)
+{
+    int iRes = 0;
+    switch(m_iType)
+    {
+    case dtLine:
+        iRes = BuildLinePrimitives(cTmpPt, iMode, pRect, m_pInputPoints, m_pCachePoints,
+            plPrimitive, m_cBounds, dExt, pdMovedDist, pBnds);
+        break;
+    case dtCircle:
+        iRes = BuildCircPrimitives(cTmpPt, iMode, pRect, m_pInputPoints, m_pCachePoints,
+            plPrimitive, m_cLines, m_cBounds, dExt, pdMovedDist, pBnds);
+        break;
+    case dtEllipse:
+        iRes = BuildEllipsePrimitives(cTmpPt, iMode, pRect, m_pInputPoints, m_pCachePoints,
+            plPrimitive, m_cLines, m_cBounds, dExt, pdMovedDist, pBnds, iTemp == 1);
+        break;
+    case dtArcEllipse:
+        iRes = BuildArcElpsPrimitives(cTmpPt, iMode, pRect, m_pInputPoints, m_pCachePoints,
+            plPrimitive, m_cLines, m_cBounds, dExt, pdMovedDist, pBnds);
+        break;
+    case dtHyperbola:
+        iRes = BuildHyperPrimitives(cTmpPt, iMode, pRect, m_pInputPoints, m_pCachePoints,
+            plPrimitive, m_cLines, m_cBounds, dExt, pdMovedDist, pBnds, iTemp == 1);
+        break;
+    case dtParabola:
+        iRes = BuildParabPrimitives(cTmpPt, iMode, pRect, m_pInputPoints, m_pCachePoints,
+            plPrimitive, m_cLines, m_cBounds, dExt, pdMovedDist, pBnds, iTemp == 1);
+        break;
+    case dtSpline:
+        iRes = BuildSplinePrimitives(cTmpPt, iMode, pRect, m_pInputPoints, m_pCachePoints,
+            plPrimitive, m_cBounds, dExt, pdMovedDist, pBnds, iTemp == 1);
+        break;
+    case dtEvolvent:
+        iRes = BuildEvolvPrimitives(cTmpPt, iMode, pRect, m_pInputPoints, m_pCachePoints,
+            plPrimitive, m_cLines, m_cBounds, dExt, pdMovedDist, pBnds, iTemp == 1);
+        break;
+    case dtPath:
+        iRes = BuildPathPrimitives(cTmpPt, iMode, pRect, iTemp, plPrimitive, dExt, pdMovedDist, pBnds);
+        break;
+    }
+    return iRes;
+}
+
+int CDObject::BuildPrimitives(CDLine cTmpPt, int iMode, PDRect pRect, int iTemp, PDFileAttrs pAttrs)
+{
     PDPrimObject plPrimitive = m_pPrimitive;
     if(iTemp > 1) plPrimitive = new CDPrimObject();
     plPrimitive->Clear();
@@ -423,42 +481,7 @@ int CDObject::BuildPrimitives(CDLine cTmpPt, int iMode, PDRect pRect, int iTemp,
     CDPoint cBnds;
     double dExt = m_cLineStyle.dPercent*m_cLineStyle.dWidth/200.0;
 
-    switch(m_iType)
-    {
-    case dtLine:
-        iRes = BuildLinePrimitives(cTmpPt, iMode, &cRect, m_pInputPoints, m_pCachePoints,
-            plPrimitive, m_cBounds, dExt, &m_dMovedDist, &cBnds);
-        break;
-    case dtCircle:
-        iRes = BuildCircPrimitives(cTmpPt, iMode, &cRect, m_pInputPoints, m_pCachePoints,
-            plPrimitive, m_cLines, m_cBounds, dExt, &m_dMovedDist, &cBnds);
-        break;
-    case dtEllipse:
-        iRes = BuildEllipsePrimitives(cTmpPt, iMode, &cRect, m_pInputPoints, m_pCachePoints,
-            plPrimitive, m_cLines, m_cBounds, dExt, &m_dMovedDist, &cBnds, iTemp == 1);
-        break;
-    case dtArcEllipse:
-        iRes = BuildArcElpsPrimitives(cTmpPt, iMode, &cRect, m_pInputPoints, m_pCachePoints,
-            plPrimitive, m_cLines, m_cBounds, dExt, &m_dMovedDist, &cBnds);
-        break;
-    case dtHyperbola:
-        iRes = BuildHyperPrimitives(cTmpPt, iMode, &cRect, m_pInputPoints, m_pCachePoints,
-            plPrimitive, m_cLines, m_cBounds, dExt, &m_dMovedDist, &cBnds, iTemp == 1);
-        break;
-    case dtParabola:
-        iRes = BuildParabPrimitives(cTmpPt, iMode, &cRect, m_pInputPoints, m_pCachePoints,
-            plPrimitive, m_cLines, m_cBounds, dExt, &m_dMovedDist, &cBnds, iTemp == 1);
-        break;
-    case dtSpline:
-        iRes = BuildSplinePrimitives(cTmpPt, iMode, &cRect, m_pInputPoints, m_pCachePoints,
-            plPrimitive, m_cBounds, dExt, &m_dMovedDist, &cBnds, iTemp == 1);
-        break;
-    case dtEvolvent:
-        iRes = BuildEvolvPrimitives(cTmpPt, iMode, &cRect, m_pInputPoints, m_pCachePoints,
-            plPrimitive, m_cLines, m_cBounds, dExt, &m_dMovedDist, &cBnds, iTemp == 1);
-        break;
-    }
-
+    int iRes = BuildPurePrimitives(cTmpPt, iMode, &cRect, iTemp, plPrimitive, dExt, &m_dMovedDist, &cBnds);
     int nCrs = m_pCrossPoints->GetCount();
 
     if((iTemp < 1) && (iRes > 0) && (m_cLineStyle.iSegments > 0))
@@ -4428,6 +4451,60 @@ void CDataList::SetSelSnapEnabled(bool bEnable)
     }
 }
 
+int CDataList::GetFirstSeg(PDIntList pSelObjs, PDIntList pPath, CDPoint cPt1, CDPoint cPt2, PDPoint pPt1, PDPoint pPt2,
+    bool *pbReverseFirst)
+{
+    *pbReverseFirst = false;
+    int n = pPath->GetCount();
+    int iIdxLast = abs(pPath->GetItem(n - 1));
+
+    n = pSelObjs->GetCount();
+    if(n < 2) return 0;
+
+    int iIdx, i = 1;
+    int iIdxPrev = 0;
+    int iFound = 0;
+    PDObject pObj;
+    double dDist;
+
+    while((iFound == 0) && (i < n))
+    {
+        iIdx = pSelObjs->GetItem(i++);
+        if(iIdx != iIdxLast)
+        {
+            pObj = m_ppObjects[iIdx];
+            pObj->GetStartPoint(pPt1);
+            pObj->GetEndPoint(pPt2);
+            dDist = GetDist(cPt1, *pPt1);
+            if(dDist < g_dPrec) iIdxPrev = i - 1;
+            else
+            {
+                dDist = GetDist(cPt1, *pPt2);
+                if(dDist < g_dPrec) iIdxPrev = 1 - i;
+            }
+            dDist = GetDist(cPt2, *pPt1);
+            if(dDist < g_dPrec)
+            {
+                iFound = 1;
+            }
+            else
+            {
+                dDist = GetDist(cPt2, *pPt2);
+                if(dDist < g_dPrec) iFound = 2;
+            }
+        }
+    }
+
+    if(iFound > 1) return 1 - i;
+    if(iFound > 0) return i - 1;
+    if(iIdxPrev != 0)
+    {
+        *pbReverseFirst = true;
+        return iIdxPrev;
+    }
+    return 0;
+}
+
 int CDataList::GetNextSeg(PDIntList pSelObjs, PDIntList pPath, CDPoint cPt, PDPoint pPt1, PDPoint pPt2)
 {
     int n = pPath->GetCount();
@@ -4437,11 +4514,11 @@ int CDataList::GetNextSeg(PDIntList pSelObjs, PDIntList pPath, CDPoint cPt, PDPo
     if(n < 2) return 0;
 
     int iIdx, i = 1;
-    bool bFound = false;
+    int iFound = 0;
     PDObject pObj;
     double dDist;
 
-    while(!bFound && (i < n))
+    while((iFound == 0) && (i < n))
     {
         iIdx = pSelObjs->GetItem(i++);
         if(iIdx != iIdxLast)
@@ -4450,20 +4527,18 @@ int CDataList::GetNextSeg(PDIntList pSelObjs, PDIntList pPath, CDPoint cPt, PDPo
             pObj->GetStartPoint(pPt1);
             pObj->GetEndPoint(pPt2);
             dDist = GetDist(cPt, *pPt1);
-            if(dDist < g_dPrec) bFound = true;
+            if(dDist < g_dPrec) iFound = 1;
             else
             {
                 dDist = GetDist(cPt, *pPt2);
-                if(dDist < g_dPrec)
-                {
-                    iIdx *= -1;
-                    bFound = true;
-                }
+                if(dDist < g_dPrec) iFound = 2;
             }
         }
     }
 
-    return bFound ? iIdx : 0;
+    if(iFound > 1) return 1 - i;
+    if(iFound > 0) return i - 1;
+    return 0;
 }
 
 bool CDataList::BuildPath(PDIntList pSelObjs, PDIntList pSel2, PDIntList pPath)
@@ -4487,21 +4562,40 @@ bool CDataList::BuildPath(PDIntList pSelObjs, PDIntList pSel2, PDIntList pPath)
 
     pPath->AddItem(iSeg);
 
-    iSeg = GetNextSeg(pSel2, pPath, cPt2, &cPt3, &cPt4);
-    double dDist;
-    while(iSeg != 0)
+    bool bReverseFirst;
+    int iNext = GetFirstSeg(pSel2, pPath, cPt1, cPt2, &cPt3, &cPt4, &bReverseFirst);
+    if(bReverseFirst)
     {
-        pPath->AddItem(iSeg);
-        if(iSeg > 0) dDist = GetDist(cPt1, cPt4);
-        else dDist - GetDist(cPt1, cPt3);
-        if(dDist < g_dPrec) iSeg = 0;
-        else iSeg = GetNextSeg(pSel2, pPath, cPt2, &cPt3, &cPt4);
+        pPath->SetItem(0, -iSeg);
+        cPt1 = cPt2;
+    }
+
+    double dDist;
+    while(iNext != 0)
+    {
+        if(iNext > 0)
+        {
+            pPath->AddItem(pSel2->GetItem(iNext));
+            dDist = GetDist(cPt1, cPt4);
+            cPt2 = cPt3;
+        }
+        else
+        {
+            pPath->AddItem(-pSel2->GetItem(-iNext));
+            dDist = GetDist(cPt1, cPt3);
+            cPt2 = cPt4;
+        }
+        if(dDist < g_dPrec) iNext = 0;
+        else iNext = GetNextSeg(pSel2, pPath, cPt2, &cPt3, &cPt4);
     }
 
     n = pPath->GetCount();
     if(n < 2)
     {
-        for(int i = 0; i < n; i++) pSelObjs->RemoveItem(abs(pPath->GetItem(i)));
+        for(int i = 0; i < n; i++)
+        {
+            pSelObjs->RemoveItem(abs(pPath->GetItem(i)));
+        }
     }
     for(int i = 0; i < n; i++) pSel2->RemoveItem(abs(pPath->GetItem(i)));
 
@@ -4572,7 +4666,7 @@ int CDataList::CreatePath()
         for(i = 0; i < iRes; i++)
         {
             pPath = (PDIntList)pPaths->GetItem(i);
-            pObj = m_ppObjects[pPath->GetItem(0)];
+            pObj = m_ppObjects[abs(pPath->GetItem(0))];
             cSt = pObj->GetLineStyle();
             pNewObj = new CDObject(dtPath, cSt.dWidth);
             pNewObj->BuildPath(m_ppObjects, pPath);
@@ -4580,6 +4674,7 @@ int CDataList::CreatePath()
             delete pPath;
         }
 
+        n = pSelObjs->GetCount();
         for(i = 0; i < n; i++) Remove(pSelObjs->GetItem(i), false);
     }
 

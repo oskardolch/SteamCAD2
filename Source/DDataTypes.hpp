@@ -24,6 +24,7 @@ public:
     void Clear();
     void AddItem(int iVal);
     void InsertItem(int iPos, int iVal);
+    void SetItem(int iPos, int iVal);
     int GetCount();
     int GetIndex(int iVal);
     int GetItem(int iIndex);

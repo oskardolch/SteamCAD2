@@ -258,6 +258,11 @@ void CDIntList::InsertItem(int iPos, int iVal)
     return;
 }
 
+void CDIntList::SetItem(int iPos, int iVal)
+{
+    m_pData[iPos] = iVal;
+}
+
 int CDIntList::GetCount()
 {
     return m_iDataLen;
