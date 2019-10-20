@@ -3479,6 +3479,12 @@ bool CDObject::GetStartPoint(PDPoint pPt)
 {
     if(m_iType > dtPath) return false;
     if(IsClosed() > 0) return false;
+    if(m_iType == dtPath)
+    {
+        PDPathSeg pSeg = (PDPathSeg)m_pSubObjects->GetItem(0);
+        if(pSeg->bReverse) return pSeg->pSegment->GetEndPoint(pPt);
+        return pSeg->pSegment->GetStartPoint(pPt);
+    }
     if(!m_cBounds[0].bIsSet) return false;
     return GetNativeRefPoint(m_cBounds[0].dRef, pPt);
 }
@@ -3487,6 +3493,13 @@ bool CDObject::GetEndPoint(PDPoint pPt)
 {
     if(m_iType > dtPath) return false;
     if(IsClosed() > 0) return false;
+    if(m_iType == dtPath)
+    {
+        int n = m_pSubObjects->GetCount();
+        PDPathSeg pSeg = (PDPathSeg)m_pSubObjects->GetItem(n - 1);
+        if(pSeg->bReverse) return pSeg->pSegment->GetStartPoint(pPt);
+        return pSeg->pSegment->GetEndPoint(pPt);
+    }
     if(!m_cBounds[1].bIsSet) return false;
     return GetNativeRefPoint(m_cBounds[1].dRef, pPt);
 }
@@ -3495,14 +3508,42 @@ void CDObject::BuildPath(CDObject **ppObjects, PDIntList pPath)
 {
     int n = pPath->GetCount();
     PDPathSeg pSeg;
-    int iIdx;
+    PDObject pObj;
+    int iIdx, iType;
     for(int i = 0; i < n; i++)
     {
         iIdx = pPath->GetItem(i);
-        pSeg = (PDPathSeg)malloc(sizeof(CDPathSeg));
-        pSeg->bReverse = iIdx < 0;
-        pSeg->pSegment = ppObjects[abs(iIdx)];
-        m_pSubObjects->Add(pSeg);
+        pObj = ppObjects[abs(iIdx)];
+        iType = pObj->GetType();
+        if(iType < dtPath)
+        {
+            pSeg = (PDPathSeg)malloc(sizeof(CDPathSeg));
+            pSeg->bReverse = iIdx < 0;
+            pSeg->pSegment = pObj;
+            m_pSubObjects->Add(pSeg);
+        }
+        else if(iType == dtPath)
+        {
+            if(iIdx < 0)
+            {
+                for(int j = pObj->m_pSubObjects->GetCount() - 1; j >= 0; j--)
+                {
+                    pSeg = (PDPathSeg)pObj->m_pSubObjects->GetItem(j);
+                    pSeg->bReverse = !pSeg->bReverse;
+                    m_pSubObjects->Add(pSeg);
+                }
+            }
+            else
+            {
+                for(int j = 0; j < pObj->m_pSubObjects->GetCount(); j++)
+                {
+                    pSeg = (PDPathSeg)pObj->m_pSubObjects->GetItem(j);
+                    m_pSubObjects->Add(pSeg);
+                }
+            }
+            pObj->m_pSubObjects->Clear();
+            delete pObj;
+        }
     }
 }
 
@@ -4736,13 +4777,13 @@ bool CDataList::BuildPath(PDIntList pSelObjs, PDIntList pSel2, PDIntList pPath)
             {
                 pPath->AddItem(pSel2->GetItem(iNext));
                 dDist = GetDist(cPt1, cPt4);
-                cPt2 = cPt3;
+                cPt2 = cPt4;
             }
             else
             {
                 pPath->AddItem(-pSel2->GetItem(-iNext));
                 dDist = GetDist(cPt1, cPt3);
-                cPt2 = cPt4;
+                cPt2 = cPt3;
             }
         }
         if(dDist < g_dPrec) iNext = 0;
