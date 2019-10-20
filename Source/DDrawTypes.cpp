@@ -1024,25 +1024,121 @@ bool CDObject::GetNativeReference(double dDist, double *pdRef)
 {
     switch(m_iType)
     {
-    case 1:
+    case dtLine:
         return GetLineReference(dDist, m_pCachePoints, pdRef);
-    case 2:
+    case dtCircle:
         return GetCircReference(dDist, m_pCachePoints, pdRef);
-    case 3:
+    case dtEllipse:
         return GetElpsReference(dDist, m_pCachePoints, pdRef);
-    case 4:
+    case dtArcEllipse:
         return GetArcElpsReference(dDist, m_pCachePoints, pdRef);
-    case 5:
+    case dtHyperbola:
         return GetHyperReference(dDist, m_pCachePoints, pdRef);
-    case 6:
+    case dtParabola:
         return GetParabReference(dDist, m_pCachePoints, pdRef);
-    case 7:
+    case dtSpline:
         return GetSplineReference(dDist, m_pCachePoints, pdRef);
-    case 8:
+    case dtEvolvent:
         return GetEvolvReference(dDist, m_pCachePoints, pdRef);
+    case dtPath:
+        *pdRef = dDist;
+        return true;
     default:
         return false;
     }
+}
+
+double CDObject::GetLength()
+{
+    if(m_iType < dtPath)
+    {
+        if(!(m_cBounds[0].bIsSet && m_cBounds[1].bIsSet)) return 0.0;
+
+        double d1, d2;
+        GetPointRefDist(m_cBounds[0].dRef, &d1);
+        GetPointRefDist(m_cBounds[1].dRef, &d2);
+        return d2 - d1;
+    }
+
+    double dTotLen = 0.0;
+
+    if(m_iType == dtPath)
+    {
+        int n = m_pSubObjects->GetCount();
+        if(n < 1) return 0.0;
+
+        PDPathSeg pSeg;
+        for(int i = 0; i < n; i++)
+        {
+            pSeg = (PDPathSeg)m_pSubObjects->GetItem(i);
+            dTotLen += pSeg->pSegment->GetLength();
+        }
+    }
+
+    return dTotLen;
+}
+
+PDPathSeg CDObject::GetPathRefSegment(double dRef, double *pdSegRef)
+{
+    int n = m_pSubObjects->GetCount();
+    if(n < 1) return NULL;
+
+    double dTotLen = GetLength();
+
+    if(dRef < -g_dPrec)
+    {
+        if(!IsClosedPath()) return NULL;
+
+        dRef += dTotLen;
+        while(dRef < -g_dPrec) dRef += dTotLen;
+    }
+
+    if(dRef > dTotLen + g_dPrec)
+    {
+        if(!IsClosedPath()) return NULL;
+
+        dRef -= dTotLen;
+        while(dRef > dTotLen + g_dPrec) dRef -= dTotLen;
+    }
+
+    PDPathSeg pSeg = (PDPathSeg)m_pSubObjects->GetItem(0);
+    double dLen = pSeg->pSegment->GetLength();
+    int i = 1;
+
+    while((dLen < dRef) && (i < n))
+    {
+        dRef -= dLen;
+        pSeg = (PDPathSeg)m_pSubObjects->GetItem(i++);
+        dLen = pSeg->pSegment->GetLength();
+    }
+
+    if(dRef > dLen + g_dPrec) return NULL;
+
+    PDObject pObj = pSeg->pSegment;
+    double d1;
+
+    if(pSeg->bReverse)
+    {
+        pObj->GetPointRefDist(pObj->m_cBounds[1].dRef, &d1);
+
+        if(pObj->GetNativeReference(d1 - dRef, pdSegRef)) return pSeg;
+
+        return NULL;
+    }
+
+    pObj->GetPointRefDist(pObj->m_cBounds[0].dRef, &d1);
+    if(pObj->GetNativeReference(d1 + dRef, pdSegRef)) return pSeg;
+
+    return NULL;
+}
+
+bool CDObject::GetPathRefPoint(double dRef, PDPoint pPt)
+{
+    double d1;
+    PDPathSeg pSeg = GetPathRefSegment(dRef, &d1);
+    if(!pSeg) return false;
+
+    return pSeg->pSegment->GetNativeRefPoint(d1, pPt);
 }
 
 bool CDObject::GetNativeRefPoint(double dRef, PDPoint pPt)
@@ -1065,9 +1161,20 @@ bool CDObject::GetNativeRefPoint(double dRef, PDPoint pPt)
         return GetSplineRefPoint(dRef, m_pCachePoints, pPt);
     case dtEvolvent:
         return GetEvolvRefPoint(dRef, m_pCachePoints, pPt);
+    case dtPath:
+        return GetPathRefPoint(dRef, pPt);
     default:
         return false;
     }
+}
+
+bool CDObject::GetPathRefDir(double dRef, PDPoint pPt)
+{
+    double d1;
+    PDPathSeg pSeg = GetPathRefSegment(dRef, &d1);
+    if(!pSeg) return false;
+
+    return pSeg->pSegment->GetNativeRefDir(d1, pPt);
 }
 
 bool CDObject::GetNativeRefDir(double dRef, PDPoint pPt)
@@ -1090,6 +1197,8 @@ bool CDObject::GetNativeRefDir(double dRef, PDPoint pPt)
         return GetSplineRefDir(dRef, m_pCachePoints, pPt);
     case dtEvolvent:
         return GetEvolvRefDir(dRef, m_pCachePoints, pPt);
+    case dtPath:
+        return GetPathRefDir(dRef, pPt);
     default:
         return false;
     }
@@ -1097,6 +1206,15 @@ bool CDObject::GetNativeRefDir(double dRef, PDPoint pPt)
 
 bool CDObject::IsValidRef(double dRef)
 {
+    if(m_iType == dtPath)
+    {
+        if(IsClosedPath()) return true;
+        if(dRef < -g_dPrec) return false;
+        double dLen = GetLength();
+        if(dRef > dLen + g_dPrec) return false;
+        return true;
+    }
+
     if(IsClosedShape())
     {
         if(!m_cBounds[1].bIsSet) return true;
@@ -1313,10 +1431,68 @@ bool CDObject::BoundPoint(CDPoint cRefPt, PDLine pPtX, double *pdDist)
     return false;
 }
 
+double CDObject::GetPathDistFromPt(CDPoint cPt, CDPoint cRefPt, bool bSnapCenters, PDLine pPtX)
+{
+    int n = m_pSubObjects->GetCount();
+    if(n < 1) return -1.0;
+
+    double dMin = -1.0;
+    double dCur;
+    PDPathSeg pSeg;
+    CDLine cMin, cCur;
+    int iMin = -1;
+
+    for(int i = 0; i < n; i++)
+    {
+        pSeg = (PDPathSeg)m_pSubObjects->GetItem(i);
+        dCur = pSeg->pSegment->GetDistFromPt(cPt, cRefPt, bSnapCenters, &cCur, NULL);
+        if((iMin < 0) || ((dCur > -0.5) && (dCur < dMin)))
+        {
+            iMin = i;
+            dMin = dCur;
+            cMin = cCur;
+        }
+    }
+
+    double dNorm = GetNorm(cMin.cDirection);
+    if(dNorm < g_dPrec)
+    {
+        *pPtX = cMin;
+        return dMin;
+    }
+
+    *pPtX = cMin;
+    pPtX->dRef = 0.0;
+    for(int i = 0; i < iMin; i++)
+    {
+        pSeg = (PDPathSeg)m_pSubObjects->GetItem(i);
+        pPtX->dRef += pSeg->pSegment->GetLength();
+    }
+
+    pSeg = (PDPathSeg)m_pSubObjects->GetItem(iMin);
+    PDObject pObj = pSeg->pSegment;
+    double d1, d2;
+
+    pObj->GetPointRefDist(cMin.dRef, &d1);
+
+    if(pSeg->bReverse)
+    {
+        pObj->GetPointRefDist(pObj->m_cBounds[1].dRef, &d2);
+        pPtX->dRef += (d2 - d1);
+    }
+    else
+    {
+        pObj->GetPointRefDist(pObj->m_cBounds[0].dRef, &d2);
+        pPtX->dRef += (d1 - d2);
+    }
+
+    return dMin;
+}
+
 double CDObject::GetDistFromPt(CDPoint cPt, CDPoint cRefPt, bool bSnapCenters, PDLine pPtX, int *piDimen)
 {
-    CDLine cPtX;
     double dRes = -1.0;
+    CDLine cPtX;
     int iMask = 0;
     if(bSnapCenters) iMask = 1;
 
@@ -1345,6 +1521,9 @@ double CDObject::GetDistFromPt(CDPoint cPt, CDPoint cRefPt, bool bSnapCenters, P
         break;
     case dtEvolvent:
         dRes = GetEvolvDistFromPt(cPt, cRefPt, m_pCachePoints, &cPtX);
+        break;
+    case dtPath:
+        dRes = GetPathDistFromPt(cPt, cRefPt, iMask, &cPtX);
         break;
     }
 
@@ -1395,7 +1574,7 @@ double CDObject::GetDistFromPt(CDPoint cPt, CDPoint cRefPt, bool bSnapCenters, P
     }
 
     double dNorm = GetNorm(cPtX.cDirection);
-    if(dNorm < g_dPrec)
+    if((dNorm < g_dPrec) || (m_iType == dtPath))
     {
         if(pPtX) *pPtX = cPtX;
         return dRes;
@@ -2572,6 +2751,9 @@ bool CDObject::GetPointRefDist(double dRef, double *pdDist)
         return GetSplinePointRefDist(dRef, m_pCachePoints, pdDist);
     case dtEvolvent:
         return GetEvolvPointRefDist(dRef, m_pCachePoints, pdDist);
+    case dtPath:
+        *pdDist = dRef;
+        return true;
     default:
         return false;
     }
@@ -4451,11 +4633,12 @@ void CDataList::SetSelSnapEnabled(bool bEnable)
     }
 }
 
-int CDataList::GetFirstSeg(PDIntList pSelObjs, PDIntList pPath, CDPoint cPt1, CDPoint cPt2, PDPoint pPt1, PDPoint pPt2,
-    bool *pbReverseFirst)
+int CDataList::GetNextSeg(PDIntList pSelObjs, PDIntList pPath, CDPoint cPt1, CDPoint cPt2, PDPoint pPt1, PDPoint pPt2,
+    bool *pbFirst)
 {
-    *pbReverseFirst = false;
+    *pbFirst = false;
     int n = pPath->GetCount();
+    int iIdxFirst = abs(pPath->GetItem(0));
     int iIdxLast = abs(pPath->GetItem(n - 1));
 
     n = pSelObjs->GetCount();
@@ -4470,18 +4653,23 @@ int CDataList::GetFirstSeg(PDIntList pSelObjs, PDIntList pPath, CDPoint cPt1, CD
     while((iFound == 0) && (i < n))
     {
         iIdx = pSelObjs->GetItem(i++);
-        if(iIdx != iIdxLast)
+        pObj = m_ppObjects[iIdx];
+        pObj->GetStartPoint(pPt1);
+        pObj->GetEndPoint(pPt2);
+
+        if(iIdx != iIdxFirst)
         {
-            pObj = m_ppObjects[iIdx];
-            pObj->GetStartPoint(pPt1);
-            pObj->GetEndPoint(pPt2);
-            dDist = GetDist(cPt1, *pPt1);
-            if(dDist < g_dPrec) iIdxPrev = i - 1;
+            dDist = GetDist(cPt1, *pPt2);
+            if(dDist < g_dPrec) iFound = 1;
             else
             {
-                dDist = GetDist(cPt1, *pPt2);
-                if(dDist < g_dPrec) iIdxPrev = 1 - i;
+                dDist = GetDist(cPt1, *pPt1);
+                if(dDist < g_dPrec) iFound = 2;
             }
+            if(iFound > 0) *pbFirst = true;
+        }
+        if((iFound == 0) && (iIdx != iIdxLast))
+        {
             dDist = GetDist(cPt2, *pPt1);
             if(dDist < g_dPrec)
             {
@@ -4490,47 +4678,6 @@ int CDataList::GetFirstSeg(PDIntList pSelObjs, PDIntList pPath, CDPoint cPt1, CD
             else
             {
                 dDist = GetDist(cPt2, *pPt2);
-                if(dDist < g_dPrec) iFound = 2;
-            }
-        }
-    }
-
-    if(iFound > 1) return 1 - i;
-    if(iFound > 0) return i - 1;
-    if(iIdxPrev != 0)
-    {
-        *pbReverseFirst = true;
-        return iIdxPrev;
-    }
-    return 0;
-}
-
-int CDataList::GetNextSeg(PDIntList pSelObjs, PDIntList pPath, CDPoint cPt, PDPoint pPt1, PDPoint pPt2)
-{
-    int n = pPath->GetCount();
-    int iIdxLast = abs(pPath->GetItem(n - 1));
-
-    n = pSelObjs->GetCount();
-    if(n < 2) return 0;
-
-    int iIdx, i = 1;
-    int iFound = 0;
-    PDObject pObj;
-    double dDist;
-
-    while((iFound == 0) && (i < n))
-    {
-        iIdx = pSelObjs->GetItem(i++);
-        if(iIdx != iIdxLast)
-        {
-            pObj = m_ppObjects[iIdx];
-            pObj->GetStartPoint(pPt1);
-            pObj->GetEndPoint(pPt2);
-            dDist = GetDist(cPt, *pPt1);
-            if(dDist < g_dPrec) iFound = 1;
-            else
-            {
-                dDist = GetDist(cPt, *pPt2);
                 if(dDist < g_dPrec) iFound = 2;
             }
         }
@@ -4562,31 +4709,44 @@ bool CDataList::BuildPath(PDIntList pSelObjs, PDIntList pSel2, PDIntList pPath)
 
     pPath->AddItem(iSeg);
 
-    bool bReverseFirst;
-    int iNext = GetFirstSeg(pSel2, pPath, cPt1, cPt2, &cPt3, &cPt4, &bReverseFirst);
-    if(bReverseFirst)
-    {
-        pPath->SetItem(0, -iSeg);
-        cPt1 = cPt2;
-    }
+    bool bFirst = false;
+    int iNext = GetNextSeg(pSel2, pPath, cPt1, cPt2, &cPt3, &cPt4, &bFirst);
 
     double dDist;
     while(iNext != 0)
     {
-        if(iNext > 0)
+        if(bFirst)
         {
-            pPath->AddItem(pSel2->GetItem(iNext));
-            dDist = GetDist(cPt1, cPt4);
-            cPt2 = cPt3;
+            if(iNext > 0)
+            {
+                pPath->InsertItem(0, pSel2->GetItem(iNext));
+                dDist = GetDist(cPt2, cPt3);
+                cPt1 = cPt3;
+            }
+            else
+            {
+                pPath->InsertItem(0, -pSel2->GetItem(-iNext));
+                dDist = GetDist(cPt2, cPt4);
+                cPt1 = cPt4;
+            }
         }
         else
         {
-            pPath->AddItem(-pSel2->GetItem(-iNext));
-            dDist = GetDist(cPt1, cPt3);
-            cPt2 = cPt4;
+            if(iNext > 0)
+            {
+                pPath->AddItem(pSel2->GetItem(iNext));
+                dDist = GetDist(cPt1, cPt4);
+                cPt2 = cPt3;
+            }
+            else
+            {
+                pPath->AddItem(-pSel2->GetItem(-iNext));
+                dDist = GetDist(cPt1, cPt3);
+                cPt2 = cPt4;
+            }
         }
         if(dDist < g_dPrec) iNext = 0;
-        else iNext = GetNextSeg(pSel2, pPath, cPt2, &cPt3, &cPt4);
+        else iNext = GetNextSeg(pSel2, pPath, cPt1, cPt2, &cPt3, &cPt4, &bFirst);
     }
 
     n = pPath->GetCount();

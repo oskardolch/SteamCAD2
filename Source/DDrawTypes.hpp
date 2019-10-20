@@ -82,7 +82,11 @@ private:
     void AddPatSegment(double dStart, int iStart, double dEnd, int iEnd,
         PDPoint pBnds, PDRect pRect);
     bool GetNativeReference(double dDist, double *pdRef);
+    double GetLength();
+    PDPathSeg GetPathRefSegment(double dRef, double *pdFixedRef);
+    bool GetPathRefPoint(double dRef, PDPoint pPt);
     bool GetNativeRefPoint(double dRef, PDPoint pPt);
+    bool GetPathRefDir(double dRef, PDPoint pPt);
     bool GetNativeRefDir(double dRef, PDPoint pPt);
     bool IsValidRef(double dRef);
     bool BoundPoint(CDPoint cRefPt, PDLine pPtX, double *pdDist);
@@ -90,8 +94,11 @@ private:
     void SwapBounds();
     bool RemovePart(bool bDown, PDRefPoint pBounds);
     bool IsClosedPath();
+    int BuildPurePrimitives(CDLine cTmpPt, int iMode, PDRect pRect, int iTemp, PDPrimObject plPrimitive,
+        double dExt, double *pdMovedDist, PDPoint pBnds);
     int BuildPathPrimitives(CDLine cTmpPt, int iMode, PDRect pRect, int iTemp, PDPrimObject plPrimitive,
         double dExt, double *pdMovedDist, PDPoint pBnds);
+    double GetPathDistFromPt(CDPoint cPt, CDPoint cRefPt, bool bSnapCenters, PDLine pPtX);
 public:
     CDObject(CDDrawType iType, double dWidth);
     ~CDObject();
@@ -101,8 +108,6 @@ public:
     void Redo();
     // iMode: 0 - normal, 1 - inserting, 2 - buffering, 3 - rounding
     bool BuildCache(CDLine cTmpPt, int iMode);
-    int BuildPurePrimitives(CDLine cTmpPt, int iMode, PDRect pRect, int iTemp, PDPrimObject plPrimitive,
-        double dExt, double *pdMovedDist, PDPoint pBnds);
     // returns 0 - not in rect, 1 - partially in rect, 2 - full in rect
     int BuildPrimitives(CDLine cTmpPt, int iMode, PDRect pRect, int iTemp, PDFileAttrs pAttrs);
     void GetFirstPrimitive(PDPrimitive pPrim, double dScale, int iDimen);
@@ -182,8 +187,7 @@ private:
     CDFileAttrs m_cFileAttrs;
     bool m_bHasChanged;
     int GetTangSnap(CDPoint cPt, double dDist, bool bNewPt, PDLine pSnapPt, PDObject pObj, PDObject pDynObj);
-    int GetFirstSeg(PDIntList pSelObjs, PDIntList pPath, CDPoint cPt1, CDPoint cPt2, PDPoint pPt1, PDPoint pPt2, bool *pbReverseFirst);
-    int GetNextSeg(PDIntList pSelObjs, PDIntList pPath, CDPoint cPt, PDPoint pPt1, PDPoint pPt2);
+    int GetNextSeg(PDIntList pSelObjs, PDIntList pPath, CDPoint cPt1, CDPoint cPt2, PDPoint pPt1, PDPoint pPt2, bool *pbFirst);
     bool BuildPath(PDIntList pSelObjs, PDIntList pSel2, PDIntList pPath);
     bool BuildPaths(PDIntList pSelObjs, PDPtrList pPaths);
 public:
