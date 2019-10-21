@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <math.h>
 #include <string.h>
+#include <limits>
 
 gboolean lsd_configure(GtkWidget *widget, GdkEvent *event, PDLineStyleDlg pApp)
 {
@@ -64,7 +65,7 @@ gboolean CDLineStyleDlg::ShowDialog(GtkWidget *pWndParent, PDLineStyleRec pLSR)
 
     GtkWidget *pCA = gtk_dialog_get_content_area(GTK_DIALOG(m_pDlg));
 
-    GtkWidget *pTbl = gtk_table_new(4, 6, FALSE);
+    GtkWidget *pTbl = gtk_table_new(4, 12, FALSE);
     gtk_table_set_col_spacings(GTK_TABLE(pTbl), 3);
     gtk_table_set_row_spacings(GTK_TABLE(pTbl), 3);
     gtk_container_set_border_width(GTK_CONTAINER(pTbl), 4);
@@ -77,7 +78,7 @@ gboolean CDLineStyleDlg::ShowDialog(GtkWidget *pWndParent, PDLineStyleRec pLSR)
     gtk_widget_show(pLab);
 
     m_pLineWidthEdt = gtk_entry_new();
-    gtk_widget_set_size_request(m_pLineWidthEdt, 40, -1);
+    gtk_widget_set_size_request(m_pLineWidthEdt, 50, -1);
     gtk_entry_set_max_length(GTK_ENTRY(m_pLineWidthEdt), 32);
     gtk_entry_set_activates_default(GTK_ENTRY(m_pLineWidthEdt), TRUE);
     gtk_table_attach_defaults(GTK_TABLE(pTbl), m_pLineWidthEdt, 3, 5, 0, 1);
@@ -93,13 +94,26 @@ gboolean CDLineStyleDlg::ShowDialog(GtkWidget *pWndParent, PDLineStyleRec pLSR)
     gtk_table_attach_defaults(GTK_TABLE(pTbl), pLab, 5, 6, 0, 1);
     gtk_widget_show(pLab);
 
+    pLab = gtk_label_new(_("Line Cap:"));
+    gtk_misc_set_alignment(GTK_MISC(pLab), 0, 0.5);
+    gtk_table_attach_defaults(GTK_TABLE(pTbl), pLab, 6, 9, 0, 1);
+    gtk_widget_show(pLab);
+
+    GtkWidget* pCombo = gtk_combo_box_text_new();
+    gtk_combo_box_text_append_text(GTK_COMBO_BOX_TEXT(pCombo), _("Butt"));
+    gtk_combo_box_text_append_text(GTK_COMBO_BOX_TEXT(pCombo), _("Round"));
+    gtk_combo_box_text_append_text(GTK_COMBO_BOX_TEXT(pCombo), _("Square"));
+    gtk_combo_box_set_active(GTK_COMBO_BOX(pCombo), m_pLSR->cLineStyle.cCapType);
+    gtk_table_attach_defaults(GTK_TABLE(pTbl), pCombo, 9, 12, 0, 1);
+    gtk_widget_show(pCombo);
+
     pLab = gtk_label_new(_("Eccentricity:"));
     gtk_misc_set_alignment(GTK_MISC(pLab), 0, 0.5);
     gtk_table_attach_defaults(GTK_TABLE(pTbl), pLab, 0, 3, 1, 2);
     gtk_widget_show(pLab);
 
     m_pEccentEdt = gtk_entry_new();
-    gtk_widget_set_size_request(m_pEccentEdt, 40, -1);
+    gtk_widget_set_size_request(m_pEccentEdt, 50, -1);
     gtk_entry_set_max_length(GTK_ENTRY(m_pEccentEdt), 32);
     gtk_entry_set_activates_default(GTK_ENTRY(m_pEccentEdt), TRUE);
     gtk_table_attach_defaults(GTK_TABLE(pTbl), m_pEccentEdt, 3, 5, 1, 2);
@@ -114,6 +128,19 @@ gboolean CDLineStyleDlg::ShowDialog(GtkWidget *pWndParent, PDLineStyleRec pLSR)
     gtk_table_attach_defaults(GTK_TABLE(pTbl), pLab, 5, 6, 1, 2);
     gtk_widget_show(pLab);
 
+    pLab = gtk_label_new(_("Line Join:"));
+    gtk_misc_set_alignment(GTK_MISC(pLab), 0, 0.5);
+    gtk_table_attach_defaults(GTK_TABLE(pTbl), pLab, 6, 9, 1, 2);
+    gtk_widget_show(pLab);
+
+    pCombo = gtk_combo_box_text_new();
+    gtk_combo_box_text_append_text(GTK_COMBO_BOX_TEXT(pCombo), _("Mitter"));
+    gtk_combo_box_text_append_text(GTK_COMBO_BOX_TEXT(pCombo), _("Round"));
+    gtk_combo_box_text_append_text(GTK_COMBO_BOX_TEXT(pCombo), _("Bevel"));
+    gtk_combo_box_set_active(GTK_COMBO_BOX(pCombo), m_pLSR->cLineStyle.cJoinType);
+    gtk_table_attach_defaults(GTK_TABLE(pTbl), pCombo, 9, 12, 1, 2);
+    gtk_widget_show(pCombo);
+
     pLab = gtk_label_new(_("Line pattern:"));
     gtk_misc_set_alignment(GTK_MISC(pLab), 0, 1);
     gtk_table_attach_defaults(GTK_TABLE(pTbl), pLab, 0, 3, 2, 3);
@@ -122,16 +149,16 @@ gboolean CDLineStyleDlg::ShowDialog(GtkWidget *pWndParent, PDLineStyleRec pLSR)
     sprintf(buf, "(%s)", m_pLSR->cUnit.sAbbrev);
     pLab = gtk_label_new(buf);
     gtk_misc_set_alignment(GTK_MISC(pLab), 0, 1);
-    gtk_table_attach_defaults(GTK_TABLE(pTbl), pLab, 3, 6, 2, 3);
+    gtk_table_attach_defaults(GTK_TABLE(pTbl), pLab, 3, 5, 2, 3);
     gtk_widget_show(pLab);
 
     for(gint i = 0; i < 6; i++)
     {
         m_pPatternEdt[i] = gtk_entry_new();
-        gtk_widget_set_size_request(m_pPatternEdt[i], 20, -1);
+        gtk_widget_set_size_request(m_pPatternEdt[i], 50, -1);
         gtk_entry_set_max_length(GTK_ENTRY(m_pPatternEdt[i]), 32);
         gtk_entry_set_activates_default(GTK_ENTRY(m_pPatternEdt[i]), TRUE);
-        gtk_table_attach_defaults(GTK_TABLE(pTbl), m_pPatternEdt[i], i, i + 1, 3, 4);
+        gtk_table_attach_defaults(GTK_TABLE(pTbl), m_pPatternEdt[i], 2*i, 2*(i + 1), 3, 4);
         g_signal_connect(G_OBJECT(m_pPatternEdt[i]), "changed", G_CALLBACK(lsd_patedt_changed), this);
         gtk_widget_show(m_pPatternEdt[i]);
 
@@ -141,6 +168,20 @@ gboolean CDLineStyleDlg::ShowDialog(GtkWidget *pWndParent, PDLineStyleRec pLSR)
             gtk_entry_set_text(GTK_ENTRY(m_pPatternEdt[i]), buf);
         }
     }
+
+    pLab = gtk_label_new(_("Color:"));
+    gtk_misc_set_alignment(GTK_MISC(pLab), 0, 0.5);
+    gtk_table_attach_defaults(GTK_TABLE(pTbl), pLab, 6, 9, 2, 3);
+    gtk_widget_show(pLab);
+
+    GdkColor cCol = {m_pLSR->cLineStyle.cColor[3]*std::numeric_limits<guint32>::max()/256,
+        m_pLSR->cLineStyle.cColor[0]*std::numeric_limits<guint16>::max()/256,
+        m_pLSR->cLineStyle.cColor[1]*std::numeric_limits<guint16>::max()/256,
+        m_pLSR->cLineStyle.cColor[2]*std::numeric_limits<guint16>::max()/256};
+    GtkWidget *pColorBtn = gtk_color_button_new_with_color(&cCol);
+    gtk_color_button_set_use_alpha(GTK_COLOR_BUTTON(pColorBtn), TRUE);
+    gtk_table_attach_defaults(GTK_TABLE(pTbl), pColorBtn, 9, 12, 2, 3);
+    gtk_widget_show(pColorBtn);
 
     gtk_widget_grab_default(pBtn);
     gtk_window_set_default(GTK_WINDOW(m_pDlg), pBtn);
@@ -289,5 +330,23 @@ void CDLineStyleDlg::LinePatChange(GtkEntry *entry)
 {
     if(m_bSettingUp) return;
     m_pLSR->bPatChanged = TRUE;
+}
+
+void CDLineStyleDlg::LineCapChange(GtkEntry *entry)
+{
+    if(m_bSettingUp) return;
+    m_pLSR->bCapChanged = TRUE;
+}
+
+void CDLineStyleDlg::LineJoinChange(GtkEntry *entry)
+{
+    if(m_bSettingUp) return;
+    m_pLSR->bJoinChanged = TRUE;
+}
+
+void CDLineStyleDlg::LineColorChange(GtkEntry *entry)
+{
+    if(m_bSettingUp) return;
+    m_pLSR->bColorChanged = TRUE;
 }
 

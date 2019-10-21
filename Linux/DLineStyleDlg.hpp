@@ -16,6 +16,9 @@ typedef struct CDLineStyleRec
     gboolean bWidthChanged;
     gboolean bExcChanged;
     gboolean bPatChanged;
+    gboolean bCapChanged;
+    gboolean bJoinChanged;
+    gboolean bColorChanged;
 } *PDLineStyleRec;
 
 typedef class CDLineStyleDlg
@@ -44,6 +47,9 @@ public:
     void LineWidthChange(GtkEntry *entry);
     void LineExcChange(GtkEntry *entry);
     void LinePatChange(GtkEntry *entry);
+    void LineCapChange(GtkEntry *entry);
+    void LineJoinChange(GtkEntry *entry);
+    void LineColorChange(GtkEntry *entry);
     void OKBtnClick(GtkButton *button);
 } *PDLineStyleDlg;
 

@@ -49,9 +49,15 @@ CDObject::CDObject(CDDrawType iType, double dWidth)
     m_cBounds[1].bIsSet = false;
     m_cLineStyle.dWidth = dWidth;
     m_cLineStyle.dPercent = 0.0;
-    m_cLineStyle.bCapType = 0;
+    m_cLineStyle.cCapType = 1;
+    m_cLineStyle.cJoinType = 1;
     m_cLineStyle.iSegments = 0;
     for(int i = 0; i < 6; i++) m_cLineStyle.dPattern[i] = 0.0;
+    m_cLineStyle.cColor[0] = 0;
+    m_cLineStyle.cColor[1] = 0;
+    m_cLineStyle.cColor[2] = 0;
+    m_cLineStyle.cColor[3] = 255;
+    m_cLineStyle.dBlend = 0.0;
     m_dMovedDist = 0.0;
     m_bFirstDimSet = false;
     m_cTmpDim.psLab = m_sTmpDimBuf;
@@ -4686,7 +4692,6 @@ int CDataList::GetNextSeg(PDIntList pSelObjs, PDIntList pPath, CDPoint cPt1, CDP
     if(n < 2) return 0;
 
     int iIdx, i = 1;
-    int iIdxPrev = 0;
     int iFound = 0;
     PDObject pObj;
     double dDist;

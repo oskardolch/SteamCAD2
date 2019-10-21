@@ -69,7 +69,8 @@ typedef struct CDLineStyle
 {
     double dWidth;
     double dPercent;
-    char bCapType;
+    char cCapType;
+    char cJoinType;
     int iSegments;
     double dPattern[6];
     char cColor[4];
