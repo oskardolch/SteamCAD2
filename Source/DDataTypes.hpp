@@ -73,7 +73,7 @@ typedef struct CDLineStyle
     char cJoinType;
     int iSegments;
     double dPattern[6];
-    char cColor[4];
+    unsigned char cColor[4];
     double dBlend;
 } *PDLineStyle;
 

@@ -2806,15 +2806,24 @@ void CDApplication::EditLineStyleCmd(GtkWidget *widget)
         cLSRec.bWidthSet = (iMask & 1);
         cLSRec.bExcSet = (iMask & 2);
         cLSRec.bPatSet = (iMask & 4);
+        cLSRec.bCapSet = (iMask & 8);
+        cLSRec.bJoinSet = (iMask & 16);
+        cLSRec.bColorSet = (iMask & 32);
         cLSRec.bWidthChanged = FALSE;
         cLSRec.bExcChanged = FALSE;
         cLSRec.bPatChanged = FALSE;
+        cLSRec.bCapChanged = FALSE;
+        cLSRec.bJoinChanged = FALSE;
+        cLSRec.bColorChanged = FALSE;
         if(m_pLineStyleDlg->ShowDialog(widget, &cLSRec))
         {
             iMask = 0;
             if(cLSRec.bWidthSet && cLSRec.bWidthChanged) iMask |= 1;
             if(cLSRec.bExcSet && cLSRec.bExcChanged) iMask |= 2;
             if(cLSRec.bPatSet && cLSRec.bPatChanged) iMask |= 4;
+            if(cLSRec.bCapSet && cLSRec.bCapChanged) iMask |= 8;
+            if(cLSRec.bJoinSet && cLSRec.bJoinChanged) iMask |= 16;
+            if(cLSRec.bColorSet && cLSRec.bColorChanged) iMask |= 32;
             if(m_pDrawObjects->SetSelectedLineStyle(iMask, &cLSRec.cLineStyle, pRegions))
             {
                 cdr.cPt1.x = -m_cViewOrigin.x/m_dUnitScale;

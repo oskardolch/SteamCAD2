@@ -26,11 +26,25 @@ void lsd_excedt_changed(GtkEntry *entry, PDLineStyleDlg pApp)
     pApp->LineExcChange(entry);
 }
 
+void lsd_linecap_changed(GtkComboBox *entry, PDLineStyleDlg pApp)
+{
+    pApp->LineCapChange(entry);
+}
+
+void lsd_linejoin_changed(GtkComboBox *entry, PDLineStyleDlg pApp)
+{
+    pApp->LineJoinChange(entry);
+}
+
 void lsd_patedt_changed(GtkEntry *entry, PDLineStyleDlg pApp)
 {
     pApp->LinePatChange(entry);
 }
 
+void lsd_color_changed(GtkColorButton *widget, PDLineStyleDlg pApp)
+{
+    pApp->LineColorChange(widget);
+}
 
 
 // CDFileSetupDlg
@@ -99,13 +113,14 @@ gboolean CDLineStyleDlg::ShowDialog(GtkWidget *pWndParent, PDLineStyleRec pLSR)
     gtk_table_attach_defaults(GTK_TABLE(pTbl), pLab, 6, 9, 0, 1);
     gtk_widget_show(pLab);
 
-    GtkWidget* pCombo = gtk_combo_box_text_new();
-    gtk_combo_box_text_append_text(GTK_COMBO_BOX_TEXT(pCombo), _("Butt"));
-    gtk_combo_box_text_append_text(GTK_COMBO_BOX_TEXT(pCombo), _("Round"));
-    gtk_combo_box_text_append_text(GTK_COMBO_BOX_TEXT(pCombo), _("Square"));
-    gtk_combo_box_set_active(GTK_COMBO_BOX(pCombo), m_pLSR->cLineStyle.cCapType);
-    gtk_table_attach_defaults(GTK_TABLE(pTbl), pCombo, 9, 12, 0, 1);
-    gtk_widget_show(pCombo);
+    m_pLineCapCB = gtk_combo_box_text_new();
+    gtk_combo_box_text_append_text(GTK_COMBO_BOX_TEXT(m_pLineCapCB), _("Butt"));
+    gtk_combo_box_text_append_text(GTK_COMBO_BOX_TEXT(m_pLineCapCB), _("Round"));
+    gtk_combo_box_text_append_text(GTK_COMBO_BOX_TEXT(m_pLineCapCB), _("Square"));
+    gtk_combo_box_set_active(GTK_COMBO_BOX(m_pLineCapCB), m_pLSR->cLineStyle.cCapType);
+    g_signal_connect(G_OBJECT(m_pLineCapCB), "changed", G_CALLBACK(lsd_linecap_changed), this);
+    gtk_table_attach_defaults(GTK_TABLE(pTbl), m_pLineCapCB, 9, 12, 0, 1);
+    gtk_widget_show(m_pLineCapCB);
 
     pLab = gtk_label_new(_("Eccentricity:"));
     gtk_misc_set_alignment(GTK_MISC(pLab), 0, 0.5);
@@ -133,13 +148,14 @@ gboolean CDLineStyleDlg::ShowDialog(GtkWidget *pWndParent, PDLineStyleRec pLSR)
     gtk_table_attach_defaults(GTK_TABLE(pTbl), pLab, 6, 9, 1, 2);
     gtk_widget_show(pLab);
 
-    pCombo = gtk_combo_box_text_new();
-    gtk_combo_box_text_append_text(GTK_COMBO_BOX_TEXT(pCombo), _("Mitter"));
-    gtk_combo_box_text_append_text(GTK_COMBO_BOX_TEXT(pCombo), _("Round"));
-    gtk_combo_box_text_append_text(GTK_COMBO_BOX_TEXT(pCombo), _("Bevel"));
-    gtk_combo_box_set_active(GTK_COMBO_BOX(pCombo), m_pLSR->cLineStyle.cJoinType);
-    gtk_table_attach_defaults(GTK_TABLE(pTbl), pCombo, 9, 12, 1, 2);
-    gtk_widget_show(pCombo);
+    m_pLineJoinCB = gtk_combo_box_text_new();
+    gtk_combo_box_text_append_text(GTK_COMBO_BOX_TEXT(m_pLineJoinCB), _("Mitter"));
+    gtk_combo_box_text_append_text(GTK_COMBO_BOX_TEXT(m_pLineJoinCB), _("Round"));
+    gtk_combo_box_text_append_text(GTK_COMBO_BOX_TEXT(m_pLineJoinCB), _("Bevel"));
+    gtk_combo_box_set_active(GTK_COMBO_BOX(m_pLineJoinCB), m_pLSR->cLineStyle.cJoinType);
+    g_signal_connect(G_OBJECT(m_pLineJoinCB), "changed", G_CALLBACK(lsd_linejoin_changed), this);
+    gtk_table_attach_defaults(GTK_TABLE(pTbl), m_pLineJoinCB, 9, 12, 1, 2);
+    gtk_widget_show(m_pLineJoinCB);
 
     pLab = gtk_label_new(_("Line pattern:"));
     gtk_misc_set_alignment(GTK_MISC(pLab), 0, 1);
@@ -174,14 +190,17 @@ gboolean CDLineStyleDlg::ShowDialog(GtkWidget *pWndParent, PDLineStyleRec pLSR)
     gtk_table_attach_defaults(GTK_TABLE(pTbl), pLab, 6, 9, 2, 3);
     gtk_widget_show(pLab);
 
-    GdkColor cCol = {m_pLSR->cLineStyle.cColor[3]*std::numeric_limits<guint32>::max()/256,
-        m_pLSR->cLineStyle.cColor[0]*std::numeric_limits<guint16>::max()/256,
-        m_pLSR->cLineStyle.cColor[1]*std::numeric_limits<guint16>::max()/256,
-        m_pLSR->cLineStyle.cColor[2]*std::numeric_limits<guint16>::max()/256};
-    GtkWidget *pColorBtn = gtk_color_button_new_with_color(&cCol);
-    gtk_color_button_set_use_alpha(GTK_COLOR_BUTTON(pColorBtn), TRUE);
-    gtk_table_attach_defaults(GTK_TABLE(pTbl), pColorBtn, 9, 12, 2, 3);
-    gtk_widget_show(pColorBtn);
+    GdkColor cCol = {0,
+        (guint16)round(std::numeric_limits<guint16>::max()*((double)m_pLSR->cLineStyle.cColor[0]/255.0)),
+        (guint16)round(std::numeric_limits<guint16>::max()*((double)m_pLSR->cLineStyle.cColor[1]/255.0)),
+        (guint16)round(std::numeric_limits<guint16>::max()*((double)m_pLSR->cLineStyle.cColor[2]/255.0))};
+    m_pLineColorBtn = gtk_color_button_new_with_color(&cCol);
+    gtk_color_button_set_use_alpha(GTK_COLOR_BUTTON(m_pLineColorBtn), TRUE);
+    guint16 iAlpha = (guint16)round(std::numeric_limits<guint16>::max()*((double)m_pLSR->cLineStyle.cColor[3]/255.0));
+    gtk_color_button_set_alpha(GTK_COLOR_BUTTON(m_pLineColorBtn), iAlpha);
+    g_signal_connect(G_OBJECT(m_pLineColorBtn), "color-set", G_CALLBACK(lsd_color_changed), this);
+    gtk_table_attach_defaults(GTK_TABLE(pTbl), m_pLineColorBtn, 9, 12, 2, 3);
+    gtk_widget_show(m_pLineColorBtn);
 
     gtk_widget_grab_default(pBtn);
     gtk_window_set_default(GTK_WINDOW(m_pDlg), pBtn);
@@ -310,6 +329,40 @@ void CDLineStyleDlg::OKBtnClick(GtkButton *button)
         }
     }
 
+    if(m_pLSR->bCapChanged)
+    {
+        gint iCap = gtk_combo_box_get_active(GTK_COMBO_BOX(m_pLineCapCB));
+        if(iCap > -1)
+        {
+            m_pLSR->cLineStyle.cCapType = iCap;
+            m_pLSR->bCapSet = true;
+        }
+        else m_pLSR->bCapSet = false;
+    }
+
+    if(m_pLSR->bJoinChanged)
+    {
+        gint iJoin = gtk_combo_box_get_active(GTK_COMBO_BOX(m_pLineJoinCB));
+        if(iJoin > -1)
+        {
+            m_pLSR->cLineStyle.cJoinType = iJoin;
+            m_pLSR->bJoinSet = true;
+        }
+        else m_pLSR->bJoinSet = false;
+    }
+
+    if(m_pLSR->bColorChanged)
+    {
+        GdkColor cColor;
+        gtk_color_button_get_color(GTK_COLOR_BUTTON(m_pLineColorBtn), &cColor);
+        guint16 iAlpha = gtk_color_button_get_alpha(GTK_COLOR_BUTTON(m_pLineColorBtn));
+        m_pLSR->cLineStyle.cColor[0] = (unsigned char)round(255.0*((double)cColor.red/std::numeric_limits<guint16>::max()));
+        m_pLSR->cLineStyle.cColor[1] = (unsigned char)round(255.0*((double)cColor.green/std::numeric_limits<guint16>::max()));
+        m_pLSR->cLineStyle.cColor[2] = (unsigned char)round(255.0*((double)cColor.blue/std::numeric_limits<guint16>::max()));
+        m_pLSR->cLineStyle.cColor[3] = (unsigned char)round(255.0*((double)iAlpha/std::numeric_limits<guint16>::max()));
+        m_pLSR->bColorSet = true;
+    }
+
     gtk_dialog_response(GTK_DIALOG(m_pDlg), GTK_RESPONSE_OK);
     return;
 }
@@ -332,19 +385,19 @@ void CDLineStyleDlg::LinePatChange(GtkEntry *entry)
     m_pLSR->bPatChanged = TRUE;
 }
 
-void CDLineStyleDlg::LineCapChange(GtkEntry *entry)
+void CDLineStyleDlg::LineCapChange(GtkComboBox *entry)
 {
     if(m_bSettingUp) return;
     m_pLSR->bCapChanged = TRUE;
 }
 
-void CDLineStyleDlg::LineJoinChange(GtkEntry *entry)
+void CDLineStyleDlg::LineJoinChange(GtkComboBox *entry)
 {
     if(m_bSettingUp) return;
     m_pLSR->bJoinChanged = TRUE;
 }
 
-void CDLineStyleDlg::LineColorChange(GtkEntry *entry)
+void CDLineStyleDlg::LineColorChange(GtkColorButton *entry)
 {
     if(m_bSettingUp) return;
     m_pLSR->bColorChanged = TRUE;

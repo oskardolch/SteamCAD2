@@ -13,6 +13,9 @@ typedef struct CDLineStyleRec
     gboolean bWidthSet;
     gboolean bExcSet;
     gboolean bPatSet;
+    gboolean bCapSet;
+    gboolean bJoinSet;
+    gboolean bColorSet;
     gboolean bWidthChanged;
     gboolean bExcChanged;
     gboolean bPatChanged;
@@ -28,13 +31,16 @@ private:
     gint m_iY;
     gboolean m_bSettingUp;
     PDLineStyleRec m_pLSR;
-    gboolean m_bWidthChanged;
+/*    gboolean m_bWidthChanged;
     gboolean m_bExcChanged;
-    gboolean m_bPatChanged;
+    gboolean m_bPatChanged;*/
 
     GtkWidget *m_pDlg;
     GtkWidget *m_pLineWidthEdt;
     GtkWidget *m_pEccentEdt;
+    GtkWidget *m_pLineCapCB;
+    GtkWidget *m_pLineJoinCB;
+    GtkWidget *m_pLineColorBtn;
     GtkWidget *m_pPatternEdt[6];
 public:
     CDLineStyleDlg();
@@ -47,9 +53,9 @@ public:
     void LineWidthChange(GtkEntry *entry);
     void LineExcChange(GtkEntry *entry);
     void LinePatChange(GtkEntry *entry);
-    void LineCapChange(GtkEntry *entry);
-    void LineJoinChange(GtkEntry *entry);
-    void LineColorChange(GtkEntry *entry);
+    void LineCapChange(GtkComboBox *entry);
+    void LineJoinChange(GtkComboBox *entry);
+    void LineColorChange(GtkColorButton *entry);
     void OKBtnClick(GtkButton *button);
 } *PDLineStyleDlg;
 

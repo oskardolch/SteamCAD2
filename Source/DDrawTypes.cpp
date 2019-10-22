@@ -1636,6 +1636,12 @@ void CDObject::SetLineStyle(int iMask, CDLineStyle cStyle)
         m_cLineStyle.iSegments = n;
         for(int i = 0; i < n; i++) m_cLineStyle.dPattern[i] = cStyle.dPattern[i];
     }
+    if(iMask & 8) m_cLineStyle.cCapType = cStyle.cCapType;
+    if(iMask & 16) m_cLineStyle.cJoinType = cStyle.cJoinType;
+    if(iMask & 32)
+    {
+        for(int i = 0; i < 4; i++) m_cLineStyle.cColor[i] = cStyle.cColor[i];
+    }
 }
 
 bool CDObject::GetRestrictPoint(CDPoint cPt, int iMode, bool bRestrictSet, double dRestrictValue,
@@ -4442,6 +4448,11 @@ bool LSPatterMatch(CDLineStyle cStyle1, CDLineStyle cStyle2)
     return bRes;
 }
 
+bool LSColorMatch(unsigned char *cCol1, unsigned char *cCol2)
+{
+    return (cCol1[0] == cCol2[0]) && (cCol1[1] == cCol2[1]) && (cCol1[2] == cCol2[2]) && (cCol1[3] == cCol2[3]);
+}
+
 int CDataList::GetSelectedLineStyle(PDLineStyle pStyle)
 {
     int iRes = -1;
@@ -4455,7 +4466,7 @@ int CDataList::GetSelectedLineStyle(PDLineStyle pStyle)
             if(iRes < 0)
             {
                 cSt1 = pObj->GetLineStyle();
-                iRes = 7;
+                iRes = 63;
             }
             else
             {
@@ -4463,6 +4474,9 @@ int CDataList::GetSelectedLineStyle(PDLineStyle pStyle)
                 if(fabs(cSt1.dWidth - cSt2.dWidth) > g_dPrec) iRes &= ~1;
                 if(fabs(cSt1.dPercent - cSt2.dPercent) > g_dPrec) iRes &= ~2;
                 if(!LSPatterMatch(cSt1, cSt2)) iRes &= ~4;
+                if(cSt1.cCapType != cSt2.cCapType) iRes &= ~8;
+                if(cSt1.cJoinType != cSt2.cJoinType) iRes &= ~16;
+                if(!LSColorMatch(cSt1.cColor, cSt2.cColor)) iRes &= ~32;
             }
         }
     }
