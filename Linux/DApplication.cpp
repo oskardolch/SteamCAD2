@@ -1830,13 +1830,13 @@ bool CDApplication::SaveFile(GtkWidget *widget, gchar **psFile, bool bSelectOnly
     {
         //GError *error = NULL;
         GtkWidget *dialog = gtk_file_chooser_dialog_new(_("Save File"),
-        GTK_WINDOW(widget), GTK_FILE_CHOOSER_ACTION_SAVE, GTK_STOCK_CANCEL,
-        GTK_RESPONSE_CANCEL, GTK_STOCK_SAVE, GTK_RESPONSE_ACCEPT, NULL);
+            GTK_WINDOW(widget), GTK_FILE_CHOOSER_ACTION_SAVE, GTK_STOCK_CANCEL,
+            GTK_RESPONSE_CANCEL, GTK_STOCK_SAVE, GTK_RESPONSE_ACCEPT, NULL);
         g_object_set(dialog, "do_overwrite_confirmation", TRUE, NULL);
 
         GtkFileFilter *flt = gtk_file_filter_new();
         gtk_file_filter_set_name(flt, _("SteamCAD2 Files"));
-        gtk_file_filter_add_pattern(flt, "*.sdr");
+        gtk_file_filter_add_pattern(flt, "*.sc2");
         gtk_file_chooser_add_filter((GtkFileChooser*)dialog, flt);
         flt = gtk_file_filter_new();
         gtk_file_filter_set_name(flt, _("All files"));
@@ -1856,7 +1856,7 @@ bool CDApplication::SaveFile(GtkWidget *widget, gchar **psFile, bool bSelectOnly
                 gint iLen = strlen(sLocFileName);
                 *psFile = (gchar*)g_malloc((iLen + 5)*sizeof(gchar));
                 strcpy(*psFile, sLocFileName);
-                strcat(*psFile, ".sdr");
+                strcat(*psFile, ".sc2");
                 g_free(sLocFileName);
             }
             else *psFile = sLocFileName;
@@ -1867,9 +1867,15 @@ bool CDApplication::SaveFile(GtkWidget *widget, gchar **psFile, bool bSelectOnly
     }
     if(!bSave) return false;
 
+    unsigned char cVer = 2;
+    gchar *sDot = strrchr(*psFile, '.');
+    if(sDot)
+    {
+        if(strcasecmp(sDot, ".sdr") == 0) cVer = 1;
+    }
     // save the file
     FILE *pf = fopen(*psFile, "wb");
-    m_pDrawObjects->SaveToFile(pf, true, bSelectOnly);
+    m_pDrawObjects->SaveToFile(pf, true, bSelectOnly, cVer);
     fclose(pf);
 
     return true;
@@ -2048,8 +2054,11 @@ bool CDApplication::LoadFile(GtkWidget *widget, gchar **psFile, bool bClear)
     GTK_RESPONSE_CANCEL, GTK_STOCK_OPEN, GTK_RESPONSE_ACCEPT, NULL);
     GtkFileFilter *flt = gtk_file_filter_new();
     gtk_file_filter_set_name(flt, _("SteamCAD2 Files"));
-    gtk_file_filter_add_pattern(flt, "*.sdr");
+    gtk_file_filter_add_pattern(flt, "*.sc2");
     gtk_file_chooser_add_filter((GtkFileChooser*)dialog, flt);
+    flt = gtk_file_filter_new();
+    gtk_file_filter_set_name(flt, _("SteamCAD Files"));
+    gtk_file_filter_add_pattern(flt, "*.sdr");
     flt = gtk_file_filter_new();
     gtk_file_filter_set_name(flt, _("All files"));
     gtk_file_filter_add_pattern(flt, "*");
@@ -2180,6 +2189,12 @@ void CDApplication::FileExportCmd(bool bFromAccel)
     gtk_file_chooser_add_filter((GtkFileChooser*)dialog, flt);
     if(m_iLastExportType == 5) pActFilter = flt;
 
+    flt = gtk_file_filter_new();
+    gtk_file_filter_set_name(flt, _("SteamCAD File (*.sdr)"));
+    gtk_file_filter_add_pattern(flt, "*.sdr");
+    gtk_file_chooser_add_filter((GtkFileChooser*)dialog, flt);
+    if(m_iLastExportType == 6) pActFilter = flt;
+
     gtk_file_chooser_set_filter((GtkFileChooser*)dialog, pActFilter);
 
     if(m_sLastPath)
@@ -2233,8 +2248,16 @@ void CDApplication::FileExportCmd(bool bFromAccel)
             strcpy(sExt, "eps");
             break;
         case 'S':
-            m_iLastExportType = 4;
-            strcpy(sExt, "svg");
+            if(sFltName[1] == 'c')
+            {
+                m_iLastExportType = 4;
+                strcpy(sExt, "svg");
+            }
+            else
+            {
+                m_iLastExportType = 6;
+                strcpy(sExt, "sdr");
+            }
             break;
         case 'D':
             m_iLastExportType = 5;
@@ -2267,7 +2290,14 @@ void CDApplication::FileExportCmd(bool bFromAccel)
         ExportCairoFile(m_iLastExportType, pf, m_pDrawObjects, m_pFileSetupDlg->GetUnitList());
         fclose(pf);
     }
-    else ExportDXFFile(sFileExt, m_pDrawObjects, m_pFileSetupDlg->GetUnitList());
+    else if(m_iLastExportType == 5) ExportDXFFile(sFileExt, m_pDrawObjects, m_pFileSetupDlg->GetUnitList());
+    else
+    {
+        // save the file
+        FILE *pf = fopen(sFileExt, "wb");
+        m_pDrawObjects->SaveToFile(pf, true, false, 1);
+        fclose(pf);
+    }
 
     g_free(sFile);
     if(!sDot) g_free(sFileExt);
@@ -2481,7 +2511,7 @@ void CDApplication::StartNewObject(gboolean bShowEdit)
 
     if(m_iToolMode == tolRound)
     {
-        int iCnt = m_pDrawObjects->GetSelectCount();
+        int iCnt = m_pDrawObjects->GetSelectCount(2);
         if(iCnt == 2)
         {
             m_pActiveObject = new CDObject(dtCircle, m_cFSR.dDefLineWidth);
@@ -2603,7 +2633,7 @@ void CDApplication::SetTool(int iNewTool)
 
     if(iNewTool == tolDimen)
     {
-        if(m_pDrawObjects->GetSelectCount() != 1)
+        if(m_pDrawObjects->GetSelectCount(2) != 1)
         {
             GtkWidget *msg_dlg = gtk_message_dialog_new(GTK_WINDOW(m_pMainWnd), GTK_DIALOG_MODAL,
                 GTK_MESSAGE_WARNING, GTK_BUTTONS_OK,
@@ -2704,7 +2734,7 @@ void CDApplication::EditDeleteCmd(GtkWidget *widget, bool bFromAccel)
 
 void CDApplication::EditCopyParCmd(GtkWidget *widget, bool bFromAccel)
 {
-    int iSel = m_pDrawObjects->GetSelectCount();
+    int iSel = m_pDrawObjects->GetSelectCount(2);
     if(iSel != 1) return;
 
     PDObject pObj = m_pDrawObjects->GetSelected(0);
@@ -3444,7 +3474,7 @@ void CDApplication::MouseMove(GtkWidget *widget, GdkEventMotion *event, gboolean
             {
                 CDPoint cMainDir = {1.0, 0.0};
 
-                iCnt = m_pDrawObjects->GetSelectCount();
+                iCnt = m_pDrawObjects->GetSelectCount(2);
                 if(iCnt == 1)
                 {
                     pObj1 = m_pDrawObjects->GetSelected(0);
@@ -3558,7 +3588,7 @@ void CDApplication::MouseMove(GtkWidget *widget, GdkEventMotion *event, gboolean
 
                 if(iDynMode == 3)
                 {
-                    iCnt = m_pDrawObjects->GetSelectCount();
+                    iCnt = m_pDrawObjects->GetSelectCount(2);
                     if(iCnt == 2)
                     {
                         pObj1 = m_pDrawObjects->GetSelected(0);
@@ -3661,7 +3691,7 @@ void CDApplication::MouseMove(GtkWidget *widget, GdkEventMotion *event, gboolean
         }
         else if(iDynMode == 4)
         {
-            iCnt = m_pDrawObjects->GetSelectCount();
+            iCnt = m_pDrawObjects->GetSelectCount(2);
             if(iCnt == 1)
             {
                 pObj1 = m_pDrawObjects->GetSelected(0);

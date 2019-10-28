@@ -69,14 +69,14 @@ private:
     void SaveReference(FILE *pf, bool bSwapBytes, double dRef);
     void SaveRefPoint(FILE *pf, bool bSwapBytes, CDRefPoint cRefPoint);
     void SaveLine(FILE *pf, bool bSwapBytes, CDLine cLine);
-    void SaveLineStyle(FILE *pf, bool bSwapBytes, CDLineStyle cLineStyle);
+    void SaveLineStyle(FILE *pf, bool bSwapBytes, CDLineStyle cLineStyle, unsigned char cVersion);
     void SaveDimension(FILE *pf, bool bSwapBytes, PDDimension pDim);
     void LoadPoint(FILE *pf, bool bSwapBytes, PDPoint pPoint);
     void LoadInputPoint(FILE *pf, bool bSwapBytes, PDInputPoint pInPoint);
     void LoadReference(FILE *pf, bool bSwapBytes, double *pdRef);
     void LoadRefPoint(FILE *pf, bool bSwapBytes, PDRefPoint pRefPoint);
     void LoadLine(FILE *pf, bool bSwapBytes, PDLine pLine);
-    void LoadLineStyle(FILE *pf, bool bSwapBytes, PDLineStyle pLineStyle);
+    void LoadLineStyle(FILE *pf, bool bSwapBytes, PDLineStyle pLineStyle, unsigned char cVersion);
     void LoadDimension(FILE *pf, bool bSwapBytes, PDDimension pDim);
     void AddCurveSegment(double dStart, double dEnd, PDRect pRect);
     void AddPatSegment(double dStart, int iStart, double dEnd, int iEnd,
@@ -135,8 +135,8 @@ public:
     bool Extend(CDPoint cPt, double dDist, PDRect pRect, PDPtrList pRegions);
     void SetBound(int iIndex, CDLine cBound);
     void SetBound(int iIndex, CDRefPoint cBound);
-    void SaveToFile(FILE *pf, bool bSwapBytes);
-    bool ReadFromFile(FILE *pf, bool bSwapBytes);
+    void SaveToFile(FILE *pf, bool bSwapBytes, unsigned char cVersion);
+    bool ReadFromFile(FILE *pf, bool bSwapBytes, unsigned char cVersion);
     // pPtX.bIsSet true if center is set, pPtX.cOrigin = center, pPtX.cDirection = normal
     double GetRadiusAtPt(CDLine cPtX, PDLine pPtR, bool bNewPt);
     bool GetDynValue(CDPoint cPt, int iMode, double *pdVal);
@@ -176,6 +176,7 @@ public:
     bool GetStartPoint(PDPoint pPt);
     bool GetEndPoint(PDPoint pPt);
     void BuildPath(CDObject **ppObjects, PDIntList pPath);
+    int GetSubObjectCount();
 } *PDObject;
 
 typedef class CDataList
@@ -207,12 +208,12 @@ public:
     PDObject GetSelectedCircle(int iIndex);
     int GetSnapPoint(int iSnapMask, CDPoint cPt, double dDist, PDLine pSnapPt, PDObject pDynObj);
     bool DeleteSelected(CDataList *pUndoList, PDRect pRect, PDPtrList pRegions);
-    int GetSelectCount();
+    int GetSelectCount(unsigned char cVersion);
     PDObject GetSelected(int iIndex);
     bool CutSelected(CDPoint cPt, double dDist, PDRect pRect, PDPtrList pRegions);
     bool ExtendSelected(CDPoint cPt, double dDist, PDRect pRect, PDPtrList pRegions);
     void ClearAll();
-    void SaveToFile(FILE *pf, bool bSwapBytes, bool bSelectOnly);
+    void SaveToFile(FILE *pf, bool bSwapBytes, bool bSelectOnly, unsigned char cVersion);
     bool ReadFromFile(FILE *pf, bool bSwapBytes, bool bClear);
     void SelectByRectangle(PDRect pRect, int iMode, PDPtrList pRegions);
     bool RotateSelected(CDPoint cOrig, double dRot, int iCop, PDRect pRect, PDPtrList pRegions);
