@@ -2059,6 +2059,7 @@ bool CDApplication::LoadFile(GtkWidget *widget, gchar **psFile, bool bClear)
     flt = gtk_file_filter_new();
     gtk_file_filter_set_name(flt, _("SteamCAD Files"));
     gtk_file_filter_add_pattern(flt, "*.sdr");
+    gtk_file_chooser_add_filter((GtkFileChooser*)dialog, flt);
     flt = gtk_file_filter_new();
     gtk_file_filter_set_name(flt, _("All files"));
     gtk_file_filter_add_pattern(flt, "*");

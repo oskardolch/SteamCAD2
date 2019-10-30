@@ -2104,6 +2104,7 @@ void CDObject::SaveDimension(FILE *pf, bool bSwapBytes, PDDimension pDim)
 void CDObject::SaveToFile(FILE *pf, bool bSwapBytes, unsigned char cVersion)
 {
     unsigned char buf[16], *pbuf;
+    unsigned long lCnt;
 
     if((cVersion > 1) || (m_iType < dtPath))
     {
@@ -2117,7 +2118,7 @@ void CDObject::SaveToFile(FILE *pf, bool bSwapBytes, unsigned char cVersion)
 
         SaveLineStyle(pf, bSwapBytes, m_cLineStyle, cVersion);
 
-        unsigned long lCnt = m_pInputPoints->GetCount(-1);
+        lCnt = m_pInputPoints->GetCount(-1);
         pbuf = (unsigned char*)&lCnt;
         SwapBytes(buf, pbuf, 4, bSwapBytes);
         fwrite(buf, 1, 4, pf);
@@ -2154,20 +2155,44 @@ void CDObject::SaveToFile(FILE *pf, bool bSwapBytes, unsigned char cVersion)
         }
     }
 
-    unsigned long lCnt = m_pSubObjects->GetCount();
+    lCnt = m_pSubObjects->GetCount();
+    PDObject pObj;
+    PDPathSeg pSeg;
 
     if(cVersion > 1)
     {
         pbuf = (unsigned char*)&lCnt;
         SwapBytes(buf, pbuf, 4, bSwapBytes);
         fwrite(buf, 1, 4, pf);
-    }
 
-    PDObject pObj;
-    for(unsigned int i = 0; i < lCnt; i++)
+        if(m_iType < dtBorder)
+        {
+            for(unsigned int i = 0; i < lCnt; i++)
+            {
+                pSeg = (PDPathSeg)m_pSubObjects->GetItem(i);
+                buf[0] = (unsigned char)pSeg->bReverse;
+                fwrite(buf, 1, 1, pf);
+                pSeg->pSegment->SaveToFile(pf, bSwapBytes, cVersion);
+            }
+        }
+        else
+        {
+            for(unsigned int i = 0; i < lCnt; i++)
+            {
+                pObj = (PDObject)m_pSubObjects->GetItem(i);
+                pObj->SaveToFile(pf, bSwapBytes, cVersion);
+            }
+        }
+    }
+    else if(m_iType < dtBorder)
     {
-        pObj = (PDObject)m_pSubObjects->GetItem(i);
-        pObj->SaveToFile(pf, bSwapBytes, cVersion);
+        for(unsigned int i = 0; i < lCnt; i++)
+        {
+            pSeg = (PDPathSeg)m_pSubObjects->GetItem(i);
+            buf[0] = (unsigned char)pSeg->bReverse;
+            fwrite(buf, 1, 1, pf);
+            pSeg->pSegment->SaveToFile(pf, bSwapBytes, cVersion);
+        }
     }
 }
 
@@ -2392,15 +2417,33 @@ bool CDObject::ReadFromFile(FILE *pf, bool bSwapBytes, unsigned char cVersion)
     if(cVersion > 1)
     {
         PDObject pObj;
+        PDPathSeg pSeg;
         fread(buf, 1, 4, pf);
         pbuf = (unsigned char*)&lCnt;
         SwapBytes(pbuf, buf, 4, bSwapBytes);
-        for(unsigned int i = 0; i < lCnt; i++)
+        if(m_iType < dtBorder)
         {
-            fread(buf, 1, 1, pf);
-            pObj = new CDObject((CDDrawType)buf[0], 0.2);
-            pObj->ReadFromFile(pf, bSwapBytes, cVersion);
-            m_pSubObjects->Add(pObj);
+            for(unsigned int i = 0; i < lCnt; i++)
+            {
+                pSeg = (PDPathSeg)malloc(sizeof(CDPathSeg));
+                fread(buf, 1, 1, pf);
+                pSeg->bReverse = (bool)buf[0];
+                fread(buf, 1, 1, pf);
+                pObj = new CDObject((CDDrawType)buf[0], 0.2);
+                pObj->ReadFromFile(pf, bSwapBytes, cVersion);
+                pSeg->pSegment = pObj;
+                m_pSubObjects->Add(pSeg);
+            }
+        }
+        else
+        {
+            for(unsigned int i = 0; i < lCnt; i++)
+            {
+                fread(buf, 1, 1, pf);
+                pObj = new CDObject((CDDrawType)buf[0], 0.2);
+                pObj->ReadFromFile(pf, bSwapBytes, cVersion);
+                m_pSubObjects->Add(pObj);
+            }
         }
     }
     return true;
@@ -4284,7 +4327,7 @@ bool CDataList::ReadFromFile(FILE *pf, bool bSwapBytes, bool bClear)
 
     // version
     fread(buf, 1, 1, pf);
-    if(buf[0] > 1) return false; // we don't know that version yet
+    if(buf[0] > 2) return false; // we don't know that version yet
     unsigned char cVer = buf[0];
 
     if(bClear) ClearAll();
