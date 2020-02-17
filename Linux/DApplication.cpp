@@ -1002,16 +1002,26 @@ void CDApplication::Configure(GtkWidget *widget, GdkEventConfigure *event)
     m_pcs = NULL;
 }
 
-void CDApplication::SetLColor(cairo_t *cr, long lColor)
+long CDApplication::CodeRGBColor(unsigned char *pColor)
 {
-    cairo_set_source_rgb(cr, (lColor & 0xFF)/255.0,
-        ((lColor >> 8) & 0xFF)/255.0, ((lColor >> 16) & 0xFF)/255.0);
+  return pColor[0] | (pColor[1] << 8) | (pColor[2] << 16) | (pColor[3] << 24);
 }
 
-void CDApplication::SetLColorA(cairo_t *cr, long lColor, int iAlpha)
+long CDApplication::SetColorAlpha(long lColor, int iAlpha) // 0 <= iAlpha <= 100
 {
+  unsigned char normAlpha = (unsigned char)Round(255.0*iAlpha/100.0);
+  return lColor | (normAlpha << 24);
+}
+
+void CDApplication::SetLColor(cairo_t *cr, long lColor)
+{
+  unsigned char iAlpha = (lColor >> 24) & 0xFF;
+  if(iAlpha == 0)
+    cairo_set_source_rgb(cr, (lColor & 0xFF)/255.0,
+        ((lColor >> 8) & 0xFF)/255.0, ((lColor >> 16) & 0xFF)/255.0);
+  else
     cairo_set_source_rgba(cr, (lColor & 0xFF)/255.0,
-        ((lColor >> 8) & 0xFF)/255.0, ((lColor >> 16) & 0xFF)/255.0, iAlpha/100.0);
+      ((lColor >> 8) & 0xFF)/255.0, ((lColor >> 16) & 0xFF)/255.0, iAlpha/255.0);
 }
 
 void CDApplication::DrawDimArrow(cairo_t *cr, PDPrimitive pPrim)
@@ -1500,7 +1510,7 @@ void CDApplication::DrawObject(cairo_t *cr, PDObject pObj, int iMode, int iDimen
     bool bSel = pObj->GetSelected();
     CDLineStyle cStyle = pObj->GetLineStyle();
 
-    long dwColor = 0;
+    long dwColor = CodeRGBColor(cStyle.cColor);
     if(iMode == 1) dwColor = m_lActiveColor;
     else if(iMode == 2) dwColor = m_lHighColor;
     else if(bSel) dwColor = m_lSelColor;
@@ -1513,8 +1523,7 @@ void CDApplication::DrawObject(cairo_t *cr, PDObject pObj, int iMode, int iDimen
     if(dPtRad < 2.0) dPtRad = 2.0;
 
     cairo_set_line_width(cr, dWidth);
-    if(fabs(fabs(cStyle.dWidth)) < 0.3) cairo_set_line_cap(cr, CAIRO_LINE_CAP_ROUND);
-    else cairo_set_line_cap(cr, CAIRO_LINE_CAP_BUTT);
+    cairo_set_line_cap(cr, (cairo_line_cap_t)cStyle.cCapType);
     SetLColor(cr, dwColor);
 
     CDPrimitive cPrim;
@@ -1572,7 +1581,7 @@ void CDApplication::DrawObject(cairo_t *cr, PDObject pObj, int iMode, int iDimen
                 }
                 else
                 {
-                    dwColor = 0;
+                    dwColor = CodeRGBColor(cStyle.cColor);
                     SetLColor(cr, dwColor);
                 }
 
@@ -1595,7 +1604,7 @@ void CDApplication::DrawObject(cairo_t *cr, PDObject pObj, int iMode, int iDimen
         {
             pDim = pObj->GetDimen(iDimen);
             if(pDim->bSelected) dwColor = m_lSelColor;
-            else dwColor = 0;
+            else dwColor = CodeRGBColor(cStyle.cColor);
             SetLColor(cr, dwColor);
         }
 
@@ -3392,8 +3401,9 @@ void CDApplication::MouseMove(GtkWidget *widget, GdkEventMotion *event, gboolean
                 cRect2.height *= -1;
             }*/
 
+            long dwColor = SetColorAlpha(m_lSelColor, 35);
             cairo_rectangle(cr, cRect2.x, cRect2.y, cRect2.width, cRect2.height);
-            SetLColorA(cr, m_lSelColor, 35);
+            SetLColor(cr, dwColor);
             cairo_fill_preserve(cr);
             SetLColor(cr, m_lSelColor);
             cairo_stroke(cr);

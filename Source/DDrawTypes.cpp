@@ -60,6 +60,7 @@ CDObject::CDObject(CDDrawType iType, double dWidth)
     m_cLineStyle.dBlend = 0.0;
     m_dMovedDist = 0.0;
     m_bFirstDimSet = false;
+    m_iDimenDir = -1;
     m_cTmpDim.psLab = m_sTmpDimBuf;
     m_sTmpDimBuf[0] = 0;
     m_bSnapTo = true;
@@ -1026,6 +1027,36 @@ bool CDObject::IsNearPoint(CDPoint cPt, double dTolerance, int *piDimen)
     return fabs(dDist) < dTolerance;
 }
 
+bool CDObject::GetRefBounds(PDPoint pPoint)
+{
+  switch(m_iType)
+  {
+  case dtLine:
+    return false;
+  case dtCircle:
+  case dtEllipse:
+  case dtArcEllipse:
+    pPoint->x = -M_PI;
+    pPoint->y = M_PI;
+    return true;
+  case dtHyperbola:
+  case dtParabola:
+    return false;
+  case dtSpline:
+    pPoint->x = 0.0;
+    pPoint->y = m_pCachePoints->GetCount(0);
+    return true;
+  case dtEvolvent:
+    return false;
+  case dtPath:
+    pPoint->x = 0.0;
+    pPoint->y = GetLength();
+    return true;
+  default:
+    return false;
+  }
+}
+
 bool CDObject::GetNativeReference(double dDist, double *pdRef)
 {
     switch(m_iType)
@@ -1053,6 +1084,40 @@ bool CDObject::GetNativeReference(double dDist, double *pdRef)
         return false;
     }
 }
+
+/*int CDObject::CmpRefs(double dRef1, double dRef2)
+{
+  if(m_iType == dtPath)
+  {
+    if(IsClosedPath())
+    {
+      double dLen = GetLength();
+    }
+      return true;
+    if(dRef < -g_dPrec) return false;
+    double dLen = GetLength();
+    if(dRef > dLen + g_dPrec) return false;
+    return true;
+  }
+
+  if(IsClosedShape())
+  {
+    double dLen = GetLength();
+
+    if(!m_cBounds[1].bIsSet) return true;
+    if(!m_cBounds[0].bIsSet) return true;
+
+    if(m_cBounds[0].dRef > m_cBounds[1].dRef)
+    {
+      if((m_cBounds[1].dRef < dRef) && (dRef < m_cBounds[0].dRef))
+        return false;
+    }
+  }
+
+  if(dRef1 < dRef2 - g_dPrec) return -1;
+  if(dRef2 < dRef1 - g_dPrec) return 1;
+  return 0;
+}*/
 
 double CDObject::GetLength()
 {
@@ -1212,43 +1277,43 @@ bool CDObject::GetNativeRefDir(double dRef, PDPoint pPt)
 
 bool CDObject::IsValidRef(double dRef)
 {
-    if(m_iType == dtPath)
-    {
-        if(IsClosedPath()) return true;
-        if(dRef < -g_dPrec) return false;
-        double dLen = GetLength();
-        if(dRef > dLen + g_dPrec) return false;
-        return true;
-    }
-
-    if(IsClosedShape())
-    {
-        if(!m_cBounds[1].bIsSet) return true;
-        if(!m_cBounds[0].bIsSet) return true;
-
-        if(m_cBounds[0].dRef > m_cBounds[1].dRef)
-        {
-            if((m_cBounds[1].dRef < dRef) && (dRef < m_cBounds[0].dRef))
-                return false;
-        }
-    }
-
-    if(m_cBounds[0].bIsSet)
-    {
-        if(dRef < m_cBounds[0].dRef) return false;
-    }
-
-    if(m_cBounds[1].bIsSet)
-    {
-        if(dRef > m_cBounds[1].dRef) return false;
-    }
-
+  if(m_iType == dtPath)
+  {
+    if(IsClosedPath()) return true;
+    if(dRef < -g_dPrec) return false;
+    double dLen = GetLength();
+    if(dRef > dLen + g_dPrec) return false;
     return true;
+  }
+
+  if(IsClosedShape())
+  {
+    if(!m_cBounds[1].bIsSet) return true;
+    if(!m_cBounds[0].bIsSet) return true;
+
+    if(m_cBounds[0].dRef > m_cBounds[1].dRef)
+    {
+      if((m_cBounds[1].dRef < dRef) && (dRef < m_cBounds[0].dRef))
+        return false;
+    }
+  }
+
+  if(m_cBounds[0].bIsSet)
+  {
+    if(dRef < m_cBounds[0].dRef) return false;
+  }
+
+  if(m_cBounds[1].bIsSet)
+  {
+    if(dRef > m_cBounds[1].dRef) return false;
+  }
+
+  return true;
 }
 
 bool CDObject::GetSelected()
 {
-    return m_bSelected;
+  return m_bSelected;
 }
 
 void CDObject::SetSelected(bool bSelect, bool bInvert, int iDimen, PDPtrList pRegions)
@@ -1689,7 +1754,7 @@ CDObject* CDObject::Copy()
     }
     pRes->SetBound(0, m_cBounds[0]);
     pRes->SetBound(1, m_cBounds[1]);
-    pRes->SetLineStyle(7, m_cLineStyle);
+    pRes->SetLineStyle(63, m_cLineStyle);
 
     double dRef;
     for(int i = 0; i < m_pCrossPoints->GetCount(); i++)
@@ -2055,7 +2120,7 @@ void CDObject::SaveLineStyle(FILE *pf, bool bSwapBytes, CDLineStyle cLineStyle, 
     }
 }
 
-void CDObject::SaveDimension(FILE *pf, bool bSwapBytes, PDDimension pDim)
+void CDObject::SaveDimension(FILE *pf, bool bSwapBytes, PDDimension pDim, unsigned char cVersion)
 {
     unsigned char buf[16], *pbuf;
 
@@ -2066,6 +2131,12 @@ void CDObject::SaveDimension(FILE *pf, bool bSwapBytes, PDDimension pDim)
     pbuf = (unsigned char*)&pDim->dRef2;
     SwapBytes(buf, pbuf, 8, bSwapBytes);
     fwrite(buf, 1, 8, pf);
+
+    if(cVersion > 1)
+    {
+      buf[0] = (unsigned char)pDim->iRefDir;
+      fwrite(buf, 1, 1, pf);
+    }
 
     buf[0] = (unsigned char)pDim->iArrowType1;
     fwrite(buf, 1, 1, pf);
@@ -2151,7 +2222,7 @@ void CDObject::SaveToFile(FILE *pf, bool bSwapBytes, unsigned char cVersion)
         for(unsigned int i = 0; i < lCnt; i++)
         {
             pDim = (PDDimension)m_pDimens->GetItem(i);
-            SaveDimension(pf, bSwapBytes, pDim);
+            SaveDimension(pf, bSwapBytes, pDim, cVersion);
         }
     }
 
@@ -2302,7 +2373,7 @@ void CDObject::LoadLineStyle(FILE *pf, bool bSwapBytes, PDLineStyle pLineStyle, 
     }
 }
 
-void CDObject::LoadDimension(FILE *pf, bool bSwapBytes, PDDimension pDim)
+void CDObject::LoadDimension(FILE *pf, bool bSwapBytes, PDDimension pDim, unsigned char cVersion)
 {
     unsigned char buf[16], *pbuf;
 
@@ -2315,6 +2386,13 @@ void CDObject::LoadDimension(FILE *pf, bool bSwapBytes, PDDimension pDim)
     fread(buf, 1, 8, pf);
     pbuf = (unsigned char*)&pDim->dRef2;
     SwapBytes(pbuf, buf, 8, bSwapBytes);
+
+    if(cVersion > 1)
+    {
+      fread(buf, 1, 1, pf);
+      pDim->iRefDir = buf[0];
+    }
+    else pDim->iRefDir = 0;
 
     fread(buf, 1, 1, pf);
     pDim->iArrowType1 = buf[0];
@@ -2410,7 +2488,7 @@ bool CDObject::ReadFromFile(FILE *pf, bool bSwapBytes, unsigned char cVersion)
     for(unsigned int i = 0; i < lCnt; i++)
     {
         pDim = (PDDimension)malloc(sizeof(CDDimension));
-        LoadDimension(pf, bSwapBytes, pDim);
+        LoadDimension(pf, bSwapBytes, pDim, cVersion);
         m_pDimens->Add(pDim);
     }
 
@@ -2960,13 +3038,14 @@ bool CDObject::AddDimen(CDPoint cPt, double dDist, PDRect pRect, PDFileAttrs pAt
     GetNativeRefPoint(dRef3, &cPt1);
     GetNativeRefDir(dRef3, &cDir);
     cNorm = GetNormal(cDir);
+    if(pDim->dRef1 > pDim->dRef2 + g_dPrec) cNorm *= -1.0;
     double dAng = atan2(cNorm.y, cNorm.x);
-    if(dAng < -g_dPrec)
+    /*if(dAng < -g_dPrec)
     {
         cNorm *= -1.0;
         dAng += M_PI;
     }
-    else if(dAng < g_dPrec)
+    else*/ if(dAng < g_dPrec)
     {
         dAng = 0.0;
         cNorm.x = 1.0;

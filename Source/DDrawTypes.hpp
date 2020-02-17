@@ -55,6 +55,7 @@ private:
     double m_dMovedDist;
     bool m_bFirstDimSet;
     double m_dFirstDimen;
+    char m_iDimenDir;
     char m_sTmpDimBuf[64];
     CDDimension m_cTmpDim;
     bool m_bSnapTo;
@@ -70,18 +71,20 @@ private:
     void SaveRefPoint(FILE *pf, bool bSwapBytes, CDRefPoint cRefPoint);
     void SaveLine(FILE *pf, bool bSwapBytes, CDLine cLine);
     void SaveLineStyle(FILE *pf, bool bSwapBytes, CDLineStyle cLineStyle, unsigned char cVersion);
-    void SaveDimension(FILE *pf, bool bSwapBytes, PDDimension pDim);
+    void SaveDimension(FILE *pf, bool bSwapBytes, PDDimension pDim, unsigned char cVersion);
     void LoadPoint(FILE *pf, bool bSwapBytes, PDPoint pPoint);
     void LoadInputPoint(FILE *pf, bool bSwapBytes, PDInputPoint pInPoint);
     void LoadReference(FILE *pf, bool bSwapBytes, double *pdRef);
     void LoadRefPoint(FILE *pf, bool bSwapBytes, PDRefPoint pRefPoint);
     void LoadLine(FILE *pf, bool bSwapBytes, PDLine pLine);
     void LoadLineStyle(FILE *pf, bool bSwapBytes, PDLineStyle pLineStyle, unsigned char cVersion);
-    void LoadDimension(FILE *pf, bool bSwapBytes, PDDimension pDim);
+    void LoadDimension(FILE *pf, bool bSwapBytes, PDDimension pDim, unsigned char cVersion);
     void AddCurveSegment(double dStart, double dEnd, PDRect pRect);
     void AddPatSegment(double dStart, int iStart, double dEnd, int iEnd,
         PDPoint pBnds, PDRect pRect);
+    bool GetRefBounds(PDPoint pPoint);
     bool GetNativeReference(double dDist, double *pdRef);
+    //int CmpRefs(double dRef1, double dRef2);
     double GetLength();
     PDPathSeg GetPathRefSegment(double dRef, double *pdFixedRef);
     bool GetPathRefPoint(double dRef, PDPoint pPt);

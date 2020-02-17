@@ -13,9 +13,17 @@ const double dPtToIn = 72.0;
 cairo_status_t WriteCairoStream(void *closure, const unsigned char *data,
     unsigned int length)
 {
-    FILE *pfile = (FILE*)closure;
-    fwrite(data, 1, length, pfile);
-    return CAIRO_STATUS_SUCCESS;
+  FILE *pfile = (FILE*)closure;
+  fwrite(data, 1, length, pfile);
+  return CAIRO_STATUS_SUCCESS;
+}
+
+void ExpSetLColor(cairo_t *cr, unsigned char *pcColor)
+{
+  if(pcColor[3] == 0)
+    cairo_set_source_rgb(cr, pcColor[0]/255.0, pcColor[1]/255.0, pcColor[2]/255.0);
+  else
+    cairo_set_source_rgba(cr, pcColor[0]/255.0, pcColor[1]/255.0, pcColor[2]/255.0, pcColor[3]/255.0);
 }
 
 void ExportDimArrow(cairo_t *pct, PDPrimitive pPrim)
@@ -247,54 +255,38 @@ void ExportDimText(cairo_t *pct, PDPrimitive pPrim, PDObject pObj, double dScale
 }
 
 void ExportObject(PDObject pObj, cairo_t *pct, PDFileAttrs pFileAttrs, double dRat,
-    cairo_line_cap_t *pcCap, PDUnitList pUnits)
+  PDUnitList pUnits)
 {
-    CDLineStyle cStyle = pObj->GetLineStyle();
-    double dScale = pFileAttrs->dScaleNom/pFileAttrs->dScaleDenom;
+  CDLineStyle cStyle = pObj->GetLineStyle();
+  double dScale = pFileAttrs->dScaleNom/pFileAttrs->dScaleDenom;
 
-    bool bVisible = (cStyle.dWidth > -0.00001);
-    double dLineWdth = fabs(cStyle.dWidth);
+  bool bVisible = (cStyle.dWidth > -0.00001);
+  double dLineWdth = fabs(cStyle.dWidth);
 
-    if((fabs(cStyle.dPercent) > 10.0) || (dLineWdth > 0.3))
-    {
-        if(*pcCap == CAIRO_LINE_CAP_ROUND)
-        {
-            *pcCap = CAIRO_LINE_CAP_BUTT;
-            cairo_set_line_cap(pct, *pcCap);
-        }
-    }
-    else
-    {
-        if(*pcCap == CAIRO_LINE_CAP_BUTT)
-        {
-            *pcCap = CAIRO_LINE_CAP_ROUND;
-            cairo_set_line_cap(pct, *pcCap);
-        }
-    }
+  cairo_set_line_cap(pct, (cairo_line_cap_t)cStyle.cCapType);
+  ExpSetLColor(pct, cStyle.cColor);
+  cairo_set_line_width(pct, dLineWdth*dRat);
 
-    cairo_set_source_rgb(pct, 0.0, 0.0, 0.0);
-    cairo_set_line_width(pct, dLineWdth*dRat);
+  CDPrimitive cPrim;
+  pObj->GetFirstPrimitive(&cPrim, -dRat, -2);
 
-    CDPrimitive cPrim;
-    pObj->GetFirstPrimitive(&cPrim, -dRat, -2);
+  while(cPrim.iType > 0)
+  {
+    if(cPrim.iType == 10) ExportDimText(pct, &cPrim, pObj, dScale, pUnits, dRat);
+    else if(bVisible) ExportPrimitive(pct, &cPrim);
+    pObj->GetNextPrimitive(&cPrim, -dRat, -2);
+  }
 
+  for(int i = 0; i < pObj->GetDimenCount(); i++)
+  {
+    pObj->GetFirstPrimitive(&cPrim, -dRat, i);
     while(cPrim.iType > 0)
     {
-        if(cPrim.iType == 10) ExportDimText(pct, &cPrim, pObj, dScale, pUnits, dRat);
-        else if(bVisible) ExportPrimitive(pct, &cPrim);
-        pObj->GetNextPrimitive(&cPrim, -dRat, -2);
+      if(cPrim.iType == 10) ExportDimText(pct, &cPrim, pObj, dScale, pUnits, dRat);
+      else ExportPrimitive(pct, &cPrim);
+      pObj->GetNextPrimitive(&cPrim, -dRat, i);
     }
-
-    for(int i = 0; i < pObj->GetDimenCount(); i++)
-    {
-        pObj->GetFirstPrimitive(&cPrim, -dRat, i);
-        while(cPrim.iType > 0)
-        {
-            if(cPrim.iType == 10) ExportDimText(pct, &cPrim, pObj, dScale, pUnits, dRat);
-            else ExportPrimitive(pct, &cPrim);
-            pObj->GetNextPrimitive(&cPrim, -dRat, i);
-        }
-    }
+  }
 }
 
 void ExportCairoFile(int iType, FILE *pFile, PDataList pDrawData, PDUnitList pUnits)
@@ -343,8 +335,6 @@ void ExportCairoFile(int iType, FILE *pFile, PDataList pDrawData, PDUnitList pUn
     cRect.cPt2.y = cFileAttrs.dHeight;
     pDrawData->BuildAllPrimitives(&cRect);
 
-    cairo_line_cap_t cCap = CAIRO_LINE_CAP_ROUND;
-    cairo_set_line_cap(pct, cCap);
     cairo_set_line_join(pct, CAIRO_LINE_JOIN_ROUND);
 
     PDObject pObj;
@@ -352,7 +342,7 @@ void ExportCairoFile(int iType, FILE *pFile, PDataList pDrawData, PDUnitList pUn
     for(int i = 0; i < n; i++)
     {
         pObj = pDrawData->GetItem(i);
-        ExportObject(pObj, pct, &cFileAttrs, dMmToPt, &cCap, pUnits);
+        ExportObject(pObj, pct, &cFileAttrs, dMmToPt, pUnits);
     }
 
     cairo_identity_matrix(pct);

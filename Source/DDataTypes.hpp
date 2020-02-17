@@ -123,20 +123,21 @@ typedef struct CDOrientPoint
 
 typedef struct CDDimension
 {
-    double dRef1;
-    double dRef2;
-    char iArrowType1; // 0 - none, 1 - standard, 2 - filled, 3 - point, 4 - slash,
-        // 5 - backslash
-    char iArrowType2;
-    CDPoint cArrowDim1;
-    CDPoint cArrowDim2;
-    double dFontSize;
-    char bFontAttrs;
-    char psFontFace[64];
-    CDOrientPoint cLabelPos; // position and orientation
-    char *psLab;
-    CDRect cExt; // temporary structure to hold the label extent. Not saved into file
-    bool bSelected;
+  double dRef1;
+  double dRef2;
+  char iRefDir; // direction with respect to the line referencing system - 0 forward, 1 backward
+  char iArrowType1; // 0 - none, 1 - standard, 2 - filled, 3 - point, 4 - slash,
+      // 5 - backslash
+  char iArrowType2;
+  CDPoint cArrowDim1;
+  CDPoint cArrowDim2;
+  double dFontSize;
+  char bFontAttrs;
+  char psFontFace[64];
+  CDOrientPoint cLabelPos; // position and orientation
+  char *psLab;
+  CDRect cExt; // temporary structure to hold the label extent. Not saved into file
+  bool bSelected;
 } *PDDimension;
 
 typedef struct CDPolygon
