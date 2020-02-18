@@ -8,10 +8,10 @@ config.*
 Makefile
 libdxflib.log
 log
-SteamCAD
-SteamCAD.log
-SteamCAD.layout
-SteamCAD.cbp
+SteamCAD2
+SteamCAD2.log
+SteamCAD2.layout
+SteamCAD2.cbp
 autom4te.cache
 Build
 Build32
