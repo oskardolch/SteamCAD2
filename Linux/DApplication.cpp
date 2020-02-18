@@ -1785,7 +1785,7 @@ void CDApplication::Paint(GtkWidget *widget, GdkEventExpose *event)
     {
         if(m_pActiveObject)
         {
-            m_pActiveObject->BuildPrimitives(cPtX, iDynMode, &cdr, false, NULL);
+            m_pActiveObject->BuildPrimitives(cPtX, iDynMode, &cdr, 0, NULL);
             DrawObject(cr2, m_pActiveObject, 1, -2);
         }
 
@@ -1807,7 +1807,7 @@ void CDApplication::Paint(GtkWidget *widget, GdkEventExpose *event)
             m_pDrawObjects->BuildAllPrimitives(&cdr);
             if(m_pActiveObject)
             {
-                m_pActiveObject->BuildPrimitives(cPtX, iDynMode, &cdr, false, NULL);
+                m_pActiveObject->BuildPrimitives(cPtX, iDynMode, &cdr, 0, NULL);
             }
         }
     }
@@ -3696,7 +3696,7 @@ void CDApplication::MouseMove(GtkWidget *widget, GdkEventMotion *event, gboolean
                 SetStatusBarMsg(1, m_sStatus1Msg);
             }
 
-            m_pActiveObject->BuildPrimitives(cPtX, iDynMode, &cdr, false, NULL);
+            m_pActiveObject->BuildPrimitives(cPtX, iDynMode, &cdr, 0, NULL);
 
             DrawObject(cr, m_pActiveObject, 1, -2);
         }
@@ -3708,8 +3708,11 @@ void CDApplication::MouseMove(GtkWidget *widget, GdkEventMotion *event, gboolean
                 pObj1 = m_pDrawObjects->GetSelected(0);
                 CDFileAttrs cFAttrs;
                 FilePropsToData(&cFAttrs);
+                // we actualy don't need the drawing scale for the dimension,
+                // so we will use it to pass the view scale
+                cFAttrs.dScaleDenom = m_dUnitScale;
 
-                pObj1->BuildPrimitives(cPtX, iDynMode, &cdr, false, &cFAttrs);
+                pObj1->BuildPrimitives(cPtX, iDynMode, &cdr, 0, &cFAttrs);
                 DrawObject(cr, pObj1, 1, -1);
             }
         }
