@@ -882,7 +882,7 @@ LRESULT CMainWnd::WMPaint(HWND hwnd, HDC hdc)
         LineTo(ldc, m_cLastSnapPt.x, m_cLastSnapPt.y + 10);
         if(m_pActiveObject)
         {
-            m_pActiveObject->BuildPrimitives(cPtX, iDynMode, &cdr, false, NULL);
+            m_pActiveObject->BuildPrimitives(cPtX, iDynMode, &cdr, 0, NULL);
             DrawObject(hwnd, ldc, m_pActiveObject, 1, -2);
         }
         SetROP2(ldc, iPrevROP);
@@ -904,7 +904,7 @@ LRESULT CMainWnd::WMPaint(HWND hwnd, HDC hdc)
     m_pDrawObjects->BuildAllPrimitives(&cdr);
     if(m_pActiveObject)
     {
-        m_pActiveObject->BuildPrimitives(cPtX, iDynMode, &cdr, false, NULL);
+        m_pActiveObject->BuildPrimitives(cPtX, iDynMode, &cdr, 0, NULL);
     }
 
     //SendMessage(m_hStatus, WM_PAINT, 0, 0);
@@ -3362,7 +3362,7 @@ LRESULT CMainWnd::WMMouseMove(HWND hwnd, WPARAM fwKeys, int xPos, int yPos)
             cdr.cPt2.x = (rc.right - m_cViewOrigin.x)/m_dUnitScale;
             cdr.cPt2.y = (rc.bottom - m_cViewOrigin.y)/m_dUnitScale;
 
-            m_pActiveObject->BuildPrimitives(cPtX, iDynMode, &cdr, false, NULL);
+            m_pActiveObject->BuildPrimitives(cPtX, iDynMode, &cdr, 0, NULL);
 
             DrawObject(hwnd, hdc, m_pActiveObject, 1, -2);
         }
@@ -3375,13 +3375,16 @@ LRESULT CMainWnd::WMMouseMove(HWND hwnd, WPARAM fwKeys, int xPos, int yPos)
                 pObj1 = m_pDrawObjects->GetSelected(0);
                 CDFileAttrs cFAttrs;
                 FilePropsToData(&cFAttrs);
+                // we actualy don't need the drawing scale for the dimension,
+                // so we will use it to pass the view scale
+                cFAttrs.dScaleDenom = m_dUnitScale;
 
                 cdr.cPt1.x = (rc.left - m_cViewOrigin.x)/m_dUnitScale;
                 cdr.cPt1.y = (rc.top - m_cViewOrigin.y)/m_dUnitScale;
                 cdr.cPt2.x = (rc.right - m_cViewOrigin.x)/m_dUnitScale;
                 cdr.cPt2.y = (rc.bottom - m_cViewOrigin.y)/m_dUnitScale;
 
-                pObj1->BuildPrimitives(cPtX, iDynMode, &cdr, false, &cFAttrs);
+                pObj1->BuildPrimitives(cPtX, iDynMode, &cdr, 0, &cFAttrs);
                 DrawObject(hwnd, hdc, pObj1, 1, -1);
             }
         }
