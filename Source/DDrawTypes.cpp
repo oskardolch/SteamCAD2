@@ -2447,7 +2447,16 @@ void CDObject::LoadDimension(FILE *pf, bool bSwapBytes, PDDimension pDim, unsign
       fread(buf, 1, 1, pf);
       pDim->iRefDir = buf[0];
     }
-    else pDim->iRefDir = 0;
+    else
+    {
+      if(pDim->dRef1 > pDim->dRef2 + g_dPrec)
+      {
+        double d1 = pDim->dRef1;
+        pDim->dRef1 = pDim->dRef2;
+        pDim->dRef2 = d1;
+      }
+      pDim->iRefDir = 1;
+    }
 
     fread(buf, 1, 1, pf);
     pDim->iArrowType1 = buf[0];
