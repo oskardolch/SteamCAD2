@@ -83,8 +83,9 @@ private:
     void AddPatSegment(double dStart, int iStart, double dEnd, int iEnd,
         PDPoint pBnds, PDRect pRect);
     bool GetRefBounds(PDPoint pPoint);
+    int GetDimenDir(double dRef1, double dRef2);
+    double GetDimenMidPointRef(double dRef1, double dRef2, int iDir);
     bool GetNativeReference(double dDist, double *pdRef);
-    //int CmpRefs(double dRef1, double dRef2);
     double GetLength();
     PDPathSeg GetPathRefSegment(double dRef, double *pdFixedRef);
     bool GetPathRefPoint(double dRef, PDPoint pPt);
