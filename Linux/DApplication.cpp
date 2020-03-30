@@ -996,10 +996,10 @@ void CDApplication::SetStatusBarMsg(int iPanel, const gchar *pMsg)
 
 void CDApplication::Configure(GtkWidget *widget, GdkEventConfigure *event)
 {
-    if(m_pcp) cairo_pattern_destroy(m_pcp);
-    m_pcp = NULL;
-    if(m_pcs) cairo_surface_destroy(m_pcs);
-    m_pcs = NULL;
+  if(m_pcp) cairo_pattern_destroy(m_pcp);
+  m_pcp = NULL;
+  if(m_pcs) cairo_surface_destroy(m_pcs);
+  m_pcs = NULL;
 }
 
 long CDApplication::CodeRGBColor(unsigned char *pColor)
@@ -1026,810 +1026,652 @@ void CDApplication::SetLColor(cairo_t *cr, long lColor)
 
 void CDApplication::DrawDimArrow(cairo_t *cr, PDPrimitive pPrim)
 {
-    cairo_set_line_join(cr, CAIRO_LINE_JOIN_ROUND);
+  cairo_set_line_join(cr, CAIRO_LINE_JOIN_ROUND);
 
-    CDPoint cStartPt, cEndPt;
-    int iType = Round(pPrim->cPt1.x);
+  CDPoint cStartPt, cEndPt;
+  int iType = Round(pPrim->cPt1.x);
 
-    switch(iType)
-    {
-    case 1:
-        cairo_new_path(cr);
-        cStartPt.x = pPrim->cPt3.x + m_cViewOrigin.x;
-        cStartPt.y = pPrim->cPt3.y + m_cViewOrigin.y;
-        cairo_move_to(cr, cStartPt.x, cStartPt.y);
-        cEndPt.x = pPrim->cPt2.x + m_cViewOrigin.x;
-        cEndPt.y = pPrim->cPt2.y + m_cViewOrigin.y;
-        cairo_line_to(cr, cEndPt.x, cEndPt.y);
-        cEndPt.x = pPrim->cPt4.x + m_cViewOrigin.x;
-        cEndPt.y = pPrim->cPt4.y + m_cViewOrigin.y;
-        cairo_line_to(cr, cEndPt.x, cEndPt.y);
-        cairo_stroke(cr);
-        break;
-    case 2:
-        cairo_new_path(cr);
-        cStartPt.x = pPrim->cPt3.x + m_cViewOrigin.x;
-        cStartPt.y = pPrim->cPt3.y + m_cViewOrigin.y;
-        cairo_move_to(cr, cStartPt.x, cStartPt.y);
-        cEndPt.x = pPrim->cPt2.x + m_cViewOrigin.x;
-        cEndPt.y = pPrim->cPt2.y + m_cViewOrigin.y;
-        cairo_line_to(cr, cEndPt.x, cEndPt.y);
-        cEndPt.x = pPrim->cPt4.x + m_cViewOrigin.x;
-        cEndPt.y = pPrim->cPt4.y + m_cViewOrigin.y;
-        cairo_line_to(cr, cEndPt.x, cEndPt.y);
-        cairo_line_to(cr, cStartPt.x, cStartPt.y);
-        cairo_fill(cr);
-        break;
-    case 3:
-        cairo_new_path(cr);
-        cairo_arc(cr, pPrim->cPt2.x + m_cViewOrigin.x, pPrim->cPt2.y + m_cViewOrigin.y,
-            fabs(pPrim->cPt3.x - pPrim->cPt2.x), 0.0, 2.0*M_PI);
-        cairo_fill(cr);
-        break;
-    case 4:
-    case 5:
-        cairo_new_path(cr);
-        cStartPt.x = pPrim->cPt3.x + m_cViewOrigin.x;
-        cStartPt.y = pPrim->cPt3.y + m_cViewOrigin.y;
-        cairo_move_to(cr, cStartPt.x, cStartPt.y);
-        cEndPt.x = pPrim->cPt4.x + m_cViewOrigin.x;
-        cEndPt.y = pPrim->cPt4.y + m_cViewOrigin.y;
-        cairo_line_to(cr, cEndPt.x, cEndPt.y);
-        cairo_stroke(cr);
-        break;
-    }
+  switch(iType)
+  {
+  case 1:
+    cairo_new_path(cr);
+    cStartPt.x = pPrim->cPt3.x + m_cViewOrigin.x;
+    cStartPt.y = pPrim->cPt3.y + m_cViewOrigin.y;
+    cairo_move_to(cr, cStartPt.x, cStartPt.y);
+    cEndPt.x = pPrim->cPt2.x + m_cViewOrigin.x;
+    cEndPt.y = pPrim->cPt2.y + m_cViewOrigin.y;
+    cairo_line_to(cr, cEndPt.x, cEndPt.y);
+    cEndPt.x = pPrim->cPt4.x + m_cViewOrigin.x;
+    cEndPt.y = pPrim->cPt4.y + m_cViewOrigin.y;
+    cairo_line_to(cr, cEndPt.x, cEndPt.y);
+    cairo_stroke(cr);
+    break;
+  case 2:
+    cairo_new_path(cr);
+    cStartPt.x = pPrim->cPt3.x + m_cViewOrigin.x;
+    cStartPt.y = pPrim->cPt3.y + m_cViewOrigin.y;
+    cairo_move_to(cr, cStartPt.x, cStartPt.y);
+    cEndPt.x = pPrim->cPt2.x + m_cViewOrigin.x;
+    cEndPt.y = pPrim->cPt2.y + m_cViewOrigin.y;
+    cairo_line_to(cr, cEndPt.x, cEndPt.y);
+    cEndPt.x = pPrim->cPt4.x + m_cViewOrigin.x;
+    cEndPt.y = pPrim->cPt4.y + m_cViewOrigin.y;
+    cairo_line_to(cr, cEndPt.x, cEndPt.y);
+    cairo_line_to(cr, cStartPt.x, cStartPt.y);
+    cairo_fill(cr);
+    break;
+  case 3:
+    cairo_new_path(cr);
+    cairo_arc(cr, pPrim->cPt2.x + m_cViewOrigin.x, pPrim->cPt2.y + m_cViewOrigin.y,
+      fabs(pPrim->cPt3.x - pPrim->cPt2.x), 0.0, 2.0*M_PI);
+    cairo_fill(cr);
+    break;
+  case 4:
+  case 5:
+    cairo_new_path(cr);
+    cStartPt.x = pPrim->cPt3.x + m_cViewOrigin.x;
+    cStartPt.y = pPrim->cPt3.y + m_cViewOrigin.y;
+    cairo_move_to(cr, cStartPt.x, cStartPt.y);
+    cEndPt.x = pPrim->cPt4.x + m_cViewOrigin.x;
+    cEndPt.y = pPrim->cPt4.y + m_cViewOrigin.y;
+    cairo_line_to(cr, cEndPt.x, cEndPt.y);
+    cairo_stroke(cr);
+    break;
+  }
 }
 
 void CDApplication::DrawDimText(cairo_t *cr, PDPrimitive pPrim, PDObject pObj, long dwColor,
-    double dLineWidth)
+  double dLineWidth)
 {
-    int iPos = Round(pPrim->cPt2.y);
+  int iPos = Round(pPrim->cPt2.y);
 
-    PDUnitList pUnits = m_pFileSetupDlg->GetUnitList();
+  PDUnitList pUnits = m_pFileSetupDlg->GetUnitList();
 
-    char sBuf[64];
-    char *psBuf = sBuf;
-    int iLen = pObj->PreParseDimText(iPos, psBuf, 64, m_dDrawScale, pUnits);
-    if(iLen > 0)
+  char sBuf[64];
+  char *psBuf = sBuf;
+  int iLen = pObj->PreParseDimText(iPos, psBuf, 64, m_dDrawScale, pUnits);
+  if(iLen > 0)
+  {
+    psBuf = (char*)g_malloc(iLen*sizeof(char));
+    pObj->PreParseDimText(iPos, psBuf, iLen, m_dDrawScale, pUnits);
+  }
+
+  int iLen2 = strlen(psBuf);
+
+  cairo_translate(cr, m_cViewOrigin.x + pPrim->cPt1.x, m_cViewOrigin.y + pPrim->cPt1.y);
+  double dPi2 = M_PI/2.0;
+  cairo_rotate(cr, pPrim->cPt2.x - dPi2);
+
+  SetLColor(cr, dwColor);
+
+  CDFileAttrs cFileAttrs;
+  if(iPos < 0) m_pDrawObjects->GetFileAttrs(&cFileAttrs);
+  else pObj->GetDimFontAttrs(iPos, &cFileAttrs);
+
+  double da = 0.4*m_dUnitScale*cFileAttrs.dFontSize;
+
+  bool bDiam = (psBuf[0] == '*');
+  int iStart = 0;
+  if(bDiam) iStart = 1;
+  if(iStart >= iLen2)
+  {
+    psBuf[iStart] = '?';
+    psBuf[iStart + 1] = 0;
+    iLen2++;
+  }
+
+  char *sBufStart = &psBuf[iStart];
+  char *sFrac = strchr(sBufStart, '_');
+  char sBufNom[4];
+  char sBufDenom[4];
+  char *sBufEnd = NULL;
+
+  if(sFrac)
+  {
+    sBufEnd = sFrac + 1;
+    int i = 0;
+    while((*sBufEnd >= '0') && (*sBufEnd <= '9') && (i < 3))
     {
-        psBuf = (char*)g_malloc(iLen*sizeof(char));
-        pObj->PreParseDimText(iPos, psBuf, iLen, m_dDrawScale, pUnits);
+      sBufNom[i++] = *(sBufEnd++);
     }
+    sBufNom[i] = 0;
 
-    int iLen2 = strlen(psBuf);
-
-    cairo_translate(cr, m_cViewOrigin.x + pPrim->cPt1.x, m_cViewOrigin.y + pPrim->cPt1.y);
-    double dPi2 = M_PI/2.0;
-    cairo_rotate(cr, pPrim->cPt2.x - dPi2);
-
-    SetLColor(cr, dwColor);
-
-    CDFileAttrs cFileAttrs;
-    if(iPos < 0) m_pDrawObjects->GetFileAttrs(&cFileAttrs);
-    else pObj->GetDimFontAttrs(iPos, &cFileAttrs);
-
-    double da = 0.4*m_dUnitScale*cFileAttrs.dFontSize;
-
-    bool bDiam = (psBuf[0] == '*');
-    int iStart = 0;
-    if(bDiam) iStart = 1;
-    if(iStart >= iLen2)
+    while(*sBufEnd && (*sBufEnd != '/')) sBufEnd++;
+    if(*sBufEnd) sBufEnd++;
+    i = 0;
+    while((*sBufEnd >= '0') && (*sBufEnd <= '9') && (i < 3))
     {
-        psBuf[iStart] = '?';
-        psBuf[iStart + 1] = 0;
-        iLen2++;
+      sBufDenom[i++] = *(sBufEnd++);
     }
+    sBufDenom[i] = 0;
+    *sFrac = 0;
+  }
 
-    char *sBufStart = &psBuf[iStart];
-    char *sFrac = strchr(sBufStart, '_');
-    char sBufNom[4];
-    char sBufDenom[4];
-    char *sBufEnd = NULL;
+  cairo_font_slant_t iSlant = CAIRO_FONT_SLANT_NORMAL;
+  if(cFileAttrs.bFontAttrs & 1) iSlant = CAIRO_FONT_SLANT_ITALIC;
 
-    if(sFrac)
-    {
-        sBufEnd = sFrac + 1;
-        int i = 0;
-        while((*sBufEnd >= '0') && (*sBufEnd <= '9') && (i < 3))
-        {
-            sBufNom[i++] = *(sBufEnd++);
-        }
-        sBufNom[i] = 0;
+  cairo_font_weight_t iWeight = CAIRO_FONT_WEIGHT_NORMAL;
+  if(cFileAttrs.bFontAttrs & 8) iWeight = CAIRO_FONT_WEIGHT_BOLD;
 
-        while(*sBufEnd && (*sBufEnd != '/')) sBufEnd++;
-        if(*sBufEnd) sBufEnd++;
-        i = 0;
-        while((*sBufEnd >= '0') && (*sBufEnd <= '9') && (i < 3))
-        {
-            sBufDenom[i++] = *(sBufEnd++);
-        }
-        sBufDenom[i] = 0;
-        *sFrac = 0;
-    }
+  cairo_select_font_face(cr, cFileAttrs.sFontFace, iSlant, iWeight);
+  cairo_set_font_size(cr, 1.6*m_dUnitScale*cFileAttrs.dFontSize);
 
-    cairo_font_slant_t iSlant = CAIRO_FONT_SLANT_NORMAL;
-    if(cFileAttrs.bFontAttrs & 1) iSlant = CAIRO_FONT_SLANT_ITALIC;
+  cairo_text_extents_t ctexStart, ctexNom, ctexDenom, ctexEnd;
+  cairo_text_extents(cr, sBufStart, &ctexStart);
 
-    cairo_font_weight_t iWeight = CAIRO_FONT_WEIGHT_NORMAL;
-    if(cFileAttrs.bFontAttrs & 8) iWeight = CAIRO_FONT_WEIGHT_BOLD;
+  double dTextWidth = ctexStart.width + ctexStart.x_bearing;
 
-    cairo_select_font_face(cr, cFileAttrs.sFontFace, iSlant, iWeight);
+  if(sFrac)
+  {
+    cairo_text_extents(cr, sBufEnd, &ctexEnd);
+    cairo_set_font_size(cr, 0.96*m_dUnitScale*cFileAttrs.dFontSize);
+    cairo_text_extents(cr, sBufNom, &ctexNom);
+    cairo_text_extents(cr, sBufDenom, &ctexDenom);
+
+    dTextWidth += (ctexNom.width + ctexNom.x_bearing);
+    dTextWidth += (ctexDenom.width + ctexDenom.x_bearing);
+    dTextWidth += (ctexEnd.width + ctexEnd.x_bearing);
+    dTextWidth += 0.26*da;
+  }
+
+  cairo_set_font_size(cr, 1.6*m_dUnitScale*cFileAttrs.dFontSize);
+
+  double dx = -dTextWidth/2.0;
+  if(bDiam)
+  {
+    dTextWidth += 2.5*da;
+    dx = da - dTextWidth/2.0;
+    cairo_new_path(cr);
+    cairo_arc(cr, dx, -1.3*da, da, 0.0, 2*M_PI);
+    cairo_move_to(cr, dx - da, -0.3*da);
+    cairo_line_to(cr, dx + da, -2.3*da);
+    cairo_stroke(cr);
+    dx += 1.5*da;
+  }
+  cairo_move_to(cr, dx, 0.0);
+  cairo_show_text(cr, sBufStart);
+
+  PDDimension pDim = pObj->GetDimen(iPos);
+  pDim->cExt.cPt1.x = -dTextWidth/2.0/m_dUnitScale;
+  pDim->cExt.cPt1.y = 0.0;
+  pDim->cExt.cPt2.x = dTextWidth/2.0/m_dUnitScale;
+  pDim->cExt.cPt2.y = 1.15*cFileAttrs.dFontSize;
+
+  if(sFrac)
+  {
+    dx += (ctexStart.width + ctexStart.x_bearing + 0.08*da);
+    cairo_set_font_size(cr, 0.96*m_dUnitScale*cFileAttrs.dFontSize);
+    cairo_move_to(cr, dx, -1.7*da);
+    cairo_show_text(cr, sBufNom);
+
+    dx += (ctexNom.width + ctexNom.x_bearing + 0.12*da);
+    cairo_move_to(cr, dx, 0.4*da);
+    cairo_show_text(cr, sBufDenom);
+
+    cairo_move_to(cr, dx - 0.7*da, -0.8*da);
+    cairo_line_to(cr, dx + 0.7*da, -2.2*da);
+    cairo_stroke(cr);
+
+    dx += (ctexDenom.width + ctexDenom.x_bearing + 0.06*da);
     cairo_set_font_size(cr, 1.6*m_dUnitScale*cFileAttrs.dFontSize);
-
-    cairo_text_extents_t ctexStart, ctexNom, ctexDenom, ctexEnd;
-    cairo_text_extents(cr, sBufStart, &ctexStart);
-
-    double dTextWidth = ctexStart.width + ctexStart.x_bearing;
-
-    if(sFrac)
-    {
-        cairo_text_extents(cr, sBufEnd, &ctexEnd);
-        cairo_set_font_size(cr, 0.96*m_dUnitScale*cFileAttrs.dFontSize);
-        cairo_text_extents(cr, sBufNom, &ctexNom);
-        cairo_text_extents(cr, sBufDenom, &ctexDenom);
-
-        dTextWidth += (ctexNom.width + ctexNom.x_bearing);
-        dTextWidth += (ctexDenom.width + ctexDenom.x_bearing);
-        dTextWidth += (ctexEnd.width + ctexEnd.x_bearing);
-        dTextWidth += 0.26*da;
-    }
-
-    cairo_set_font_size(cr, 1.6*m_dUnitScale*cFileAttrs.dFontSize);
-
-    double dx = -dTextWidth/2.0;
-    if(bDiam)
-    {
-        dTextWidth += 2.5*da;
-        dx = da - dTextWidth/2.0;
-        cairo_new_path(cr);
-        cairo_arc(cr, dx, -1.3*da, da, 0.0, 2*M_PI);
-        cairo_move_to(cr, dx - da, -0.3*da);
-        cairo_line_to(cr, dx + da, -2.3*da);
-        cairo_stroke(cr);
-        dx += 1.5*da;
-    }
     cairo_move_to(cr, dx, 0.0);
-    cairo_show_text(cr, sBufStart);
+    cairo_show_text(cr, sBufEnd);
+  }
 
-    PDDimension pDim = pObj->GetDimen(iPos);
-    pDim->cExt.cPt1.x = -dTextWidth/2.0/m_dUnitScale;
-    pDim->cExt.cPt1.y = 0.0;
-    pDim->cExt.cPt2.x = dTextWidth/2.0/m_dUnitScale;
-    pDim->cExt.cPt2.y = 1.15*cFileAttrs.dFontSize;
+  cairo_identity_matrix(cr);
 
-    if(sFrac)
-    {
-        dx += (ctexStart.width + ctexStart.x_bearing + 0.08*da);
-        cairo_set_font_size(cr, 0.96*m_dUnitScale*cFileAttrs.dFontSize);
-        cairo_move_to(cr, dx, -1.7*da);
-        cairo_show_text(cr, sBufNom);
-
-        dx += (ctexNom.width + ctexNom.x_bearing + 0.12*da);
-        cairo_move_to(cr, dx, 0.4*da);
-        cairo_show_text(cr, sBufDenom);
-
-        cairo_move_to(cr, dx - 0.7*da, -0.8*da);
-        cairo_line_to(cr, dx + 0.7*da, -2.2*da);
-        cairo_stroke(cr);
-
-        dx += (ctexDenom.width + ctexDenom.x_bearing + 0.06*da);
-        cairo_set_font_size(cr, 1.6*m_dUnitScale*cFileAttrs.dFontSize);
-        cairo_move_to(cr, dx, 0.0);
-        cairo_show_text(cr, sBufEnd);
-    }
-
-    cairo_identity_matrix(cr);
-
-    if(iLen > 0) g_free(psBuf);
-
-    /*CDPoint cStartPt, cEndPt;
-    int iPos = Round(pPrim->cPt2.y);
-
-    char sBuf[64];
-    char *psBuf = sBuf;
-    int iLen = pObj->PreParseDimText(iPos, psBuf, 64, m_dDrawScale, m_pFileSetupDlg->GetUnitList());
-    if(iLen > 0)
-    {
-        psBuf = (char*)malloc(iLen*sizeof(char));
-        pObj->PreParseDimText(iPos, psBuf, iLen, m_dDrawScale, m_pFileSetupDlg->GetUnitList());
-    }
-
-    int iLen2 = strlen(psBuf);
-
-    CDFileAttrs cFileAttrs;
-    if(iPos < 0) m_pDrawObjects->GetFileAttrs(&cFileAttrs);
-    else pObj->GetDimFontAttrs(iPos, &cFileAttrs);
-
-    double dPi2 = M_PI/2.0;
-    double dco = cos(pPrim->cPt2.x - dPi2);
-    double dsi = sin(pPrim->cPt2.x - dPi2);
-
-    double dx1 = 100.0*(pPrim->cPt1.x + m_cViewOrigin.x)/m_dUnitScale;
-    double dy1 = -100.0*(pPrim->cPt1.y + m_cViewOrigin.y)/m_dUnitScale;
-    double da = cFileAttrs.dFontSize/2.0;
-    double dx2, dy2;
-
-    bool bDiam = (psBuf[0] == '*');
-    int iStart = 0;
-    if(bDiam) iStart = 1;
-    if(iStart >= iLen2)
-    {
-        psBuf[iStart] = '?';
-        psBuf[iStart + 1] = 0;
-        iLen2++;
-    }
-
-    int iwLen = MultiByteToWideChar(CP_UTF8, 0, &psBuf[iStart], -1, NULL, 0) + 1;
-    LPWSTR wsBufStart = (LPWSTR)malloc(iwLen*sizeof(wchar_t));
-    MultiByteToWideChar(CP_UTF8, 0, &psBuf[iStart], -1, wsBufStart, iwLen);
-    int iLenStart = wcslen(wsBufStart);
-    int iLenNom = 0;
-    int iLenDenom = 0;
-    int iLenEnd = 0;
-
-    LPWSTR wsFrac = wcschr(wsBufStart, '_');
-    wchar_t wsBufNom[4];
-    wchar_t wsBufDenom[4];
-    LPWSTR wsBufEnd = NULL;
-
-    if(wsFrac)
-    {
-        wsBufEnd = wsFrac + 1;
-        int i = 0;
-        while((*wsBufEnd >= '0') && (*wsBufEnd <= '9') && (i < 3))
-        {
-            wsBufNom[i++] = *(wsBufEnd++);
-        }
-        wsBufNom[i] = 0;
-
-        while(*wsBufEnd && (*wsBufEnd != '/')) wsBufEnd++;
-        if(*wsBufEnd) wsBufEnd++;
-        i = 0;
-        while((*wsBufEnd >= '0') && (*wsBufEnd <= '9') && (i < 3))
-        {
-            wsBufDenom[i++] = *(wsBufEnd++);
-        }
-        wsBufDenom[i] = 0;
-        *wsFrac = 0;
-
-        iLenStart = wcslen(wsBufStart);
-        iLenNom = wcslen(wsBufNom);
-        iLenDenom = wcslen(wsBufDenom);
-        iLenEnd = wcslen(wsBufEnd);
-    }
-
-    LOGFONT lFnt;
-    lFnt.lfHeight = -Round(400.0*cFileAttrs.dFontSize/3.0);
-    lFnt.lfWidth = 0;
-    lFnt.lfEscapement = 0;
-    lFnt.lfOrientation = 0;
-    lFnt.lfWeight = FW_NORMAL;
-    if(cFileAttrs.bFontAttrs & 8) lFnt.lfWeight = FW_BOLD;
-    lFnt.lfItalic = cFileAttrs.bFontAttrs & 1;
-    lFnt.lfUnderline = cFileAttrs.bFontAttrs & 2;
-    lFnt.lfStrikeOut = cFileAttrs.bFontAttrs & 4;
-    lFnt.lfCharSet = DEFAULT_CHARSET;
-    lFnt.lfOutPrecision = OUT_DEFAULT_PRECIS;
-    lFnt.lfClipPrecision = CLIP_DEFAULT_PRECIS;
-    lFnt.lfQuality = DEFAULT_QUALITY;
-    lFnt.lfPitchAndFamily = DEFAULT_PITCH;
-    MultiByteToWideChar(CP_UTF8, 0, cFileAttrs.sFontFace, -1, lFnt.lfFaceName, LF_FACESIZE);
-    HFONT hPrevFnt, hFnt, hFntSm;
-    hFnt = CreateFontIndirect(&lFnt);
-    if(wsFrac)
-    {
-        lFnt.lfHeight = -Round(80*cFileAttrs.dFontSize);
-        hFntSm = CreateFontIndirect(&lFnt);
-    }
-
-    RECT R;
-    GetClientRect(hWnd, &R);
-
-    int iDC = SaveDC(hdc);
-
-    SetGraphicsMode(hdc, GM_ADVANCED);
-
-    double dWidth = GetDeviceCaps(hdc, HORZSIZE); // mm
-    double dRes = GetDeviceCaps(hdc, HORZRES); // pt
-    double dScale = m_dUnitScale*dWidth/dRes;
-
-    SetMapMode(hdc, MM_HIMETRIC);
-
-    POINT pt = {R.right, R.bottom};
-    DPtoLP(hdc, &pt, 1);
-
-    XFORM xMat = {dScale*dco, -dScale*dsi, dScale*dsi, dScale*dco, dx1*dScale, dy1*dScale};
-    SetWorldTransform(hdc, &xMat);
-
-    hPrevFnt = (HFONT)SelectObject(hdc, hFnt);
-
-    if(iPos > -1) SetBkMode(hdc, TRANSPARENT);
-
-    PDDimension pDim = pObj->GetDimen(iPos);
-
-    SetTextColor(hdc, dwColor);
-
-    SetTextAlign(hdc, TA_BASELINE | TA_LEFT);
-
-    SIZE cSizeStart, cSizeNom, cSizeDenom, cSizeEnd;
-    GetTextExtentPoint32(hdc, wsBufStart, iLenStart, &cSizeStart);
-    int iTextWidth = cSizeStart.cx;
-    if(bDiam) iTextWidth += Round(150.0*da);
-
-    if(wsFrac)
-    {
-        GetTextExtentPoint32(hdc, wsBufEnd, iLenEnd, &cSizeEnd);
-        SelectObject(hdc, hFntSm);
-        GetTextExtentPoint32(hdc, wsBufNom, iLenNom, &cSizeNom);
-        GetTextExtentPoint32(hdc, wsBufDenom, iLenDenom, &cSizeDenom);
-        iTextWidth += (cSizeEnd.cx + cSizeNom.cx + cSizeDenom.cx + Round(3.0*da));
-        SelectObject(hdc, hFnt);
-    }
-
-    pDim->cExt.cPt1.x = -iTextWidth/200.0;
-    pDim->cExt.cPt1.y = 0.0;
-    pDim->cExt.cPt2.x = iTextWidth/200.0;
-    pDim->cExt.cPt2.y = 1.15*cFileAttrs.dFontSize;
-
-    int iWidth = Round(100.0*dLineWidth);
-    HPEN hPen = CreatePen(PS_SOLID, iWidth, dwColor);
-    HPEN hPrevPen = (HPEN)SelectObject(hdc, hPen);
-
-    int ix = -iTextWidth/2;
-    if(bDiam) ix += Round(150.0*da);
-    TextOut(hdc, ix, 0, wsBufStart, iLenStart);
-
-    if(wsFrac)
-    {
-        ix += cSizeStart.cx + Round(da);
-        SelectObject(hdc, hFntSm);
-        TextOut(hdc, ix, 120.0*da, wsBufNom, iLenNom);
-        ix += cSizeNom.cx + Round(2.0*da);
-        TextOut(hdc, ix, -20.0*da, wsBufDenom, iLenDenom);
-
-        MoveToEx(hdc, ix - Round(50.0*da), Round(55.0*da), NULL);
-        LineTo(hdc, ix + Round(50.0*da), Round(155.0*da));
-
-        SelectObject(hdc, hFnt);
-        ix += cSizeDenom.cx;
-        TextOut(hdc, ix, 0, wsBufEnd, iLenEnd);
-    }
-
-    if(bDiam)
-    {
-        dx2 = 60.0*da - iTextWidth/2; //ix - cSize.cx/2.0 - 180.0;
-        dy2 = 90.0*da;
-        da *= 60.0;
-        Ellipse(hdc, Round(dx2 - da), Round(dy2 - da), Round(dx2 + da), Round(dy2 + da));
-        MoveToEx(hdc, Round(dx2 - da), Round(dy2 - da), NULL);
-        LineTo(hdc, Round(dx2 + da), Round(dy2 + da));
-    }
-
-    //SelectObject(hdc, GetStockObject(BLACK_PEN));
-    //Rectangle(hdc, 100.0*pDim->cExt.cPt1.x, 100.0*pDim->cExt.cPt1.y,
-    //    100.0*pDim->cExt.cPt2.x, 100.0*pDim->cExt.cPt2.y);
-    //Rectangle(hdc, -100, -100, 100, 100);
-    DeleteObject(SelectObject(hdc, hPrevPen));
-
-    if(iPos > -1) SetBkMode(hdc, OPAQUE);
-
-    DeleteObject(SelectObject(hdc, hPrevFnt));
-    free(wsBufStart);
-
-    RestoreDC(hdc, iDC);
-
-    if(iLen > 0) free(psBuf);*/
+  if(iLen > 0) g_free(psBuf);
 }
 
 void CDApplication::DrawPrimitive(cairo_t *cr, PDPrimitive pPrim)
 {
-    double dr, da1, da2;
+  double dr, da1, da2;
 
-    CDPoint cStartPt, cEndPt;
+  CDPoint cStartPt, cEndPt;
 
-    switch(pPrim->iType)
+  switch(pPrim->iType)
+  {
+  case 1:
+    //cairo_new_path(cr);
+    cStartPt.x = pPrim->cPt1.x + m_cViewOrigin.x;
+    cStartPt.y = pPrim->cPt1.y + m_cViewOrigin.y;
+    cairo_move_to(cr, cStartPt.x, cStartPt.y);
+    cEndPt.x = pPrim->cPt2.x + m_cViewOrigin.x;
+    cEndPt.y = pPrim->cPt2.y + m_cViewOrigin.y;
+    cairo_line_to(cr, cEndPt.x, cEndPt.y);
+    //cairo_stroke(cr);
+    break;
+  case 2:
+    //cStartPt.x = pPrim->cPt3.x + m_cViewOrigin.x;
+    //cStartPt.y = pPrim->cPt3.y + m_cViewOrigin.y;
+    //cEndPt.x = pPrim->cPt4.x + m_cViewOrigin.x;
+    //cEndPt.y = pPrim->cPt4.y + m_cViewOrigin.y;
+    cStartPt.x = pPrim->cPt1.x + m_cViewOrigin.x + pPrim->cPt2.x*cos(pPrim->cPt3.x);
+    cStartPt.y = pPrim->cPt1.y + m_cViewOrigin.y + pPrim->cPt2.x*sin(pPrim->cPt3.x);
+    cEndPt.x = pPrim->cPt1.x + m_cViewOrigin.x + pPrim->cPt2.x*cos(pPrim->cPt3.y);
+    cEndPt.y = pPrim->cPt1.y + m_cViewOrigin.y + pPrim->cPt2.x*sin(pPrim->cPt3.y);
+
+    dr = GetDist(cStartPt, cEndPt);
+    if((dr > 2) || (fabs(pPrim->cPt3.y - pPrim->cPt3.x) > 0.001))
     {
-    case 1:
-        cairo_new_path(cr);
-        cStartPt.x = pPrim->cPt1.x + m_cViewOrigin.x;
-        cStartPt.y = pPrim->cPt1.y + m_cViewOrigin.y;
-        cairo_move_to(cr, cStartPt.x, cStartPt.y);
-        cEndPt.x = pPrim->cPt2.x + m_cViewOrigin.x;
-        cEndPt.y = pPrim->cPt2.y + m_cViewOrigin.y;
-        cairo_line_to(cr, cEndPt.x, cEndPt.y);
-        cairo_stroke(cr);
-        break;
-    case 2:
-        cStartPt.x = pPrim->cPt3.x + m_cViewOrigin.x;
-        cStartPt.y = pPrim->cPt3.y + m_cViewOrigin.y;
-        cEndPt.x = pPrim->cPt4.x + m_cViewOrigin.x;
-        cEndPt.y = pPrim->cPt4.y + m_cViewOrigin.y;
-
-        dr = GetDist(cStartPt, cEndPt);
-        if(dr > 2)
-        {
-            dr = (pPrim->cPt2.x - pPrim->cPt1.x);
-            da2 = atan2(pPrim->cPt3.y - pPrim->cPt1.y, pPrim->cPt3.x - pPrim->cPt1.x);
-            da1 = atan2(pPrim->cPt4.y - pPrim->cPt1.y, pPrim->cPt4.x - pPrim->cPt1.x);
-            cairo_new_path(cr);
-            cairo_arc(cr, m_cViewOrigin.x + pPrim->cPt1.x, m_cViewOrigin.y + pPrim->cPt1.y, dr, da1, da2);
-            cairo_stroke(cr);
-        }
-        else
-        {
-            cairo_new_path(cr);
-            cairo_move_to(cr, cStartPt.x, cStartPt.y);
-            cairo_line_to(cr, cEndPt.x, cEndPt.y);
-            cairo_stroke(cr);
-        }
-        break;
-    case 3:
-        dr = (pPrim->cPt2.x - pPrim->cPt1.x);
-        cairo_new_path(cr);
-        cairo_arc(cr, m_cViewOrigin.x + pPrim->cPt1.x, m_cViewOrigin.y + pPrim->cPt1.y, dr, 0.0, 2.0*M_PI);
-        cairo_stroke(cr);
-        break;
-    case 4:
-        cStartPt = (pPrim->cPt1 + 2.0*pPrim->cPt2)/3.0;
-        cEndPt = (pPrim->cPt3 + 2.0*pPrim->cPt2)/3.0;
-        cairo_new_path(cr);
-        cairo_move_to(cr, m_cViewOrigin.x + pPrim->cPt1.x, m_cViewOrigin.y + pPrim->cPt1.y);
-        cairo_curve_to(cr, m_cViewOrigin.x + cStartPt.x, m_cViewOrigin.y + cStartPt.y,
-            m_cViewOrigin.x + cEndPt.x, m_cViewOrigin.y + cEndPt.y,
-            m_cViewOrigin.x + pPrim->cPt3.x, m_cViewOrigin.y + pPrim->cPt3.y);
-        cairo_stroke(cr);
-        break;
-    case 5:
-        cairo_new_path(cr);
-        cairo_move_to(cr, m_cViewOrigin.x + pPrim->cPt1.x, m_cViewOrigin.y + pPrim->cPt1.y);
-        cairo_curve_to(cr, m_cViewOrigin.x + pPrim->cPt2.x, m_cViewOrigin.y + pPrim->cPt2.y,
-            m_cViewOrigin.x + pPrim->cPt3.x, m_cViewOrigin.y + pPrim->cPt3.y,
-            m_cViewOrigin.x + pPrim->cPt4.x, m_cViewOrigin.y + pPrim->cPt4.y);
-        cairo_stroke(cr);
-        break;
-    case 7:
-        cairo_new_path(cr);
-        cStartPt.x = pPrim->cPt1.x + m_cViewOrigin.x - 6.0;
-        cStartPt.y = pPrim->cPt1.y + m_cViewOrigin.y;
-        cairo_move_to(cr, cStartPt.x, cStartPt.y);
-        cairo_line_to(cr, cStartPt.x + 12.0, cStartPt.y);
-        cEndPt.x = pPrim->cPt1.x + m_cViewOrigin.x;
-        cEndPt.y = pPrim->cPt1.y + m_cViewOrigin.y + 6.0;
-        cairo_move_to(cr, cEndPt.x, cEndPt.y - 12.0);
-        cairo_line_to(cr, cEndPt.x, cEndPt.y);
-        cairo_stroke(cr);
-        break;
-    case 9:
-        DrawDimArrow(cr, pPrim);
-        break;
+      //dr = (pPrim->cPt2.x - pPrim->cPt1.x);
+      dr = pPrim->cPt2.x;
+      //da2 = atan2(pPrim->cPt3.y - pPrim->cPt1.y, pPrim->cPt3.x - pPrim->cPt1.x);
+      //da1 = atan2(pPrim->cPt4.y - pPrim->cPt1.y, pPrim->cPt4.x - pPrim->cPt1.x);
+      //cairo_new_path(cr);
+      cairo_arc(cr, m_cViewOrigin.x + pPrim->cPt1.x, m_cViewOrigin.y + pPrim->cPt1.y, dr, pPrim->cPt3.x, pPrim->cPt3.y);
+      //cairo_stroke(cr);
     }
+    else
+    {
+      //cairo_new_path(cr);
+      cairo_move_to(cr, cStartPt.x, cStartPt.y);
+      cairo_line_to(cr, cEndPt.x, cEndPt.y);
+      //cairo_stroke(cr);
+    }
+    break;
+  case 3:
+    dr = (pPrim->cPt2.x - pPrim->cPt1.x);
+    //cairo_new_path(cr);
+    cairo_arc(cr, m_cViewOrigin.x + pPrim->cPt1.x, m_cViewOrigin.y + pPrim->cPt1.y, dr, 0.0, 2.0*M_PI);
+    //cairo_stroke(cr);
+    break;
+  case 4:
+    cStartPt = (pPrim->cPt1 + 2.0*pPrim->cPt2)/3.0;
+    cEndPt = (pPrim->cPt3 + 2.0*pPrim->cPt2)/3.0;
+    //cairo_new_path(cr);
+    cairo_move_to(cr, m_cViewOrigin.x + pPrim->cPt1.x, m_cViewOrigin.y + pPrim->cPt1.y);
+    cairo_curve_to(cr, m_cViewOrigin.x + cStartPt.x, m_cViewOrigin.y + cStartPt.y,
+      m_cViewOrigin.x + cEndPt.x, m_cViewOrigin.y + cEndPt.y,
+      m_cViewOrigin.x + pPrim->cPt3.x, m_cViewOrigin.y + pPrim->cPt3.y);
+    //cairo_stroke(cr);
+    break;
+  case 5:
+    //cairo_new_path(cr);
+    cairo_move_to(cr, m_cViewOrigin.x + pPrim->cPt1.x, m_cViewOrigin.y + pPrim->cPt1.y);
+    cairo_curve_to(cr, m_cViewOrigin.x + pPrim->cPt2.x, m_cViewOrigin.y + pPrim->cPt2.y,
+      m_cViewOrigin.x + pPrim->cPt3.x, m_cViewOrigin.y + pPrim->cPt3.y,
+      m_cViewOrigin.x + pPrim->cPt4.x, m_cViewOrigin.y + pPrim->cPt4.y);
+    //cairo_stroke(cr);
+    break;
+  case 7:
+    cairo_new_path(cr);
+    cStartPt.x = pPrim->cPt1.x + m_cViewOrigin.x - 6.0;
+    cStartPt.y = pPrim->cPt1.y + m_cViewOrigin.y;
+    cairo_move_to(cr, cStartPt.x, cStartPt.y);
+    cairo_line_to(cr, cStartPt.x + 12.0, cStartPt.y);
+    cEndPt.x = pPrim->cPt1.x + m_cViewOrigin.x;
+    cEndPt.y = pPrim->cPt1.y + m_cViewOrigin.y + 6.0;
+    cairo_move_to(cr, cEndPt.x, cEndPt.y - 12.0);
+    cairo_line_to(cr, cEndPt.x, cEndPt.y);
+    cairo_stroke(cr);
+    break;
+  case 9:
+    DrawDimArrow(cr, pPrim);
+    break;
+  }
 }
 
 void CDApplication::DrawObject(cairo_t *cr, PDObject pObj, int iMode, int iDimen)
 {
-    bool bSel = pObj->GetSelected();
-    CDLineStyle cStyle = pObj->GetLineStyle();
+  bool bSel = pObj->GetSelected();
+  CDLineStyle cStyle = pObj->GetLineStyle();
 
-    long dwColor = CodeRGBColor(cStyle.cColor);
-    if(iMode == 1) dwColor = m_lActiveColor;
-    else if(iMode == 2) dwColor = m_lHighColor;
-    else if(bSel) dwColor = m_lSelColor;
+  long dwColor = CodeRGBColor(cStyle.cColor);
+  if(iMode == 1) dwColor = m_lActiveColor;
+  else if(iMode == 2) dwColor = m_lHighColor;
+  else if(bSel) dwColor = m_lSelColor;
 
-    double dw1 = fabs(cStyle.dWidth);
-    double dWidth;
-    if(dw1 < g_dPrec) dWidth = 1.0;
-    else dWidth = dw1*m_dUnitScale;
-    double dPtRad = dWidth;
-    if(dPtRad < 2.0) dPtRad = 2.0;
+  double dw1 = fabs(cStyle.dWidth);
+  double dWidth;
+  if(dw1 < g_dPrec) dWidth = 1.0;
+  else dWidth = dw1*m_dUnitScale;
+  double dPtRad = dWidth;
+  if(dPtRad < 2.0) dPtRad = 2.0;
 
-    cairo_set_line_width(cr, dWidth);
-    cairo_set_line_cap(cr, (cairo_line_cap_t)cStyle.cCapType);
-    SetLColor(cr, dwColor);
+  cairo_set_line_width(cr, dWidth);
+  cairo_set_line_cap(cr, (cairo_line_cap_t)cStyle.cCapType);
+  SetLColor(cr, dwColor);
 
-    CDPrimitive cPrim;
-    PDDimension pDim;
-    pObj->GetFirstPrimitive(&cPrim, -m_dUnitScale, iDimen);
+  CDPrimitive cPrim;
+  PDDimension pDim;
+  pObj->GetFirstPrimitive(&cPrim, -m_dUnitScale, iDimen);
 
-    if(iDimen < -1)
+  if(iDimen < -1)
+  {
+    while(cPrim.iType > 0)
     {
+      if(cPrim.iType == 6)
+      {
+        cairo_set_line_width(cr, 0.7);
+        cairo_new_path(cr);
+        cairo_arc(cr, cPrim.cPt1.x + m_cViewOrigin.x, cPrim.cPt1.y + m_cViewOrigin.y, dPtRad, 0.0, 2.0*M_PI);
+        cairo_stroke(cr);
+        cairo_fill(cr);
+        cairo_set_line_width(cr, dWidth);
+      }
+      else if(cPrim.iType == 7)
+      {
+        cairo_set_line_width(cr, 0.7);
+        if(iMode == 0) cairo_set_source_rgb(cr, 0.53, 0.53, 0.53);
+        DrawPrimitive(cr, &cPrim);
+        SetLColor(cr, dwColor);
+        cairo_set_line_width(cr, dWidth);
+      }
+      else if(cPrim.iType == 8)
+      {
+        cairo_set_line_width(cr, 0.7);
+        cairo_new_path(cr);
+        cairo_rectangle(cr, cPrim.cPt1.x + m_cViewOrigin.x - dPtRad,
+        cPrim.cPt1.y + m_cViewOrigin.y - dPtRad, 2.0*dPtRad, 2.0*dPtRad);
+        cairo_stroke(cr);
+        cairo_fill(cr);
+        cairo_set_line_width(cr, dWidth);
+      }
+      else if(cPrim.iType == 10)
+      {
+        DrawDimText(cr, &cPrim, pObj, dwColor, fabs(cStyle.dWidth));
+      }
+      else if(cPrim.iType == 11)
+      {
+    //   (0, 0) - INVALID
+    //   (1, 0) - start a new path without subpath
+    //   (2, 0) - stroke path without closing the last subpath (if exists)
+    //   (0, 1) - start subpath without closing the previous one (if exists)
+    //   (1, 1) - start a new path and immediatelly new subpath
+    //   (2, 1) - INVALID
+    //   (0, 2) - close subpath and immediately start a new one
+    //   (1, 2) - INVALID
+    //   (2, 2) - close last subpath and stroke path
+        if(fabs(cPrim.cPt1.x - 1.0) < 0.2) cairo_new_path(cr);
+        if(fabs(cPrim.cPt1.y - 1.0) < 0.2) cairo_new_sub_path(cr);
+        if(fabs(cPrim.cPt1.y - 2.0) < 0.2)
+        {
+          cairo_close_path(cr);
+          if(fabs(cPrim.cPt1.x) < 0.2) cairo_new_sub_path(cr);
+        }
+        if(fabs(cPrim.cPt1.x - 2.0) < 0.2)
+        {
+          if(cPrim.cPt2.x > g_dPrec)
+          {
+            double dDash[6];
+            for(int i = 0; i < cStyle.iSegments; i++)
+              dDash[i] = m_dUnitScale*cPrim.cPt2.x*cStyle.dPattern[i];
+            cairo_set_dash(cr, dDash, cStyle.iSegments, cPrim.cPt2.y);
+          }
+          cairo_stroke(cr);
+          cairo_set_dash(cr, NULL, 0, 0.0);
+        }
+      }
+      else
+      {
+        DrawPrimitive(cr, &cPrim);
+      }
+      pObj->GetNextPrimitive(&cPrim, -m_dUnitScale, iDimen);
+    }
+
+    if(iMode == 0)
+    {
+      for(int i = 0; i < pObj->GetDimenCount(); i++)
+      {
+        pDim = pObj->GetDimen(i);
+        if(pDim->bSelected)
+        {
+          dwColor = m_lSelColor;
+          SetLColor(cr, dwColor);
+        }
+        else
+        {
+          dwColor = CodeRGBColor(cStyle.cColor);
+          SetLColor(cr, dwColor);
+        }
+
+        pObj->GetFirstPrimitive(&cPrim, -m_dUnitScale, i);
         while(cPrim.iType > 0)
         {
-            if(cPrim.iType == 6)
-            {
-                cairo_set_line_width(cr, 0.7);
-                cairo_new_path(cr);
-                cairo_arc(cr, cPrim.cPt1.x + m_cViewOrigin.x, cPrim.cPt1.y + m_cViewOrigin.y, dPtRad, 0.0, 2.0*M_PI);
-                cairo_stroke(cr);
-                cairo_fill(cr);
-                cairo_set_line_width(cr, dWidth);
-            }
-            else if(cPrim.iType == 7)
-            {
-                cairo_set_line_width(cr, 0.7);
-                if(iMode == 0) cairo_set_source_rgb(cr, 0.53, 0.53, 0.53);
-                DrawPrimitive(cr, &cPrim);
-                SetLColor(cr, dwColor);
-                cairo_set_line_width(cr, dWidth);
-            }
-            else if(cPrim.iType == 8)
-            {
-                cairo_set_line_width(cr, 0.7);
-                cairo_new_path(cr);
-                cairo_rectangle(cr, cPrim.cPt1.x + m_cViewOrigin.x - dPtRad,
-                    cPrim.cPt1.y + m_cViewOrigin.y - dPtRad, 2.0*dPtRad, 2.0*dPtRad);
-                cairo_stroke(cr);
-                cairo_fill(cr);
-                cairo_set_line_width(cr, dWidth);
-            }
-            else if(cPrim.iType == 10)
-            {
-                DrawDimText(cr, &cPrim, pObj, dwColor, fabs(cStyle.dWidth));
-            }
-            else DrawPrimitive(cr, &cPrim);
-            pObj->GetNextPrimitive(&cPrim, -m_dUnitScale, iDimen);
+          if(cPrim.iType == 10)
+          {
+            DrawDimText(cr, &cPrim, pObj, dwColor, fabs(cStyle.dWidth));
+          }
+          else DrawPrimitive(cr, &cPrim);
+          pObj->GetNextPrimitive(&cPrim, -m_dUnitScale, i);
         }
-
-        if(iMode == 0)
-        {
-            for(int i = 0; i < pObj->GetDimenCount(); i++)
-            {
-                pDim = pObj->GetDimen(i);
-                if(pDim->bSelected)
-                {
-                    dwColor = m_lSelColor;
-                    SetLColor(cr, dwColor);
-                }
-                else
-                {
-                    dwColor = CodeRGBColor(cStyle.cColor);
-                    SetLColor(cr, dwColor);
-                }
-
-                pObj->GetFirstPrimitive(&cPrim, -m_dUnitScale, i);
-                while(cPrim.iType > 0)
-                {
-                    if(cPrim.iType == 10)
-                    {
-                        DrawDimText(cr, &cPrim, pObj, dwColor, fabs(cStyle.dWidth));
-                    }
-                    else DrawPrimitive(cr, &cPrim);
-                    pObj->GetNextPrimitive(&cPrim, -m_dUnitScale, i);
-                }
-            }
-        }
+      }
     }
-    else
+  }
+  else
+  {
+    if((iMode < 1) && (iDimen > -1))
     {
-        if((iMode < 1) && (iDimen > -1))
-        {
-            pDim = pObj->GetDimen(iDimen);
-            if(pDim->bSelected) dwColor = m_lSelColor;
-            else dwColor = CodeRGBColor(cStyle.cColor);
-            SetLColor(cr, dwColor);
-        }
-
-        while(cPrim.iType > 0)
-        {
-            if(cPrim.iType == 10)
-            {
-                DrawDimText(cr, &cPrim, pObj, dwColor, fabs(cStyle.dWidth));
-            }
-            else DrawPrimitive(cr, &cPrim);
-            pObj->GetNextPrimitive(&cPrim, -m_dUnitScale, iDimen);
-        }
+      pDim = pObj->GetDimen(iDimen);
+      if(pDim->bSelected) dwColor = m_lSelColor;
+      else dwColor = CodeRGBColor(cStyle.cColor);
+      SetLColor(cr, dwColor);
     }
+
+    while(cPrim.iType > 0)
+    {
+      if(cPrim.iType == 10)
+      {
+        DrawDimText(cr, &cPrim, pObj, dwColor, fabs(cStyle.dWidth));
+      }
+      else DrawPrimitive(cr, &cPrim);
+      pObj->GetNextPrimitive(&cPrim, -m_dUnitScale, iDimen);
+    }
+  }
 }
 
 void CDApplication::Paint(GtkWidget *widget, GdkEventExpose *event)
 {
-    int iWidth = gdk_window_get_width(event->window);
-    int iHeight = gdk_window_get_height(event->window);
+  int iWidth = gdk_window_get_width(event->window);
+  int iHeight = gdk_window_get_height(event->window);
 
-    gboolean bNotWholeWindow = (event->area.x > 0) || (event->area.y > 0) ||
-        (event->area.width < iWidth) || (event->area.height < iHeight);
-    gboolean bOffLine = !(m_bRenderDirect || bNotWholeWindow);
+  gboolean bNotWholeWindow = (event->area.x > 0) || (event->area.y > 0) ||
+    (event->area.width < iWidth) || (event->area.height < iHeight);
+  gboolean bOffLine = !(m_bRenderDirect || bNotWholeWindow);
 
-    cairo_t *cr2 = gdk_cairo_create(event->window);
-    //cairo_set_antialias(cr, CAIRO_ANTIALIAS_FAST);
-    if(!m_pcs && bOffLine)
+  cairo_t *cr2 = gdk_cairo_create(event->window);
+  //cairo_set_antialias(cr, CAIRO_ANTIALIAS_FAST);
+  if(!m_pcs && bOffLine)
+  {
+    m_pcs = cairo_surface_create_similar_image(cairo_get_target(cr2),
+      CAIRO_FORMAT_RGB24, iWidth, iHeight);
+    m_pcp = cairo_pattern_create_for_surface(m_pcs);
+  }
+
+  //if(bNotWholeWindow && m_pcp)
+  //{
+  //  cairo_pattern_destroy(m_pcp);
+  //  m_pcp = NULL;
+  //  if(m_pcs) m_pcp = cairo_pattern_create_for_surface(m_pcs);
+  //}
+
+  cairo_t *cr = cr2;
+  //if(bOffLine)
+  if(!m_bRenderDirect)
+    cr = cairo_create(m_pcs);
+
+  cairo_identity_matrix(cr);
+  cairo_set_source_rgb(cr, 1.0, 1.0, 1.0);
+  cairo_rectangle(cr, event->area.x, event->area.y, event->area.width, event->area.height);
+  cairo_fill(cr);
+
+  cairo_set_line_width(cr, 1.0);
+
+  if(m_iDrawGridMode > 0)
+  {
+    double dx = m_dUnitScale*m_cFSR.dXGrid;
+    double dy = m_dUnitScale*m_cFSR.dYGrid;
+    if((dx > 5) && (dy > 5))
     {
-        m_pcs = cairo_surface_create_similar_image(cairo_get_target(cr2),
-            CAIRO_FORMAT_RGB24, iWidth, iHeight);
-        m_pcp = cairo_pattern_create_for_surface(m_pcs);
-    }
+      int iMin = -m_cViewOrigin.x/m_dUnitScale/m_cFSR.dXGrid;
+      int iMax = (iWidth - m_cViewOrigin.x)/m_dUnitScale/m_cFSR.dXGrid;
+      int jMin = -m_cViewOrigin.y/m_dUnitScale/m_cFSR.dYGrid;
+      int jMax = (iHeight - m_cViewOrigin.y)/m_dUnitScale/m_cFSR.dYGrid;
 
-    //if(bNotWholeWindow && m_pcp)
-    //{
-    //    cairo_pattern_destroy(m_pcp);
-    //    m_pcp = NULL;
-    //    if(m_pcs) m_pcp = cairo_pattern_create_for_surface(m_pcs);
-    //}
+      double dGray;
 
-    cairo_t *cr = cr2;
-    //if(bOffLine)
-    if(!m_bRenderDirect)
-        cr = cairo_create(m_pcs);
-
-    cairo_identity_matrix(cr);
-    cairo_set_source_rgb(cr, 1.0, 1.0, 1.0);
-    cairo_rectangle(cr, event->area.x, event->area.y, event->area.width, event->area.height);
-    cairo_fill(cr);
-
-    cairo_set_line_width(cr, 1.0);
-
-    if(m_iDrawGridMode > 0)
-    {
-        double dx = m_dUnitScale*m_cFSR.dXGrid;
-        double dy = m_dUnitScale*m_cFSR.dYGrid;
-        if((dx > 5) && (dy > 5))
+      if(m_iDrawGridMode & 2)
+      {
+        if((dx < 200) || (dy < 200))
         {
-            int iMin = -m_cViewOrigin.x/m_dUnitScale/m_cFSR.dXGrid;
-            int iMax = (iWidth - m_cViewOrigin.x)/m_dUnitScale/m_cFSR.dXGrid;
-            int jMin = -m_cViewOrigin.y/m_dUnitScale/m_cFSR.dYGrid;
-            int jMax = (iHeight - m_cViewOrigin.y)/m_dUnitScale/m_cFSR.dYGrid;
-
-            double dGray;
-
-            if(m_iDrawGridMode & 2)
-            {
-                if((dx < 200) || (dy < 200))
-                {
-                    if(dx < dy) dGray = 0.7 + 0.2*(200.0 - dx)/195.0;
-                    else dGray = 0.7 + 0.2*(200.0 - dy)/195.0;
-                }
-                else dGray = 0.7;
-
-                cairo_set_source_rgb(cr, dGray, dGray, dGray);
-                cairo_new_path(cr);
-                for(int i = iMin; i <= iMax; i++)
-                {
-                    dx = m_cViewOrigin.x + (double)i*m_dUnitScale*m_cFSR.dXGrid;
-                    cairo_move_to(cr, dx, 0.0);
-                    cairo_line_to(cr, dx, iHeight);
-                }
-                for(int j = jMin; j <= jMax; j++)
-                {
-                    dy = m_cViewOrigin.y + (double)j*m_dUnitScale*m_cFSR.dYGrid;
-                    cairo_move_to(cr, 0.0, dy);
-                    cairo_line_to(cr, iWidth, dy);
-                }
-                cairo_stroke(cr);
-            }
-
-            if(m_iDrawGridMode & 1)
-            {
-                if(m_iDrawGridMode & 2)
-                {
-                    if((dx < 200) || (dy < 200))
-                    {
-                        if(dx < dy) dGray = 0.5 + 0.5*(200.0 - dx)/195.0;
-                        else dGray = 0.5 + 0.5*(200.0 - dy)/195.0;
-                    }
-                    else dGray = 0.5;
-                }
-                else
-                {
-                    if((dx < 200) || (dy < 200))
-                    {
-                        if(dx < dy) dGray = 0.3 + 0.3*(200.0 - dx)/195.0;
-                        else dGray = 0.3 + 0.3*(200.0 - dy)/195.0;
-                    }
-                    else dGray = 0.3;
-                }
-
-                cairo_set_source_rgb(cr, dGray, dGray, dGray);
-                for(int i = iMin; i <= iMax; i++)
-                {
-                    dx = m_cViewOrigin.x + (double)i*m_dUnitScale*m_cFSR.dXGrid;
-                    for(int j = jMin; j <= jMax; j++)
-                    {
-                        dy = m_cViewOrigin.y + (double)j*m_dUnitScale*m_cFSR.dYGrid;
-                        cairo_arc(cr, dx, dy, 1.0, 0.0, 2.0*M_PI);
-                        cairo_fill(cr);
-                    }
-                }
-            }
+          if(dx < dy) dGray = 0.7 + 0.2*(200.0 - dx)/195.0;
+          else dGray = 0.7 + 0.2*(200.0 - dy)/195.0;
         }
-    }
+        else dGray = 0.7;
 
-    cairo_set_source_rgb(cr, 0.5, 0.3, 0.0);
-    cairo_new_path(cr);
-    cairo_rectangle(cr, m_cViewOrigin.x, m_cViewOrigin.y, m_dUnitScale*m_dwPage, m_dUnitScale*m_dhPage);
-    cairo_stroke(cr);
-
-    CDRect cdr;
-    cdr.cPt1.x = (event->area.x - m_cViewOrigin.x)/m_dUnitScale;
-    cdr.cPt1.y = (event->area.y - m_cViewOrigin.y)/m_dUnitScale;
-    cdr.cPt2.x = (event->area.x + event->area.width - m_cViewOrigin.x)/m_dUnitScale;
-    cdr.cPt2.y = (event->area.y + event->area.height - m_cViewOrigin.y)/m_dUnitScale;
-
-    m_pDrawObjects->BuildAllPrimitives(&cdr);
-
-    PDObject pObj;
-    int iObjs = m_pDrawObjects->GetCount();
-    for(int i = 0; i < iObjs; i++)
-    {
-        pObj = m_pDrawObjects->GetItem(i);
-        DrawObject(cr, pObj, 0, -2);
-    }
-
-    if(m_pHighObject) DrawObject(cr, m_pHighObject, 2, m_iHighDimen);
-
-    //if(bOffLine)
-    if(!m_bRenderDirect)
-    {
-        cairo_destroy(cr);
-        cairo_set_source_surface(cr2, m_pcs, 0, 0);
-        cairo_paint(cr2);
-    }
-
-    int iDynMode = GetDynMode();
-    CDLine cPtX;
-    cPtX.cOrigin = m_cLastDrawPt;
-    if(iDynMode == 1)
-    {
-        cPtX.bIsSet = m_cLastDynPt.bIsSet;
-        cPtX.cDirection = m_cLastDynPt.cOrigin;
-    }
-    else if(iDynMode == 2)
-    {
-        cPtX.cDirection.x = 0.0;
-        if(IS_LENGTH_VAL(m_iRestrictSet))
+        cairo_set_source_rgb(cr, dGray, dGray, dGray);
+        cairo_new_path(cr);
+        for(int i = iMin; i <= iMax; i++)
         {
-            cPtX.cDirection.x = 1.0;
-            cPtX.cDirection.y = m_dSavedDist;
+          dx = m_cViewOrigin.x + (double)i*m_dUnitScale*m_cFSR.dXGrid;
+          cairo_move_to(cr, dx, 0.0);
+          cairo_line_to(cr, dx, iHeight);
         }
-    }
-
-    if((m_iDrawMode > modSelect) || (m_iToolMode > tolNone))
-    {
-        if(m_pActiveObject)
+        for(int j = jMin; j <= jMax; j++)
         {
-            m_pActiveObject->BuildPrimitives(cPtX, iDynMode, &cdr, 0, NULL);
-            DrawObject(cr2, m_pActiveObject, 1, -2);
+          dy = m_cViewOrigin.y + (double)j*m_dUnitScale*m_cFSR.dYGrid;
+          cairo_move_to(cr, 0.0, dy);
+          cairo_line_to(cr, iWidth, dy);
+        }
+        cairo_stroke(cr);
+      }
+
+      if(m_iDrawGridMode & 1)
+      {
+        if(m_iDrawGridMode & 2)
+        {
+          if((dx < 200) || (dy < 200))
+          {
+            if(dx < dy) dGray = 0.5 + 0.5*(200.0 - dx)/195.0;
+            else dGray = 0.5 + 0.5*(200.0 - dy)/195.0;
+          }
+          else dGray = 0.5;
+        }
+        else
+        {
+          if((dx < 200) || (dy < 200))
+          {
+            if(dx < dy) dGray = 0.3 + 0.3*(200.0 - dx)/195.0;
+            else dGray = 0.3 + 0.3*(200.0 - dy)/195.0;
+          }
+          else dGray = 0.3;
         }
 
-        cairo_identity_matrix(cr2);
-        DrawCross(cr2);
-    }
-
-    cairo_destroy(cr2);
-
-    if(!m_bRenderDirect)
-    {
-        if(bNotWholeWindow)
+        cairo_set_source_rgb(cr, dGray, dGray, dGray);
+        for(int i = iMin; i <= iMax; i++)
         {
-            cdr.cPt1.x = -m_cViewOrigin.x/m_dUnitScale;
-            cdr.cPt1.y = -m_cViewOrigin.y/m_dUnitScale;
-            cdr.cPt2.x = (iWidth - m_cViewOrigin.x)/m_dUnitScale;
-            cdr.cPt2.y = (iHeight - m_cViewOrigin.y)/m_dUnitScale;
-
-            m_pDrawObjects->BuildAllPrimitives(&cdr);
-            if(m_pActiveObject)
-            {
-                m_pActiveObject->BuildPrimitives(cPtX, iDynMode, &cdr, 0, NULL);
-            }
+          dx = m_cViewOrigin.x + (double)i*m_dUnitScale*m_cFSR.dXGrid;
+          for(int j = jMin; j <= jMax; j++)
+          {
+            dy = m_cViewOrigin.y + (double)j*m_dUnitScale*m_cFSR.dYGrid;
+            cairo_arc(cr, dx, dy, 1.0, 0.0, 2.0*M_PI);
+            cairo_fill(cr);
+          }
         }
+      }
+    }
+  }
+
+  cairo_set_source_rgb(cr, 0.5, 0.3, 0.0);
+  cairo_new_path(cr);
+  cairo_rectangle(cr, m_cViewOrigin.x, m_cViewOrigin.y, m_dUnitScale*m_dwPage, m_dUnitScale*m_dhPage);
+  cairo_stroke(cr);
+
+  CDRect cdr;
+  cdr.cPt1.x = (event->area.x - m_cViewOrigin.x)/m_dUnitScale;
+  cdr.cPt1.y = (event->area.y - m_cViewOrigin.y)/m_dUnitScale;
+  cdr.cPt2.x = (event->area.x + event->area.width - m_cViewOrigin.x)/m_dUnitScale;
+  cdr.cPt2.y = (event->area.y + event->area.height - m_cViewOrigin.y)/m_dUnitScale;
+
+  m_pDrawObjects->BuildAllPrimitives(&cdr);
+
+  PDObject pObj;
+  int iObjs = m_pDrawObjects->GetCount();
+  for(int i = 0; i < iObjs; i++)
+  {
+    pObj = m_pDrawObjects->GetItem(i);
+    DrawObject(cr, pObj, 0, -2);
+  }
+
+  if(m_pHighObject) DrawObject(cr, m_pHighObject, 2, m_iHighDimen);
+
+  //if(bOffLine)
+  if(!m_bRenderDirect)
+  {
+    cairo_destroy(cr);
+    cairo_set_source_surface(cr2, m_pcs, 0, 0);
+    cairo_paint(cr2);
+  }
+
+  int iDynMode = GetDynMode();
+  CDLine cPtX;
+  cPtX.cOrigin = m_cLastDrawPt;
+  if(iDynMode == 1)
+  {
+    cPtX.bIsSet = m_cLastDynPt.bIsSet;
+    cPtX.cDirection = m_cLastDynPt.cOrigin;
+  }
+  else if(iDynMode == 2)
+  {
+    cPtX.cDirection.x = 0.0;
+    if(IS_LENGTH_VAL(m_iRestrictSet))
+    {
+      cPtX.cDirection.x = 1.0;
+      cPtX.cDirection.y = m_dSavedDist;
+    }
+  }
+
+  if((m_iDrawMode > modSelect) || (m_iToolMode > tolNone))
+  {
+    if(m_pActiveObject)
+    {
+      m_pActiveObject->BuildPrimitives(cPtX, iDynMode, &cdr, 0, NULL);
+      DrawObject(cr2, m_pActiveObject, 1, -2);
     }
 
-    return;
+    cairo_identity_matrix(cr2);
+    DrawCross(cr2);
+  }
+
+  cairo_destroy(cr2);
+
+  if(!m_bRenderDirect)
+  {
+    if(bNotWholeWindow)
+    {
+      cdr.cPt1.x = -m_cViewOrigin.x/m_dUnitScale;
+      cdr.cPt1.y = -m_cViewOrigin.y/m_dUnitScale;
+      cdr.cPt2.x = (iWidth - m_cViewOrigin.x)/m_dUnitScale;
+      cdr.cPt2.y = (iHeight - m_cViewOrigin.y)/m_dUnitScale;
+
+      m_pDrawObjects->BuildAllPrimitives(&cdr);
+      if(m_pActiveObject)
+      {
+        m_pActiveObject->BuildPrimitives(cPtX, iDynMode, &cdr, 0, NULL);
+      }
+    }
+  }
+
+  return;
 }
 
 bool CDApplication::PromptForSave(GtkWidget *widget)
 {
-    if(!m_pDrawObjects->GetChanged()) return true;
+return true;
+  if(!m_pDrawObjects->GetChanged()) return true;
 
-    GtkWidget *msg_dlg = gtk_message_dialog_new(GTK_WINDOW(widget), GTK_DIALOG_MODAL,
-        GTK_MESSAGE_QUESTION, GTK_BUTTONS_NONE, _("The file has been changed. Do you want to save it?"));
-    gtk_dialog_add_buttons(GTK_DIALOG(msg_dlg), GTK_STOCK_YES, GTK_RESPONSE_YES,
-        GTK_STOCK_NO, GTK_RESPONSE_NO, GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL, NULL);
-    gint iRes = gtk_dialog_run(GTK_DIALOG(msg_dlg));
-    gtk_widget_destroy(msg_dlg);
+  GtkWidget *msg_dlg = gtk_message_dialog_new(GTK_WINDOW(widget), GTK_DIALOG_MODAL,
+    GTK_MESSAGE_QUESTION, GTK_BUTTONS_NONE, _("The file has been changed. Do you want to save it?"));
+  gtk_dialog_add_buttons(GTK_DIALOG(msg_dlg), GTK_STOCK_YES, GTK_RESPONSE_YES,
+    GTK_STOCK_NO, GTK_RESPONSE_NO, GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL, NULL);
+  gint iRes = gtk_dialog_run(GTK_DIALOG(msg_dlg));
+  gtk_widget_destroy(msg_dlg);
 
-    if(iRes == GTK_RESPONSE_CANCEL) return false;
-    if(iRes == GTK_RESPONSE_NO) return true;
+  if(iRes == GTK_RESPONSE_CANCEL) return false;
+  if(iRes == GTK_RESPONSE_NO) return true;
 
-    return SaveFile(widget, &m_sFileName, false);
+  return SaveFile(widget, &m_sFileName, false);
 }
 
 bool CDApplication::SaveFile(GtkWidget *widget, gchar **psFile, bool bSelectOnly)

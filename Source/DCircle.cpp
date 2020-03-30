@@ -182,6 +182,36 @@ bool BuildCircCache(CDLine cTmpPt, int iMode, PDPointList pPoints, PDPointList p
   return true;
 }
 
+int GetCircleBounds(CDLine cTmpPt, int iMode, PDRect pRect, PDPointList pPoints,
+  PDPointList pCache, PDLine pLines, PDLineStyle pStyle, PDRefList pBounds, PDPoint pDrawBnds, double *pdMovedDist)
+{
+  if(iMode > 0) BuildCircCache(cTmpPt, iMode, pPoints, pCache, pLines, pdMovedDist);
+
+  int iCnt = pCache->GetCount(0);
+
+  if(iCnt < 2) return 0;
+
+  CDPoint cOrig = pCache->GetPoint(0, 0).cPoint;
+  CDPoint cRad = pCache->GetPoint(1, 0).cPoint;
+
+  double dExt = pStyle->dPercent*pStyle->dWidth/200.0;
+  double d1 = dExt - pStyle->dWidth/2.0;
+
+  //cRad.x += dExt;
+  int nOffs = pCache->GetCount(2);
+  if(nOffs > 0) cRad.x += pCache->GetPoint(0, 2).cPoint.x;
+
+  double dr = fabs(cRad.x);
+  d1 = dr*M_PI;
+
+  pDrawBnds->x = -d1;
+  pDrawBnds->y = d1;
+
+  pBounds->AddPoint(-d1);
+  pBounds->AddPoint(d1);
+  return 1;
+}
+
 int BuildCircPrimitives(CDLine cTmpPt, int iMode, PDRect pRect, PDPointList pPoints,
   PDPointList pCache, PDPrimObject pPrimList, PDLine pLines, PDRefPoint pBounds, double dOffset,
   double *pdMovedDist, PDPoint pDrawBnds)
@@ -238,7 +268,7 @@ int BuildCircPrimitives(CDLine cTmpPt, int iMode, PDRect pRect, PDPointList pPoi
   return CropPrimitive(cPrim, pRect, pPrimList);
 }
 
-void AddCircSegment(double d1, double d2, PDPointList pCache, PDPrimObject pPrimList, PDRect pRect)
+void AddCircSegment(double d1, double d2, PDPointList pCache, PDPrimObject pPrimList) //, PDRect pRect)
 {
   int iCnt = pCache->GetCount(0);
 
@@ -257,14 +287,27 @@ void AddCircSegment(double d1, double d2, PDPointList pCache, PDPrimObject pPrim
 
   CDPrimitive cPrim;
   cPrim.iType = 2;
+  //if(fabs(fabs(dAng2 - dAng1) - 2*M_PI) < g_dPrec) cPrim.iType = 3;
   cPrim.cPt1 = cOrig;
-  cPrim.cPt2.x = cOrig.x + cRad.x;
-  cPrim.cPt2.y = cOrig.y + cRad.x;
-  cPrim.cPt3.x = cOrig.x + cRad.x*cos(dAng1);
-  cPrim.cPt3.y = cOrig.y + cRad.x*sin(dAng1);
-  cPrim.cPt4.x = cOrig.x + cRad.x*cos(dAng2);
-  cPrim.cPt4.y = cOrig.y + cRad.x*sin(dAng2);
-  CropPrimitive(cPrim, pRect, pPrimList);
+  cPrim.cPt2.x = cRad.x;
+  cPrim.cPt2.y = 0.0; //cOrig.y + cRad.x;
+  if(cPrim.iType == 2)
+  {
+    cPrim.cPt3.x = dAng2;
+    cPrim.cPt3.y = dAng1;
+    cPrim.cPt4 = 0;
+    /*cPrim.cPt3.x = cOrig.x + cRad.x*cos(dAng1);
+    cPrim.cPt3.y = cOrig.y + cRad.x*sin(dAng1);
+    cPrim.cPt4.x = cOrig.x + cRad.x*cos(dAng2);
+    cPrim.cPt4.y = cOrig.y + cRad.x*sin(dAng2);*/
+  }
+  else
+  {
+    cPrim.cPt3 = 0;
+    cPrim.cPt4 = 0;
+  }
+  pPrimList->AddPrimitive(cPrim);
+  //CropPrimitive(cPrim, pRect, pPrimList);
 }
 
 double GetCircDistFromPt(CDPoint cPt, CDPoint cRefPt, bool bSnapCenters, PDPointList pCache, PDLine pPtX)

@@ -221,150 +221,151 @@ gboolean CDLineStyleDlg::ShowDialog(GtkWidget *pWndParent, PDLineStyleRec pLSR)
 
 void CDLineStyleDlg::SaveSettings(FILE *fp)
 {
-    if(m_iX < -90) return;
+  if(m_iX < -90) return;
 
-    gchar sbuf[256];
-	sprintf(sbuf, "  <LineStyleDlg Left=\"%d\" Top=\"%d\"/>\n", m_iX, m_iY);
-    fwrite(sbuf, sizeof(gchar), strlen(sbuf), fp);
-    return;
+  gchar sbuf[256];
+  sprintf(sbuf, "  <LineStyleDlg Left=\"%d\" Top=\"%d\"/>\n", m_iX, m_iY);
+  fwrite(sbuf, sizeof(gchar), strlen(sbuf), fp);
+  return;
 }
 
 void CDLineStyleDlg::RestoreSettings(gint iLeft, gint iTop)
 {
-    m_iX = iLeft;
-    m_iY = iTop;
-    return;
+  m_iX = iLeft;
+  m_iY = iTop;
+  return;
 }
 
 gboolean CDLineStyleDlg::Configure(GtkWidget *widget, GdkEvent *event)
 {
-    if(m_bSettingUp) return FALSE;
+  if(m_bSettingUp) return FALSE;
 
-    m_iX = event->configure.x;
-    m_iY = event->configure.y;
-    return FALSE;
+  m_iX = event->configure.x;
+  m_iY = event->configure.y;
+  return FALSE;
 }
 
 void CDLineStyleDlg::OKBtnClick(GtkButton *button)
 {
-    float f;
-    GtkWidget *msg_dlg;
+  float f;
+  GtkWidget *msg_dlg;
 
-    if(m_pLSR->bWidthChanged)
+  if(m_pLSR->bWidthChanged)
+  {
+    if(sscanf(gtk_entry_get_text(GTK_ENTRY(m_pLineWidthEdt)), "%f", &f) == 1)
     {
-        if(sscanf(gtk_entry_get_text(GTK_ENTRY(m_pLineWidthEdt)), "%f", &f) == 1)
-        {
-            if(fabs(f) < 0.0001) f = 0.0;
-            m_pLSR->cLineStyle.dWidth = f*m_pLSR->cUnit.dBaseToUnit;
-            m_pLSR->bWidthSet = true;
-        }
-        else m_pLSR->bWidthSet = false;
+      if(fabs(f) < 0.0001) f = 0.0;
+      m_pLSR->cLineStyle.dWidth = f*m_pLSR->cUnit.dBaseToUnit;
+      m_pLSR->bWidthSet = true;
     }
+    else m_pLSR->bWidthSet = false;
+  }
 
-    if(m_pLSR->bExcChanged)
+  if(m_pLSR->bExcChanged)
+  {
+    if(sscanf(gtk_entry_get_text(GTK_ENTRY(m_pEccentEdt)), "%f", &f) == 1)
     {
-        if(sscanf(gtk_entry_get_text(GTK_ENTRY(m_pEccentEdt)), "%f", &f) == 1)
-        {
-            if(fabs(f) < 100.0001)
-            {
-                m_pLSR->cLineStyle.dPercent = f;
-                m_pLSR->bExcSet = true;
-            }
-            else
-            {
-                msg_dlg = gtk_message_dialog_new(GTK_WINDOW(m_pDlg), GTK_DIALOG_MODAL,
-                    GTK_MESSAGE_WARNING, GTK_BUTTONS_OK, _("Eccentricity magnitude must not exceed 100"));
-                gtk_dialog_run(GTK_DIALOG(msg_dlg));
-                gtk_widget_destroy(msg_dlg);
-                gtk_widget_grab_focus(m_pEccentEdt);
-                return;
-            }
-        }
-        else m_pLSR->bExcSet = false;
+      if(fabs(f) < 100.0001)
+      {
+        m_pLSR->cLineStyle.dPercent = f;
+        m_pLSR->bExcSet = true;
+      }
+      else
+      {
+        msg_dlg = gtk_message_dialog_new(GTK_WINDOW(m_pDlg), GTK_DIALOG_MODAL,
+        GTK_MESSAGE_WARNING, GTK_BUTTONS_OK, _("Eccentricity magnitude must not exceed 100"));
+        gtk_dialog_run(GTK_DIALOG(msg_dlg));
+        gtk_widget_destroy(msg_dlg);
+        gtk_widget_grab_focus(m_pEccentEdt);
+        return;
+      }
     }
+    else m_pLSR->bExcSet = false;
+  }
 
-    if(m_pLSR->bPatChanged)
+  if(m_pLSR->bPatChanged)
+  {
+    m_pLSR->bExcSet = false;
+    m_pLSR->cLineStyle.iSegments = 0;
+    for(int i = 0; i < 6; i++)
     {
-        m_pLSR->bExcSet = false;
-        m_pLSR->cLineStyle.iSegments = 0;
-        for(int i = 0; i < 6; i++)
+      if(sscanf(gtk_entry_get_text(GTK_ENTRY(m_pPatternEdt[i])), "%f", &f) == 1)
+      {
+        if(f < -0.0001)
         {
-            if(sscanf(gtk_entry_get_text(GTK_ENTRY(m_pPatternEdt[i])), "%f", &f) == 1)
-            {
-                if(f < -0.0001)
-                {
-                    msg_dlg = gtk_message_dialog_new(GTK_WINDOW(m_pDlg), GTK_DIALOG_MODAL,
-                        GTK_MESSAGE_WARNING, GTK_BUTTONS_OK, _("Line segment length must not be negative"));
-                    gtk_dialog_run(GTK_DIALOG(msg_dlg));
-                    gtk_widget_destroy(msg_dlg);
-                    gtk_widget_grab_focus(m_pPatternEdt[i]);
-                    return;
-                }
-                if(f > 0.0001)
-                {
-                    if(m_pLSR->cLineStyle.iSegments < i)
-                    {
-                        msg_dlg = gtk_message_dialog_new(GTK_WINDOW(m_pDlg), GTK_DIALOG_MODAL,
-                            GTK_MESSAGE_WARNING, GTK_BUTTONS_OK, _("Invalid pattern sequence (zero or no-value must not precede a non-zero value)"));
-                        gtk_dialog_run(GTK_DIALOG(msg_dlg));
-                        gtk_widget_destroy(msg_dlg);
-                        gtk_widget_grab_focus(m_pPatternEdt[i]);
-                        return;
-                    }
-
-                    m_pLSR->cLineStyle.iSegments++;
-                    m_pLSR->cLineStyle.dPattern[i] = f*m_pLSR->cUnit.dBaseToUnit;
-                    m_pLSR->bExcSet = true;
-                }
-            }
+          msg_dlg = gtk_message_dialog_new(GTK_WINDOW(m_pDlg), GTK_DIALOG_MODAL,
+            GTK_MESSAGE_WARNING, GTK_BUTTONS_OK, _("Line segment length must not be negative"));
+          gtk_dialog_run(GTK_DIALOG(msg_dlg));
+          gtk_widget_destroy(msg_dlg);
+          gtk_widget_grab_focus(m_pPatternEdt[i]);
+          return;
         }
-        if((m_pLSR->cLineStyle.iSegments % 2) > 0)
+        if(f > 0.0001)
         {
+          /*if(m_pLSR->cLineStyle.iSegments < i)
+          {
             msg_dlg = gtk_message_dialog_new(GTK_WINDOW(m_pDlg), GTK_DIALOG_MODAL,
-                GTK_MESSAGE_WARNING, GTK_BUTTONS_OK, _("The number of non-zero segments must be even"));
+              GTK_MESSAGE_WARNING, GTK_BUTTONS_OK, _("Invalid pattern sequence (zero or no-value must not precede a non-zero value)"));
             gtk_dialog_run(GTK_DIALOG(msg_dlg));
             gtk_widget_destroy(msg_dlg);
-            gtk_widget_grab_focus(m_pPatternEdt[0]);
+            gtk_widget_grab_focus(m_pPatternEdt[i]);
             return;
+          }*/
+
+          m_pLSR->cLineStyle.iSegments = i + 1;
+          m_pLSR->cLineStyle.dPattern[i] = f*m_pLSR->cUnit.dBaseToUnit;
+          m_pLSR->bExcSet = true;
         }
+        else m_pLSR->cLineStyle.dPattern[i] = 0.0;
+      }
     }
-
-    if(m_pLSR->bCapChanged)
+    if((m_pLSR->cLineStyle.iSegments % 2) > 0)
     {
-        gint iCap = gtk_combo_box_get_active(GTK_COMBO_BOX(m_pLineCapCB));
-        if(iCap > -1)
-        {
-            m_pLSR->cLineStyle.cCapType = iCap;
-            m_pLSR->bCapSet = true;
-        }
-        else m_pLSR->bCapSet = false;
+      msg_dlg = gtk_message_dialog_new(GTK_WINDOW(m_pDlg), GTK_DIALOG_MODAL,
+      GTK_MESSAGE_WARNING, GTK_BUTTONS_OK, _("The number of non-zero segments must be even"));
+      gtk_dialog_run(GTK_DIALOG(msg_dlg));
+      gtk_widget_destroy(msg_dlg);
+      gtk_widget_grab_focus(m_pPatternEdt[0]);
+      return;
     }
+  }
 
-    if(m_pLSR->bJoinChanged)
+  if(m_pLSR->bCapChanged)
+  {
+    gint iCap = gtk_combo_box_get_active(GTK_COMBO_BOX(m_pLineCapCB));
+    if(iCap > -1)
     {
-        gint iJoin = gtk_combo_box_get_active(GTK_COMBO_BOX(m_pLineJoinCB));
-        if(iJoin > -1)
-        {
-            m_pLSR->cLineStyle.cJoinType = iJoin;
-            m_pLSR->bJoinSet = true;
-        }
-        else m_pLSR->bJoinSet = false;
+      m_pLSR->cLineStyle.cCapType = iCap;
+      m_pLSR->bCapSet = true;
     }
+    else m_pLSR->bCapSet = false;
+  }
 
-    if(m_pLSR->bColorChanged)
+  if(m_pLSR->bJoinChanged)
+  {
+    gint iJoin = gtk_combo_box_get_active(GTK_COMBO_BOX(m_pLineJoinCB));
+    if(iJoin > -1)
     {
-        GdkColor cColor;
-        gtk_color_button_get_color(GTK_COLOR_BUTTON(m_pLineColorBtn), &cColor);
-        guint16 iAlpha = gtk_color_button_get_alpha(GTK_COLOR_BUTTON(m_pLineColorBtn));
-        m_pLSR->cLineStyle.cColor[0] = (unsigned char)round(255.0*((double)cColor.red/std::numeric_limits<guint16>::max()));
-        m_pLSR->cLineStyle.cColor[1] = (unsigned char)round(255.0*((double)cColor.green/std::numeric_limits<guint16>::max()));
-        m_pLSR->cLineStyle.cColor[2] = (unsigned char)round(255.0*((double)cColor.blue/std::numeric_limits<guint16>::max()));
-        m_pLSR->cLineStyle.cColor[3] = (unsigned char)round(255.0*((double)iAlpha/std::numeric_limits<guint16>::max()));
-        m_pLSR->bColorSet = true;
+      m_pLSR->cLineStyle.cJoinType = iJoin;
+      m_pLSR->bJoinSet = true;
     }
+    else m_pLSR->bJoinSet = false;
+  }
 
-    gtk_dialog_response(GTK_DIALOG(m_pDlg), GTK_RESPONSE_OK);
-    return;
+  if(m_pLSR->bColorChanged)
+  {
+    GdkColor cColor;
+    gtk_color_button_get_color(GTK_COLOR_BUTTON(m_pLineColorBtn), &cColor);
+    guint16 iAlpha = gtk_color_button_get_alpha(GTK_COLOR_BUTTON(m_pLineColorBtn));
+    m_pLSR->cLineStyle.cColor[0] = (unsigned char)round(255.0*((double)cColor.red/std::numeric_limits<guint16>::max()));
+    m_pLSR->cLineStyle.cColor[1] = (unsigned char)round(255.0*((double)cColor.green/std::numeric_limits<guint16>::max()));
+    m_pLSR->cLineStyle.cColor[2] = (unsigned char)round(255.0*((double)cColor.blue/std::numeric_limits<guint16>::max()));
+    m_pLSR->cLineStyle.cColor[3] = (unsigned char)round(255.0*((double)iAlpha/std::numeric_limits<guint16>::max()));
+    m_pLSR->bColorSet = true;
+  }
+
+  gtk_dialog_response(GTK_DIALOG(m_pDlg), GTK_RESPONSE_OK);
+  return;
 }
 
 void CDLineStyleDlg::LineWidthChange(GtkEntry *entry)

@@ -149,6 +149,60 @@ int CropLineByRect(CDPoint cOrig, CDPoint cDir, PDRect pRect, PDPoint pRef)
     return 1;
 }
 
+int GetLineBounds(CDLine cTmpPt, int iMode, PDRect pRect, PDPointList pPoints,
+  PDPointList pCache, PDLineStyle pStyle, PDRefList pBounds, double *pdMovedDist)
+{
+  if(iMode > 0) BuildLineCache(cTmpPt, iMode, pPoints, pCache, pdMovedDist);
+
+  int iCnt = pCache->GetCount(0);
+  if(iCnt < 2) return 0;
+
+  CDPoint cOrig = pCache->GetPoint(0, 0).cPoint;
+  CDPoint cNorm = pCache->GetPoint(1, 0).cPoint;
+
+  double dr = 0.0;
+  int nOffs = pCache->GetCount(2);
+  if(nOffs > 0) dr += pCache->GetPoint(0, 2).cPoint.x;
+
+  CDPoint cPt1, cPt2, cPt3, cPt4;
+
+  cPt1.x = cOrig.x - dr*cNorm.y;
+  cPt1.y = cOrig.y + dr*cNorm.x;
+
+  double dExt = pStyle->dPercent*pStyle->dWidth/200.0;
+  double d1 = dExt - pStyle->dWidth/2.0;
+  cPt2.x = cPt1.x - d1*cNorm.y;
+  cPt2.y = cPt1.y + d1*cNorm.x;
+
+  int i1 = CropLineByRect(cPt2, cNorm, pRect, &cPt3);
+
+  d1 = dExt + pStyle->dWidth/2.0;
+  cPt2.x = cPt1.x - d1*cNorm.y;
+  cPt2.y = cPt1.y + d1*cNorm.x;
+  int i2 = CropLineByRect(cPt2, cNorm, pRect, &cPt4);
+
+  if(i1 < 1)
+  {
+    if(i2 < 1) return 0;
+    pBounds->AddPoint(cPt4.x);
+    pBounds->AddPoint(cPt4.y);
+    return 1;
+  }
+
+  if(i2 < 1)
+  {
+    pBounds->AddPoint(cPt3.x);
+    pBounds->AddPoint(cPt3.y);
+    return 1;
+  }
+
+  if(cPt3.x < cPt4.x) pBounds->AddPoint(cPt3.x);
+  else pBounds->AddPoint(cPt4.x);
+  if(cPt3.y > cPt4.y) pBounds->AddPoint(cPt3.y);
+  else pBounds->AddPoint(cPt4.y);
+  return 1;
+}
+
 int BuildLinePrimitives(CDLine cTmpPt, int iMode, PDRect pRect, PDPointList pPoints,
     PDPointList pCache, PDPrimObject pPrimList, PDRefPoint pBounds, double dOffset,
     double *pdMovedDist, PDPoint pDrawBnds)
@@ -156,7 +210,6 @@ int BuildLinePrimitives(CDLine cTmpPt, int iMode, PDRect pRect, PDPointList pPoi
     if(iMode > 0) BuildLineCache(cTmpPt, iMode, pPoints, pCache, pdMovedDist);
 
     int iCnt = pCache->GetCount(0);
-
     if(iCnt < 2) return 0;
 
     CDPoint cOrig = pCache->GetPoint(0, 0).cPoint;
@@ -209,182 +262,183 @@ int BuildLinePrimitives(CDLine cTmpPt, int iMode, PDRect pRect, PDPointList pPoi
     return CropPrimitive(cPrim, pRect, pPrimList);
 }
 
-void AddLineSegment(double d1, double d2, PDPointList pCache, PDPrimObject pPrimList, PDRect pRect)
+void AddLineSegment(double d1, double d2, PDPointList pCache, PDPrimObject pPrimList)
 {
-    int iCnt = pCache->GetCount(0);
+  int iCnt = pCache->GetCount(0);
 
-    if(iCnt < 2) return;
+  if(iCnt < 2) return;
 
-    CDPoint cOrig = pCache->GetPoint(0, 0).cPoint;
-    CDPoint cNorm = pCache->GetPoint(1, 0).cPoint;
+  CDPoint cOrig = pCache->GetPoint(0, 0).cPoint;
+  CDPoint cNorm = pCache->GetPoint(1, 0).cPoint;
 
-    double dr = 0.0;
-    int nOffs = pCache->GetCount(2);
-    if(nOffs > 0)
-    {
-        dr = pCache->GetPoint(0, 2).cPoint.x;
-        CDPoint cPtOff;
-        cPtOff.x = -dr*cNorm.y;
-        cPtOff.y = dr*cNorm.x;
-        cOrig += cPtOff;
-    }
+  double dr = 0.0;
+  int nOffs = pCache->GetCount(2);
+  if(nOffs > 0)
+  {
+    dr = pCache->GetPoint(0, 2).cPoint.x;
+    CDPoint cPtOff;
+    cPtOff.x = -dr*cNorm.y;
+    cPtOff.y = dr*cNorm.x;
+    cOrig += cPtOff;
+  }
 
-    CDPoint cPt1 = {d1, 0.0};
-    CDPoint cPt2 = {d2, 0.0};
+  CDPoint cPt1 = {d1, 0.0};
+  CDPoint cPt2 = {d2, 0.0};
 
-    CDPrimitive cPrim;
-    cPrim.iType = 1;
-    cPrim.cPt1 = cOrig + Rotate(cPt1, cNorm, true);
-    cPrim.cPt2 = cOrig + Rotate(cPt2, cNorm, true);
-    CropPrimitive(cPrim, pRect, pPrimList);
+  CDPrimitive cPrim;
+  cPrim.iType = 1;
+  cPrim.cPt1 = cOrig + Rotate(cPt1, cNorm, true);
+  cPrim.cPt2 = cOrig + Rotate(cPt2, cNorm, true);
+  pPrimList->AddPrimitive(cPrim);
+  //CropPrimitive(cPrim, pRect, pPrimList);
 }
 
 double GetLineDistFromPt(CDPoint cPt, PDPointList pCache, PDLine pPtX)
 {
-    pPtX->bIsSet = false;
+  pPtX->bIsSet = false;
 
-    int iCnt = pCache->GetCount(0);
+  int iCnt = pCache->GetCount(0);
 
-    if(iCnt < 2) return 0.0;
+  if(iCnt < 2) return 0.0;
 
-    CDPoint cOrig = pCache->GetPoint(0, 0).cPoint;
-    CDPoint cNorm = pCache->GetPoint(1, 0).cPoint;
+  CDPoint cOrig = pCache->GetPoint(0, 0).cPoint;
+  CDPoint cNorm = pCache->GetPoint(1, 0).cPoint;
 
-    double dr = 0.0;
-    int nOffs = pCache->GetCount(2);
-    if(nOffs > 0)
-    {
-        dr = pCache->GetPoint(0, 2).cPoint.x;
-        CDPoint cPtOff;
-        cPtOff.x = -dr*cNorm.y;
-        cPtOff.y = dr*cNorm.x;
-        cOrig += cPtOff;
-    }
+  double dr = 0.0;
+  int nOffs = pCache->GetCount(2);
+  if(nOffs > 0)
+  {
+    dr = pCache->GetPoint(0, 2).cPoint.x;
+    CDPoint cPtOff;
+    cPtOff.x = -dr*cNorm.y;
+    cPtOff.y = dr*cNorm.x;
+    cOrig += cPtOff;
+  }
 
-    CDPoint cPt1, cPt2;
-    cPt1 = Rotate(cPt - cOrig, cNorm, false);
+  CDPoint cPt1, cPt2;
+  cPt1 = Rotate(cPt - cOrig, cNorm, false);
 
-    cPt2.x = cPt1.x;
-    cPt2.y = 0.0;
-    pPtX->bIsSet = true;
-    pPtX->cOrigin = cOrig + Rotate(cPt2, cNorm, true);
-    pPtX->cDirection = GetNormal(cNorm);
-    pPtX->dRef = cPt1.x;
+  cPt2.x = cPt1.x;
+  cPt2.y = 0.0;
+  pPtX->bIsSet = true;
+  pPtX->cOrigin = cOrig + Rotate(cPt2, cNorm, true);
+  pPtX->cDirection = GetNormal(cNorm);
+  pPtX->dRef = cPt1.x;
 
-    return cPt1.y;
+  return cPt1.y;
 }
 
 bool HasLineEnoughPoints(PDPointList pPoints)
 {
-    return pPoints->GetCount(-1) > 1;
+  return pPoints->GetCount(-1) > 1;
 }
 
 bool GetLineRestrictPoint(CDPoint cPt, int iMode, double dRestrictValue, PDPoint pSnapPt,
     PDPointList pCache)
 {
-    int iCnt = pCache->GetCount(0);
+  int iCnt = pCache->GetCount(0);
 
-    if(iMode == 2)
-    {
-        if(iCnt != 2) return false;
+  if(iMode == 2)
+  {
+    if(iCnt != 2) return false;
 
-        CDPoint cOrig = pCache->GetPoint(0, 0).cPoint;
-        CDPoint cMainDir = pCache->GetPoint(1, 0).cPoint;
+    CDPoint cOrig = pCache->GetPoint(0, 0).cPoint;
+    CDPoint cMainDir = pCache->GetPoint(1, 0).cPoint;
 
-        CDPoint cPt1 = Rotate(cPt - cOrig, cMainDir, false);
+    CDPoint cPt1 = Rotate(cPt - cOrig, cMainDir, false);
 
-        CDPoint cPt2;
-        cPt2.x = cPt1.x;
-        cPt2.y = dRestrictValue;
-        if(cPt1.y < 0) cPt2.y = -dRestrictValue;
+    CDPoint cPt2;
+    cPt2.x = cPt1.x;
+    cPt2.y = dRestrictValue;
+    if(cPt1.y < 0) cPt2.y = -dRestrictValue;
 
-        *pSnapPt = cOrig + Rotate(cPt2, cMainDir, true);
-        return true;
-    }
-
-    if(iCnt < 1) return false;
-
-    CDPoint cN1 = {cos(dRestrictValue), -sin(dRestrictValue)};
-    CDInputPoint cInPt = pCache->GetPoint(0, -1);
-    GetLineProj(cPt, cInPt.cPoint, cN1, pSnapPt);
+    *pSnapPt = cOrig + Rotate(cPt2, cMainDir, true);
     return true;
+  }
+
+  if(iCnt < 1) return false;
+
+  CDPoint cN1 = {cos(dRestrictValue), -sin(dRestrictValue)};
+  CDInputPoint cInPt = pCache->GetPoint(0, -1);
+  GetLineProj(cPt, cInPt.cPoint, cN1, pSnapPt);
+  return true;
 }
 
 double GetLineRadiusAtPt(CDPoint cPt, PDPointList pCache, PDLine pPtR, bool bNewPt)
 {
-    pPtR->bIsSet = false;
-    pPtR->cOrigin = 0;
-    pPtR->cDirection = 0;
+  pPtR->bIsSet = false;
+  pPtR->cOrigin = 0;
+  pPtR->cDirection = 0;
 
-    int iCnt = pCache->GetCount(-1);
+  int iCnt = pCache->GetCount(-1);
 
-    if(iCnt < 1) return -1.0;
-    if(!bNewPt && (iCnt < 2)) return -1.0;
+  if(iCnt < 1) return -1.0;
+  if(!bNewPt && (iCnt < 2)) return -1.0;
 
-    CDPoint cNorm = {0, 0};
-    if(bNewPt)
-    {
-        CDPoint cDir = cPt - pCache->GetPoint(0, -1).cPoint;
-        double d1 = GetNorm(cDir);
-        if(d1 > g_dPrec) cNorm = cDir/d1;
-    }
-    else cNorm = pCache->GetPoint(1, -1).cPoint;
+  CDPoint cNorm = {0, 0};
+  if(bNewPt)
+  {
+    CDPoint cDir = cPt - pCache->GetPoint(0, -1).cPoint;
+    double d1 = GetNorm(cDir);
+    if(d1 > g_dPrec) cNorm = cDir/d1;
+  }
+  else cNorm = pCache->GetPoint(1, -1).cPoint;
 
-    pPtR->cDirection = GetNormal(cNorm);
+  pPtR->cDirection = GetNormal(cNorm);
 
-    return -1.0;
+  return -1.0;
 }
 
 bool GetLineAngle(PDPointList pCache, double *pdVal)
 {
-    int iCnt = pCache->GetCount(-1);
-    if(iCnt < 2) return false;
+  int iCnt = pCache->GetCount(-1);
+  if(iCnt < 2) return false;
 
-    CDPoint cNorm = pCache->GetPoint(1, -1).cPoint;
-    double dAng1 = atan2(cNorm.y, cNorm.x);
-    if((fabs(dAng1) > g_dPrec) && (fabs(dAng1) < M_PI - g_dPrec)) dAng1 *= -1.0;
-    *pdVal = dAng1;
-    return true;
+  CDPoint cNorm = pCache->GetPoint(1, -1).cPoint;
+  double dAng1 = atan2(cNorm.y, cNorm.x);
+  if((fabs(dAng1) > g_dPrec) && (fabs(dAng1) < M_PI - g_dPrec)) dAng1 *= -1.0;
+  *pdVal = dAng1;
+  return true;
 }
 
 bool GetLinePointRefDist(double dRef, PDPointList pCache, double *pdDist)
 {
-    int iCnt = pCache->GetCount(0);
-    if(iCnt < 2) return false;
+  int iCnt = pCache->GetCount(0);
+  if(iCnt < 2) return false;
 
-    *pdDist = dRef;
-    return true;
+  *pdDist = dRef;
+  return true;
 }
 
 bool GetLineReference(double dDist, PDPointList pCache, double *pdRef)
 {
-    *pdRef = dDist;
-    return true;
+  *pdRef = dDist;
+  return true;
 }
 
 bool GetLineRefPoint(double dRef, PDPointList pCache, PDPoint pPt)
 {
-    int iCnt = pCache->GetCount(0);
-    if(iCnt < 2) return false;
+  int iCnt = pCache->GetCount(0);
+  if(iCnt < 2) return false;
 
-    CDPoint cOrig = pCache->GetPoint(0, 0).cPoint;
-    CDPoint cNorm = pCache->GetPoint(1, 0).cPoint;
+  CDPoint cOrig = pCache->GetPoint(0, 0).cPoint;
+  CDPoint cNorm = pCache->GetPoint(1, 0).cPoint;
 
-    double dr = 0.0;
-    int nOffs = pCache->GetCount(2);
-    if(nOffs > 0) dr = pCache->GetPoint(0, 2).cPoint.x;
+  double dr = 0.0;
+  int nOffs = pCache->GetCount(2);
+  if(nOffs > 0) dr = pCache->GetPoint(0, 2).cPoint.x;
 
-    CDPoint cPt1 = {dRef, dr};
-    *pPt = cOrig + Rotate(cPt1, cNorm, true);
-    return true;
+  CDPoint cPt1 = {dRef, dr};
+  *pPt = cOrig + Rotate(cPt1, cNorm, true);
+  return true;
 }
 
 bool GetLineRefDir(double dRef, PDPointList pCache, PDPoint pPt)
 {
-    int iCnt = pCache->GetCount(0);
-    if(iCnt < 2) return false;
+  int iCnt = pCache->GetCount(0);
+  if(iCnt < 2) return false;
 
-    *pPt = pCache->GetPoint(1, 0).cPoint;
-    return true;
+  *pPt = pCache->GetPoint(1, 0).cPoint;
+  return true;
 }
 
