@@ -273,11 +273,111 @@ bool CDObject::BuildCache(CDLine cTmpPt, int iMode)
   }
 }*/
 
+int CDObject::MergeBounds(CDPoint cBnds1, CDPoint cBnds2, PDPoint pRes)
+{
+  if((cBnds1.x < cBnds1.y) && (cBnds2.x < cBnds2.y))
+  {
+    if(cBnds1.x > cBnds2.y - g_dPrec) return 0;
+    if(cBnds2.x > cBnds1.y - g_dPrec) return 0;
+    pRes[0] = cBnds1;
+    if(cBnds1.x < cBnds2.x - g_dPrec) pRes[0].x = cBnds2.x;
+    if(cBnds1.y > cBnds2.y + g_dPrec) pRes[0].y = cBnds2.y;
+    return 1;
+  }
+  if(cBnds1.x < cBnds1.y)
+  {
+    if(cBnds1.x < cBnds2.x)
+    {
+      if(cBnds1.x < cBnds2.y)
+      {
+        if(cBnds1.y > cBnds2.x)
+        {
+          pRes[0].x = cBnds1.x;
+          pRes[0].y = cBnds2.y;
+          pRes[1].x = cBnds2.x;
+          pRes[1].y = cBnds1.y;
+          return 2;
+        }
+        if(cBnds1.y < cBnds2.y)
+        {
+          pRes[0] = cBnds1;
+          return 1;
+        }
+        pRes[0].x = cBnds1.x;
+        pRes[0].y = cBnds2.y;
+        return 1;
+      }
+      if(cBnds1.y > cBnds2.x)
+      {
+        pRes[0].x = cBnds2.x;
+        pRes[0].y = cBnds1.y;
+        return 1;
+      }
+      return 0;
+    }
+    pRes[0] = cBnds1;
+    return 1;
+  }
+  if(cBnds2.x < cBnds2.y)
+  {
+    if(cBnds2.x < cBnds1.x)
+    {
+      if(cBnds2.x < cBnds1.y)
+      {
+        if(cBnds2.y > cBnds1.x)
+        {
+          pRes[0].x = cBnds2.x;
+          pRes[0].y = cBnds1.y;
+          pRes[1].x = cBnds1.x;
+          pRes[1].y = cBnds2.y;
+          return 2;
+        }
+        if(cBnds2.y < cBnds1.y)
+        {
+          pRes[0] = cBnds2;
+          return 1;
+        }
+        pRes[0].x = cBnds2.x;
+        pRes[0].y = cBnds1.y;
+        return 1;
+      }
+      if(cBnds2.y > cBnds1.x)
+      {
+        pRes[0].x = cBnds1.x;
+        pRes[0].y = cBnds2.y;
+        return 1;
+      }
+      return 0;
+    }
+    pRes[0] = cBnds2;
+    return 1;
+  }
+  if(cBnds1.x > cBnds2.x)
+  {
+    if(cBnds1.y < cBnds2.y)
+    {
+      pRes[0] = cBnds1;
+      return 1;
+    }
+    pRes[0].x = cBnds1.x;
+    pRes[0].y = cBnds2.y;
+    return 1;
+  }
+  if(cBnds1.y > cBnds2.y)
+  {
+    pRes[0] = cBnds2;
+    return 1;
+  }
+  pRes[0].x = cBnds2.x;
+  pRes[0].y = cBnds1.y;
+  return 1;
+}
+
 void CDObject::AddCurveSegment(CDPrimitive cAddMode, PDPrimObject pPrimitive, int iBoundMode, PDRefList pBounds)
 {
   if(iBoundMode < 1) return;
 
-  double d1, d2;
+  //double d1, d2;
   CDRefPoint cStart, cEnd;
   cStart.bIsSet = m_cBounds[0].bIsSet;
   cEnd.bIsSet = m_cBounds[1].bIsSet;
@@ -309,22 +409,51 @@ void CDObject::AddCurveSegment(CDPrimitive cAddMode, PDPrimObject pPrimitive, in
   int iSegs = pBounds->GetCount()/2;
   CDPrimitive cPath;
   cPath.iType = 11;
-  bool bGoOn;
   double dDist = 0.0;
+  CDPoint cBnds1, cBnds2, pBnds[2];
+  int iInter;
+  if(cStart.bIsSet && cEnd.bIsSet)
+  {
+    cBnds1.x = cStart.dRef;
+    cBnds1.y = cEnd.dRef;
+  }
 
   for(int i = 0; i < iSegs; i++)
   {
-    bGoOn = true;
-    d1 = pBounds->GetPoint(2*i);
-    d2 = pBounds->GetPoint(2*i + 1);
-    if(cStart.bIsSet) bGoOn = cStart.dRef < d2 - g_dPrec;
-    if(cEnd.bIsSet && bGoOn) bGoOn = cEnd.dRef > d1 + g_dPrec;
-
-    if(bGoOn)
+    iInter = 0;
+    cBnds2.x = pBounds->GetPoint(2*i);
+    cBnds2.y = pBounds->GetPoint(2*i + 1);
+//printf("%f, %f - %f, %f\n", cBnds1.x, cBnds1.y, cBnds2.x, cBnds2.y);
+    if(cStart.bIsSet && cEnd.bIsSet)
     {
-      if(cStart.bIsSet && (cStart.dRef > d1 + g_dPrec)) d1 = cStart.dRef;
-      if(cEnd.bIsSet && (cEnd.dRef < d2 - g_dPrec)) d2 = cEnd.dRef;
+      iInter = MergeBounds(cBnds1, cBnds2, pBnds);
+    }
+    else if(cStart.bIsSet)
+    {
+      if(cStart.dRef < cBnds2.y - g_dPrec)
+      {
+        iInter = 1;
+        pBnds[0] = cBnds2;
+        if(cStart.dRef > cBnds2.x + g_dPrec) pBnds[0].x = cStart.dRef;
+      }
+    }
+    else if(cEnd.bIsSet)
+    {
+      if(cEnd.dRef > cBnds2.x + g_dPrec)
+      {
+        iInter = 1;
+        pBnds[0] = cBnds2;
+        if(cEnd.dRef < cBnds2.y - g_dPrec) pBnds[0].y = cEnd.dRef;
+      }
+    }
+    else
+    {
+      iInter = 1;
+      pBnds[0] = cBnds2;
+    }
 
+    for(int j = 0; j < iInter; j++)
+    {
       if(cAddMode.iType & 1)
       {
         cPath.cPt1.x = 1;
@@ -335,10 +464,10 @@ void CDObject::AddCurveSegment(CDPrimitive cAddMode, PDPrimObject pPrimitive, in
       switch(m_iType)
       {
       case dtLine:
-        AddLineSegment(d1, d2, m_pCachePoints, pPrimitive);
+        AddLineSegment(pBnds[j].x, pBnds[j].y, m_pCachePoints, pPrimitive);
         break;
       case dtCircle:
-        AddCircSegment(d1, d2, m_pCachePoints, pPrimitive);
+        AddCircSegment(pBnds[j].x, pBnds[j].y, m_pCachePoints, pPrimitive);
         break;
       default:
         break;
@@ -351,7 +480,7 @@ void CDObject::AddCurveSegment(CDPrimitive cAddMode, PDPrimObject pPrimitive, in
         cPath.cPt2.x = cAddMode.cPt2.x;
         if(cAddMode.cPt2.x > g_dPrec)
         {
-          dDist = cAddMode.cPt3.y - d1 - cAddMode.cPt3.x*cAddMode.cPt2.x;
+          dDist = cAddMode.cPt3.y - pBnds[j].x - cAddMode.cPt3.x*cAddMode.cPt2.x;
           int n = (int)dDist/cAddMode.cPt2.y/cAddMode.cPt2.x;
           cPath.cPt2.y = n*cAddMode.cPt2.y*cAddMode.cPt2.x - dDist;
         }
@@ -508,7 +637,8 @@ void CDObject::AddPatSegment(double dStart, int iStart, double dEnd, int iEnd,
   cAdd.cPt2.y = dPatLen;
   if(iStart > 1) cAdd.cPt3.x = 0.0;
   else if(iStart > 0) cAdd.cPt3.x = dPatStart2;
-  else cAdd.cPt3.x = 2.0*dPatStart2;
+  else if(iEnd > 1) cAdd.cPt3.x = 2.0*dPatStart2;
+  else cAdd.cPt3.x = dPatStart2;
   if(iStart > 0) cAdd.cPt3.y = dStart;
   else cAdd.cPt3.y = dEnd;
   AddCurveSegment(cAdd, m_pPrimitive, iBoundMode, pViewBnds);
@@ -3498,7 +3628,7 @@ void CDObject::MirrorPoints(CDLine cLine)
     }
 }
 
-bool CDObject::AddCrossPoint(CDPoint cPt, double dDist, PDPtrList pRegions)
+bool CDObject::AddCrossPoint(CDPoint cPt, double dDist)
 {
     CDLine cPtX;
     double d1 = GetDistFromPt(cPt, cPt, false, &cPtX, NULL);
@@ -3513,22 +3643,6 @@ bool CDObject::AddCrossPoint(CDPoint cPt, double dDist, PDPtrList pRegions)
         if(cPtX.dRef > dRef - 0.001) m_pCrossPoints->Remove(i);
         else m_pCrossPoints->InsertPoint(i, cPtX.dRef);
     }
-
-    double dLWidth = fabs(m_cLineStyle.dWidth);
-    if(dLWidth < 1.0) dLWidth = 1.0;
-
-    PDPolygon pPoly = (PDPolygon)malloc(sizeof(CDPolygon));
-    pPoly->iPoints = 4;
-    pPoly->pPoints = (PDPoint)malloc(4*sizeof(CDPoint));
-    pPoly->pPoints[0].x = cPtX.cOrigin.x - 4.0*dLWidth;
-    pPoly->pPoints[0].y = cPtX.cOrigin.y - 4.0*dLWidth;
-    pPoly->pPoints[1].x = cPtX.cOrigin.x + 4.0*dLWidth;
-    pPoly->pPoints[1].y = cPtX.cOrigin.y - 4.0*dLWidth;
-    pPoly->pPoints[2].x = cPtX.cOrigin.x + 4.0*dLWidth;
-    pPoly->pPoints[2].y = cPtX.cOrigin.y + 4.0*dLWidth;
-    pPoly->pPoints[3].x = cPtX.cOrigin.x - 4.0*dLWidth;
-    pPoly->pPoints[3].y = cPtX.cOrigin.y + 4.0*dLWidth;
-    pRegions->Add(pPoly);
 
     return true;
 }
@@ -5261,94 +5375,92 @@ bool CDataList::MirrorSelected(CDLine cLine, PDRect pRect, PDPtrList pRegions)
     return bRes;
 }
 
-bool LSPatterMatch(CDLineStyle cStyle1, CDLineStyle cStyle2)
+bool LSPatternMatch(CDLineStyle cStyle1, CDLineStyle cStyle2)
 {
-    bool bRes = (cStyle1.iSegments == cStyle2.iSegments);
-    int i = 0;
-    int n = cStyle1.iSegments;
-    if(n > 6) n = 6;
-    while(bRes && (i < n))
-    {
-        bRes = (fabs(cStyle1.dPattern[i] - cStyle2.dPattern[i]) < g_dPrec);
-        i++;
-    }
-    return bRes;
+  bool bRes = (cStyle1.iSegments == cStyle2.iSegments);
+  int i = 0;
+  int n = cStyle1.iSegments;
+  if(n > 6) n = 6;
+  while(bRes && (i < n))
+  {
+    bRes = (fabs(cStyle1.dPattern[i] - cStyle2.dPattern[i]) < g_dPrec);
+    i++;
+  }
+  return bRes;
 }
 
 bool LSColorMatch(unsigned char *cCol1, unsigned char *cCol2)
 {
-    return (cCol1[0] == cCol2[0]) && (cCol1[1] == cCol2[1]) && (cCol1[2] == cCol2[2]) && (cCol1[3] == cCol2[3]);
+  return (cCol1[0] == cCol2[0]) && (cCol1[1] == cCol2[1]) && (cCol1[2] == cCol2[2]) && (cCol1[3] == cCol2[3]);
 }
 
 int CDataList::GetSelectedLineStyle(PDLineStyle pStyle)
 {
-    int iRes = -1;
-    CDLineStyle cSt1, cSt2;
-    PDObject pObj;
-    for(int i = 0; i < m_iDataLen; i++)
+  int iRes = -1;
+  CDLineStyle cSt1, cSt2;
+  PDObject pObj;
+  for(int i = 0; i < m_iDataLen; i++)
+  {
+    pObj = m_ppObjects[i];
+    if(pObj->GetSelected())
     {
-        pObj = m_ppObjects[i];
-        if(pObj->GetSelected())
-        {
-            if(iRes < 0)
-            {
-                cSt1 = pObj->GetLineStyle();
-                iRes = 63;
-            }
-            else
-            {
-                cSt2 = pObj->GetLineStyle();
-                if(fabs(cSt1.dWidth - cSt2.dWidth) > g_dPrec) iRes &= ~1;
-                if(fabs(cSt1.dPercent - cSt2.dPercent) > g_dPrec) iRes &= ~2;
-                if(!LSPatterMatch(cSt1, cSt2)) iRes &= ~4;
-                if(cSt1.cCapType != cSt2.cCapType) iRes &= ~8;
-                if(cSt1.cJoinType != cSt2.cJoinType) iRes &= ~16;
-                if(!LSColorMatch(cSt1.cColor, cSt2.cColor)) iRes &= ~32;
-            }
-        }
+      if(iRes < 0)
+      {
+        cSt1 = pObj->GetLineStyle();
+        iRes = 63;
+      }
+      else
+      {
+        cSt2 = pObj->GetLineStyle();
+        if(fabs(cSt1.dWidth - cSt2.dWidth) > g_dPrec) iRes &= ~1;
+        if(fabs(cSt1.dPercent - cSt2.dPercent) > g_dPrec) iRes &= ~2;
+        if(!LSPatternMatch(cSt1, cSt2)) iRes &= ~4;
+        if(cSt1.cCapType != cSt2.cCapType) iRes &= ~8;
+        if(cSt1.cJoinType != cSt2.cJoinType) iRes &= ~16;
+        if(!LSColorMatch(cSt1.cColor, cSt2.cColor)) iRes &= ~32;
+      }
     }
-    if(iRes > -1) *pStyle = cSt1;
-    return iRes;
+  }
+  if(iRes > -1) *pStyle = cSt1;
+  return iRes;
 }
 
 bool CDataList::SetSelectedLineStyle(int iMask, PDLineStyle pStyle, PDPtrList pRegions)
 {
-    bool bRes = false;
-    PDObject pObj;
-    for(int i = 0; i < m_iDataLen; i++)
+  bool bRes = false;
+  PDObject pObj;
+  for(int i = 0; i < m_iDataLen; i++)
+  {
+    pObj = m_ppObjects[i];
+    if(pObj->GetSelected())
     {
-        pObj = m_ppObjects[i];
-        if(pObj->GetSelected())
-        {
-            bRes = true;
-            pObj->SetLineStyle(iMask, *pStyle);
-            pObj->AddRegions(pRegions, -1);
-            m_bHasChanged = true;
-        }
+      bRes = true;
+      pObj->SetLineStyle(iMask, *pStyle);
+      pObj->AddRegions(pRegions, -1);
+      m_bHasChanged = true;
     }
-    return bRes;
+  }
+  return bRes;
 }
 
 bool CDataList::SetCrossSelected(CDPoint cPt, double dDist, PDRect pRect, PDPtrList pRegions)
 {
-    bool bRes = false;
-    PDObject pObj;
-    CDLine cLn;
-    cLn.bIsSet = false;
-    for(int i = 0; i < m_iDataLen; i++)
+  bool bRes = false;
+  PDObject pObj;
+  for(int i = 0; i < m_iDataLen; i++)
+  {
+    pObj = m_ppObjects[i];
+    if(pObj->GetSelected())
     {
-        pObj = m_ppObjects[i];
-        if(pObj->GetSelected())
-        {
-            if(pObj->AddCrossPoint(cPt, dDist, pRegions))
-            {
-                bRes = true;
-                pObj->BuildPrimitives(cLn, 0, pRect, 0, NULL);
-            }
-        }
+      if(pObj->AddCrossPoint(cPt, dDist))
+      {
+        bRes = true;
+        pObj->AddRegions(pRegions, -1);
+      }
     }
-    if(bRes) m_bHasChanged = true;
-    return bRes;
+  }
+  if(bRes) m_bHasChanged = true;
+  return bRes;
 }
 
 bool CDataList::AddDimen(PDObject pSelForDiment, CDPoint cPt, double dDist, PDRect pRect, PDPtrList pRegions)

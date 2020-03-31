@@ -79,6 +79,7 @@ private:
   void LoadLine(FILE *pf, bool bSwapBytes, PDLine pLine);
   void LoadLineStyle(FILE *pf, bool bSwapBytes, PDLineStyle pLineStyle, unsigned char cVersion);
   void LoadDimension(FILE *pf, bool bSwapBytes, PDDimension pDim, unsigned char cVersion);
+  int MergeBounds(CDPoint cBnds1, CDPoint cBnds2, PDPoint pRes);
   //void AddCurveSegment(double dStart, double dEnd, PDRect pRect);
   // cAddMode:
   //   iType: mask: 0 - do not insert path marks, 1 - insert path marks, 2 - cPt1.x contains lower bound, 4 - cPt1.y contains upper bound
@@ -161,7 +162,7 @@ public:
   bool RotatePoints(CDPoint cOrig, double dRot, int iDimFlag);
   bool MovePoints(CDPoint cDir, double dDist, int iDimFlag);
   void MirrorPoints(CDLine cLine);
-  bool AddCrossPoint(CDPoint cPt, double dDist, PDPtrList pRegions);
+  bool AddCrossPoint(CDPoint cPt, double dDist);
   bool AddCrossPoint(double dRef);
   bool GetPointRefDist(double dRef, double *pdDist);
   double GetNearestCrossPoint(CDPoint cPt, PDPoint pPt);
