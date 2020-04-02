@@ -423,7 +423,7 @@ void CDObject::AddCurveSegment(CDPrimitive cAddMode, PDPrimObject pPrimitive, in
     iInter = 0;
     cBnds2.x = pBounds->GetPoint(2*i);
     cBnds2.y = pBounds->GetPoint(2*i + 1);
-//printf("%f, %f - %f, %f\n", cBnds1.x, cBnds1.y, cBnds2.x, cBnds2.y);
+printf("%f, %f - %f, %f\n", cBnds1.x, cBnds1.y, cBnds2.x, cBnds2.y);
     if(cStart.bIsSet && cEnd.bIsSet)
     {
       iInter = MergeBounds(cBnds1, cBnds2, pBnds);
