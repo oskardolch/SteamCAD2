@@ -669,3 +669,171 @@ void ClearPolygonList(PDPtrList pPolygons)
   }
 }
 
+int IntersectBounds(CDPoint cBnds1, CDPoint cBnds2, int iBndMode, double dLength, PDPoint pRes)
+{
+  bool b1Closed = false;
+  bool b2Closed = false;
+
+  if(iBndMode & 8)
+  {
+    b1Closed = true;
+    if((iBndMode & 2) && (iBndMode & 4)) b1Closed = fabs(cBnds1.y - cBnds1.x - dLength) < g_dPrec;
+    b2Closed = fabs(cBnds2.y - cBnds2.x - dLength) < g_dPrec;
+  }
+
+  if(b1Closed)
+  {
+    if(iBndMode & 2)
+    {
+      if(b2Closed)
+      {
+        pRes[0].x = cBnds1.x;
+        pRes[0].y = cBnds1.x + dLength;
+      }
+      else pRes[0] = cBnds2;
+      return 1;
+    }
+    pRes[0] = cBnds2;
+    return 1;
+  }
+
+  if(b2Closed)
+  {
+    if((iBndMode & 2) && (iBndMode & 4))
+    {
+      pRes[0] = cBnds1;
+      return 1;
+    }
+    if(iBndMode & 2)
+    {
+      pRes[0].x = cBnds1.x;
+      pRes[0].y = cBnds1.x + cBnds1.y;
+      return 1;
+    }
+    pRes[0] = cBnds2;
+    return 1;
+  }
+
+  if((iBndMode & 2) && (iBndMode & 4))
+  {
+    if((cBnds1.x < cBnds1.y) && (cBnds2.x < cBnds2.y))
+    {
+      if(cBnds1.x > cBnds2.y - g_dPrec) return 0;
+      if(cBnds2.x > cBnds1.y - g_dPrec) return 0;
+      pRes[0] = cBnds1;
+      if(cBnds1.x < cBnds2.x - g_dPrec) pRes[0].x = cBnds2.x;
+      if(cBnds1.y > cBnds2.y + g_dPrec) pRes[0].y = cBnds2.y;
+      return 1;
+    }
+    if(cBnds1.x < cBnds1.y)
+    {
+      if(cBnds1.x < cBnds2.x)
+      {
+        if(cBnds1.x < cBnds2.y)
+        {
+          if(cBnds1.y > cBnds2.x)
+          {
+            pRes[0].x = cBnds1.x;
+            pRes[0].y = cBnds2.y;
+            pRes[1].x = cBnds2.x;
+            pRes[1].y = cBnds1.y;
+            return 2;
+          }
+          if(cBnds1.y < cBnds2.y)
+          {
+            pRes[0] = cBnds1;
+            return 1;
+          }
+          pRes[0].x = cBnds1.x;
+          pRes[0].y = cBnds2.y;
+          return 1;
+        }
+        if(cBnds1.y > cBnds2.x)
+        {
+          pRes[0].x = cBnds2.x;
+          pRes[0].y = cBnds1.y;
+          return 1;
+        }
+        return 0;
+      }
+      pRes[0] = cBnds1;
+      return 1;
+    }
+    if(cBnds2.x < cBnds2.y)
+    {
+      if(cBnds2.x < cBnds1.x)
+      {
+        if(cBnds2.x < cBnds1.y)
+        {
+          if(cBnds2.y > cBnds1.x)
+          {
+            pRes[0].x = cBnds2.x;
+            pRes[0].y = cBnds1.y;
+            pRes[1].x = cBnds1.x;
+            pRes[1].y = cBnds2.y;
+            return 2;
+          }
+          if(cBnds2.y < cBnds1.y)
+          {
+            pRes[0] = cBnds2;
+            return 1;
+          }
+          pRes[0].x = cBnds2.x;
+          pRes[0].y = cBnds1.y;
+          return 1;
+        }
+        if(cBnds2.y > cBnds1.x)
+        {
+          pRes[0].x = cBnds1.x;
+          pRes[0].y = cBnds2.y;
+          return 1;
+        }
+        return 0;
+      }
+      pRes[0] = cBnds2;
+      return 1;
+    }
+    if(cBnds1.x > cBnds2.x)
+    {
+      if(cBnds1.y < cBnds2.y)
+      {
+        pRes[0] = cBnds1;
+        return 1;
+      }
+      pRes[0].x = cBnds1.x;
+      pRes[0].y = cBnds2.y;
+      return 1;
+    }
+    if(cBnds1.y > cBnds2.y)
+    {
+      pRes[0] = cBnds2;
+      return 1;
+    }
+    pRes[0].x = cBnds2.x;
+    pRes[0].y = cBnds1.y;
+    return 1;
+  }
+
+  if(iBndMode & 2)
+  {
+    pRes[0] = cBnds2;
+    if(cBnds1.x > cBnds2.x + g_dPrec) pRes[0].x = cBnds1.x;
+    return 1;
+  }
+
+  if(iBndMode & 4)
+  {
+    pRes[0] = cBnds2;
+    if(cBnds1.y < cBnds2.y - g_dPrec) pRes[0].y = cBnds1.y;
+    return 1;
+  }
+
+  pRes[0] = cBnds2;
+  return 1;
+}
+
+int UnionBounds(CDPoint cBnds1, CDPoint cBnds2, PDPoint pRes)
+{
+  return 0;
+}
+

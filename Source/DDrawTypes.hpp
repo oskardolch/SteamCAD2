@@ -79,20 +79,22 @@ private:
   void LoadLine(FILE *pf, bool bSwapBytes, PDLine pLine);
   void LoadLineStyle(FILE *pf, bool bSwapBytes, PDLineStyle pLineStyle, unsigned char cVersion);
   void LoadDimension(FILE *pf, bool bSwapBytes, PDDimension pDim, unsigned char cVersion);
-  int MergeBounds(CDPoint cBnds1, CDPoint cBnds2, PDPoint pRes);
   //void AddCurveSegment(double dStart, double dEnd, PDRect pRect);
   // cAddMode:
-  //   iType: mask: 0 - do not insert path marks, 1 - insert path marks, 2 - cPt1.x contains lower bound, 4 - cPt1.y contains upper bound
+  //   iType: mask: 0 - do not insert path marks, 1 - insert path marks, 2 - cPt1.x contains lower bound,
+  //     4 - cPt1.y contains upper bound
   //   cPt1.x - start, cPt1.y - end
   //   cPt2.x - pattern scale, 0.0 for no pattern
   //   cPt2.y - pattern length
   //   cPt3.x - pattern offset
   //   cPt3.y - pattern origin
+  //   cPt4.x - 0 : 1 = open : closed
+  //   cPt4.y - length of the closed curve
   void AddCurveSegment(CDPrimitive cAddMode, PDPrimObject pPrimitive, int iBoundMode, PDRefList pBounds);
   //void AddPatSegment(double dStart, int iStart, double dEnd, int iEnd,
   //  PDPoint pBnds, PDRect pRect);
   void AddPatSegment(double dStart, int iStart, double dEnd, int iEnd,
-    int iBoundMode, PDRefList pViewBnds, PDPoint pBnds);
+    int iBoundMode, bool bClosed, PDRefList pViewBnds, PDPoint pBnds);
   bool GetRefBounds(PDPoint pPoint);
   int GetDimenDir(double dRef1, double dRef2);
   double GetDimenMidPointRef(double dRef1, double dRef2, int iDir);

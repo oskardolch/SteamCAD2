@@ -208,7 +208,7 @@ int GetCircleBounds(CDLine cTmpPt, int iMode, PDRect pRect, PDPointList pPoints,
   pDrawBnds->y = d1;
 
   pBounds->AddPoint(-d1);
-  pBounds->AddPoint(3*d1);
+  pBounds->AddPoint(d1);
   return 1;
 }
 
