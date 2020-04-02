@@ -1896,6 +1896,7 @@ bool CDObject::IsValidRef(double dRef)
     {
       if((m_cBounds[1].dRef < dRef) && (dRef < m_cBounds[0].dRef))
         return false;
+      return true;
     }
   }
 
