@@ -18,7 +18,7 @@ bool GetCircleRestrictPoint(CDPoint cPt, int iMode, double dRestrictValue, PDPoi
 double GetCircRadiusAtPt(CDPoint cPt, PDPointList pCache, PDLine pPtR, bool bNewPt);
 bool GetCirceRad(PDPointList pCache, double *pdVal);
 bool GetCircPointRefDist(double dRef, PDPointList pCache, double *pdDist);
-void AddCircSegment(double d1, double d2, PDPointList pCache, PDPrimObject pPrimList); //, PDRect pRect);
+void AddCircSegment(double d1, double d2, double dExt, PDPointList pCache, PDPrimObject pPrimList); //, PDRect pRect);
 bool GetCircRefPoint(double dRef, PDPointList pCache, PDPoint pPt);
 bool GetCircRefDir(double dRef, PDPointList pCache, PDPoint pPt);
 bool GetCircReference(double dDist, PDPointList pCache, double *pdRef);

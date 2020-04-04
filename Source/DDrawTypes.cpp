@@ -277,6 +277,7 @@ void CDObject::AddCurveSegment(CDPrimitive cAddMode, PDPrimObject pPrimitive, in
 {
   if(iBoundMode < 1) return;
 
+  double dExt = m_cLineStyle.dPercent*m_cLineStyle.dWidth/200.0;
   int iSegs = pBounds->GetCount()/2;
   CDPrimitive cPath;
   cPath.iType = 11;
@@ -302,10 +303,10 @@ void CDObject::AddCurveSegment(CDPrimitive cAddMode, PDPrimObject pPrimitive, in
       switch(m_iType)
       {
       case dtLine:
-        AddLineSegment(pBnds[j].x, pBnds[j].y, m_pCachePoints, pPrimitive);
+        AddLineSegment(pBnds[j].x, pBnds[j].y, dExt, m_pCachePoints, pPrimitive);
         break;
       case dtCircle:
-        AddCircSegment(pBnds[j].x, pBnds[j].y, m_pCachePoints, pPrimitive);
+        AddCircSegment(pBnds[j].x, pBnds[j].y, dExt, m_pCachePoints, pPrimitive);
         break;
       default:
         break;
@@ -669,12 +670,54 @@ int CDObject::BuildPurePrimitives(CDLine cTmpPt, int iMode, PDRect pRect, int iT
 int CDObject::GetViewBounds(CDLine cTmpPt, int iMode, PDRect pRect, int iTemp,
   PDRefList pBounds, PDPoint pDrawBnds, double *pdMovedDist)
 {
+  int iRectFlag = 0;
+  double dCornerRefs[4] = {0.0, 0.0, 0.0, 0.0};
+  CDLine cPtX;
+  double dMid = m_cLineStyle.dPercent*m_cLineStyle.dWidth/200.0;
+  double dExt = m_cLineStyle.dWidth/2.0;
+
+  CDPoint cCorner = pRect->cPt1;
+  double d1 = GetDistFromPt(cCorner, cCorner, false, &cPtX, NULL);
+  if(fabs(d1 - dMid) < dExt + g_dPrec)
+  {
+    iRectFlag |= 1;
+    dCornerRefs[0] = cPtX.dRef;
+  }
+
+  cCorner = pRect->cPt2;
+  d1 = GetDistFromPt(cCorner, cCorner, false, &cPtX, NULL);
+  if(fabs(d1 - dMid) < dExt + g_dPrec)
+  {
+    iRectFlag |= 2;
+    dCornerRefs[1] = cPtX.dRef;
+  }
+
+  cCorner.x = pRect->cPt1.x;
+  cCorner.y = pRect->cPt2.y;
+  d1 = GetDistFromPt(cCorner, cCorner, false, &cPtX, NULL);
+  if(fabs(d1 - dMid) < dExt + g_dPrec)
+  {
+    iRectFlag |= 4;
+    dCornerRefs[2] = cPtX.dRef;
+  }
+
+  cCorner.x = pRect->cPt2.x;
+  cCorner.y = pRect->cPt1.y;
+  d1 = GetDistFromPt(cCorner, cCorner, false, &cPtX, NULL);
+  if(fabs(d1 - dMid) < dExt + g_dPrec)
+  {
+    iRectFlag |= 8;
+    dCornerRefs[3] = cPtX.dRef;
+  }
+
+  CDGetBoundsRec cBndRec = {cTmpPt, iMode, pRect, m_pInputPoints, m_pCachePoints,
+    m_cLines, dMid, dExt, iRectFlag, dCornerRefs, pDrawBnds};
+
   int iRes = 0;
   switch(m_iType)
   {
   case dtLine:
-    iRes = GetLineBounds(cTmpPt, iMode, pRect, m_pInputPoints, m_pCachePoints,
-      &m_cLineStyle, pBounds, pdMovedDist);
+    iRes = GetLineBounds(&cBndRec, pBounds, pdMovedDist);
     break;
   case dtCircle:
     iRes = GetCircleBounds(cTmpPt, iMode, pRect, m_pInputPoints, m_pCachePoints, m_cLines,

@@ -3,6 +3,7 @@
 #include "DPrimitive.hpp"
 #include <math.h>
 #include <stdio.h>
+#include <algorithm>
 
 // for debugging purpose only
 /*#include <windows.h>
@@ -182,6 +183,96 @@ bool BuildCircCache(CDLine cTmpPt, int iMode, PDPointList pPoints, PDPointList p
   return true;
 }
 
+int GetCircleRectInterBnds(CDPoint cOrig, double dRad, PDRect pRect, PDPoint pRes)
+{
+  if(dRad < g_dPrec) return 0;
+
+  int iCandidates = 0;
+  double dCandidates[8];
+
+  double dt, dt2, dy, dc = (pRect->cPt1.x - cOrig.x)/dRad;
+  if(fabs(dc) < 1.0 - g_dPrec)
+  {
+    dt = acos(dc);
+    dy = cOrig.y + dRad*sin(-dt);
+    if((dy > pRect->cPt1.y + g_dPrec) && (dy < pRect->cPt2.y - g_dPrec)) dCandidates[iCandidates++] = -dt;
+    dy = cOrig.y + dRad*sin(dt);
+    if((dy > pRect->cPt1.y + g_dPrec) && (dy < pRect->cPt2.y - g_dPrec)) dCandidates[iCandidates++] = dt;
+  }
+  dc = (pRect->cPt2.x - cOrig.x)/dRad;
+  if(fabs(dc) < 1.0 - g_dPrec)
+  {
+    dt = acos(dc);
+    dy = cOrig.y + dRad*sin(-dt);
+    if((dy > pRect->cPt1.y + g_dPrec) && (dy < pRect->cPt2.y - g_dPrec)) dCandidates[iCandidates++] = -dt;
+    dy = cOrig.y + dRad*sin(dt);
+    if((dy > pRect->cPt1.y + g_dPrec) && (dy < pRect->cPt2.y - g_dPrec)) dCandidates[iCandidates++] = dt;
+  }
+  dc = (pRect->cPt1.y - cOrig.y)/dRad;
+  if(fabs(dc) < 1.0 - g_dPrec)
+  {
+    dt = asin(dc);
+    if(dt < -g_dPrec) dt2 = -dt - M_PI;
+    else dt2 = -dt + M_PI;
+    dy = cOrig.x + dRad*cos(dt2);
+    if((dy > pRect->cPt1.x + g_dPrec) && (dy < pRect->cPt2.x - g_dPrec)) dCandidates[iCandidates++] = dt2;
+    dy = cOrig.x + dRad*cos(dt);
+    if((dy > pRect->cPt1.x + g_dPrec) && (dy < pRect->cPt2.x - g_dPrec)) dCandidates[iCandidates++] = dt;
+  }
+  dc = (pRect->cPt2.y - cOrig.y)/dRad;
+  if(fabs(dc) < 1.0 - g_dPrec)
+  {
+    dt = asin(dc);
+    if(dt < -g_dPrec) dt2 = -dt - M_PI;
+    else dt2 = -dt + M_PI;
+    dy = cOrig.x + dRad*cos(dt2);
+    if((dy > pRect->cPt1.x + g_dPrec) && (dy < pRect->cPt2.x - g_dPrec)) dCandidates[iCandidates++] = dt2;
+    dy = cOrig.x + dRad*cos(dt);
+    if((dy > pRect->cPt1.x + g_dPrec) && (dy < pRect->cPt2.x - g_dPrec)) dCandidates[iCandidates++] = dt;
+  }
+
+  CDPoint cTestPt;
+  if(iCandidates < 1)
+  {
+    cTestPt.x = cOrig.x + dRad*sqrt(3.0)/2.0;
+    cTestPt.y = cOrig.y + dRad/2.0;
+    if(DPtInDRect(cTestPt, pRect))
+    {
+      pRes[0].x = -M_PI;
+      pRes[0].y = M_PI;
+      return -1;
+    }
+    return 0;
+  }
+
+  int iRes = iCandidates/2;
+
+  std::sort(dCandidates, &dCandidates[iCandidates]);
+
+  dt = (dCandidates[0] + dCandidates[1])/2.0;
+  cTestPt.x = cOrig.x + dRad*cos(dt);
+  cTestPt.y = cOrig.y + dRad*sin(dt);
+  if(DPtInDRect(cTestPt, pRect))
+  {
+    for(int i = 0; i < iRes; i++)
+    {
+      pRes[i].x = dCandidates[2*i];
+      pRes[i].y = dCandidates[2*i + 1];
+    }
+  }
+  else
+  {
+    pRes[0].x = dCandidates[iCandidates - 1];
+    pRes[0].y = dCandidates[0];
+    for(int i = 1; i < iRes; i++)
+    {
+      pRes[i].x = dCandidates[2*i - 1];
+      pRes[i].y = dCandidates[2*i];
+    }
+  }
+  return iRes;
+}
+
 int GetCircleBounds(CDLine cTmpPt, int iMode, PDRect pRect, PDPointList pPoints,
   PDPointList pCache, PDLine pLines, PDLineStyle pStyle, PDRefList pBounds, PDPoint pDrawBnds, double *pdMovedDist)
 {
@@ -194,21 +285,43 @@ int GetCircleBounds(CDLine cTmpPt, int iMode, PDRect pRect, PDPointList pPoints,
   CDPoint cOrig = pCache->GetPoint(0, 0).cPoint;
   CDPoint cRad = pCache->GetPoint(1, 0).cPoint;
 
-  double dExt = pStyle->dPercent*pStyle->dWidth/200.0;
-  double d1 = dExt - pStyle->dWidth/2.0;
-
-  //cRad.x += dExt;
   int nOffs = pCache->GetCount(2);
   if(nOffs > 0) cRad.x += pCache->GetPoint(0, 2).cPoint.x;
 
   double dr = fabs(cRad.x);
-  d1 = dr*M_PI;
-
+  double d1 = dr*M_PI;
   pDrawBnds->x = -d1;
   pDrawBnds->y = d1;
 
-  pBounds->AddPoint(-d1);
-  pBounds->AddPoint(d1);
+  double dr1 = dr + pStyle->dPercent*pStyle->dWidth/200.0;
+  double dExt = pStyle->dWidth/2.0;
+
+  CDPoint pInt1[4], pInt2[4];
+  int iInt1, iInt2;
+  iInt1 = GetCircleRectInterBnds(cOrig, dr1 - dExt, pRect, pInt1);
+  iInt2 = GetCircleRectInterBnds(cOrig, dr1 + dExt, pRect, pInt2);
+
+  if((iInt1 < 0) || (iInt2 < 0))
+  {
+    pBounds->AddPoint(-d1);
+    pBounds->AddPoint(d1);
+    return 1;
+  }
+
+  CDPoint cCenter;
+  if(iInt1 + iInt2 < 1)
+  {
+    cCenter = (pRect->cPt1 + pRect->cPt2)/2.0;
+    d1 = GetDist(cCenter, cOrig) - dr1;
+    if(fabs(d1) < dExt + g_dPrec)
+    {
+    }
+  }
+
+  //int iInt = 0;
+
+  //pBounds->AddPoint(-d1);
+  //pBounds->AddPoint(d1);
   return 1;
 }
 
@@ -268,7 +381,7 @@ int BuildCircPrimitives(CDLine cTmpPt, int iMode, PDRect pRect, PDPointList pPoi
   return CropPrimitive(cPrim, pRect, pPrimList);
 }
 
-void AddCircSegment(double d1, double d2, PDPointList pCache, PDPrimObject pPrimList) //, PDRect pRect)
+void AddCircSegment(double d1, double d2, double dExt, PDPointList pCache, PDPrimObject pPrimList) //, PDRect pRect)
 {
   int iCnt = pCache->GetCount(0);
 
@@ -289,7 +402,7 @@ void AddCircSegment(double d1, double d2, PDPointList pCache, PDPrimObject pPrim
   cPrim.iType = 2;
   //if(fabs(fabs(dAng2 - dAng1) - 2*M_PI) < g_dPrec) cPrim.iType = 3;
   cPrim.cPt1 = cOrig;
-  cPrim.cPt2.x = cRad.x;
+  cPrim.cPt2.x = cRad.x + dExt;
   cPrim.cPt2.y = 0.0; //cOrig.y + cRad.x;
   if(cPrim.iType == 2)
   {

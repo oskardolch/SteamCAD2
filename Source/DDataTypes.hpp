@@ -33,7 +33,7 @@ public:
 } *PDIntList;
 
 // native reference point, the meaning differs for each curve type
-typedef class CDRefList
+typedef struct CDRefList
 {
 private:
   int m_iDataLen;
@@ -48,7 +48,9 @@ public:
   int GetCount();
   int GetIndex(double dVal);
   double GetPoint(int iIndex);
+  void SetPoint(int iIndex, double dVal);
   void Remove(int iIndex);
+  double& operator[](int idx){ return m_pPoints[idx]; }
 } *PDRefList;
 
 typedef struct CDRefPoint
@@ -181,6 +183,21 @@ typedef struct CDFileAttrs
   char sAngleMask[64];
 } *PDFileAttrs;
 
+typedef struct CDGetBoundsRec
+{
+  CDLine cTmpPt;
+  int iMode;
+  PDRect pRect;
+  PDPointList pPoints;
+  PDPointList pCache;
+  PDLine pLines;
+  double dOffset;
+  double dExt;
+  int iRectFlag;
+  double *pRectRefs;
+  PDPoint pDrawBnds;
+} *PDGetBoundsRec;
+
 typedef struct CDPrimitive
 {
   int iType; // 1 line, 2 circ arc, 3 circle, 4 quad, 5 bezier, 6 bound points, 7 center points,
@@ -239,7 +256,6 @@ public:
   void Clear();
   void Delete(int iIndex);
   void ClearLines();
-  //void SetDashOffset();
   void CopyFrom(CDPrimObject *pPrimObj);
 } *PDPrimObject;
 
@@ -263,6 +279,7 @@ void ClearPolygonList(PDPtrList pPolygons);
 // iBndMode flags: 2 - cBnds1.x is the lower bound, 4 - cBnds1.y is the upper bound,
 // 8 - curve is potentially closed, dLength is valid then
 int IntersectBounds(CDPoint cBnds1, CDPoint cBnds2, int iBndMode, double dLength, PDPoint pRes);
-int UnionBounds(CDPoint cBnds1, CDPoint cBnds2, PDPoint pRes);
+int UnionBounds(CDPoint cBnds1, CDPoint cBnds2, double dLength, PDPoint pRes);
+void MergeCornerRefs(PDRefList pBnds, PDPoint pRefBnds, int iRectFlag, double *pdRefs);
 
 #endif

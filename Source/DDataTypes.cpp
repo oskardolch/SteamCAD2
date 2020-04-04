@@ -367,6 +367,11 @@ double CDRefList::GetPoint(int iIndex)
   return m_pPoints[iIndex];
 }
 
+void CDRefList::SetPoint(int iIndex, double dVal)
+{
+  m_pPoints[iIndex] = dVal;
+}
+
 void CDRefList::Remove(int iIndex)
 {
   m_iDataLen--;
@@ -376,6 +381,11 @@ void CDRefList::Remove(int iIndex)
       (m_iDataLen - iIndex)*sizeof(double));
   }
 }
+
+/*double CDRefList::operator[](int idx)
+{
+  return m_pPoints[idx];
+}*/
 
 
 // CDPointList
@@ -479,11 +489,6 @@ void CDPointList::SetPoint(int iIndex, char iCtrl, double x, double y, char iNew
   m_pPoints[iNewIdex].cPoint.y = y;
   m_pPoints[iNewIdex].iCtrl = iNewCtrl;
 }
-
-/*PDInputPoint CDPointList::GetListPtr()
-{
-  return m_pPoints;
-}*/
 
 
 // CDPtrList
@@ -617,18 +622,6 @@ void CDPrimObject::ClearLines()
     if(m_pData[--i].iType < 6) Delete(i);
   }
 }
-
-/*void CDPrimObject::SetDashOffset()
-{
-  for(int i = 0; i < m_iDataLen; i++)
-  {
-    if(m_pData[i].iType < 6)
-    {
-      m_pData[i].dDashOffset = 0.0;
-      m_pData[i].dDashScale = 1.0;
-    }
-  }
-}*/
 
 void CDPrimObject::CopyFrom(CDPrimObject *pPrimObj)
 {
@@ -832,8 +825,204 @@ int IntersectBounds(CDPoint cBnds1, CDPoint cBnds2, int iBndMode, double dLength
   return 1;
 }
 
-int UnionBounds(CDPoint cBnds1, CDPoint cBnds2, PDPoint pRes)
+int UnionBounds(CDPoint cBnds1, CDPoint cBnds2, double dLength, PDPoint pRes)
 {
-  return 0;
+  bool b1Closed = false;
+  bool b2Closed = false;
+
+  if(dLength > g_dPrec)
+  {
+    b1Closed = fabs(cBnds1.y - cBnds1.x - dLength) < g_dPrec;
+    b2Closed = fabs(cBnds2.y - cBnds2.x - dLength) < g_dPrec;
+  }
+
+  if(b1Closed)
+  {
+    pRes[0] = cBnds1;
+    return 1;
+  }
+
+  if(b2Closed)
+  {
+    pRes[0] = cBnds2;
+    return 1;
+  }
+
+  if((cBnds1.x > cBnds1.y) && (cBnds2.x > cBnds2.y))
+  {
+    pRes[0] = cBnds1;
+    if(cBnds2.x < cBnds1.x) pRes[0].x = cBnds2.x;
+    if(cBnds2.y > cBnds1.y) pRes[0].y = cBnds2.y;
+    return 1;
+  }
+
+  if(cBnds1.x > cBnds1.y)
+  {
+    if((cBnds2.x > cBnds1.x) || (cBnds2.y < cBnds1.y))
+    {
+      pRes[0] = cBnds1;
+      return 1;
+    }
+    if(cBnds2.x > cBnds1.y)
+    {
+      if(cBnds2.y < cBnds1.x)
+      {
+        pRes[0] = cBnds1;
+        pRes[1] = cBnds2;
+        return 2;
+      }
+      pRes[0].x = cBnds2.x;
+      pRes[0].y = cBnds1.y;
+      return 1;
+    }
+    if(cBnds2.y < cBnds1.x)
+    {
+      pRes[0].x = cBnds1.x;
+      pRes[0].y = cBnds2.y;
+      return 1;
+    }
+    // the next should not happen, but just for sure:
+    pRes[0].x = cBnds1.x;
+    pRes[0].y = cBnds1.x + dLength;
+    return 1;
+  }
+
+  if(cBnds2.x > cBnds2.y)
+  {
+    if((cBnds1.x > cBnds2.x) || (cBnds1.y < cBnds2.y))
+    {
+      pRes[0] = cBnds2;
+      return 1;
+    }
+    if(cBnds1.x > cBnds2.y)
+    {
+      if(cBnds1.y < cBnds2.x)
+      {
+        pRes[0] = cBnds1;
+        pRes[1] = cBnds2;
+        return 2;
+      }
+      pRes[0].x = cBnds1.x;
+      pRes[0].y = cBnds2.y;
+      return 1;
+    }
+    if(cBnds1.y < cBnds2.x)
+    {
+      pRes[0].x = cBnds2.x;
+      pRes[0].y = cBnds1.y;
+      return 1;
+    }
+    // the next should not happen, but just for sure:
+    pRes[0].x = cBnds1.x;
+    pRes[0].y = cBnds1.x + dLength;
+    return 1;
+  }
+
+  if((cBnds2.x > cBnds1.y) || (cBnds1.x > cBnds2.y))
+  {
+    pRes[0] = cBnds1;
+    pRes[1] = cBnds2;
+    return 2;
+  }
+
+  pRes[0] = cBnds1;
+  if(cBnds2.x < cBnds1.x) pRes[0].x = cBnds2.x;
+  if(cBnds2.y > cBnds1.y) pRes[0].y = cBnds2.y;
+  return 1;
+}
+
+void MergeCornerRef(double dRef, PDRefList pBnds, PDPoint pRefBnds)
+{
+  int n = pBnds->GetCount();
+  if(n < 2) return;
+
+  double d1, d2;
+
+  if(pRefBnds)
+  {
+    if((*pBnds)[0] > (*pBnds)[1])
+    {
+      if(dRef < (*pBnds)[1] + g_dPrec) return;
+      if(dRef > (*pBnds)[0] - g_dPrec) return;
+    }
+    else
+    {
+      if(dRef < (*pBnds)[0] + g_dPrec)
+      {
+        d1 = (*pBnds)[0] - dRef;
+        d2 = (pRefBnds->y - (*pBnds)[n - 1]) + (dRef - pRefBnds->x);
+        if(d1 < d2) pBnds->SetPoint(0, dRef);
+        else pBnds->SetPoint(n - 1, dRef);
+        return;
+      }
+      if(dRef > (*pBnds)[n - 1] - g_dPrec)
+      {
+        d1 = dRef - (*pBnds)[n - 1];
+        d2 = (pRefBnds->y - dRef) + ((*pBnds)[0] - pRefBnds->x);
+        if(d1 < d2) pBnds->SetPoint(n - 1, dRef);
+        else pBnds->SetPoint(0, dRef);
+        return;
+      }
+    }
+  }
+
+  int i = 0;
+  if((*pBnds)[0] > (*pBnds)[1]) i = 1;
+  bool bFound = dRef < (*pBnds)[i++] + g_dPrec;
+  while(!bFound && (i < n))
+  {
+    bFound = dRef < (*pBnds)[i++] + g_dPrec;
+  }
+
+  if(!bFound && ((*pBnds)[0] > (*pBnds)[1]))
+  {
+    i = 0;
+    bFound = dRef < (*pBnds)[i++] + g_dPrec;
+    if(bFound)
+    {
+      d1 = dRef - (*pBnds)[n - 1];
+      d2 = (*pBnds)[0] - dRef;
+      if(d1 < d2) pBnds->SetPoint(n - 1, dRef);
+      else pBnds->SetPoint(0, dRef);
+      return;
+    }
+  }
+
+  if(!bFound && pRefBnds) return; // something strange, it should not happen
+
+  if(!pRefBnds)
+  {
+    if(!bFound)
+    {
+      pBnds->SetPoint(n - 1, dRef);
+      return;
+    }
+    if(i < 2)
+    {
+      pBnds->SetPoint(0, dRef);
+      return;
+    }
+    if(i % 2 == 0) return;
+  }
+
+  if((*pBnds)[0] > (*pBnds)[1])
+  {
+    if(i % 2 == 1) return;
+  }
+
+  if(i < 2) return;
+
+  d1 = dRef - pBnds->GetPoint(i - 2);
+  d2 = pBnds->GetPoint(i - 1) - dRef;
+  if(d1 < d2) pBnds->SetPoint(i - 2, dRef);
+  else pBnds->SetPoint(i - 1, dRef);
+}
+
+void MergeCornerRefs(PDRefList pBnds, PDPoint pRefBnds, int iRectFlag, double *pdRefs)
+{
+  if(iRectFlag & 1) MergeCornerRef(pdRefs[0], pBnds, pRefBnds);
+  if(iRectFlag & 2) MergeCornerRef(pdRefs[1], pBnds, pRefBnds);
+  if(iRectFlag & 4) MergeCornerRef(pdRefs[2], pBnds, pRefBnds);
+  if(iRectFlag & 8) MergeCornerRef(pdRefs[3], pBnds, pRefBnds);
 }
 

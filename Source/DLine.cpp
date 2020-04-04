@@ -149,57 +149,63 @@ int CropLineByRect(CDPoint cOrig, CDPoint cDir, PDRect pRect, PDPoint pRef)
     return 1;
 }
 
-int GetLineBounds(CDLine cTmpPt, int iMode, PDRect pRect, PDPointList pPoints,
-  PDPointList pCache, PDLineStyle pStyle, PDRefList pBounds, double *pdMovedDist)
+int GetLineBounds(PDGetBoundsRec pBndRec, PDRefList pBounds, double *pdMovedDist)
 {
-  if(iMode > 0) BuildLineCache(cTmpPt, iMode, pPoints, pCache, pdMovedDist);
+  if(pBndRec->iMode > 0)
+    BuildLineCache(pBndRec->cTmpPt, pBndRec->iMode, pBndRec->pPoints, pBndRec->pCache, pdMovedDist);
 
-  int iCnt = pCache->GetCount(0);
+  if(pBndRec->iRectFlag == 15)
+  {
+    std::sort(pBndRec->pRectRefs, &pBndRec->pRectRefs[4]);
+    pBounds->AddPoint(pBndRec->pRectRefs[0]);
+    pBounds->AddPoint(pBndRec->pRectRefs[3]);
+    return 1;
+  }
+
+  int iCnt = pBndRec->pCache->GetCount(0);
   if(iCnt < 2) return 0;
 
-  CDPoint cOrig = pCache->GetPoint(0, 0).cPoint;
-  CDPoint cNorm = pCache->GetPoint(1, 0).cPoint;
+  CDPoint cOrig = pBndRec->pCache->GetPoint(0, 0).cPoint;
+  CDPoint cNorm = pBndRec->pCache->GetPoint(1, 0).cPoint;
 
-  double dr = 0.0;
-  int nOffs = pCache->GetCount(2);
-  if(nOffs > 0) dr += pCache->GetPoint(0, 2).cPoint.x;
+  double dr = pBndRec->dOffset;
+  int nOffs = pBndRec->pCache->GetCount(2);
+  if(nOffs > 0) dr += pBndRec->pCache->GetPoint(0, 2).cPoint.x;
 
   CDPoint cPt1, cPt2, cPt3, cPt4;
 
   cPt1.x = cOrig.x - dr*cNorm.y;
   cPt1.y = cOrig.y + dr*cNorm.x;
 
-  double dExt = pStyle->dPercent*pStyle->dWidth/200.0;
-  double d1 = dExt - pStyle->dWidth/2.0;
-  cPt2.x = cPt1.x - d1*cNorm.y;
-  cPt2.y = cPt1.y + d1*cNorm.x;
+  cPt2.x = cPt1.x - pBndRec->dExt*cNorm.y;
+  cPt2.y = cPt1.y + pBndRec->dExt*cNorm.x;
+  int i1 = CropLineByRect(cPt2, cNorm, pBndRec->pRect, &cPt3);
 
-  int i1 = CropLineByRect(cPt2, cNorm, pRect, &cPt3);
-
-  d1 = dExt + pStyle->dWidth/2.0;
-  cPt2.x = cPt1.x - d1*cNorm.y;
-  cPt2.y = cPt1.y + d1*cNorm.x;
-  int i2 = CropLineByRect(cPt2, cNorm, pRect, &cPt4);
+  cPt2.x = cPt1.x + pBndRec->dExt*cNorm.y;
+  cPt2.y = cPt1.y - pBndRec->dExt*cNorm.x;
+  int i2 = CropLineByRect(cPt2, cNorm, pBndRec->pRect, &cPt4);
 
   if(i1 < 1)
   {
     if(i2 < 1) return 0;
     pBounds->AddPoint(cPt4.x);
     pBounds->AddPoint(cPt4.y);
-    return 1;
   }
-
-  if(i2 < 1)
+  else if(i2 < 1)
   {
     pBounds->AddPoint(cPt3.x);
     pBounds->AddPoint(cPt3.y);
-    return 1;
+  }
+  else
+  {
+    if(cPt3.x < cPt4.x) cPt4.x = cPt3.x;
+    if(cPt3.y > cPt4.y) cPt4.y = cPt3.y;
+
+    pBounds->AddPoint(cPt4.x);
+    pBounds->AddPoint(cPt4.y);
   }
 
-  if(cPt3.x < cPt4.x) pBounds->AddPoint(cPt3.x);
-  else pBounds->AddPoint(cPt4.x);
-  if(cPt3.y > cPt4.y) pBounds->AddPoint(cPt3.y);
-  else pBounds->AddPoint(cPt4.y);
+  MergeCornerRefs(pBounds, NULL, pBndRec->iRectFlag, pBndRec->pRectRefs);
   return 1;
 }
 
@@ -262,7 +268,7 @@ int BuildLinePrimitives(CDLine cTmpPt, int iMode, PDRect pRect, PDPointList pPoi
     return CropPrimitive(cPrim, pRect, pPrimList);
 }
 
-void AddLineSegment(double d1, double d2, PDPointList pCache, PDPrimObject pPrimList)
+void AddLineSegment(double d1, double d2, double dExt, PDPointList pCache, PDPrimObject pPrimList)
 {
   int iCnt = pCache->GetCount(0);
 
@@ -281,6 +287,8 @@ void AddLineSegment(double d1, double d2, PDPointList pCache, PDPrimObject pPrim
     cPtOff.y = dr*cNorm.x;
     cOrig += cPtOff;
   }
+  cOrig.x -= dExt*cNorm.y;
+  cOrig.y += dExt*cNorm.x;
 
   CDPoint cPt1 = {d1, 0.0};
   CDPoint cPt2 = {d2, 0.0};
