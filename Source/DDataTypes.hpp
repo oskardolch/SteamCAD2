@@ -50,6 +50,8 @@ public:
   double GetPoint(int iIndex);
   void SetPoint(int iIndex, double dVal);
   void Remove(int iIndex);
+  void Truncate(int iNewLen);
+  void Sort(int iStartIndex);
   double& operator[](int idx){ return m_pPoints[idx]; }
 } *PDRefList;
 

@@ -2,6 +2,7 @@
 #include <malloc.h>
 #include <string.h>
 #include <math.h>
+#include <algorithm>
 #include "DMath.hpp"
 
 // for debugging purpose only
@@ -382,10 +383,15 @@ void CDRefList::Remove(int iIndex)
   }
 }
 
-/*double CDRefList::operator[](int idx)
+void CDRefList::Truncate(int iNewLen)
 {
-  return m_pPoints[idx];
-}*/
+  m_iDataLen = iNewLen;
+}
+
+void CDRefList::Sort(int iStartIndex)
+{
+  std::sort(&m_pPoints[iStartIndex], &m_pPoints[m_iDataLen]);
+}
 
 
 // CDPointList
@@ -1002,15 +1008,10 @@ void MergeCornerRef(double dRef, PDRefList pBnds, PDPoint pRefBnds)
       pBnds->SetPoint(0, dRef);
       return;
     }
-    if(i % 2 == 0) return;
-  }
-
-  if((*pBnds)[0] > (*pBnds)[1])
-  {
-    if(i % 2 == 1) return;
   }
 
   if(i < 2) return;
+  if(i % 2 == 0) return;
 
   d1 = dRef - pBnds->GetPoint(i - 2);
   d2 = pBnds->GetPoint(i - 1) - dRef;

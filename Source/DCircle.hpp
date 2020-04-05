@@ -6,8 +6,9 @@
 bool AddCirclePoint(double x, double y, char iCtrl, PDPointList pPoints, PDLine pLines);
 bool BuildCircCache(CDLine cTmpPt, int iMode, PDPointList pPoints, PDPointList pCache, PDLine pLines,
   double *pdMovedDist);
-int GetCircleBounds(CDLine cTmpPt, int iMode, PDRect pRect, PDPointList pPoints,
-  PDPointList pCache, PDLine pLines, PDLineStyle pStyle, PDRefList pBounds, PDPoint pDrawBnds, double *pdMovedDist);
+//int GetCircleBounds(CDLine cTmpPt, int iMode, PDRect pRect, PDPointList pPoints,
+//  PDPointList pCache, PDLine pLines, PDLineStyle pStyle, PDRefList pBounds, PDPoint pDrawBnds, double *pdMovedDist);
+int GetCircleBounds(PDGetBoundsRec pBndRec, PDRefList pBounds, double *pdMovedDist);
 int BuildCircPrimitives(CDLine cTmpPt, int iMode, PDRect pRect, PDPointList pPoints,
   PDPointList pCache, PDPrimObject pPrimList, PDLine pLines, PDRefPoint pBounds, double dOffset,
   double *pdMovedDist, PDPoint pDrawBnds);

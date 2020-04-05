@@ -2,43 +2,43 @@
 #include "DMath.hpp"
 #include "DPrimitive.hpp"
 #include <math.h>
-#include <algorithm>
 #include <stdio.h>
+#include <algorithm>
 
 bool AddLinePoint(double x, double y, char iCtrl, PDPointList pPoints)
 {
-    if((iCtrl == 2) || (iCtrl == 3))
+  if((iCtrl == 2) || (iCtrl == 3))
+  {
+    if(pPoints->GetCount(-1) != 2) return false;
+
+    CDInputPoint cInPt1 = pPoints->GetPoint(0, -1);
+    CDPoint cPt1 = cInPt1.cPoint;
+    CDPoint cPt2 = pPoints->GetPoint(1, -1).cPoint;
+    CDPoint cOrig = cPt1;
+    CDPoint cDir = cPt2 - cPt1;
+    double dNorm = GetNorm(cDir);
+    if(dNorm < g_dPrec) return false;
+
+    cDir /= dNorm;
+    if(cInPt1.iCtrl == 1)
     {
-        if(pPoints->GetCount(-1) != 2) return false;
-
-        CDInputPoint cInPt1 = pPoints->GetPoint(0, -1);
-        CDPoint cPt1 = cInPt1.cPoint;
-        CDPoint cPt2 = pPoints->GetPoint(1, -1).cPoint;
-        CDPoint cOrig = cPt1;
-        CDPoint cDir = cPt2 - cPt1;
-        double dNorm = GetNorm(cDir);
-        if(dNorm < g_dPrec) return false;
-
-        cDir /= dNorm;
-        if(cInPt1.iCtrl == 1)
-        {
-            cOrig = (cPt1 + cPt2)/2;
-            cDir = GetNormal(cDir);
-        }
-
-        CDPoint cPt3 = {x - cOrig.x, y - cOrig.y};
-        CDPoint cPt4 = Rotate(cPt3, cDir, false);
-        cPt4.x = 0.0;
-        cPt3 = Rotate(cPt4, cDir, true);
-        cPt1 += cPt3;
-        cPt2 += cPt3;
-        pPoints->SetPoint(0, -1, cPt1.x, cPt1.y, cInPt1.iCtrl);
-        pPoints->SetPoint(1, -1, cPt2.x, cPt2.y, 0);
-        return true;
+      cOrig = (cPt1 + cPt2)/2;
+      cDir = GetNormal(cDir);
     }
 
-    pPoints->AddPoint(x, y, iCtrl);
-    return (pPoints->GetCount(-1) == 2);
+    CDPoint cPt3 = {x - cOrig.x, y - cOrig.y};
+    CDPoint cPt4 = Rotate(cPt3, cDir, false);
+    cPt4.x = 0.0;
+    cPt3 = Rotate(cPt4, cDir, true);
+    cPt1 += cPt3;
+    cPt2 += cPt3;
+    pPoints->SetPoint(0, -1, cPt1.x, cPt1.y, cInPt1.iCtrl);
+    pPoints->SetPoint(1, -1, cPt2.x, cPt2.y, 0);
+    return true;
+  }
+
+  pPoints->AddPoint(x, y, iCtrl);
+  return (pPoints->GetCount(-1) == 2);
 }
 
 bool BuildLineCache(CDLine cTmpPt, int iMode, PDPointList pPoints, PDPointList pCache, double *pdMovedDist)

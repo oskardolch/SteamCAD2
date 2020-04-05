@@ -720,8 +720,9 @@ int CDObject::GetViewBounds(CDLine cTmpPt, int iMode, PDRect pRect, int iTemp,
     iRes = GetLineBounds(&cBndRec, pBounds, pdMovedDist);
     break;
   case dtCircle:
-    iRes = GetCircleBounds(cTmpPt, iMode, pRect, m_pInputPoints, m_pCachePoints, m_cLines,
-      &m_cLineStyle, pBounds, pDrawBnds, pdMovedDist);
+    iRes = GetCircleBounds(&cBndRec, pBounds, pdMovedDist);
+    //iRes = GetCircleBounds(cTmpPt, iMode, pRect, m_pInputPoints, m_pCachePoints, m_cLines,
+    //  &m_cLineStyle, pBounds, pDrawBnds, pdMovedDist);
     break;
   }
   return iRes;

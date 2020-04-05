@@ -4,6 +4,7 @@
 #include <math.h>
 #include <stdio.h>
 #include <algorithm>
+#include <memory.h>
 
 // for debugging purpose only
 /*#include <windows.h>
@@ -273,55 +274,216 @@ int GetCircleRectInterBnds(CDPoint cOrig, double dRad, PDRect pRect, PDPoint pRe
   return iRes;
 }
 
-int GetCircleBounds(CDLine cTmpPt, int iMode, PDRect pRect, PDPointList pPoints,
-  PDPointList pCache, PDLine pLines, PDLineStyle pStyle, PDRefList pBounds, PDPoint pDrawBnds, double *pdMovedDist)
+int GetCircleBounds(PDGetBoundsRec pBndRec, PDRefList pBounds, double *pdMovedDist)
 {
-  if(iMode > 0) BuildCircCache(cTmpPt, iMode, pPoints, pCache, pLines, pdMovedDist);
+  if(pBndRec->iMode > 0)
+    BuildCircCache(pBndRec->cTmpPt, pBndRec->iMode, pBndRec->pPoints, pBndRec->pCache, pBndRec->pLines, pdMovedDist);
 
-  int iCnt = pCache->GetCount(0);
-
+  int iCnt = pBndRec->pCache->GetCount(0);
   if(iCnt < 2) return 0;
 
-  CDPoint cOrig = pCache->GetPoint(0, 0).cPoint;
-  CDPoint cRad = pCache->GetPoint(1, 0).cPoint;
+  CDPoint cOrig = pBndRec->pCache->GetPoint(0, 0).cPoint;
+  CDPoint cRad = pBndRec->pCache->GetPoint(1, 0).cPoint;
 
-  int nOffs = pCache->GetCount(2);
-  if(nOffs > 0) cRad.x += pCache->GetPoint(0, 2).cPoint.x;
+  int nOffs = pBndRec->pCache->GetCount(2);
+  if(nOffs > 0) cRad.x += pBndRec->pCache->GetPoint(0, 2).cPoint.x;
 
   double dr = fabs(cRad.x);
-  double d1 = dr*M_PI;
-  pDrawBnds->x = -d1;
-  pDrawBnds->y = d1;
 
-  double dr1 = dr + pStyle->dPercent*pStyle->dWidth/200.0;
-  double dExt = pStyle->dWidth/2.0;
+  if(pBndRec->iRectFlag == 15)
+  {
+    std::sort(pBndRec->pRectRefs, &pBndRec->pRectRefs[4]);
+    pBounds->AddPoint(dr*pBndRec->pRectRefs[0]);
+    pBounds->AddPoint(dr*pBndRec->pRectRefs[3]);
+    return 1;
+  }
+
+  double d1 = dr*M_PI;
+  pBndRec->pDrawBnds->x = -d1;
+  pBndRec->pDrawBnds->y = d1;
+
+  double dr1 = dr + pBndRec->dOffset;
 
   CDPoint pInt1[4], pInt2[4];
   int iInt1, iInt2;
-  iInt1 = GetCircleRectInterBnds(cOrig, dr1 - dExt, pRect, pInt1);
-  iInt2 = GetCircleRectInterBnds(cOrig, dr1 + dExt, pRect, pInt2);
+  iInt1 = GetCircleRectInterBnds(cOrig, dr1 - pBndRec->dExt, pBndRec->pRect, pInt1);
+  iInt2 = GetCircleRectInterBnds(cOrig, dr1 + pBndRec->dExt, pBndRec->pRect, pInt2);
 
   if((iInt1 < 0) || (iInt2 < 0))
   {
     pBounds->AddPoint(-d1);
     pBounds->AddPoint(d1);
-    return 1;
+    return 2;
   }
 
-  CDPoint cCenter;
-  if(iInt1 + iInt2 < 1)
+  if((iInt1 < 1) && (iInt2 < 1)) return 0;
+
+  PDRefList pTmpBnds = new CDRefList();
+  if(iInt1 < 1)
   {
-    cCenter = (pRect->cPt1 + pRect->cPt2)/2.0;
-    d1 = GetDist(cCenter, cOrig) - dr1;
-    if(fabs(d1) < dExt + g_dPrec)
+    for(int i = 0; i < iInt2; i++)
     {
+      pTmpBnds->AddPoint(pInt2[i].x);
+      pTmpBnds->AddPoint(pInt2[i].y);
+    }
+  }
+  else if(iInt2 < 1)
+  {
+    for(int i = 0; i < iInt1; i++)
+    {
+      pTmpBnds->AddPoint(pInt1[i].x);
+      pTmpBnds->AddPoint(pInt1[i].y);
+    }
+  }
+  else
+  {
+    CDPoint cUni1[2];
+    double dLen = 2*M_PI;
+    bool bFound;
+    for(int j = iInt2 - 1; j >= 0; j--)
+    {
+      bFound = false;
+      int i = 0;
+      while(!bFound && (i < iInt1))
+      {
+        bFound = (UnionBounds(pInt1[i++], pInt2[j], dLen, cUni1) == 1);
+      }
+      if(bFound)
+      {
+        iInt2--;
+        if(j < iInt2) memmove(&pInt2[j], &pInt2[j + 1], (iInt2 - j)*sizeof(CDPoint));
+
+        pInt1[i - 1] = cUni1[0];
+        for(int k = iInt1 - 1; k >= i; k--)
+        {
+          if(UnionBounds(pInt1[i - 1], pInt1[k], dLen, cUni1) == 1)
+          {
+            pInt1[i - 1] = pInt1[k];
+            iInt1--;
+            if(k < iInt1) memmove(&pInt1[k], &pInt1[k + 1], (iInt1 - k)*sizeof(CDPoint));
+          }
+        }
+      }
+    }
+    if((iInt1 > 0) && (pInt1[0].x > pInt1[0].y))
+    {
+      for(int i = 0; i < iInt1; i++)
+      {
+        pTmpBnds->AddPoint(pInt1[i].x);
+        pTmpBnds->AddPoint(pInt1[i].y);
+      }
+      for(int i = 0; i < iInt2; i++)
+      {
+        pTmpBnds->AddPoint(pInt2[i].x);
+        pTmpBnds->AddPoint(pInt2[i].y);
+      }
+      pTmpBnds->Sort(1);
+    }
+    else if((iInt2 > 0) && (pInt2[0].x > pInt2[0].y))
+    {
+      for(int i = 0; i < iInt2; i++)
+      {
+        pTmpBnds->AddPoint(pInt2[i].x);
+        pTmpBnds->AddPoint(pInt2[i].y);
+      }
+      for(int i = 0; i < iInt1; i++)
+      {
+        pTmpBnds->AddPoint(pInt1[i].x);
+        pTmpBnds->AddPoint(pInt1[i].y);
+      }
+      pTmpBnds->Sort(1);
+    }
+    else
+    {
+      for(int i = 0; i < iInt1; i++)
+      {
+        pTmpBnds->AddPoint(pInt1[i].x);
+        pTmpBnds->AddPoint(pInt1[i].y);
+      }
+      for(int i = 0; i < iInt2; i++)
+      {
+        pTmpBnds->AddPoint(pInt2[i].x);
+        pTmpBnds->AddPoint(pInt2[i].y);
+      }
+      pTmpBnds->Sort(0);
     }
   }
 
-  //int iInt = 0;
+  int n = pTmpBnds->GetCount();
+  double t1, t2, t3, dTestRef;
+  CDPoint cTestPt;
+  if((*pTmpBnds)[0] < (*pTmpBnds)[1])
+  {
+    t1 = M_PI - (*pTmpBnds)[n - 1];
+    t2 = M_PI + (*pTmpBnds)[0];
+    t3 = (t1 + t2)/2.0;
+    if(t1 > t2) dTestRef = (*pTmpBnds)[n - 1] + t3;
+    else dTestRef = (*pTmpBnds)[0] - t3;
+    cTestPt.x = cOrig.x + dr1*cos(dTestRef);
+    cTestPt.y = cOrig.y + dr1*sin(dTestRef);
+    if(DPtInDRect(cTestPt, pBndRec->pRect))
+    {
+      if(n < 3)
+      {
+        pBounds->AddPoint(-d1);
+        pBounds->AddPoint(d1);
+        return 2;
+      }
+      pTmpBnds->SetPoint(0, (*pTmpBnds)[n - 1]);
+      n -= 2;
+      pTmpBnds->Truncate(n);
+    }
+  }
+  bool bFound = false;
+  while(!bFound && ((*pTmpBnds)[0] > (*pTmpBnds)[1]) && (n > 1))
+  {
+    dTestRef = ((*pTmpBnds)[0] + (*pTmpBnds)[n - 1])/2.0;
+    cTestPt.x = cOrig.x + dr1*cos(dTestRef);
+    cTestPt.y = cOrig.y + dr1*sin(dTestRef);
+    if(DPtInDRect(cTestPt, pBndRec->pRect))
+    {
+      if(n < 3)
+      {
+        pBounds->AddPoint(-d1);
+        pBounds->AddPoint(d1);
+        return 2;
+      }
+      pTmpBnds->SetPoint(0, (*pTmpBnds)[n - 2]);
+      n -= 2;
+      pTmpBnds->Truncate(n);
+    }
+    else bFound = true;
+  }
 
-  //pBounds->AddPoint(-d1);
-  //pBounds->AddPoint(d1);
+  if(n > 2)
+  {
+    for(int i = n/2 - 1; i >= 1; i--)
+    {
+      dTestRef = ((*pTmpBnds)[2*i] + (*pTmpBnds)[2*i - 1])/2.0;
+      cTestPt.x = cOrig.x + dr1*cos(dTestRef);
+      cTestPt.y = cOrig.y + dr1*sin(dTestRef);
+      if(DPtInDRect(cTestPt, pBndRec->pRect))
+      {
+        if(n < 3)
+        {
+          pBounds->AddPoint(-d1);
+          pBounds->AddPoint(d1);
+          return 2;
+        }
+        pTmpBnds->SetPoint(2*i - 1, (*pTmpBnds)[2*i + 1]);
+        pTmpBnds->Remove(2*i + 1);
+        pTmpBnds->Remove(2*i);
+      }
+    }
+  }
+
+  CDPoint cDrawBnds = {-M_PI, M_PI};
+  MergeCornerRefs(pTmpBnds, &cDrawBnds, pBndRec->iRectFlag, pBndRec->pRectRefs);
+
+  for(int i = 0; i < pTmpBnds->GetCount(); i++)
+  {
+    pBounds->AddPoint(dr*(*pTmpBnds)[i]);
+  }
   return 1;
 }
 
