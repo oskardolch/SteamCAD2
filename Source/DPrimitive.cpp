@@ -1781,97 +1781,158 @@ CDPoint GetCurveRefAtDist(double da, double db, double dr, double dBreak, double
 
 CDPoint GetLineRegion(CDPrimitive cPrim, double dLineWidth, PDPoint pPoints)
 {
-    CDPoint cRes = {0, 0};
-    CDPoint cDir = cPrim.cPt2 - cPrim.cPt1;
-    double dNorm = GetNorm(cDir);
-    if(dNorm > g_dPrec)
-    {
-        cDir /= dNorm;
-        CDPoint cNorm = GetNormal(cDir);
-        pPoints[0] = cPrim.cPt1 - 2.0*dLineWidth*(cDir + cNorm);
-        pPoints[1] = cPrim.cPt2 + 2.0*dLineWidth*(cDir - cNorm);
-        pPoints[2] = cPrim.cPt2 + 2.0*dLineWidth*(cDir + cNorm);
-        pPoints[3] = cPrim.cPt1 - 2.0*dLineWidth*(cDir - cNorm);
-        cRes.x = 4.1;
-    }
-    return cRes;
+  CDPoint cRes = {0, 0};
+  CDPoint cDir = cPrim.cPt2 - cPrim.cPt1;
+  double dNorm = GetNorm(cDir);
+  if(dNorm > g_dPrec)
+  {
+    cDir /= dNorm;
+    CDPoint cNorm = GetNormal(cDir);
+    pPoints[0] = cPrim.cPt1 - 2.0*dLineWidth*(cDir + cNorm);
+    pPoints[1] = cPrim.cPt2 + 2.0*dLineWidth*(cDir - cNorm);
+    pPoints[2] = cPrim.cPt2 + 2.0*dLineWidth*(cDir + cNorm);
+    pPoints[3] = cPrim.cPt1 - 2.0*dLineWidth*(cDir - cNorm);
+    cRes.x = 4.1;
+  }
+  return cRes;
 }
 
-CDPoint GetArcRegion(CDPrimitive cPrim, double dLineWidth, PDPoint pPoints)
+/*CDPoint GetArcRegion(CDPrimitive cPrim, double dLineWidth, PDPoint pPoints)
 {
-    CDPoint cRes = {0, 0};
-    double dr = cPrim.cPt2.x - cPrim.cPt1.x;
-    if(dr > g_dPrec)
+  CDPoint cRes = {0, 0};
+  double dr = cPrim.cPt2.x - cPrim.cPt1.x;
+  if(dr > g_dPrec)
+  {
+    double da1 = atan2(cPrim.cPt3.y - cPrim.cPt1.y, cPrim.cPt3.x - cPrim.cPt1.x);
+    double da2 = atan2(cPrim.cPt4.y - cPrim.cPt1.y, cPrim.cPt4.x - cPrim.cPt1.x);
+    if(da1 < da2) da1 += 2.0*M_PI;
+
+    double da, dsi, dco;
+    CDPoint cPt, cDir, cNorm;
+
+    dco = cos(da2);
+    dsi = sin(da2);
+    cNorm.x = dco;
+    cNorm.y = dsi;
+    cPt = cPrim.cPt1 + dr*cNorm;
+    cDir.x = -dsi;
+    cDir.y = dco;
+
+    pPoints[0] = cPt + 2.0*(0.1*dr + dLineWidth)*(cNorm - cDir);
+    pPoints[15] = cPt - 2.0*dLineWidth*(cNorm + cDir);
+
+    for(int i = 1; i < 7; i++)
     {
-        double da1 = atan2(cPrim.cPt3.y - cPrim.cPt1.y, cPrim.cPt3.x - cPrim.cPt1.x);
-        double da2 = atan2(cPrim.cPt4.y - cPrim.cPt1.y, cPrim.cPt4.x - cPrim.cPt1.x);
-        if(da1 < da2) da1 += 2.0*M_PI;
-
-        double da, dsi, dco;
-        CDPoint cPt, cDir, cNorm;
-
-        dco = cos(da2);
-        dsi = sin(da2);
-        cNorm.x = dco;
-        cNorm.y = dsi;
-        cPt = cPrim.cPt1 + dr*cNorm;
-        cDir.x = -dsi;
-        cDir.y = dco;
-
-        pPoints[0] = cPt + 2.0*(0.1*dr + dLineWidth)*(cNorm - cDir);
-        pPoints[15] = cPt - 2.0*dLineWidth*(cNorm + cDir);
-
-        for(int i = 1; i < 7; i++)
-        {
-            da = da2 + i*(da1 - da2)/7.0;
-            dco = cos(da);
-            dsi = sin(da);
-            cNorm.x = dco;
-            cNorm.y = dsi;
-            cPt = cPrim.cPt1 + dr*cNorm;
-            pPoints[i] = cPt + 2.0*(0.1*dr + dLineWidth)*cNorm;
-            pPoints[15 - i] = cPt - 2.0*dLineWidth*cNorm;
-        }
-
-        dco = cos(da1);
-        dsi = sin(da1);
-        cNorm.x = dco;
-        cNorm.y = dsi;
-        cPt = cPrim.cPt1 + dr*cNorm;
-        cDir.x = -dsi;
-        cDir.y = dco;
-
-        pPoints[7] = cPt + 2.0*(0.1*dr + dLineWidth)*(cNorm + cDir);
-        pPoints[8] = cPt - 2.0*dLineWidth*(cNorm - cDir);
-
-        cRes.x = 16.1;
+      da = da2 + i*(da1 - da2)/7.0;
+      dco = cos(da);
+      dsi = sin(da);
+      cNorm.x = dco;
+      cNorm.y = dsi;
+      cPt = cPrim.cPt1 + dr*cNorm;
+      pPoints[i] = cPt + 2.0*(0.1*dr + dLineWidth)*cNorm;
+      pPoints[15 - i] = cPt - 2.0*dLineWidth*cNorm;
     }
-    return cRes;
-}
+
+    dco = cos(da1);
+    dsi = sin(da1);
+    cNorm.x = dco;
+    cNorm.y = dsi;
+    cPt = cPrim.cPt1 + dr*cNorm;
+    cDir.x = -dsi;
+    cDir.y = dco;
+
+    pPoints[7] = cPt + 2.0*(0.1*dr + dLineWidth)*(cNorm + cDir);
+    pPoints[8] = cPt - 2.0*dLineWidth*(cNorm - cDir);
+
+    cRes.x = 16.1;
+  }
+  return cRes;
+}*/
 
 CDPoint GetCircRegion(CDPrimitive cPrim, double dLineWidth, PDPoint pPoints1, PDPoint pPoints2)
 {
-    CDPoint cRes = {0, 0};
-    double dr = cPrim.cPt2.x - cPrim.cPt1.x;
-    if(dr > g_dPrec)
-    {
-        double da, dco, dsi;
-        CDPoint cNorm;
+  CDPoint cRes = {0, 0};
+  double dr = cPrim.cPt2.x; // - cPrim.cPt1.x;
+  if(dr > g_dPrec)
+  {
+    double da, dco, dsi;
+    CDPoint cNorm;
 
-        for(int i = 0; i < 8; i++)
-        {
-            da = i*M_PI/4.0;
-            dco = cos(da);
-            dsi = sin(da);
-            cNorm.x = dco;
-            cNorm.y = dsi;
-            pPoints1[i] = cPrim.cPt1 + 1.1*(dr + 2.0*dLineWidth)*cNorm;
-            pPoints2[7 - i] = cPrim.cPt1 + (dr - 2.0*dLineWidth)*cNorm;
-        }
-        cRes.x = 8.1;
-        cRes.y = 8.1;
+    for(int i = 0; i < 8; i++)
+    {
+      da = i*M_PI/4.0;
+      dco = cos(da);
+      dsi = sin(da);
+      cNorm.x = dco;
+      cNorm.y = dsi;
+      pPoints1[i] = cPrim.cPt1 + 1.1*(dr + 2.0*dLineWidth)*cNorm;
+      pPoints2[7 - i] = cPrim.cPt1 + (dr - 2.0*dLineWidth)*cNorm;
     }
-    return cRes;
+    cRes.x = 8.1;
+    cRes.y = 8.1;
+  }
+  return cRes;
+}
+
+CDPoint GetArcRegion(CDPrimitive cPrim, double dLineWidth, PDPoint pPoints, PDPoint pPoints2)
+{
+  CDPoint cRes = {0, 0};
+  double dr = cPrim.cPt2.x;
+  if(dr > g_dPrec)
+  {
+    double da1 = cPrim.cPt3.x;
+    double da2 = cPrim.cPt3.y;
+    if(fabs(da2 - da1 - 2.0*M_PI) < g_dPrec)
+      return GetCircRegion(cPrim, dLineWidth, pPoints, pPoints2);
+
+    double dl = da2 - da1;
+    if(dl < -g_dPrec) dl += 2.0*M_PI;
+    if(dl < g_dPrec) return cRes;
+    //if(da2 < da1) da2 += 2.0*M_PI;
+    dl /= 7.0;
+
+    double da, dsi, dco;
+    CDPoint cPt, cDir, cNorm;
+
+    da = da1;
+    dco = cos(da);
+    dsi = sin(da);
+    cNorm.x = dco;
+    cNorm.y = dsi;
+    cPt = cPrim.cPt1 + dr*cNorm;
+    cDir.x = -dsi;
+    cDir.y = dco;
+
+    pPoints[0] = cPt + 2.0*(0.1*dr + dLineWidth)*(cNorm - cDir);
+    pPoints[15] = cPt - 2.0*dLineWidth*(cNorm + cDir);
+
+    for(int i = 1; i < 7; i++)
+    {
+      da += dl;
+      //da = da1 + i*(da2 - da1)/7.0;
+      dco = cos(da);
+      dsi = sin(da);
+      cNorm.x = dco;
+      cNorm.y = dsi;
+      cPt = cPrim.cPt1 + dr*cNorm;
+      pPoints[i] = cPt + 2.0*(0.1*dr + dLineWidth)*cNorm;
+      pPoints[15 - i] = cPt - 2.0*dLineWidth*cNorm;
+    }
+
+    dco = cos(da2);
+    dsi = sin(da2);
+    cNorm.x = dco;
+    cNorm.y = dsi;
+    cPt = cPrim.cPt1 + dr*cNorm;
+    cDir.x = -dsi;
+    cDir.y = dco;
+
+    pPoints[7] = cPt + 2.0*(0.1*dr + dLineWidth)*(cNorm + cDir);
+    pPoints[8] = cPt - 2.0*dLineWidth*(cNorm - cDir);
+
+    cRes.x = 16.1;
+  }
+  return cRes;
 }
 
 CDPoint GetBezRegion(CDPrimitive cPrim, double dLineWidth, PDPoint pPoints)
@@ -2009,7 +2070,12 @@ CDPoint GetPrimRegion(CDPrimitive cPrim, double dLineWidth, double dScale,
             cRes.x = 4.1;
             break;
         case 2:
-            cRes.x = 16.1;
+            if(fabs(cPrim.cPt3.y - cPrim.cPt3.x - 2.0*M_PI) < g_dPrec)
+            {
+              cRes.x = 8.1;
+              cRes.y = 8.1;
+            }
+            else cRes.x = 16.1;
             break;
         case 3:
             cRes.x = 8.1;
@@ -2037,7 +2103,7 @@ CDPoint GetPrimRegion(CDPrimitive cPrim, double dLineWidth, double dScale,
         cRes = GetLineRegion(cPrim, dLineWidth, pPoints1);
         break;
     case 2:
-        cRes = GetArcRegion(cPrim, dLineWidth, pPoints1);
+        cRes = GetArcRegion(cPrim, dLineWidth, pPoints1, pPoints2);
         break;
     case 3:
         cRes = GetCircRegion(cPrim, dLineWidth, pPoints1, pPoints2);

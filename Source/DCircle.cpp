@@ -316,97 +316,27 @@ int GetCircleBounds(PDGetBoundsRec pBndRec, PDRefList pBounds, double *pdMovedDi
     return 2;
   }
 
-  if((iInt1 < 1) && (iInt2 < 1)) return 0;
-
   PDRefList pTmpBnds = new CDRefList();
-  if(iInt1 < 1)
+  PDRefList pBnds1 = new CDRefList();
+  PDRefList pBnds2 = new CDRefList();
+  for(int i = 0; i < iInt1; i++)
   {
-    for(int i = 0; i < iInt2; i++)
-    {
-      pTmpBnds->AddPoint(pInt2[i].x);
-      pTmpBnds->AddPoint(pInt2[i].y);
-    }
+    pBnds1->AddPoint(pInt1[i].x);
+    pBnds1->AddPoint(pInt1[i].y);
   }
-  else if(iInt2 < 1)
+  for(int i = 0; i < iInt2; i++)
   {
-    for(int i = 0; i < iInt1; i++)
-    {
-      pTmpBnds->AddPoint(pInt1[i].x);
-      pTmpBnds->AddPoint(pInt1[i].y);
-    }
+    pBnds2->AddPoint(pInt2[i].x);
+    pBnds2->AddPoint(pInt2[i].y);
   }
-  else
-  {
-    CDPoint cUni1[2];
-    double dLen = 2*M_PI;
-    bool bFound;
-    for(int j = iInt2 - 1; j >= 0; j--)
-    {
-      bFound = false;
-      int i = 0;
-      while(!bFound && (i < iInt1))
-      {
-        bFound = (UnionBounds(pInt1[i++], pInt2[j], dLen, cUni1) == 1);
-      }
-      if(bFound)
-      {
-        iInt2--;
-        if(j < iInt2) memmove(&pInt2[j], &pInt2[j + 1], (iInt2 - j)*sizeof(CDPoint));
+  int iRes = UnionBounds(pBnds1, pBnds2, 2*M_PI, pTmpBnds);
+  delete pBnds2;
+  delete pBnds1;
 
-        pInt1[i - 1] = cUni1[0];
-        for(int k = iInt1 - 1; k >= i; k--)
-        {
-          if(UnionBounds(pInt1[i - 1], pInt1[k], dLen, cUni1) == 1)
-          {
-            pInt1[i - 1] = pInt1[k];
-            iInt1--;
-            if(k < iInt1) memmove(&pInt1[k], &pInt1[k + 1], (iInt1 - k)*sizeof(CDPoint));
-          }
-        }
-      }
-    }
-    if((iInt1 > 0) && (pInt1[0].x > pInt1[0].y))
-    {
-      for(int i = 0; i < iInt1; i++)
-      {
-        pTmpBnds->AddPoint(pInt1[i].x);
-        pTmpBnds->AddPoint(pInt1[i].y);
-      }
-      for(int i = 0; i < iInt2; i++)
-      {
-        pTmpBnds->AddPoint(pInt2[i].x);
-        pTmpBnds->AddPoint(pInt2[i].y);
-      }
-      pTmpBnds->Sort(1);
-    }
-    else if((iInt2 > 0) && (pInt2[0].x > pInt2[0].y))
-    {
-      for(int i = 0; i < iInt2; i++)
-      {
-        pTmpBnds->AddPoint(pInt2[i].x);
-        pTmpBnds->AddPoint(pInt2[i].y);
-      }
-      for(int i = 0; i < iInt1; i++)
-      {
-        pTmpBnds->AddPoint(pInt1[i].x);
-        pTmpBnds->AddPoint(pInt1[i].y);
-      }
-      pTmpBnds->Sort(1);
-    }
-    else
-    {
-      for(int i = 0; i < iInt1; i++)
-      {
-        pTmpBnds->AddPoint(pInt1[i].x);
-        pTmpBnds->AddPoint(pInt1[i].y);
-      }
-      for(int i = 0; i < iInt2; i++)
-      {
-        pTmpBnds->AddPoint(pInt2[i].x);
-        pTmpBnds->AddPoint(pInt2[i].y);
-      }
-      pTmpBnds->Sort(0);
-    }
+  if(iRes < 1)
+  {
+    delete pTmpBnds;
+    return 0;
   }
 
   int n = pTmpBnds->GetCount();
@@ -427,6 +357,7 @@ int GetCircleBounds(PDGetBoundsRec pBndRec, PDRefList pBounds, double *pdMovedDi
       {
         pBounds->AddPoint(-d1);
         pBounds->AddPoint(d1);
+        delete pTmpBnds;
         return 2;
       }
       pTmpBnds->SetPoint(0, (*pTmpBnds)[n - 1]);
@@ -446,6 +377,7 @@ int GetCircleBounds(PDGetBoundsRec pBndRec, PDRefList pBounds, double *pdMovedDi
       {
         pBounds->AddPoint(-d1);
         pBounds->AddPoint(d1);
+        delete pTmpBnds;
         return 2;
       }
       pTmpBnds->SetPoint(0, (*pTmpBnds)[n - 2]);
@@ -468,6 +400,7 @@ int GetCircleBounds(PDGetBoundsRec pBndRec, PDRefList pBounds, double *pdMovedDi
         {
           pBounds->AddPoint(-d1);
           pBounds->AddPoint(d1);
+          delete pTmpBnds;
           return 2;
         }
         pTmpBnds->SetPoint(2*i - 1, (*pTmpBnds)[2*i + 1]);
@@ -484,6 +417,7 @@ int GetCircleBounds(PDGetBoundsRec pBndRec, PDRefList pBounds, double *pdMovedDi
   {
     pBounds->AddPoint(dr*(*pTmpBnds)[i]);
   }
+  delete pTmpBnds;
   return 1;
 }
 
@@ -557,8 +491,8 @@ void AddCircSegment(double d1, double d2, double dExt, PDPointList pCache, PDPri
   if(cRad.x < g_dPrec) return;
 
   double dAng1, dAng2;
-  dAng1 = d2/cRad.x;
-  dAng2 = d1/cRad.x;
+  dAng1 = d1/cRad.x;
+  dAng2 = d2/cRad.x;
 
   CDPrimitive cPrim;
   cPrim.iType = 2;
@@ -568,8 +502,8 @@ void AddCircSegment(double d1, double d2, double dExt, PDPointList pCache, PDPri
   cPrim.cPt2.y = 0.0; //cOrig.y + cRad.x;
   if(cPrim.iType == 2)
   {
-    cPrim.cPt3.x = dAng2;
-    cPrim.cPt3.y = dAng1;
+    cPrim.cPt3.x = dAng1;
+    cPrim.cPt3.y = dAng2;
     cPrim.cPt4 = 0;
     /*cPrim.cPt3.x = cOrig.x + cRad.x*cos(dAng1);
     cPrim.cPt3.y = cOrig.y + cRad.x*sin(dAng1);

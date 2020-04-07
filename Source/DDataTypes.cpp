@@ -831,7 +831,7 @@ int IntersectBounds(CDPoint cBnds1, CDPoint cBnds2, int iBndMode, double dLength
   return 1;
 }
 
-int UnionBounds(CDPoint cBnds1, CDPoint cBnds2, double dLength, PDPoint pRes)
+int UnionBoundPts(CDPoint cBnds1, CDPoint cBnds2, double dLength, PDPoint pRes)
 {
   bool b1Closed = false;
   bool b2Closed = false;
@@ -934,6 +934,118 @@ int UnionBounds(CDPoint cBnds1, CDPoint cBnds2, double dLength, PDPoint pRes)
   pRes[0] = cBnds1;
   if(cBnds2.x < cBnds1.x) pRes[0].x = cBnds2.x;
   if(cBnds2.y > cBnds1.y) pRes[0].y = cBnds2.y;
+  return 1;
+}
+
+int UnionBounds(PDRefList pBnds1, PDRefList pBnds2, double dLen, PDRefList pBndsRes)
+{
+  int iInt1 = pBnds1->GetCount();
+  int iInt2 = pBnds2->GetCount();
+  if((iInt1 < 1) && (iInt2 < 1)) return 0;
+
+  if(iInt1 < 1)
+  {
+    for(int i = 0; i < iInt2; i++) pBndsRes->AddPoint((*pBnds2)[i]);
+  }
+  else if(iInt2 < 1)
+  {
+    for(int i = 0; i < iInt1; i++) pBndsRes->AddPoint((*pBnds1)[i]);
+  }
+  else
+  {
+    iInt1 /= 2;
+    iInt2 /= 2;
+
+    CDPoint cPt1, cPt2;
+    CDPoint cUni1[2];
+    bool bFound;
+    for(int j = iInt2 - 1; j >= 0; j--)
+    {
+      cPt2.x = (*pBnds2)[2*j];
+      cPt2.y = (*pBnds2)[2*j + 1];
+
+      bFound = false;
+      int i = 0;
+      while(!bFound && (i < iInt1))
+      {
+        cPt1.x = (*pBnds1)[2*i];
+        cPt1.y = (*pBnds1)[2*i + 1];
+        bFound = (UnionBoundPts(cPt1, cPt2, dLen, cUni1) == 1);
+        i++;
+      }
+      if(bFound)
+      {
+        iInt2--;
+        if(j < iInt2)
+        {
+          pBnds2->Remove(2*j);
+          pBnds2->Remove(2*j);
+        }
+
+        cPt1 = cUni1[0];
+        pBnds1->SetPoint(2*(i - 1), cPt1.x);
+        pBnds1->SetPoint(2*(i - 1) + 1, cPt1.y);
+        for(int k = iInt1 - 1; k >= i; k--)
+        {
+          cPt2.x = (*pBnds1)[2*k];
+          cPt2.y = (*pBnds1)[2*k + 1];
+          if(UnionBoundPts(cPt1, cPt2, dLen, cUni1) == 1)
+          {
+            pBnds1->SetPoint(2*(i - 1), (*pBnds1)[2*k]);
+            pBnds1->SetPoint(2*(i - 1) + 1, (*pBnds1)[2*k + 1]);
+            iInt1--;
+            if(k < iInt1)
+            {
+              pBnds1->Remove(2*k);
+              pBnds1->Remove(2*k);
+            }
+          }
+        }
+      }
+    }
+    if((iInt1 > 0) && ((*pBnds1)[0] > (*pBnds1)[1]))
+    {
+      for(int i = 0; i < iInt1; i++)
+      {
+        pBndsRes->AddPoint((*pBnds1)[2*i]);
+        pBndsRes->AddPoint((*pBnds1)[2*i + 1]);
+      }
+      for(int i = 0; i < iInt2; i++)
+      {
+        pBndsRes->AddPoint((*pBnds2)[2*i]);
+        pBndsRes->AddPoint((*pBnds2)[2*i + 1]);
+      }
+      pBndsRes->Sort(1);
+    }
+    else if((iInt2 > 0) && ((*pBnds2)[0] > (*pBnds2)[1]))
+    {
+      for(int i = 0; i < iInt2; i++)
+      {
+        pBndsRes->AddPoint((*pBnds2)[2*i]);
+        pBndsRes->AddPoint((*pBnds2)[2*i + 1]);
+      }
+      for(int i = 0; i < iInt1; i++)
+      {
+        pBndsRes->AddPoint((*pBnds1)[2*i]);
+        pBndsRes->AddPoint((*pBnds1)[2*i + 1]);
+      }
+      pBndsRes->Sort(1);
+    }
+    else
+    {
+      for(int i = 0; i < iInt1; i++)
+      {
+        pBndsRes->AddPoint((*pBnds1)[2*i]);
+        pBndsRes->AddPoint((*pBnds1)[2*i + 1]);
+      }
+      for(int i = 0; i < iInt2; i++)
+      {
+        pBndsRes->AddPoint((*pBnds2)[2*i]);
+        pBndsRes->AddPoint((*pBnds2)[2*i + 1]);
+      }
+      pBndsRes->Sort(0);
+    }
+  }
   return 1;
 }
 

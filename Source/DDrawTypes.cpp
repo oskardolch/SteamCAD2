@@ -721,8 +721,6 @@ int CDObject::GetViewBounds(CDLine cTmpPt, int iMode, PDRect pRect, int iTemp,
     break;
   case dtCircle:
     iRes = GetCircleBounds(&cBndRec, pBounds, pdMovedDist);
-    //iRes = GetCircleBounds(cTmpPt, iMode, pRect, m_pInputPoints, m_pCachePoints, m_cLines,
-    //  &m_cLineStyle, pBounds, pDrawBnds, pdMovedDist);
     break;
   }
   return iRes;
@@ -775,7 +773,6 @@ int CDObject::BuildPrimitives(CDLine cTmpPt, int iMode, PDRect pRect, int iTemp,
   CDPoint cBnds = {0.0, 0.0};
   PDRefList pBounds = new CDRefList();
   int iRes = GetViewBounds(cTmpPt, iMode, pRect, iTemp, pBounds, &cBnds, &m_dMovedDist);
-  //nBnds = MergeViewBounds(nBnds, pBounds, m_cBounds);
 
   int nCrs = m_pCrossPoints->GetCount();
 
@@ -2534,7 +2531,7 @@ bool CDObject::Split(CDPoint cPt, double dDist, PDRect pRect, CDObject** ppNewOb
     {
         SetBound(0, cPtX);
         BuildPrimitives(cLn, 0, pRect, 0, NULL);
-        AddRegions(pRegions, 6);
+        AddRegions(pRegions, -1);
         return true;
     }
 
@@ -4147,64 +4144,64 @@ bool CDObject::GetSnapTo()
 
 void CDObject::SetSnapTo(bool bSnap)
 {
-    m_bSnapTo = bSnap;
+  m_bSnapTo = bSnap;
 }
 
 void CDObject::AddRegions(PDPtrList pRegions, int iPrimType)
 {
-    PDPoint pPts1, pPts2;
-    CDPoint cDim;
-    int i1, i2;
-    CDPrimitive cPrim;
-    PDPolygon pPoly;
-    double dScale = pRegions->GetDblVal();
-    double dLWidth = fabs(m_cLineStyle.dWidth);
-    if(dLWidth < 1.0) dLWidth = 1.0;
+  PDPoint pPts1, pPts2;
+  CDPoint cDim;
+  int i1, i2;
+  CDPrimitive cPrim;
+  PDPolygon pPoly;
+  double dScale = pRegions->GetDblVal();
+  double dLWidth = fabs(m_cLineStyle.dWidth);
+  if(dLWidth < 1.0) dLWidth = 1.0;
 
-    for(int i = 0; i < m_pPrimitive->GetCount(); i++)
+  for(int i = 0; i < m_pPrimitive->GetCount(); i++)
+  {
+    cPrim = m_pPrimitive->GetPrimitive(i);
+    if((iPrimType < 0) || (iPrimType == cPrim.iType))
     {
-        cPrim = m_pPrimitive->GetPrimitive(i);
-        if((iPrimType < 0) || (iPrimType == cPrim.iType))
-        {
-            cDim = GetPrimRegion(cPrim, dLWidth, dScale, NULL, NULL);
-            i1 = cDim.x;
-            i2 = cDim.y;
-            pPts1 = NULL;
-            pPts2 = NULL;
-            if(i1 > 0) pPts1 = (PDPoint)malloc(i1*sizeof(CDPoint));
-            if(i2 > 0) pPts2 = (PDPoint)malloc(i2*sizeof(CDPoint));
+      cDim = GetPrimRegion(cPrim, dLWidth, dScale, NULL, NULL);
+      i1 = cDim.x;
+      i2 = cDim.y;
+      pPts1 = NULL;
+      pPts2 = NULL;
+      if(i1 > 0) pPts1 = (PDPoint)malloc(i1*sizeof(CDPoint));
+      if(i2 > 0) pPts2 = (PDPoint)malloc(i2*sizeof(CDPoint));
 
-            cDim = GetPrimRegion(cPrim, dLWidth, dScale, pPts1, pPts2);
-            i1 = cDim.x;
-            i2 = cDim.y;
-            if(i1 > 0)
-            {
-                pPoly = (PDPolygon)malloc(sizeof(CDPolygon));
-                pPoly->iPoints = i1;
-                pPoly->pPoints = pPts1;
-                pRegions->Add(pPoly);
-            }
-            else if(pPts1) free(pPts1);
-            if(i2 > 0)
-            {
-                pPoly = (PDPolygon)malloc(sizeof(CDPolygon));
-                pPoly->iPoints = i2;
-                pPoly->pPoints = pPts2;
-                pRegions->Add(pPoly);
-            }
-            else if(pPts2) free(pPts2);
-        }
+      cDim = GetPrimRegion(cPrim, dLWidth, dScale, pPts1, pPts2);
+      i1 = cDim.x;
+      i2 = cDim.y;
+      if(i1 > 0)
+      {
+        pPoly = (PDPolygon)malloc(sizeof(CDPolygon));
+        pPoly->iPoints = i1;
+        pPoly->pPoints = pPts1;
+        pRegions->Add(pPoly);
+      }
+      else if(pPts1) free(pPts1);
+      if(i2 > 0)
+      {
+        pPoly = (PDPolygon)malloc(sizeof(CDPolygon));
+        pPoly->iPoints = i2;
+        pPoly->pPoints = pPts2;
+        pRegions->Add(pPoly);
+      }
+      else if(pPts2) free(pPts2);
     }
+  }
 }
 
 void CDObject::SetAuxInt(int iVal)
 {
-    m_iAuxInt = iVal;
+  m_iAuxInt = iVal;
 }
 
 int CDObject::GetAuxInt()
 {
-    return m_iAuxInt;
+  return m_iAuxInt;
 }
 
 int CDObject::GetNumParts()
@@ -5356,6 +5353,8 @@ bool CDataList::SetCrossSelected(CDPoint cPt, double dDist, PDRect pRect, PDPtrL
 {
   bool bRes = false;
   PDObject pObj;
+  CDLine cLn;
+  cLn.bIsSet = false;
   for(int i = 0; i < m_iDataLen; i++)
   {
     pObj = m_ppObjects[i];
@@ -5364,6 +5363,7 @@ bool CDataList::SetCrossSelected(CDPoint cPt, double dDist, PDRect pRect, PDPtrL
       if(pObj->AddCrossPoint(cPt, dDist))
       {
         bRes = true;
+        pObj->BuildPrimitives(cLn, 0, pRect, 0, NULL);
         pObj->AddRegions(pRegions, -1);
       }
     }

@@ -281,7 +281,8 @@ void ClearPolygonList(PDPtrList pPolygons);
 // iBndMode flags: 2 - cBnds1.x is the lower bound, 4 - cBnds1.y is the upper bound,
 // 8 - curve is potentially closed, dLength is valid then
 int IntersectBounds(CDPoint cBnds1, CDPoint cBnds2, int iBndMode, double dLength, PDPoint pRes);
-int UnionBounds(CDPoint cBnds1, CDPoint cBnds2, double dLength, PDPoint pRes);
+//int UnionBoundPts(CDPoint cBnds1, CDPoint cBnds2, double dLength, PDPoint pRes);
+int UnionBounds(PDRefList pBnds1, PDRefList pBnds2, double dLen, PDRefList pBndsRes);
 void MergeCornerRefs(PDRefList pBnds, PDPoint pRefBnds, int iRectFlag, double *pdRefs);
 
 #endif
