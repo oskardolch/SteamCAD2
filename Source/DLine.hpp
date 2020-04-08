@@ -6,10 +6,10 @@
 bool AddLinePoint(double x, double y, char iCtrl, PDPointList pPoints);
 bool BuildLineCache(CDLine cTmpPt, int iMode, PDPointList pPoints, PDPointList pCache,
   double *pdMovedDist);
-int GetLineBounds(PDGetBoundsRec pBndRec, PDRefList pBounds, double *pdMovedDist);
-int BuildLinePrimitives(CDLine cTmpPt, int iMode, PDRect pRect, PDPointList pPoints,
-  PDPointList pCache, PDPrimObject pPrimList, PDRefPoint pBounds, double dOffset,
-  double *pdMovedDist, PDPoint pDrawBnds);
+int AddLineInterLine(CDPoint cPt1, CDPoint cPt2, double dOffset, PDPointList pCache, PDRefList pBounds);
+//int BuildLinePrimitives(CDLine cTmpPt, int iMode, PDRect pRect, PDPointList pPoints,
+//  PDPointList pCache, PDPrimObject pPrimList, PDRefPoint pBounds, double dOffset,
+//  double *pdMovedDist, PDPoint pDrawBnds);
 double GetLineDistFromPt(CDPoint cPt, PDPointList pCache, PDLine pPtX);
 bool HasLineEnoughPoints(PDPointList pPoints);
 bool GetLineRestrictPoint(CDPoint cPt, int iMode, double dRestrictValue, PDPoint pSnapPt,
@@ -19,7 +19,7 @@ bool GetLineAngle(PDPointList pCache, double *pdVal);
 bool GetLinePointRefDist(double dRef, PDPointList pCache, double *pdDist);
 //void AddLineSegment(double d1, double d2, PDPointList pCache, PDPrimObject pPrimList, PDRect pRect);
 void AddLineSegment(double d1, double d2, double dExt, PDPointList pCache, PDPrimObject pPrimList);
-bool GetLineRefPoint(double dRef, PDPointList pCache, PDPoint pPt);
+bool GetLineRefPoint(double dRef, double dOffset, PDPointList pCache, PDPoint pPt);
 bool GetLineRefDir(double dRef, PDPointList pCache, PDPoint pPt);
 bool GetLineReference(double dDist, PDPointList pCache, double *pdRef);
 

@@ -12,6 +12,7 @@
 #include "DEvolv.hpp"
 #include <malloc.h>
 #include <string.h>
+#include <algorithm>
 
 // for debugging purpose only
 /*#include <windows.h>
@@ -308,6 +309,9 @@ void CDObject::AddCurveSegment(CDPrimitive cAddMode, PDPrimObject pPrimitive, in
       case dtCircle:
         AddCircSegment(pBnds[j].x, pBnds[j].y, dExt, m_pCachePoints, pPrimitive);
         break;
+      case dtEllipse:
+        //AddElpsSegment(pBnds[j].x, pBnds[j].y, dExt, m_pCachePoints, pPrimitive);
+        break;
       default:
         break;
       }
@@ -557,7 +561,7 @@ int CDObject::AddDimenPrimitive(int iPos, PDDimension pDim, PDPrimObject pPrimit
   {
     cPrim.cPt1.x = pDim->iArrowType1;
     cPrim.cPt1.y = iPos;
-    if(!GetNativeRefPoint(pDim->dRef1, &cPrim.cPt2)) return 0;
+    if(!GetNativeRefPoint(pDim->dRef1, 0.0, &cPrim.cPt2)) return 0;
     if(!GetNativeRefDir(pDim->dRef1, &cDir)) return 0;
 
     if(pDim->iRefDir < 0) cDir *= -1.0;
@@ -579,7 +583,7 @@ int CDObject::AddDimenPrimitive(int iPos, PDDimension pDim, PDPrimObject pPrimit
   {
     cPrim.cPt1.x = pDim->iArrowType2;
     cPrim.cPt1.y = iPos;
-    if(!GetNativeRefPoint(pDim->dRef2, &cPrim.cPt2)) return 0;
+    if(!GetNativeRefPoint(pDim->dRef2, 0.0, &cPrim.cPt2)) return 0;
     if(!GetNativeRefDir(pDim->dRef2, &cDir)) return 0;
 
     if(pDim->iRefDir > 0) cDir *= -1.0;
@@ -605,7 +609,7 @@ int CDObject::AddDimenPrimitive(int iPos, PDDimension pDim, PDPrimObject pPrimit
   return 0;
 }
 
-int CDObject::BuildPathPrimitives(CDLine cTmpPt, int iMode, PDRect pRect, int iTemp, PDPrimObject plPrimitive,
+/*int CDObject::BuildPathPrimitives(CDLine cTmpPt, int iMode, PDRect pRect, int iTemp, PDPrimObject plPrimitive,
   double dExt, double *pdMovedDist, PDPoint pBnds)
 {
   PDPathSeg pSeg;
@@ -665,11 +669,64 @@ int CDObject::BuildPurePrimitives(CDLine cTmpPt, int iMode, PDRect pRect, int iT
     break;
   }
   return iRes;
+}*/
+
+int CDObject::AddLineIntersects(CDPoint cPt1, CDPoint cPt2, double dOffset, PDRefList pBounds)
+{
+  int iRes = 0;
+  switch(m_iType)
+  {
+  case dtLine:
+    iRes = AddLineInterLine(cPt1, cPt2, dOffset, m_pCachePoints, pBounds);
+    break;
+  case dtCircle:
+    iRes = AddCircleInterLine(cPt1, cPt2, dOffset, m_pCachePoints, pBounds);
+    break;
+  case dtEllipse:
+    iRes = AddEllipseInterLine(cPt1, cPt2, dOffset, m_pCachePoints, pBounds);
+    break;
+  }
+  return iRes;
+}
+
+int CDObject::GetRectangleIntersects(PDRect pRect, double dOffset, PDRefList pBounds)
+{
+  CDPoint cPt1, cPt2;
+  cPt1 = pRect->cPt1;
+  cPt2.x = pRect->cPt2.x;
+  cPt2.y = cPt1.y;
+  int iTot = AddLineIntersects(cPt1, cPt2, dOffset, pBounds);
+  cPt1 = cPt2;
+  cPt2.y = pRect->cPt2.y;
+  iTot += AddLineIntersects(cPt1, cPt2, dOffset, pBounds);
+  cPt1 = cPt2;
+  cPt2.x = pRect->cPt1.x;
+  iTot += AddLineIntersects(cPt1, cPt2, dOffset, pBounds);
+  cPt1 = cPt2;
+  cPt2.y = pRect->cPt1.y;
+  iTot += AddLineIntersects(cPt1, cPt2, dOffset, pBounds);
+
+  if(iTot > 1)
+  {
+    pBounds->Sort(0);
+    double dt = ((*pBounds)[0] + (*pBounds)[1])/2.0;
+    CDPoint cProbe;
+    GetNativeRefPoint(dt, dOffset, &cProbe);
+    if(!DPtInDRect(cProbe, pRect))
+    {
+      pBounds->InsertPoint(0, (*pBounds)[iTot - 1]);
+      pBounds->Truncate(iTot);
+    }
+  }
+
+  return iTot;
 }
 
 int CDObject::GetViewBounds(CDLine cTmpPt, int iMode, PDRect pRect, int iTemp,
   PDRefList pBounds, PDPoint pDrawBnds, double *pdMovedDist)
 {
+  if(iMode > 0) BuildCache(cTmpPt, iMode);
+
   int iRectFlag = 0;
   double dCornerRefs[4] = {0.0, 0.0, 0.0, 0.0};
   CDLine cPtX;
@@ -678,7 +735,8 @@ int CDObject::GetViewBounds(CDLine cTmpPt, int iMode, PDRect pRect, int iTemp,
 
   CDPoint cCorner = pRect->cPt1;
   double d1 = GetDistFromPt(cCorner, cCorner, false, &cPtX, NULL);
-  if(fabs(d1 - dMid) < dExt + g_dPrec)
+  double d2;
+  if(cPtX.bIsSet && fabs(d1 - dMid) < dExt + g_dPrec)
   {
     iRectFlag |= 1;
     dCornerRefs[0] = cPtX.dRef;
@@ -686,7 +744,7 @@ int CDObject::GetViewBounds(CDLine cTmpPt, int iMode, PDRect pRect, int iTemp,
 
   cCorner = pRect->cPt2;
   d1 = GetDistFromPt(cCorner, cCorner, false, &cPtX, NULL);
-  if(fabs(d1 - dMid) < dExt + g_dPrec)
+  if(cPtX.bIsSet && fabs(d1 - dMid) < dExt + g_dPrec)
   {
     iRectFlag |= 2;
     dCornerRefs[1] = cPtX.dRef;
@@ -695,7 +753,7 @@ int CDObject::GetViewBounds(CDLine cTmpPt, int iMode, PDRect pRect, int iTemp,
   cCorner.x = pRect->cPt1.x;
   cCorner.y = pRect->cPt2.y;
   d1 = GetDistFromPt(cCorner, cCorner, false, &cPtX, NULL);
-  if(fabs(d1 - dMid) < dExt + g_dPrec)
+  if(cPtX.bIsSet && fabs(d1 - dMid) < dExt + g_dPrec)
   {
     iRectFlag |= 4;
     dCornerRefs[2] = cPtX.dRef;
@@ -704,26 +762,190 @@ int CDObject::GetViewBounds(CDLine cTmpPt, int iMode, PDRect pRect, int iTemp,
   cCorner.x = pRect->cPt2.x;
   cCorner.y = pRect->cPt1.y;
   d1 = GetDistFromPt(cCorner, cCorner, false, &cPtX, NULL);
-  if(fabs(d1 - dMid) < dExt + g_dPrec)
+  if(cPtX.bIsSet && fabs(d1 - dMid) < dExt + g_dPrec)
   {
     iRectFlag |= 8;
     dCornerRefs[3] = cPtX.dRef;
   }
 
-  CDGetBoundsRec cBndRec = {cTmpPt, iMode, pRect, m_pInputPoints, m_pCachePoints,
-    m_cLines, dMid, dExt, iRectFlag, dCornerRefs, pDrawBnds};
+  CDPoint cLocBnds = {0.0, 0.0};
+  pDrawBnds->x = 0.0;
+  pDrawBnds->y = 0.0;
+  if(IsClosedShape())
+  {
+    GetRefBounds(&cLocBnds);
+    GetPointRefDist(cLocBnds.x, &pDrawBnds->x);
+    GetPointRefDist(cLocBnds.y, &pDrawBnds->y);
+  }
 
-  int iRes = 0;
+  if(iRectFlag == 15)
+  {
+    std::sort(dCornerRefs, &dCornerRefs[4]);
+    GetPointRefDist(dCornerRefs[0], &d1);
+    GetPointRefDist(dCornerRefs[3], &d2);
+    if(IsClosedShape())
+    {
+      double dSpan = (cLocBnds.y - cLocBnds.x)/2.0;
+      if(dCornerRefs[3] - dCornerRefs[0] > dSpan)
+      {
+        if(dCornerRefs[2] - dCornerRefs[0] > dSpan)
+        {
+          if(dCornerRefs[1] - dCornerRefs[0] > dSpan)
+          {
+            GetPointRefDist(dCornerRefs[1], &d1);
+            GetPointRefDist(dCornerRefs[0], &d2);
+          }
+          else
+          {
+            GetPointRefDist(dCornerRefs[2], &d1);
+            GetPointRefDist(dCornerRefs[1], &d2);
+          }
+        }
+        else
+        {
+          GetPointRefDist(dCornerRefs[3], &d1);
+          GetPointRefDist(dCornerRefs[2], &d2);
+        }
+      }
+    }
+    pBounds->AddPoint(d1);
+    pBounds->AddPoint(d2);
+    return 1;
+  }
+
+  CDPoint cProbe;
+  PDRefList pInt1 = new CDRefList();
+  PDRefList pInt2 = new CDRefList();
+  int iCnt1 = GetRectangleIntersects(pRect, dMid - dExt, pInt1);
+  int iCnt2 = GetRectangleIntersects(pRect, dMid + dExt, pInt2);
+
+  if((iCnt1 < 1) || (iCnt2 < 0))
+  {
+    if(IsClosedShape())
+    {
+      if(iCnt1 < 0) GetNativeRefPoint(0.0, dMid - dExt, &cProbe);
+      else GetNativeRefPoint(0.0, dMid + dExt, &cProbe);
+      if(DPtInDRect(cProbe, pRect))
+      {
+        delete pInt2;
+        delete pInt1;
+        pBounds->AddPoint(pDrawBnds->x);
+        pBounds->AddPoint(pDrawBnds->y);
+        return 2;
+      }
+    }
+  }
+
+  if((iCnt1 < 1) && (iCnt2 < 1))
+  {
+    delete pInt2;
+    delete pInt1;
+    return 0;
+  }
+
+  PDRefList pTmpBnds = new CDRefList();
+  int iRes = UnionBounds(pInt1, pInt2, cLocBnds.y - cLocBnds.x, pTmpBnds);
+  delete pInt2;
+  delete pInt1;
+
+  if(IsClosedShape())
+  {
+    int n = pTmpBnds->GetCount();
+    double t1, t2, t3, dTestRef;
+    if((*pTmpBnds)[0] < (*pTmpBnds)[1])
+    {
+      t1 = cLocBnds.y - (*pTmpBnds)[n - 1];
+      t2 = (*pTmpBnds)[0] - cLocBnds.x;
+      t3 = (t1 + t2)/2.0;
+      if(t1 > t2) dTestRef = (*pTmpBnds)[n - 1] + t3;
+      else dTestRef = (*pTmpBnds)[0] - t3;
+      GetNativeRefPoint(dTestRef, dMid, &cProbe);
+      if(DPtInDRect(cProbe, pRect))
+      {
+        if(n < 3)
+        {
+          pBounds->AddPoint(pDrawBnds->x);
+          pBounds->AddPoint(pDrawBnds->y);
+          delete pTmpBnds;
+          return 2;
+        }
+        pTmpBnds->SetPoint(0, (*pTmpBnds)[n - 1]);
+        n -= 2;
+        pTmpBnds->Truncate(n);
+      }
+    }
+    bool bFound = false;
+    while(!bFound && ((*pTmpBnds)[0] > (*pTmpBnds)[1]) && (n > 1))
+    {
+      dTestRef = ((*pTmpBnds)[0] + (*pTmpBnds)[n - 1])/2.0;
+      GetNativeRefPoint(dTestRef, dMid, &cProbe);
+      if(DPtInDRect(cProbe, pRect))
+      {
+        if(n < 3)
+        {
+          pBounds->AddPoint(pDrawBnds->x);
+          pBounds->AddPoint(pDrawBnds->y);
+          delete pTmpBnds;
+          return 2;
+        }
+        pTmpBnds->SetPoint(0, (*pTmpBnds)[n - 2]);
+        n -= 2;
+        pTmpBnds->Truncate(n);
+      }
+      else bFound = true;
+    }
+
+    if(n > 2)
+    {
+      for(int i = n/2 - 1; i >= 1; i--)
+      {
+        dTestRef = ((*pTmpBnds)[2*i] + (*pTmpBnds)[2*i - 1])/2.0;
+        GetNativeRefPoint(dTestRef, dMid, &cProbe);
+        if(DPtInDRect(cProbe, pRect))
+        {
+          if(n < 3)
+          {
+            pBounds->AddPoint(pDrawBnds->x);
+            pBounds->AddPoint(pDrawBnds->y);
+            delete pTmpBnds;
+            return 2;
+          }
+          pTmpBnds->SetPoint(2*i - 1, (*pTmpBnds)[2*i + 1]);
+          pTmpBnds->Remove(2*i + 1);
+          pTmpBnds->Remove(2*i);
+        }
+      }
+    }
+  }
+
+  if(IsClosedShape())
+    MergeCornerRefs(pTmpBnds, &cLocBnds, iRectFlag, dCornerRefs);
+  else
+    MergeCornerRefs(pTmpBnds, NULL, iRectFlag, dCornerRefs);
+
+  for(int i = 0; i < pTmpBnds->GetCount(); i++)
+  {
+    GetPointRefDist((*pTmpBnds)[i], &d1);
+    pBounds->AddPoint(d1);
+  }
+  delete pTmpBnds;
+
+  return iRes;
+}
+
+void CDObject::AddExtraPrimitives(PDRect pRect, PDPrimObject pPrimList)
+{
   switch(m_iType)
   {
   case dtLine:
-    iRes = GetLineBounds(&cBndRec, pBounds, pdMovedDist);
     break;
   case dtCircle:
-    iRes = GetCircleBounds(&cBndRec, pBounds, pdMovedDist);
+    AddCircleExtPrim(pRect, m_pCachePoints, pPrimList);
+    break;
+  case dtEllipse:
+    AddElpsExtPrim(pRect, m_pCachePoints, pPrimList);
     break;
   }
-  return iRes;
 }
 
 double NormalizeAngle(PDPoint pNorm)
@@ -993,6 +1215,8 @@ int CDObject::BuildPrimitives(CDLine cTmpPt, int iMode, PDRect pRect, int iTemp,
     AddCurveSegment(cAdd, plPrimitive, iRes, pBounds);
   }
 
+  AddExtraPrimitives(pRect, plPrimitive);
+
   CDPrimitive cPrim;
 
   if((iTemp < 1) && (iRes > 0))
@@ -1001,11 +1225,11 @@ int CDObject::BuildPrimitives(CDLine cTmpPt, int iMode, PDRect pRect, int iTemp,
     cPrim.cPt1 = 0;
     if(m_cBounds[0].bIsSet)
     {
-      if(GetNativeRefPoint(m_cBounds[0].dRef, &cPrim.cPt2)) cPrim.cPt1.x = 1.0;
+      if(GetNativeRefPoint(m_cBounds[0].dRef, 0.0, &cPrim.cPt2)) cPrim.cPt1.x = 1.0;
     }
     if(m_cBounds[1].bIsSet)
     {
-      if(GetNativeRefPoint(m_cBounds[1].dRef, &cPrim.cPt3)) cPrim.cPt1.y = 1.0;
+      if(GetNativeRefPoint(m_cBounds[1].dRef, 0.0, &cPrim.cPt3)) cPrim.cPt1.y = 1.0;
     }
     CropPrimitive(cPrim, pRect, plPrimitive);
   }
@@ -1015,7 +1239,7 @@ int CDObject::BuildPrimitives(CDLine cTmpPt, int iMode, PDRect pRect, int iTemp,
     cPrim.iType = 8;
     for(int i = 0; i < nCrs; i++)
     {
-      if(GetNativeRefPoint(m_pCrossPoints->GetPoint(i), &cPrim.cPt1))
+      if(GetNativeRefPoint(m_pCrossPoints->GetPoint(i), 0.0, &cPrim.cPt1))
         plPrimitive->AddPrimitive(cPrim);
     }
   }
@@ -1047,7 +1271,7 @@ int CDObject::BuildPrimitives(CDLine cTmpPt, int iMode, PDRect pRect, int iTemp,
       m_cTmpDim.bSelected = false;
 
       CDPoint cFirstPt;
-      GetNativeRefPoint(m_dFirstDimen, &cFirstPt);
+      GetNativeRefPoint(m_dFirstDimen, 0.0, &cFirstPt);
       double dDimPixelLen = GetDist(cFirstPt, cPtX.cOrigin)*pAttrs->dScaleDenom;
       if(dDimPixelLen < 3.0) m_iDimenDir = 0;
       else if(m_iDimenDir == 0) m_iDimenDir = GetDimenDir(m_dFirstDimen, cPtX.dRef);
@@ -1058,7 +1282,7 @@ int CDObject::BuildPrimitives(CDLine cTmpPt, int iMode, PDRect pRect, int iTemp,
         double dRef3 = GetDimenMidPointRef(m_cTmpDim.dRef1, m_cTmpDim.dRef2, m_iDimenDir);
 
         CDPoint cPt1, cDir, cNorm;
-        GetNativeRefPoint(dRef3, &cPt1);
+        GetNativeRefPoint(dRef3, 0.0, &cPt1);
         GetNativeRefDir(dRef3, &cDir);
         cNorm = GetNormal(cDir);
         if(m_iDimenDir < 0) cNorm *= -1.0;
@@ -1845,23 +2069,23 @@ PDPathSeg CDObject::GetPathRefSegment(double dRef, double *pdSegRef)
     return NULL;
 }
 
-bool CDObject::GetPathRefPoint(double dRef, PDPoint pPt)
+bool CDObject::GetPathRefPoint(double dRef, double dOffset, PDPoint pPt)
 {
     double d1;
     PDPathSeg pSeg = GetPathRefSegment(dRef, &d1);
     if(!pSeg) return false;
 
-    return pSeg->pSegment->GetNativeRefPoint(d1, pPt);
+    return pSeg->pSegment->GetNativeRefPoint(d1, dOffset, pPt);
 }
 
-bool CDObject::GetNativeRefPoint(double dRef, PDPoint pPt)
+bool CDObject::GetNativeRefPoint(double dRef, double dOffset, PDPoint pPt)
 {
     switch(m_iType)
     {
     case dtLine:
-        return GetLineRefPoint(dRef, m_pCachePoints, pPt);
+        return GetLineRefPoint(dRef, dOffset, m_pCachePoints, pPt);
     case dtCircle:
-        return GetCircRefPoint(dRef, m_pCachePoints, pPt);
+        return GetCircRefPoint(dRef, dOffset, m_pCachePoints, pPt);
     case dtEllipse:
         return GetElpsRefPoint(dRef, m_pCachePoints, pPt);
     case dtArcEllipse:
@@ -1875,7 +2099,7 @@ bool CDObject::GetNativeRefPoint(double dRef, PDPoint pPt)
     case dtEvolvent:
         return GetEvolvRefPoint(dRef, m_pCachePoints, pPt);
     case dtPath:
-        return GetPathRefPoint(dRef, pPt);
+        return GetPathRefPoint(dRef, dOffset, pPt);
     default:
         return false;
     }
@@ -2103,11 +2327,11 @@ bool CDObject::BoundPoint(CDPoint cRefPt, PDLine pPtX, double *pdDist)
         {
             pPtX->cDirection = 0;
             pPtX->dRef = m_cBounds[0].dRef;
-            GetNativeRefPoint(m_cBounds[0].dRef, &pPtX->cOrigin);
+            GetNativeRefPoint(m_cBounds[0].dRef, 0.0, &pPtX->cOrigin);
             *pdDist = GetDist(cRefPt, pPtX->cOrigin);
 
             CDPoint cPt2;
-            GetNativeRefPoint(m_cBounds[1].dRef, &cPt2);
+            GetNativeRefPoint(m_cBounds[1].dRef, 0.0, &cPt2);
             double d1 = GetDist(cRefPt, cPt2);
             if(d1 < *pdDist)
             {
@@ -2126,7 +2350,7 @@ bool CDObject::BoundPoint(CDPoint cRefPt, PDLine pPtX, double *pdDist)
         {
             pPtX->cDirection = 0;
             pPtX->dRef = m_cBounds[0].dRef;
-            GetNativeRefPoint(m_cBounds[0].dRef, &pPtX->cOrigin);
+            GetNativeRefPoint(m_cBounds[0].dRef, 0.0, &pPtX->cOrigin);
             *pdDist = GetDist(cRefPt, pPtX->cOrigin);
             return true;
         }
@@ -2137,7 +2361,7 @@ bool CDObject::BoundPoint(CDPoint cRefPt, PDLine pPtX, double *pdDist)
         {
             pPtX->cDirection = 0;
             pPtX->dRef = m_cBounds[1].dRef;
-            GetNativeRefPoint(m_cBounds[1].dRef, &pPtX->cOrigin);
+            GetNativeRefPoint(m_cBounds[1].dRef, 0.0, &pPtX->cOrigin);
             *pdDist = GetDist(cRefPt, pPtX->cOrigin);
             return true;
         }
@@ -2250,7 +2474,7 @@ double CDObject::GetDistFromPt(CDPoint cPt, CDPoint cRefPt, bool bSnapCenters, P
         for(int i = 0; i < m_pDimens->GetCount(); i++)
         {
             pDim = (PDDimension)m_pDimens->GetItem(i);
-            GetNativeRefPoint(pDim->dRef1, &cPt1);
+            GetNativeRefPoint(pDim->dRef1, 0.0, &cPt1);
             dDist1 = GetDist(cPt, cPt1);
             if(dDist1 < fabs(dRes))
             {
@@ -2261,7 +2485,7 @@ double CDObject::GetDistFromPt(CDPoint cPt, CDPoint cRefPt, bool bSnapCenters, P
                 cPtX.dRef = pDim->dRef1;
                 cPtX.cDirection = 0;
             }
-            GetNativeRefPoint(pDim->dRef2, &cPt1);
+            GetNativeRefPoint(pDim->dRef2, 0.0, &cPt1);
             dDist1 = GetDist(cPt, cPt1);
             if(dDist1 < fabs(dRes))
             {
@@ -2648,7 +2872,7 @@ bool CDObject::Extend(CDPoint cPt, double dDist, PDRect pRect, PDPtrList pRegion
     CDPoint cPt1;
     if(m_cBounds[0].bIsSet)
     {
-        GetNativeRefPoint(m_cBounds[0].dRef, &cPt1);
+        GetNativeRefPoint(m_cBounds[0].dRef, 0.0, &cPt1);
         d1 = GetDist(cPt1, cPt);
         if(d1 < dDist)
         {
@@ -2658,7 +2882,7 @@ bool CDObject::Extend(CDPoint cPt, double dDist, PDRect pRect, PDPtrList pRegion
     }
     if(m_cBounds[1].bIsSet)
     {
-        GetNativeRefPoint(m_cBounds[1].dRef, &cPt1);
+        GetNativeRefPoint(m_cBounds[1].dRef, 0.0, &cPt1);
         d1 = GetDist(cPt1, cPt);
         if(d1 < dDist)
         {
@@ -3348,8 +3572,8 @@ bool CDObject::RotatePoints(CDPoint cOrig, double dRot, int iDimFlag)
     m_cBounds[0].bIsSet = false;
     m_cBounds[1].bIsSet = false;
 
-    if(b1) GetNativeRefPoint(m_cBounds[0].dRef, &bPt1);
-    if(b2) GetNativeRefPoint(m_cBounds[1].dRef, &bPt2);
+    if(b1) GetNativeRefPoint(m_cBounds[0].dRef, 0.0, &bPt1);
+    if(b2) GetNativeRefPoint(m_cBounds[1].dRef, 0.0, &bPt2);
 
     iCnt = m_pInputPoints->GetCount(-1);
     CDPoint cDir, cPt1, cPt2;
@@ -3487,8 +3711,8 @@ void CDObject::MirrorPoints(CDLine cLine)
     m_cBounds[0].bIsSet = false;
     m_cBounds[1].bIsSet = false;
 
-    if(b1) GetNativeRefPoint(m_cBounds[0].dRef, &bPt1);
-    if(b2) GetNativeRefPoint(m_cBounds[1].dRef, &bPt2);
+    if(b1) GetNativeRefPoint(m_cBounds[0].dRef, 0.0, &bPt1);
+    if(b2) GetNativeRefPoint(m_cBounds[1].dRef, 0.0, &bPt2);
 
     int iCnt = m_pInputPoints->GetCount(-1);
     CDInputPoint cInPt;
@@ -3594,13 +3818,13 @@ double CDObject::GetNearestCrossPoint(CDPoint cPt, PDPoint pPt)
   if(iCnt < 1) return -1.0;
 
   CDPoint cPt1;
-  GetNativeRefPoint(m_pCrossPoints->GetPoint(0), &cPt1);
+  GetNativeRefPoint(m_pCrossPoints->GetPoint(0), 0.0, &cPt1);
   d1 = GetDist(cPt1, cPt);
   *pPt = cPt1;
 
   for(int i = 1; i < iCnt; i++)
   {
-    GetNativeRefPoint(m_pCrossPoints->GetPoint(i), &cPt1);
+    GetNativeRefPoint(m_pCrossPoints->GetPoint(i), 0.0, &cPt1);
     d2 = GetDist(cPt1, cPt);
     if(d2 < d1)
     {
@@ -3617,14 +3841,14 @@ double CDObject::GetNearestBoundPoint(CDPoint cPt, PDPoint pPt)
   double dRes = -1.0;
   if(m_cBounds[0].bIsSet)
   {
-    GetNativeRefPoint(m_cBounds[0].dRef, &cPt1);
+    GetNativeRefPoint(m_cBounds[0].dRef, 0.0, &cPt1);
     *pPt = cPt1;
     dRes = GetDist(cPt, cPt1);
   }
 
   if(m_cBounds[1].bIsSet)
   {
-    GetNativeRefPoint(m_cBounds[1].dRef, &cPt1);
+    GetNativeRefPoint(m_cBounds[1].dRef, 0.0, &cPt1);
     double d1 = GetDist(cPt, cPt1);
     if((dRes > -0.5) && (d1 < dRes))
     {
@@ -3670,7 +3894,7 @@ bool CDObject::AddDimen(CDPoint cPt, double dDist, PDRect pRect, PDFileAttrs pAt
   double dRef3 = GetDimenMidPointRef(m_cTmpDim.dRef1, m_cTmpDim.dRef2, m_iDimenDir);
 
   CDPoint cPt1, cDir, cNorm;
-  GetNativeRefPoint(dRef3, &cPt1);
+  GetNativeRefPoint(dRef3, 0.0, &cPt1);
   GetNativeRefDir(dRef3, &cDir);
   cNorm = GetNormal(cDir);
   if(m_iDimenDir < 0) cNorm *= -1.0;
@@ -3872,8 +4096,8 @@ void CDObject::Rescale(double dRatio, bool bWidths, bool bPatterns, bool bArrows
     bBnds[1] = m_cBounds[1].bIsSet;
 
     CDPoint cBnds[2];
-    if(bBnds[0]) GetNativeRefPoint(m_cBounds[0].dRef, &cBnds[0]);
-    if(bBnds[1]) GetNativeRefPoint(m_cBounds[1].dRef, &cBnds[1]);
+    if(bBnds[0]) GetNativeRefPoint(m_cBounds[0].dRef, 0.0, &cBnds[0]);
+    if(bBnds[1]) GetNativeRefPoint(m_cBounds[1].dRef, 0.0, &cBnds[1]);
     m_cBounds[0].bIsSet = false;
     m_cBounds[1].bIsSet = false;
 
@@ -3881,7 +4105,7 @@ void CDObject::Rescale(double dRatio, bool bWidths, bool bPatterns, bool bArrows
     PDPointList pCrossPoints = new CDPointList();
     for(int i = 0; i < m_pCrossPoints->GetCount(); i++)
     {
-        GetNativeRefPoint(m_pCrossPoints->GetPoint(i), &cPt);
+        GetNativeRefPoint(m_pCrossPoints->GetPoint(i), 0.0, &cPt);
         pCrossPoints->AddPoint(cPt.x, cPt.y, 0);
     }
 
@@ -3890,9 +4114,9 @@ void CDObject::Rescale(double dRatio, bool bWidths, bool bPatterns, bool bArrows
     for(int i = 0; i < m_pDimens->GetCount(); i++)
     {
         pDim = (PDDimension)m_pDimens->GetItem(i);
-        GetNativeRefPoint(pDim->dRef1, &cPt);
+        GetNativeRefPoint(pDim->dRef1, 0.0, &cPt);
         pDimens->AddPoint(cPt.x, cPt.y, 0);
-        GetNativeRefPoint(pDim->dRef2, &cPt);
+        GetNativeRefPoint(pDim->dRef2, 0.0, &cPt);
         pDimens->AddPoint(cPt.x, cPt.y, 0);
     }
 
@@ -4311,7 +4535,7 @@ bool CDObject::GetStartPoint(PDPoint pPt)
         return pSeg->pSegment->GetStartPoint(pPt);
     }
     if(!m_cBounds[0].bIsSet) return false;
-    return GetNativeRefPoint(m_cBounds[0].dRef, pPt);
+    return GetNativeRefPoint(m_cBounds[0].dRef, 0.0, pPt);
 }
 
 bool CDObject::GetEndPoint(PDPoint pPt)
@@ -4326,7 +4550,7 @@ bool CDObject::GetEndPoint(PDPoint pPt)
         return pSeg->pSegment->GetEndPoint(pPt);
     }
     if(!m_cBounds[1].bIsSet) return false;
-    return GetNativeRefPoint(m_cBounds[1].dRef, pPt);
+    return GetNativeRefPoint(m_cBounds[1].dRef, 0.0, pPt);
 }
 
 void CDObject::BuildPath(CDObject **ppObjects, PDIntList pPath)

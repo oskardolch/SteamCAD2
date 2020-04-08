@@ -184,7 +184,49 @@ bool BuildCircCache(CDLine cTmpPt, int iMode, PDPointList pPoints, PDPointList p
   return true;
 }
 
-int GetCircleRectInterBnds(CDPoint cOrig, double dRad, PDRect pRect, PDPoint pRes)
+int AddCircleInterLine(CDPoint cPt1, CDPoint cPt2, double dOffset, PDPointList pCache, PDRefList pBounds)
+{
+  int iCnt = pCache->GetCount(0);
+  if(iCnt < 2) return 0;
+
+  CDPoint cOrig = pCache->GetPoint(0, 0).cPoint;
+  CDPoint cRad = pCache->GetPoint(1, 0).cPoint;
+
+  int nOffs = pCache->GetCount(2);
+  if(nOffs > 0) cRad.x += pCache->GetPoint(0, 2).cPoint.x;
+
+  double dr = fabs(cRad.x) + dOffset;
+  double dLen = GetDist(cPt1, cPt2);
+  CDPoint cNorm = (cPt2 - cPt1)/dLen;
+  double dAlpha = atan2(cNorm.y, cNorm.x) - M_PI/2.0;
+  CDPoint cOrigRot = Rotate(cOrig - cPt1, cNorm, false);
+  if(fabs(cOrigRot.y) > dr - g_dPrec) return 0;
+
+  int iRes = 0;
+  double ds, dt = acos(cOrigRot.y/dr);
+  double dsi = dr*sin(dt);
+  double dx = cOrigRot.x - dsi;
+  if((dx > g_dPrec) && (dx < dLen - g_dPrec))
+  {
+    iRes++;
+    ds = dAlpha - dt;
+    if(ds < -M_PI) ds += 2*M_PI;
+    if(ds > M_PI) ds -= 2*M_PI;
+    pBounds->AddPoint(ds);
+  }
+  dx = cOrigRot.x + dsi;
+  if((dx > g_dPrec) && (dx < dLen - g_dPrec))
+  {
+    iRes++;
+    ds = dAlpha + dt;
+    if(ds < -M_PI) ds += 2*M_PI;
+    if(ds > M_PI) ds -= 2*M_PI;
+    pBounds->AddPoint(ds);
+  }
+  return iRes;
+}
+
+/*int GetCircleRectInterBnds(CDPoint cOrig, double dRad, PDRect pRect, PDPoint pRes)
 {
   if(dRad < g_dPrec) return 0;
 
@@ -461,8 +503,8 @@ int BuildCircPrimitives(CDLine cTmpPt, int iMode, PDRect pRect, PDPointList pPoi
       cPrim.cPt1 = cOrig;
       cPrim.cPt2.x = cOrig.x + dr;
       cPrim.cPt2.y = cOrig.y + dr;
-      GetCircRefPoint(pBounds[1].dRef, pCache, &cPrim.cPt3);
-      GetCircRefPoint(pBounds[0].dRef, pCache, &cPrim.cPt4);
+      GetCircRefPoint(pBounds[1].dRef, 0.0, pCache, &cPrim.cPt3);
+      GetCircRefPoint(pBounds[0].dRef, 0.0, pCache, &cPrim.cPt4);
       return CropPrimitive(cPrim, pRect, pPrimList);
     }
   }
@@ -475,7 +517,7 @@ int BuildCircPrimitives(CDLine cTmpPt, int iMode, PDRect pRect, PDPointList pPoi
   cPrim.cPt4 = 0;
 
   return CropPrimitive(cPrim, pRect, pPrimList);
-}
+}*/
 
 void AddCircSegment(double d1, double d2, double dExt, PDPointList pCache, PDPrimObject pPrimList) //, PDRect pRect)
 {
@@ -517,6 +559,25 @@ void AddCircSegment(double d1, double d2, double dExt, PDPointList pCache, PDPri
   }
   pPrimList->AddPrimitive(cPrim);
   //CropPrimitive(cPrim, pRect, pPrimList);
+}
+
+void AddCircleExtPrim(PDRect pRect, PDPointList pCache, PDPrimObject pPrimList)
+{
+  int iCnt = pCache->GetCount(0);
+
+  if(iCnt < 2) return;
+
+  CDPoint cOrig = pCache->GetPoint(0, 0).cPoint;
+  //CDPoint cRad = pCache->GetPoint(1, 0).cPoint;
+  CDPrimitive cPrimPt;
+
+  cPrimPt.iType = 7;
+  cPrimPt.cPt1.x = 1;
+  cPrimPt.cPt1.y = 0;
+  cPrimPt.cPt2 = cOrig;
+  cPrimPt.cPt3 = 0;
+  cPrimPt.cPt4 = 0;
+  CropPrimitive(cPrimPt, pRect, pPrimList);
 }
 
 double GetCircDistFromPt(CDPoint cPt, CDPoint cRefPt, bool bSnapCenters, PDPointList pCache, PDLine pPtX)
@@ -767,7 +828,7 @@ bool GetCircPointAtDist(double dDist, PDPointList pCache, PDPoint pPt)
   return true;
 }
 
-bool GetCircRefPoint(double dRef, PDPointList pCache, PDPoint pPt)
+bool GetCircRefPoint(double dRef, double dOffset, PDPointList pCache, PDPoint pPt)
 {
   int iCnt = pCache->GetCount(0);
   if(iCnt < 2) return false;
@@ -777,6 +838,7 @@ bool GetCircRefPoint(double dRef, PDPointList pCache, PDPoint pPt)
 
   int nOffs = pCache->GetCount(2);
   if(nOffs > 0) cRad.x += pCache->GetPoint(0, 2).cPoint.x;
+  cRad.x += dOffset;
   pPt->x = cOrig.x + cRad.x*cos(dRef);
   pPt->y = cOrig.y + cRad.x*sin(dRef);
   return true;

@@ -14,358 +14,363 @@ extern HWND g_hStatus;*/
 
 bool AddEllipsePoint(double x, double y, char iCtrl, PDPointList pPoints, int iInputLines)
 {
-    if((iCtrl == 2) || (iCtrl == 3))
-    {
-        int nOffs2 = pPoints->GetCount(2);
-        int nOffs3 = pPoints->GetCount(3);
-        if(nOffs2 > 0) pPoints->SetPoint(0, 2, x, y, iCtrl);
-        else if(nOffs3 > 0) pPoints->SetPoint(0, 3, x, y, iCtrl);
-        else pPoints->AddPoint(x, y, iCtrl);
-        return true;
-    }
+  if((iCtrl == 2) || (iCtrl == 3))
+  {
+    int nOffs2 = pPoints->GetCount(2);
+    int nOffs3 = pPoints->GetCount(3);
+    if(nOffs2 > 0) pPoints->SetPoint(0, 2, x, y, iCtrl);
+    else if(nOffs3 > 0) pPoints->SetPoint(0, 3, x, y, iCtrl);
+    else pPoints->AddPoint(x, y, iCtrl);
+    return true;
+  }
 
-    bool bRes = false;
-    int nNorm = pPoints->GetCount(0);
-    int nCtrl = pPoints->GetCount(1);
+  bool bRes = false;
+  int nNorm = pPoints->GetCount(0);
+  int nCtrl = pPoints->GetCount(1);
 
-    if(iInputLines == 2)
+  if(iInputLines == 2)
+  {
+    if(iCtrl < 1)
     {
-        if(iCtrl < 1)
-        {
-            if(nNorm < 2)
-            {
-                pPoints->AddPoint(x, y, iCtrl);
-                nNorm++;
-            }
-        }
-        bRes = (nNorm > 1);
+      if(nNorm < 2)
+      {
+        pPoints->AddPoint(x, y, iCtrl);
+        nNorm++;
+      }
     }
-    else
+    bRes = (nNorm > 1);
+  }
+  else
+  {
+    if(iCtrl == 1)
     {
-        if(iCtrl == 1)
-        {
-            if(nCtrl < 2)
-            {
-                pPoints->AddPoint(x, y, iCtrl);
-                nCtrl++;
-            }
-        }
-        else if(nCtrl > 1)
-        {
-            if(nNorm < 2)
-            {
-                pPoints->AddPoint(x, y, iCtrl);
-                nNorm++;
-            }
-        }
-        bRes = (nCtrl > 1) && (nNorm > 0);
+      if(nCtrl < 2)
+      {
+        pPoints->AddPoint(x, y, iCtrl);
+        nCtrl++;
+      }
     }
-    return bRes;
+    else if(nCtrl > 1)
+    {
+      if(nNorm < 2)
+      {
+        pPoints->AddPoint(x, y, iCtrl);
+        nNorm++;
+      }
+    }
+    bRes = (nCtrl > 1) && (nNorm > 0);
+  }
+  return bRes;
 }
 
 double GetElspBreakAngle(double dr, double da, double db, double dr1, double dr2)
 {
-    double dRes = -1.0;
-    if((dr > dr1 - g_dPrec) && (dr < dr2 + g_dPrec))
+  double dRes = -1.0;
+  if((dr > dr1 - g_dPrec) && (dr < dr2 + g_dPrec))
+  {
+    if(dr < dr1 + g_dPrec) dRes = 0.0;
+    else if(dr > dr2 - g_dPrec) dRes = M_PI/2.0;
+    else
     {
-        if(dr < dr1 + g_dPrec) dRes = 0.0;
-        else if(dr > dr2 - g_dPrec) dRes = M_PI/2.0;
-        else
-        {
-            double da2 = Power2(da);
-            double db2 = Power2(db);
-            double d1 = cbrt(Power2(da*db*dr));
-            double d2 = da2 - db2;
-            double dsi = sqrt((d1 - db2)/d2);
-            double dco = sqrt((da2 - d1)/d2);
-            dRes = atan2(dsi, dco);
-        }
+      double da2 = Power2(da);
+      double db2 = Power2(db);
+      double d1 = cbrt(Power2(da*db*dr));
+      double d2 = da2 - db2;
+      double dsi = sqrt((d1 - db2)/d2);
+      double dco = sqrt((da2 - d1)/d2);
+      dRes = atan2(dsi, dco);
     }
-    return dRes;
+  }
+  return dRes;
 }
 
 double GetElpsFullLengthHalf(double da, double db, double dOffset, double dBreak)
 {
-    CDPrimitive cPrim;
-    CDPoint cDir1, cDir2;
+  CDPrimitive cPrim;
+  CDPoint cDir1, cDir2;
 
-    double dLength = 0.0;
-    double dco, dsi, dt;
+  double dLength = 0.0;
+  double dco, dsi, dt;
 
-    cPrim.cPt3.x = da + dOffset;
-    cPrim.cPt3.y = 0.0;
-    cDir2.x = 0.0;
-    cDir2.y = 1.0;
+  cPrim.cPt3.x = da + dOffset;
+  cPrim.cPt3.y = 0.0;
+  cDir2.x = 0.0;
+  cDir2.y = 1.0;
 
-    int i1 = 0;
-    int i2 = 8;
-    double dAng1 = 0.0;
-    double dAng2 = M_PI/2.0;
+  int i1 = 0;
+  int i2 = 8;
+  double dAng1 = 0.0;
+  double dAng2 = M_PI/2.0;
 
-    if((dBreak > g_dPrec) && (dBreak < dAng2 - g_dPrec))
+  if((dBreak > g_dPrec) && (dBreak < dAng2 - g_dPrec))
+  {
+    dAng1 = dBreak;
+    i1 = Round(8.0*dAng1/dAng2);
+    if(i1 < 1) i1 = 1;
+    i2 = 8 - i1;
+    dAng2 -= dAng1;
+
+    for(int i = 0; i < i1; i++)
     {
-        dAng1 = dBreak;
-        i1 = Round(8.0*dAng1/dAng2);
-        if(i1 < 1) i1 = 1;
-        i2 = 8 - i1;
-        dAng2 -= dAng1;
-
-        for(int i = 0; i < i1; i++)
-        {
-            cPrim.cPt1 = cPrim.cPt3;
-            cDir1 = cDir2;
-            dt = (double)dAng1*(i + 1)/i1;
-            dco = cos(dt);
-            dsi = sin(dt);
-            cDir2.x = -da*dsi;
-            cDir2.y = db*dco;
-            dt = GetNorm(cDir2);
-            cPrim.cPt3.x = da*dco + dOffset*cDir2.y/dt;
-            cPrim.cPt3.y = db*dsi - dOffset*cDir2.x/dt;
-            LineXLine(cPrim.cPt1, cDir1, cPrim.cPt3, cDir2, &cPrim.cPt2);
-            dLength += GetQuadLength(&cPrim, 0.0, 1.0);
-        }
+      cPrim.cPt1 = cPrim.cPt3;
+      cDir1 = cDir2;
+      dt = (double)dAng1*(i + 1)/i1;
+      dco = cos(dt);
+      dsi = sin(dt);
+      cDir2.x = -da*dsi;
+      cDir2.y = db*dco;
+      dt = GetNorm(cDir2);
+      cPrim.cPt3.x = da*dco + dOffset*cDir2.y/dt;
+      cPrim.cPt3.y = db*dsi - dOffset*cDir2.x/dt;
+      LineXLine(cPrim.cPt1, cDir1, cPrim.cPt3, cDir2, &cPrim.cPt2);
+      dLength += GetQuadLength(&cPrim, 0.0, 1.0);
     }
+  }
 
-    for(int i = 0; i < i2; i++)
-    {
-        cPrim.cPt1 = cPrim.cPt3;
-        cDir1 = cDir2;
-        dt = dAng1 + (double)dAng2*(i + 1)/i2;
-        dco = cos(dt);
-        dsi = sin(dt);
-        cDir2.x = -da*dsi;
-        cDir2.y = db*dco;
-        dt = GetNorm(cDir2);
-        cPrim.cPt3.x = da*dco + dOffset*cDir2.y/dt;
-        cPrim.cPt3.y = db*dsi - dOffset*cDir2.x/dt;
-        LineXLine(cPrim.cPt1, cDir1, cPrim.cPt3, cDir2, &cPrim.cPt2);
-        dLength += GetQuadLength(&cPrim, 0.0, 1.0);
-    }
+  for(int i = 0; i < i2; i++)
+  {
+    cPrim.cPt1 = cPrim.cPt3;
+    cDir1 = cDir2;
+    dt = dAng1 + (double)dAng2*(i + 1)/i2;
+    dco = cos(dt);
+    dsi = sin(dt);
+    cDir2.x = -da*dsi;
+    cDir2.y = db*dco;
+    dt = GetNorm(cDir2);
+    cPrim.cPt3.x = da*dco + dOffset*cDir2.y/dt;
+    cPrim.cPt3.y = db*dsi - dOffset*cDir2.x/dt;
+    LineXLine(cPrim.cPt1, cDir1, cPrim.cPt3, cDir2, &cPrim.cPt2);
+    dLength += GetQuadLength(&cPrim, 0.0, 1.0);
+  }
 
-    return dLength;
+  return dLength;
 }
 
 bool BuildEllipseCache(CDLine cTmpPt, int iMode, PDPointList pPoints, PDPointList pCache,
-    PDLine pLines, double *pdDist)
+  PDLine pLines, double *pdDist)
 {
-    pCache->ClearAll();
+  pCache->ClearAll();
 
-    int nNorm = pPoints->GetCount(0);
-    int nCtrl = pPoints->GetCount(1);
+  int nNorm = pPoints->GetCount(0);
+  int nCtrl = pPoints->GetCount(1);
 
-    CDPoint cOrig, cMainDir, cPt1, cPt2, cPt3;
-    double d1, d2, d3, da = -1.0, db = -1.0;
-    double dr1 = -1.0, dr2 = -1.0;
+  CDPoint cOrig, cMainDir, cPt1, cPt2, cPt3;
+  double d1, d2, d3, da = -1.0, db = -1.0;
+  double dr1 = -1.0, dr2 = -1.0;
 
-    if(pLines[0].bIsSet && pLines[1].bIsSet)
+  if(pLines[0].bIsSet && pLines[1].bIsSet)
+  {
+    CDPoint cDir1 = pLines[0].cDirection;
+    CDPoint cDir2 = pLines[1].cDirection;
+
+    int iX = LineXLine(pLines[0].cOrigin, cDir1, pLines[1].cOrigin, cDir2, &cOrig);
+    if(iX < 1) return false;
+
+    if(((nNorm < 1) && (iMode == 1)) || ((nNorm == 1) && (iMode != 1)))
     {
-        CDPoint cDir1 = pLines[0].cDirection;
-        CDPoint cDir2 = pLines[1].cDirection;
+      if(iMode == 1) cPt1 = cTmpPt.cOrigin - cOrig;
+      else if(nNorm > 0) cPt1 = pPoints->GetPoint(0, 0).cPoint - cOrig;
+      else return false;
 
-        int iX = LineXLine(pLines[0].cOrigin, cDir1, pLines[1].cOrigin, cDir2, &cOrig);
-        if(iX < 1) return false;
+      d1 = fabs(Deter2(cDir1, cDir2));
+      if(d1 < g_dPrec) return false;
 
-        if(((nNorm < 1) && (iMode == 1)) || ((nNorm == 1) && (iMode != 1)))
-        {
-            if(iMode == 1) cPt1 = cTmpPt.cOrigin - cOrig;
-            else if(nNorm > 0) cPt1 = pPoints->GetPoint(0, 0).cPoint - cOrig;
-            else return false;
-
-            d1 = fabs(Deter2(cDir1, cDir2));
-            if(d1 < g_dPrec) return false;
-
-            dr1 = sqrt(Power2(Deter2(cPt1, cDir1)) + Power2(Deter2(cPt1, cDir2)))/d1;
-            dr2 = dr1;
-        }
-        else
-        {
-            if(nNorm > 0) cPt1 = pPoints->GetPoint(0, 0).cPoint - cOrig;
-            else return false;
-
-            if(iMode == 1) cPt2 = cTmpPt.cOrigin - cOrig;
-            else if(nNorm > 1) cPt2 = pPoints->GetPoint(1, 0).cPoint - cOrig;
-            else return false;
-
-            CDPoint cMat1, cMat2;
-            cMat1.x = Power2(Deter2(cPt1, cDir1));
-            cMat1.y = Power2(Deter2(cPt2, cDir1));
-            cMat2.x = Power2(Deter2(cPt1, cDir2));
-            cMat2.y = Power2(Deter2(cPt2, cDir2));
-
-            db = Power2(Deter2(cDir1, cDir2));
-            da = Deter2(cMat1, cMat2);
-
-            d1 = db*(cMat1.x - cMat1.y);
-            if(fabs(d1) < g_dPrec) return false;
-
-            d2 = da/d1;
-            if(d2 < -g_dPrec) return false;
-            if(d2 < g_dPrec) d2 = 0;
-
-            dr1 = sqrt(d2);
-
-            d1 = db*(cMat2.y - cMat2.x);
-            if(fabs(d1) < g_dPrec) return false;
-
-            d2 = da/d1;
-            if(d2 < -g_dPrec) return false;
-            if(d2 < g_dPrec) d2 = 0;
-
-            dr2 = sqrt(d2);
-        }
-
-        double dco, dsi;
-
-        if(fabs(dr1 - dr2) < g_dPrec)
-        {
-            dco = sqrt(2.0)/2.0;
-            dsi = dco;
-        }
-        else
-        {
-            double dTanT = 2.0*dr1*dr2*(cDir1*cDir2)/(Power2(dr1) - Power2(dr2));
-            double dt = atan(dTanT)/2.0;
-            dco = cos(dt);
-            dsi = sin(dt);
-        }
-        cMainDir = dco*dr1*cDir1 + dsi*dr2*cDir2;
-        da = GetNorm(cMainDir);
-        cMainDir /= da;
-
-        d1 = dsi;
-        dsi = dco;
-        dco = -d1;
-
-        cPt1 = dco*dr1*cDir1 + dsi*dr2*cDir2;
-        db = GetNorm(cPt1);
-
-        if(db > da)
-        {
-            dco = cMainDir.x;
-            dsi = cMainDir.y;
-            cMainDir.x = -dsi;
-            cMainDir.y = dco;
-            dsi = da;
-            da = db;
-            db = dsi;
-        }
+      dr1 = sqrt(Power2(Deter2(cPt1, cDir1)) + Power2(Deter2(cPt1, cDir2)))/d1;
+      dr2 = dr1;
     }
-    else if(nCtrl > 0)
+    else
     {
-        if(nCtrl < 2)
-        {
-            cPt1 = pPoints->GetPoint(0, 1).cPoint;
-            if(nNorm > 0) cPt2 = pPoints->GetPoint(0, 0).cPoint;
-            else if(iMode == 1) cPt2 = cTmpPt.cOrigin;
-            else return false;
+      if(nNorm > 0) cPt1 = pPoints->GetPoint(0, 0).cPoint - cOrig;
+      else return false;
 
-            pCache->AddPoint(cPt1.x, cPt1.y, 0);
-            pCache->AddPoint(cPt2.x, cPt2.y, 0);
-            return true;
-        }
+      if(iMode == 1) cPt2 = cTmpPt.cOrigin - cOrig;
+      else if(nNorm > 1) cPt2 = pPoints->GetPoint(1, 0).cPoint - cOrig;
+      else return false;
 
-        cPt1 = pPoints->GetPoint(0, 1).cPoint;
-        cPt2 = pPoints->GetPoint(1, 1).cPoint;
+      CDPoint cMat1, cMat2;
+      cMat1.x = Power2(Deter2(cPt1, cDir1));
+      cMat1.y = Power2(Deter2(cPt2, cDir1));
+      cMat2.x = Power2(Deter2(cPt1, cDir2));
+      cMat2.y = Power2(Deter2(cPt2, cDir2));
 
-        if(iMode == 1) cPt3 = cTmpPt.cOrigin;
-        else if(nNorm > 0) cPt3 = pPoints->GetPoint(0, 0).cPoint;
-        else return false;
+      db = Power2(Deter2(cDir1, cDir2));
+      da = Deter2(cMat1, cMat2);
 
-        CDPoint cDir = cPt2 - cPt1;
-        d1 = GetNorm(cDir);
+      d1 = db*(cMat1.x - cMat1.y);
+      if(fabs(d1) < g_dPrec) return false;
 
-        if(d1 < g_dPrec) return false;
+      d2 = da/d1;
+      if(d2 < -g_dPrec) return false;
+      if(d2 < g_dPrec) d2 = 0;
 
-        d2 = GetDist(cPt1, cPt3);
-        d3 = GetDist(cPt2, cPt3);
+      dr1 = sqrt(d2);
 
-        da = (d2 + d3)/2.0;
-        db = sqrt(Power2(d2 + d3) - Power2(d1))/2.0;
+      d1 = db*(cMat2.y - cMat2.x);
+      if(fabs(d1) < g_dPrec) return false;
 
-        cMainDir = cDir/d1;
-        cOrig = (cPt2 + cPt1)/2.0;
+      d2 = da/d1;
+      if(d2 < -g_dPrec) return false;
+      if(d2 < g_dPrec) d2 = 0;
+
+      dr2 = sqrt(d2);
     }
 
-    if((da > g_dPrec) && (db > g_dPrec))
+    double dco, dsi;
+
+    if(fabs(dr1 - dr2) < g_dPrec)
     {
-        pCache->AddPoint(cOrig.x, cOrig.y, 0);
-        pCache->AddPoint(da, db, 0);
-        pCache->AddPoint(cMainDir.x, cMainDir.y, 0);
+      dco = sqrt(2.0)/2.0;
+      dsi = dco;
+    }
+    else
+    {
+      double dTanT = 2.0*dr1*dr2*(cDir1*cDir2)/(Power2(dr1) - Power2(dr2));
+      double dt = atan(dTanT)/2.0;
+      dco = cos(dt);
+      dsi = sin(dt);
+    }
+    cMainDir = dco*dr1*cDir1 + dsi*dr2*cDir2;
+    da = GetNorm(cMainDir);
+    cMainDir /= da;
 
-        dr1 = Power2(db)/da;
-        dr2 = Power2(da)/db;
-        pCache->AddPoint(dr1, dr2, 3);
+    d1 = dsi;
+    dsi = dco;
+    dco = -d1;
 
-        double dr = -1.0;
-        double dl1, dl2;
+    cPt1 = dco*dr1*cDir1 + dsi*dr2*cDir2;
+    db = GetNorm(cPt1);
 
-        if((iMode == 2) && (cTmpPt.cDirection.x > 0.5))
-        {
-            dr = GetElspBreakAngle(-cTmpPt.cDirection.y, da, db, dr1, dr2);
-            pCache->AddPoint(dr, 0.0, 4);
-            dl1 = 2.0*GetElpsFullLengthHalf(da, db, cTmpPt.cDirection.y, dr);
-            dl2 = GetElpsPointAtDist(da, db, cTmpPt.cDirection.y, dr, dl1);
-            pCache->AddPoint(dl1, dl2, 4);
-            if(pdDist) *pdDist = cTmpPt.cDirection.y;
-            pCache->AddPoint(cTmpPt.cDirection.y, 0.0, 2);
-            return true;
-        }
+    if(db > da)
+    {
+      dco = cMainDir.x;
+      dsi = cMainDir.y;
+      cMainDir.x = -dsi;
+      cMainDir.y = dco;
+      dsi = da;
+      da = db;
+      db = dsi;
+    }
+  }
+  else if(nCtrl > 0)
+  {
+    if(nCtrl < 2)
+    {
+      cPt1 = pPoints->GetPoint(0, 1).cPoint;
+      if(nNorm > 0) cPt2 = pPoints->GetPoint(0, 0).cPoint;
+      else if(iMode == 1) cPt2 = cTmpPt.cOrigin;
+      else return false;
 
-        int nOffs2 = pPoints->GetCount(2);
-        int nOffs3 = pPoints->GetCount(3);
-        int iSrchMask = 0;
-        if((iMode == 2) || (nOffs2 > 0) || (nOffs3 > 0))
-        {
-            if(iMode == 2)
-            {
-                cPt1 = cTmpPt.cOrigin;
-                if(cTmpPt.cDirection.x < -0.5) iSrchMask = 2;
-            }
-            else if(nOffs2 > 0) cPt1 = pPoints->GetPoint(0, 2).cPoint;
-            else
-            {
-                cPt1 = pPoints->GetPoint(0, 3).cPoint;
-                iSrchMask = 2;
-            }
-
-            CDLine cPtX;
-            double dDist = GetElpsDistFromPt(cPt1, cPt1, iSrchMask, pCache, &cPtX, NULL);
-            double dDistOld = 0.0;
-
-            if(iMode == 2)
-            {
-                if(nOffs2 > 0)
-                {
-                    cPt1 = pPoints->GetPoint(0, 2).cPoint;
-                    dDistOld = GetElpsDistFromPt(cPt1, cPt1, 0, pCache, &cPtX, NULL);
-                }
-                else if(nOffs3 > 0)
-                {
-                    cPt1 = pPoints->GetPoint(0, 3).cPoint;
-                    dDistOld = GetElpsDistFromPt(cPt1, cPt1, 2, pCache, &cPtX, NULL);
-                }
-            }
-
-            if(pdDist) *pdDist = dDist - dDistOld;
-            if(fabs(dDist) > g_dPrec) pCache->AddPoint(dDist, dDistOld, 2);
-
-            dr = GetElspBreakAngle(-dDist, da, db, dr1, dr2);
-            pCache->AddPoint(dr, 0.0, 4);
-            dl1 = 2.0*GetElpsFullLengthHalf(da, db, dDist, dr);
-            dl2 = GetElpsPointAtDist(da, db, dDist, dr, dl1);
-            pCache->AddPoint(dl1, dl2, 4);
-        }
-        else
-        {
-            pCache->AddPoint(-1.0, 0.0, 4);
-            dl1 = 2.0*GetElpsFullLengthHalf(da, db, 0.0, -1.0);
-            dl2 = GetElpsPointAtDist(da, db, 0.0, -1.0, dl1);
-            pCache->AddPoint(dl1, dl2, 4);
-        }
+      pCache->AddPoint(cPt1.x, cPt1.y, 0);
+      pCache->AddPoint(cPt2.x, cPt2.y, 0);
+      return true;
     }
 
-    return true;
+    cPt1 = pPoints->GetPoint(0, 1).cPoint;
+    cPt2 = pPoints->GetPoint(1, 1).cPoint;
+
+    if(iMode == 1) cPt3 = cTmpPt.cOrigin;
+    else if(nNorm > 0) cPt3 = pPoints->GetPoint(0, 0).cPoint;
+    else return false;
+
+    CDPoint cDir = cPt2 - cPt1;
+    d1 = GetNorm(cDir);
+
+    if(d1 < g_dPrec) return false;
+
+    d2 = GetDist(cPt1, cPt3);
+    d3 = GetDist(cPt2, cPt3);
+
+    da = (d2 + d3)/2.0;
+    db = sqrt(Power2(d2 + d3) - Power2(d1))/2.0;
+
+    cMainDir = cDir/d1;
+    cOrig = (cPt2 + cPt1)/2.0;
+  }
+
+  if((da > g_dPrec) && (db > g_dPrec))
+  {
+    pCache->AddPoint(cOrig.x, cOrig.y, 0);
+    pCache->AddPoint(da, db, 0);
+    pCache->AddPoint(cMainDir.x, cMainDir.y, 0);
+
+    dr1 = Power2(db)/da;
+    dr2 = Power2(da)/db;
+    pCache->AddPoint(dr1, dr2, 3);
+
+    double dr = -1.0;
+    double dl1, dl2;
+
+    if((iMode == 2) && (cTmpPt.cDirection.x > 0.5))
+    {
+      dr = GetElspBreakAngle(-cTmpPt.cDirection.y, da, db, dr1, dr2);
+      pCache->AddPoint(dr, 0.0, 4);
+      dl1 = 2.0*GetElpsFullLengthHalf(da, db, cTmpPt.cDirection.y, dr);
+      dl2 = GetElpsPointAtDist(da, db, cTmpPt.cDirection.y, dr, dl1);
+      pCache->AddPoint(dl1, dl2, 4);
+      if(pdDist) *pdDist = cTmpPt.cDirection.y;
+      pCache->AddPoint(cTmpPt.cDirection.y, 0.0, 2);
+      return true;
+    }
+
+    int nOffs2 = pPoints->GetCount(2);
+    int nOffs3 = pPoints->GetCount(3);
+    int iSrchMask = 0;
+    if((iMode == 2) || (nOffs2 > 0) || (nOffs3 > 0))
+    {
+      if(iMode == 2)
+      {
+        cPt1 = cTmpPt.cOrigin;
+        if(cTmpPt.cDirection.x < -0.5) iSrchMask = 2;
+      }
+      else if(nOffs2 > 0) cPt1 = pPoints->GetPoint(0, 2).cPoint;
+      else
+      {
+        cPt1 = pPoints->GetPoint(0, 3).cPoint;
+        iSrchMask = 2;
+      }
+
+      CDLine cPtX;
+      double dDist = GetElpsDistFromPt(cPt1, cPt1, iSrchMask, pCache, &cPtX, NULL);
+      double dDistOld = 0.0;
+
+      if(iMode == 2)
+      {
+        if(nOffs2 > 0)
+        {
+          cPt1 = pPoints->GetPoint(0, 2).cPoint;
+          dDistOld = GetElpsDistFromPt(cPt1, cPt1, 0, pCache, &cPtX, NULL);
+        }
+        else if(nOffs3 > 0)
+        {
+          cPt1 = pPoints->GetPoint(0, 3).cPoint;
+          dDistOld = GetElpsDistFromPt(cPt1, cPt1, 2, pCache, &cPtX, NULL);
+        }
+      }
+
+      if(pdDist) *pdDist = dDist - dDistOld;
+      if(fabs(dDist) > g_dPrec) pCache->AddPoint(dDist, dDistOld, 2);
+
+      dr = GetElspBreakAngle(-dDist, da, db, dr1, dr2);
+      pCache->AddPoint(dr, 0.0, 4);
+      dl1 = 2.0*GetElpsFullLengthHalf(da, db, dDist, dr);
+      dl2 = GetElpsPointAtDist(da, db, dDist, dr, dl1);
+      pCache->AddPoint(dl1, dl2, 4);
+    }
+    else
+    {
+      pCache->AddPoint(-1.0, 0.0, 4);
+      dl1 = 2.0*GetElpsFullLengthHalf(da, db, 0.0, -1.0);
+      dl2 = GetElpsPointAtDist(da, db, 0.0, -1.0, dl1);
+      pCache->AddPoint(dl1, dl2, 4);
+    }
+  }
+
+  return true;
+}
+
+int AddEllipseInterLine(CDPoint cPt1, CDPoint cPt2, double dOffset, PDPointList pCache, PDRefList pBounds)
+{
+  return 0;
 }
 
 int BuildEllipseWithBounds(double da, double db, double dr, double dtStart, double dtEnd,
@@ -1445,7 +1450,7 @@ double GetElpsPointAtDist(double da, double db, double dr, double dBreak, double
     return atan2(cProj.y, cProj.x);
 }
 
-void AddElpsSegment(double d1, double d2, PDPointList pCache, PDPrimObject pPrimList, PDRect pRect)
+void AddElpsSegment(double d1, double d2, double dExt, PDPointList pCache, PDPrimObject pPrimList, PDRect pRect)
 {
     int iCnt = pCache->GetCount(0);
 
@@ -1505,6 +1510,52 @@ void AddElpsSegment(double d1, double d2, PDPointList pCache, PDPrimObject pPrim
             cOrig, cMainDir, cBreak.x, false, pPrimList, pRect);
     else
         BuildEllipseWithBounds(cRad.x, cRad.y, dr, dt1, dt2, cOrig, cMainDir, pPrimList, pRect);
+}
+
+void AddElpsExtPrim(PDRect pRect, PDPointList pCache, PDPrimObject pPrimList)
+{
+  int iCnt = pCache->GetCount(0);
+
+  if(iCnt < 3) return;
+
+  CDPoint cOrig, cRad, cMainDir;
+
+  CDPrimitive cPrim;
+  int iRes = 0;
+
+  cOrig = pCache->GetPoint(0, 0).cPoint;
+  cRad = pCache->GetPoint(1, 0).cPoint;
+  cMainDir = pCache->GetPoint(2, 0).cPoint;
+
+  if(pCache->GetCount(3) > 0)
+  {
+    CDPrimitive cPrimPt;
+    CDPoint cPt2 = pCache->GetPoint(0, 3).cPoint;
+    CDPoint cCenter;
+    cCenter.x = cRad.x - cPt2.x;
+    cCenter.y = 0.0;
+
+    cPrimPt.iType = 7;
+    cPrimPt.cPt1.x = 1;
+    cPrimPt.cPt1.y = 1;
+    cPrimPt.cPt2 = cOrig + Rotate(cCenter, cMainDir, true);
+    cCenter.x *= -1.0;
+    cPrimPt.cPt3 = cOrig + Rotate(cCenter, cMainDir, true);
+    cPrimPt.cPt4 = 0;
+    CropPrimitive(cPrimPt, pRect, pPrimList);
+
+    cCenter.x = 0.0;
+    cCenter.y = cPt2.y - cRad.y;
+
+    cPrimPt.iType = 7;
+    cPrimPt.cPt1.x = 1;
+    cPrimPt.cPt1.y = 1;
+    cPrimPt.cPt2 = cOrig + Rotate(cCenter, cMainDir, true);
+    cCenter.y *= -1.0;
+    cPrimPt.cPt3 = cOrig + Rotate(cCenter, cMainDir, true);
+    cPrimPt.cPt4 = 0;
+    CropPrimitive(cPrimPt, pRect, pPrimList);
+  }
 }
 
 bool GetElpsRefPoint(double dRef, PDPointList pCache, PDPoint pPt)

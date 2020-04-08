@@ -101,8 +101,8 @@ private:
   bool GetNativeReference(double dDist, double *pdRef);
   double GetLength();
   PDPathSeg GetPathRefSegment(double dRef, double *pdFixedRef);
-  bool GetPathRefPoint(double dRef, PDPoint pPt);
-  bool GetNativeRefPoint(double dRef, PDPoint pPt);
+  bool GetPathRefPoint(double dRef, double dOffset, PDPoint pPt);
+  bool GetNativeRefPoint(double dRef, double dOffset, PDPoint pPt);
   bool GetPathRefDir(double dRef, PDPoint pPt);
   bool GetNativeRefDir(double dRef, PDPoint pPt);
   bool IsValidRef(double dRef);
@@ -111,12 +111,15 @@ private:
   void SwapBounds();
   bool RemovePart(bool bDown, PDRefPoint pBounds);
   bool IsClosedPath();
+  int AddLineIntersects(CDPoint cPt1, CDPoint cPt2, double dOffset, PDRefList pBounds);
+  int GetRectangleIntersects(PDRect pRect, double dOffset, PDRefList pBounds);
   // returns: 0 - nothing is visible, 1 - part is visible, 2 - whole curve is visible and is closed
   int GetViewBounds(CDLine cTmpPt, int iMode, PDRect pRect, int iTemp, PDRefList pBounds, PDPoint pDrawBnds, double *pdMovedDist);
-  int BuildPurePrimitives(CDLine cTmpPt, int iMode, PDRect pRect, int iTemp, PDPrimObject plPrimitive,
-    double dExt, double *pdMovedDist, PDPoint pBnds);
-  int BuildPathPrimitives(CDLine cTmpPt, int iMode, PDRect pRect, int iTemp, PDPrimObject plPrimitive,
-    double dExt, double *pdMovedDist, PDPoint pBnds);
+  void AddExtraPrimitives(PDRect pRect, PDPrimObject pPrimList);
+  //int BuildPurePrimitives(CDLine cTmpPt, int iMode, PDRect pRect, int iTemp, PDPrimObject plPrimitive,
+  //  double dExt, double *pdMovedDist, PDPoint pBnds);
+  //int BuildPathPrimitives(CDLine cTmpPt, int iMode, PDRect pRect, int iTemp, PDPrimObject plPrimitive,
+  //  double dExt, double *pdMovedDist, PDPoint pBnds);
   double GetPathDistFromPt(CDPoint cPt, CDPoint cRefPt, bool bSnapCenters, PDLine pPtX);
 public:
   CDObject(CDDrawType iType, double dWidth);
