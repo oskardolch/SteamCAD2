@@ -17,6 +17,8 @@ enum CDDrawType
   dtParabola = 6,
   dtSpline = 7,
   dtEvolvent = 8,
+  dtLogSpiral = 9,
+  dtArchSpiral = 10,
   dtPath = 100, // contains consecutive PDPathSeg objects
   dtBorderPath = 101, // border path is a closed path solely constructed to form areas. It does not release its children
   dtBorder = 110, // border should only contain border paths in m_pSubObjects, 1st path is the boundary, the rest are holes
@@ -64,6 +66,7 @@ private:
   PDPtrList m_pSubObjects;
 
   bool IsClosedShape();
+  int GetBoundType();
   bool BuildSubCache(CDLine cTmpPt, int iMode);
   void SavePoint(FILE *pf, bool bSwapBytes, CDPoint cPoint);
   void SaveInputPoint(FILE *pf, bool bSwapBytes, CDInputPoint cInPoint);
@@ -112,7 +115,7 @@ private:
   bool RemovePart(bool bDown, PDRefPoint pBounds);
   bool IsClosedPath();
   int AddLineIntersects(CDPoint cPt1, CDPoint cPt2, double dOffset, PDRefList pBounds);
-  int GetRectangleIntersects(PDRect pRect, double dOffset, PDRefList pBounds);
+  int GetRectangleIntersects(PDRect pRect, double dOffset, int iBndMode, PDPoint pRefBnds, PDRefList pBounds);
   // returns: 0 - nothing is visible, 1 - part is visible, 2 - whole curve is visible and is closed
   int GetViewBounds(CDLine cTmpPt, int iMode, PDRect pRect, int iTemp, PDRefList pBounds, PDPoint pDrawBnds, double *pdMovedDist);
   void AddExtraPrimitives(PDRect pRect, PDPrimObject pPrimList);

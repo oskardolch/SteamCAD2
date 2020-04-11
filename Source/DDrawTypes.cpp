@@ -310,7 +310,7 @@ void CDObject::AddCurveSegment(CDPrimitive cAddMode, PDPrimObject pPrimitive, in
         AddCircSegment(pBnds[j].x, pBnds[j].y, dExt, m_pCachePoints, pPrimitive);
         break;
       case dtEllipse:
-        //AddElpsSegment(pBnds[j].x, pBnds[j].y, dExt, m_pCachePoints, pPrimitive);
+        AddElpsSegment(pBnds[j].x, pBnds[j].y, dExt, m_pCachePoints, pPrimitive);
         break;
       default:
         break;
@@ -689,7 +689,7 @@ int CDObject::AddLineIntersects(CDPoint cPt1, CDPoint cPt2, double dOffset, PDRe
   return iRes;
 }
 
-int CDObject::GetRectangleIntersects(PDRect pRect, double dOffset, PDRefList pBounds)
+int CDObject::GetRectangleIntersects(PDRect pRect, double dOffset, int iBndMode, PDPoint pRefBnds, PDRefList pBounds)
 {
   CDPoint cPt1, cPt2;
   cPt1 = pRect->cPt1;
@@ -709,13 +709,29 @@ int CDObject::GetRectangleIntersects(PDRect pRect, double dOffset, PDRefList pBo
   if(iTot > 1)
   {
     pBounds->Sort(0);
-    double dt = ((*pBounds)[0] + (*pBounds)[1])/2.0;
-    CDPoint cProbe;
-    GetNativeRefPoint(dt, dOffset, &cProbe);
-    if(!DPtInDRect(cProbe, pRect))
+    if(iBndMode > 0)
     {
-      pBounds->InsertPoint(0, (*pBounds)[iTot - 1]);
-      pBounds->Truncate(iTot);
+      CDPoint cProbe;
+      if(iBndMode == 2)
+      {
+        double dt = ((*pBounds)[0] + (*pBounds)[1])/2.0;
+        GetNativeRefPoint(dt, dOffset, &cProbe);
+        if(!DPtInDRect(cProbe, pRect))
+        {
+          pBounds->InsertPoint(0, (*pBounds)[iTot - 1]);
+          pBounds->Truncate(iTot);
+        }
+      }
+      else
+      {
+        GetNativeRefPoint(pRefBnds->x, dOffset, &cProbe);
+        if(!DPtInDRect(cProbe, pRect)) pBounds->InsertPoint(0, pRefBnds->x);
+        if(iBndMode > 2)
+        {
+          GetNativeRefPoint(pRefBnds->y, dOffset, &cProbe);
+          if(!DPtInDRect(cProbe, pRect)) pBounds->AddPoint(pRefBnds->y);
+        }
+      }
     }
   }
 
@@ -771,11 +787,12 @@ int CDObject::GetViewBounds(CDLine cTmpPt, int iMode, PDRect pRect, int iTemp,
   CDPoint cLocBnds = {0.0, 0.0};
   pDrawBnds->x = 0.0;
   pDrawBnds->y = 0.0;
-  if(IsClosedShape())
+  int iBndType = GetBoundType();
+  if(iBndType > 0)
   {
     GetRefBounds(&cLocBnds);
     GetPointRefDist(cLocBnds.x, &pDrawBnds->x);
-    GetPointRefDist(cLocBnds.y, &pDrawBnds->y);
+    if(iBndType > 1) GetPointRefDist(cLocBnds.y, &pDrawBnds->y);
   }
 
   if(iRectFlag == 15)
@@ -816,14 +833,14 @@ int CDObject::GetViewBounds(CDLine cTmpPt, int iMode, PDRect pRect, int iTemp,
   CDPoint cProbe;
   PDRefList pInt1 = new CDRefList();
   PDRefList pInt2 = new CDRefList();
-  int iCnt1 = GetRectangleIntersects(pRect, dMid - dExt, pInt1);
-  int iCnt2 = GetRectangleIntersects(pRect, dMid + dExt, pInt2);
+  int iCnt1 = GetRectangleIntersects(pRect, dMid - dExt, iBndType, &cLocBnds, pInt1);
+  int iCnt2 = GetRectangleIntersects(pRect, dMid + dExt, iBndType, &cLocBnds, pInt2);
 
-  if((iCnt1 < 1) || (iCnt2 < 0))
+  if((iCnt1 < 1) || (iCnt2 < 1))
   {
-    if(IsClosedShape())
+    if(iBndType > 1)
     {
-      if(iCnt1 < 0) GetNativeRefPoint(0.0, dMid - dExt, &cProbe);
+      if(iCnt1 < 1) GetNativeRefPoint(0.0, dMid - dExt, &cProbe);
       else GetNativeRefPoint(0.0, dMid + dExt, &cProbe);
       if(DPtInDRect(cProbe, pRect))
       {
@@ -831,7 +848,8 @@ int CDObject::GetViewBounds(CDLine cTmpPt, int iMode, PDRect pRect, int iTemp,
         delete pInt1;
         pBounds->AddPoint(pDrawBnds->x);
         pBounds->AddPoint(pDrawBnds->y);
-        return 2;
+        if(IsClosedShape()) return 2;
+        return 1;
       }
     }
   }
@@ -1886,7 +1904,21 @@ bool CDObject::GetRefBounds(PDPoint pPoint)
   case dtLine:
     return false;
   case dtCircle:
+    pPoint->x = -M_PI;
+    pPoint->y = M_PI;
+    return true;
   case dtEllipse:
+    if(m_pCachePoints->GetCount(0) > 2)
+    {
+      pPoint->x = -M_PI;
+      pPoint->y = M_PI;
+    }
+    else
+    {
+      pPoint->x = 0.0;
+      pPoint->y = 1.0;
+    }
+    return true;
   case dtArcEllipse:
     pPoint->x = -M_PI;
     pPoint->y = M_PI;
@@ -1899,6 +1931,10 @@ bool CDObject::GetRefBounds(PDPoint pPoint)
     pPoint->y = m_pCachePoints->GetCount(0);
     return true;
   case dtEvolvent:
+  case dtLogSpiral:
+  case dtArchSpiral:
+    pPoint->x = 0.0;
+    pPoint->y = -1.0;
     return false;
   case dtPath:
     pPoint->x = 0.0;
@@ -2087,7 +2123,7 @@ bool CDObject::GetNativeRefPoint(double dRef, double dOffset, PDPoint pPt)
     case dtCircle:
         return GetCircRefPoint(dRef, dOffset, m_pCachePoints, pPt);
     case dtEllipse:
-        return GetElpsRefPoint(dRef, m_pCachePoints, pPt);
+        return GetElpsRefPoint(dRef, dOffset, m_pCachePoints, pPt);
     case dtArcEllipse:
         return GetArcElpsRefPoint(dRef, m_pCachePoints, pPt);
     case dtHyperbola:
@@ -2653,20 +2689,46 @@ bool CDObject::IsClosedPath()
 
 bool CDObject::IsClosedShape()
 {
-    switch(m_iType)
-    {
-    case dtCircle:
-    case dtEllipse:
-    case dtArcEllipse:
-        return true;
-    case dtSpline:
-        if(m_pInputPoints->GetCount(1) < 1) return false;
-        return true;
-    case dtPath:
-        return IsClosedPath();
-    default:
-        return m_iType > dtPath;
-    }
+  switch(m_iType)
+  {
+  case dtCircle:
+    return true;
+  case dtEllipse:
+    return m_pCachePoints->GetCount(0) > 2;
+  case dtArcEllipse:
+    return true;
+  case dtSpline:
+    if(m_pInputPoints->GetCount(1) < 1) return false;
+    return true;
+  case dtPath:
+    return IsClosedPath();
+  default:
+    return m_iType > dtPath;
+  }
+}
+
+int CDObject::GetBoundType()
+{
+  switch(m_iType)
+  {
+  case dtCircle:
+  case dtEllipse:
+  case dtArcEllipse:
+    return 2;
+  case dtSpline:
+    if(m_pInputPoints->GetCount(1) < 1) return 3;
+    return 3;
+  case dtEvolvent:
+  case dtLogSpiral:
+  case dtArchSpiral:
+    return 1;
+  case dtPath:
+    if(IsClosedPath()) return 2;
+    return 3;
+  default:
+    if(m_iType >= dtPath) return 2;
+    return 0;
+  }
 }
 
 int CDObject::IsClosed()

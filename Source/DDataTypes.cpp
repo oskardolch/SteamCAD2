@@ -388,6 +388,17 @@ void CDRefList::Truncate(int iNewLen)
   m_iDataLen = iNewLen;
 }
 
+bool CDRefList::HasPoint(double dVal)
+{
+  bool bRes = false;
+  int i = 0;
+  while(!bRes && (i < m_iDataLen))
+  {
+    bRes = fabs(dVal - m_pPoints[i++]) < g_dPrec;
+  }
+  return bRes;
+}
+
 void CDRefList::Sort(int iStartIndex)
 {
   std::sort(&m_pPoints[iStartIndex], &m_pPoints[m_iDataLen]);
