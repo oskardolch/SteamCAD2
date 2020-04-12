@@ -1233,9 +1233,9 @@ void CDApplication::DrawPrimitive(cairo_t *cr, PDPrimitive pPrim)
   {
   case 1:
     //cairo_new_path(cr);
-    cStartPt.x = pPrim->cPt1.x + m_cViewOrigin.x;
-    cStartPt.y = pPrim->cPt1.y + m_cViewOrigin.y;
-    cairo_move_to(cr, cStartPt.x, cStartPt.y);
+    //cStartPt.x = pPrim->cPt1.x + m_cViewOrigin.x;
+    //cStartPt.y = pPrim->cPt1.y + m_cViewOrigin.y;
+    //cairo_move_to(cr, cStartPt.x, cStartPt.y);
     cEndPt.x = pPrim->cPt2.x + m_cViewOrigin.x;
     cEndPt.y = pPrim->cPt2.y + m_cViewOrigin.y;
     cairo_line_to(cr, cEndPt.x, cEndPt.y);
@@ -1265,7 +1265,7 @@ void CDApplication::DrawPrimitive(cairo_t *cr, PDPrimitive pPrim)
     else
     {
       //cairo_new_path(cr);
-      cairo_move_to(cr, cStartPt.x, cStartPt.y);
+      //cairo_move_to(cr, cStartPt.x, cStartPt.y);
       cairo_line_to(cr, cEndPt.x, cEndPt.y);
       //cairo_stroke(cr);
     }
@@ -1280,7 +1280,7 @@ void CDApplication::DrawPrimitive(cairo_t *cr, PDPrimitive pPrim)
     cStartPt = (pPrim->cPt1 + 2.0*pPrim->cPt2)/3.0;
     cEndPt = (pPrim->cPt3 + 2.0*pPrim->cPt2)/3.0;
     //cairo_new_path(cr);
-    cairo_move_to(cr, m_cViewOrigin.x + pPrim->cPt1.x, m_cViewOrigin.y + pPrim->cPt1.y);
+//    cairo_move_to(cr, m_cViewOrigin.x + pPrim->cPt1.x, m_cViewOrigin.y + pPrim->cPt1.y);
     cairo_curve_to(cr, m_cViewOrigin.x + cStartPt.x, m_cViewOrigin.y + cStartPt.y,
       m_cViewOrigin.x + cEndPt.x, m_cViewOrigin.y + cEndPt.y,
       m_cViewOrigin.x + pPrim->cPt3.x, m_cViewOrigin.y + pPrim->cPt3.y);
@@ -1288,7 +1288,7 @@ void CDApplication::DrawPrimitive(cairo_t *cr, PDPrimitive pPrim)
     break;
   case 5:
     //cairo_new_path(cr);
-    cairo_move_to(cr, m_cViewOrigin.x + pPrim->cPt1.x, m_cViewOrigin.y + pPrim->cPt1.y);
+//    cairo_move_to(cr, m_cViewOrigin.x + pPrim->cPt1.x, m_cViewOrigin.y + pPrim->cPt1.y);
     cairo_curve_to(cr, m_cViewOrigin.x + pPrim->cPt2.x, m_cViewOrigin.y + pPrim->cPt2.y,
       m_cViewOrigin.x + pPrim->cPt3.x, m_cViewOrigin.y + pPrim->cPt3.y,
       m_cViewOrigin.x + pPrim->cPt4.x, m_cViewOrigin.y + pPrim->cPt4.y);
@@ -1383,8 +1383,18 @@ void CDApplication::DrawObject(cairo_t *cr, PDObject pObj, int iMode, int iDimen
     //   (0, 2) - close subpath and immediately start a new one
     //   (1, 2) - INVALID
     //   (2, 2) - close last subpath and stroke path
-        if(fabs(cPrim.cPt1.x - 1.0) < 0.2) cairo_new_path(cr);
-        if(fabs(cPrim.cPt1.y - 1.0) < 0.2) cairo_new_sub_path(cr);
+        if(fabs(cPrim.cPt1.x - 1.0) < 0.2)
+        {
+          cairo_new_path(cr);
+          if(fabs(cPrim.cPt2.x - 1.0) < 0.2)
+            cairo_move_to(cr, m_cViewOrigin.x + cPrim.cPt3.x, m_cViewOrigin.y + cPrim.cPt3.y);
+        }
+        if(fabs(cPrim.cPt1.y - 1.0) < 0.2)
+        {
+          cairo_new_sub_path(cr);
+          if(fabs(cPrim.cPt2.x - 1.0) < 0.2)
+            cairo_move_to(cr, m_cViewOrigin.x + cPrim.cPt3.x, m_cViewOrigin.y + cPrim.cPt3.y);
+        }
         if(fabs(cPrim.cPt1.y - 2.0) < 0.2)
         {
           cairo_close_path(cr);

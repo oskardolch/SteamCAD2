@@ -225,18 +225,12 @@ typedef struct CDPrimitive
     //   (0, 2) - close subpath and immediately start a new one
     //   (1, 2) - INVALID
     //   (2, 2) - close last subpath and stroke path
+    // if cPt1.x == 1 or cPt1.y == 1, cPt2 and cPt3 should contain information of the next start point
+    //   cPt2.x > 0 = move current point
+    //   cPt3 = new point coordinates
     // if cPt1.x == 2, cPt2 should carry information about dash pattern:
     //   cPt2.x = dash scale, if set to 0, there is no dash pattern applied for this segment
     //   cPt2.y = dash offest
-    // however, the basic draw type (line, circle ...) knows nothing about cross and border points,
-    // so cPt3 must carry another information:
-    //   cPt3.x:
-    //     0 - the path starts/ends as a natural reference boundary of closed curve
-    //     1 - the curve was trimmed at this point by the viewport
-    //     2 - the path starts/ends as a natural boundary (start for evolvent, non-closed spline)
-    // and finally cPt4 will carry information about curve reference position:
-    //   cPt4.x - natural reference of the point
-    //   cPt4.y - distance of the point
   CDPoint cPt1;
   CDPoint cPt2;
   CDPoint cPt3;
