@@ -1,5 +1,5 @@
 #include "DDimEditDlg.hpp"
-#include "SteamCAD.rh"
+#include "SteamCAD2.rh"
 
 #include <stdio.h>
 

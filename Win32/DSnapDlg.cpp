@@ -1,5 +1,5 @@
 #include "DSnapDlg.hpp"
-#include "SteamCAD.rh"
+#include "SteamCAD2.rh"
 
 INT_PTR CALLBACK SnapDlgProc(HWND hwndDlg, UINT uMsg,
     WPARAM wParam, LPARAM lParam)

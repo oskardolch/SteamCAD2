@@ -2,6 +2,8 @@
 #define _DMAINWND_HPP_
 
 #include <windows.h>
+#include <gdiplus.h>
+
 //#include "DToolBar.hpp"
 #include "../Source/DDrawTypes.hpp"
 #include "DFileSetupDlg.hpp"
@@ -17,6 +19,8 @@
 #define stEndPoint 0x02
 #define stMidPoint 0x04
 #define stIntersect 0x08
+
+using namespace Gdiplus;
 
 class CMainWnd
 {

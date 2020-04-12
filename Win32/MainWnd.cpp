@@ -526,7 +526,7 @@ void CMainWnd::LoadSettings(HWND hwnd)
 {
     LPWSTR ininame = (LPWSTR)malloc((wcslen(m_sAppPath) + 32)*sizeof(wchar_t));
     wcscpy(ininame, m_sAppPath);
-    wcscat(ininame, L"SteamCAD.xml");
+    wcscat(ininame, L"SteamCAD2.xml");
 
     CXMLReader* pRdr = new CXMLReader(ininame);
 
@@ -656,10 +656,10 @@ void CMainWnd::SaveSettings(HWND hwnd)
 
     LPWSTR ininame = (LPWSTR)malloc((wcslen(m_sAppPath) + 40)*sizeof(wchar_t));
     wcscpy(ininame, m_sAppPath);
-    wcscat(ininame, L"SteamCAD.xml");
+    wcscat(ininame, L"SteamCAD2.xml");
 
     CXMLWritter* pWrit = new CXMLWritter(ininame);
-    pWrit->WriteComment(L"SteamCAD Workspace Settings");
+    pWrit->WriteComment(L"SteamCAD2 Workspace Settings");
     pWrit->CreateRoot(L"Settings");
 
     IXMLDOMElement* pElem = NULL;
@@ -756,6 +756,7 @@ LRESULT CMainWnd::WMPaint(HWND hwnd, HDC hdc)
 
     PAINTSTRUCT ps;
     HDC ldc = BeginPaint(hwnd, &ps);
+    Graphics graphics(ldc);
 
     HBRUSH hOldBr = (HBRUSH)SelectObject(ldc, GetStockObject(NULL_BRUSH));
     HPEN hOldPen = (HPEN)SelectObject(ldc, m_hBrownPen);

@@ -2,8 +2,11 @@
 #include <commctrl.h>
 #include <stdio.h>
 #include <objbase.h>
+#include <gdiplus.h>
 #include "MainWnd.hpp"
 #include "SteamCAD2.rh"
+
+using namespace Gdiplus;
 
 //HANDLE g_hConsole;
 
@@ -23,6 +26,10 @@ SetConsoleActiveScreenBuffer(g_hConsole);*/
     //    ICC_TAB_CLASSES | ICC_PAGESCROLLER_CLASS;
     ictr.dwICC = ICC_BAR_CLASSES;
     InitCommonControlsEx(&ictr);
+
+    GdiplusStartupInput gdiplusStartupInput;
+    ULONG_PTR gdiplusToken;
+    GdiplusStartup(&gdiplusToken, &gdiplusStartupInput, NULL);
 
     CMainWnd *mw = new CMainWnd(hInstance);
     HWND wnd = mw->DisplayWindow();
@@ -64,6 +71,7 @@ SetConsoleActiveScreenBuffer(g_hConsole);*/
     }
 
     delete mw;
+    GdiplusShutdown(gdiplusToken);
 
 //FreeConsole();
     CoUninitialize();
