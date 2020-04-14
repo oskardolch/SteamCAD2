@@ -1,5 +1,5 @@
 #include "DLineStyleDlg.hpp"
-#include "SteamCAD.rh"
+#include "SteamCAD2.rh"
 
 #include <stdio.h>
 #include <math.h>

@@ -2,6 +2,8 @@
 #define _DMAINWND_HPP_
 
 #include <windows.h>
+#include <gdiplus.h>
+
 //#include "DToolBar.hpp"
 #include "../Source/DDrawTypes.hpp"
 #include "DFileSetupDlg.hpp"
@@ -17,6 +19,8 @@
 #define stEndPoint 0x02
 #define stMidPoint 0x04
 #define stIntersect 0x08
+
+using namespace Gdiplus;
 
 class CMainWnd
 {
@@ -131,9 +135,17 @@ private:
     LRESULT ViewGridCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl, int iType);
     //LRESULT SnapCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl, int iSnap);
     LRESULT ToolsCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl, int iTool);
-    LRESULT ToolsBreakCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl);
     LRESULT ToolsScaleCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl);
     LRESULT ToolsStatCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl);
+    LRESULT PathCreateCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl);
+    LRESULT PathBreakCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl);
+    LRESULT PathAreaCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl);
+    LRESULT PathGroupCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl);
+    LRESULT PathUngroupCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl);
+    LRESULT PathMoveUpCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl);
+    LRESULT PathMoveDownCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl);
+    LRESULT PathMoveTopCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl);
+    LRESULT PathMoveBottomCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl);
     LRESULT HelpContentCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl);
     LRESULT Edit1Cmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl);
     LRESULT Edit2Cmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl);

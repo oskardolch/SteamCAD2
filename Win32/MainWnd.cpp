@@ -1,5 +1,5 @@
 #include "MainWnd.hpp"
-#include "SteamCAD.rh"
+#include "SteamCAD2.rh"
 #include <wchar.h>
 #include <math.h>
 #include <commctrl.h>
@@ -425,12 +425,30 @@ LRESULT CMainWnd::WMCommand(HWND hwnd, WORD wNotifyCode, WORD wID, HWND hwndCtl)
         return(ToolsCmd(hwnd, wNotifyCode, hwndCtl, tolConflict));
     case IDM_TOOLSMEASURE:
         return(ToolsCmd(hwnd, wNotifyCode, hwndCtl, tolMeas));
-    case IDM_TOOLSBREAK:
-        return(ToolsBreakCmd(hwnd, wNotifyCode, hwndCtl));
+    //case IDM_TOOLSBREAK:
+    //    return(ToolsBreakCmd(hwnd, wNotifyCode, hwndCtl));
     case IDM_TOOLSCALE:
         return(ToolsScaleCmd(hwnd, wNotifyCode, hwndCtl));
     case IDM_TOOLSTAT:
         return(ToolsStatCmd(hwnd, wNotifyCode, hwndCtl));
+    case IDM_PATHCREATE:
+        return PathCreateCmd(hwnd, wNotifyCode, hwndCtl);
+    case IDM_PATHBREAK:
+        return PathBreakCmd(hwnd, wNotifyCode, hwndCtl);
+    case IDM_PATHAREA:
+        return PathAreaCmd(hwnd, wNotifyCode, hwndCtl);
+    case IDM_PATHGROUP:
+        return PathGroupCmd(hwnd, wNotifyCode, hwndCtl);
+    case IDM_PATHUNGROUP:
+        return PathUngroupCmd(hwnd, wNotifyCode, hwndCtl);
+    case IDM_PATHMOVEUP:
+        return PathMoveUpCmd(hwnd, wNotifyCode, hwndCtl);
+    case IDM_PATHMOVEDOWN:
+        return PathMoveDownCmd(hwnd, wNotifyCode, hwndCtl);
+    case IDM_PATHMOVETOP:
+        return PathMoveTopCmd(hwnd, wNotifyCode, hwndCtl);
+    case IDM_PATHMOVEBOTTOM:
+        return PathMoveBottomCmd(hwnd, wNotifyCode, hwndCtl);
     case IDM_HELPCONTENT:
         return(HelpContentCmd(hwnd, wNotifyCode, hwndCtl));
     case IDC_EDT1:
@@ -508,7 +526,7 @@ void CMainWnd::LoadSettings(HWND hwnd)
 {
     LPWSTR ininame = (LPWSTR)malloc((wcslen(m_sAppPath) + 32)*sizeof(wchar_t));
     wcscpy(ininame, m_sAppPath);
-    wcscat(ininame, L"SteamCAD.xml");
+    wcscat(ininame, L"SteamCAD2.xml");
 
     CXMLReader* pRdr = new CXMLReader(ininame);
 
@@ -638,10 +656,10 @@ void CMainWnd::SaveSettings(HWND hwnd)
 
     LPWSTR ininame = (LPWSTR)malloc((wcslen(m_sAppPath) + 40)*sizeof(wchar_t));
     wcscpy(ininame, m_sAppPath);
-    wcscat(ininame, L"SteamCAD.xml");
+    wcscat(ininame, L"SteamCAD2.xml");
 
     CXMLWritter* pWrit = new CXMLWritter(ininame);
-    pWrit->WriteComment(L"SteamCAD Workspace Settings");
+    pWrit->WriteComment(L"SteamCAD2 Workspace Settings");
     pWrit->CreateRoot(L"Settings");
 
     IXMLDOMElement* pElem = NULL;
@@ -738,6 +756,7 @@ LRESULT CMainWnd::WMPaint(HWND hwnd, HDC hdc)
 
     PAINTSTRUCT ps;
     HDC ldc = BeginPaint(hwnd, &ps);
+    Graphics graphics(ldc);
 
     HBRUSH hOldBr = (HBRUSH)SelectObject(ldc, GetStockObject(NULL_BRUSH));
     HPEN hOldPen = (HPEN)SelectObject(ldc, m_hBrownPen);
@@ -951,9 +970,16 @@ bool CMainWnd::SaveFile(HWND hWnd, LPWSTR wsFile, bool bSelectOnly)
     }
     if(!bSave) return false;
 
+    unsigned char cVer = 2;
+    LPWSTR sDot = wcsrchr(wsFile, '.');
+    if(sDot)
+    {
+        if(wcsicmp(sDot, L".sdr") == 0) cVer = 1;
+    }
+
     // save the file
     FILE *pf = _wfopen(wsFile, L"wb");
-    m_pDrawObjects->SaveToFile(pf, true, bSelectOnly);
+    m_pDrawObjects->SaveToFile(pf, true, bSelectOnly, cVer);
     fclose(pf);
 
     return true;
@@ -1515,7 +1541,7 @@ void CMainWnd::DrawCross(HWND hWnd)
 
 LRESULT CMainWnd::EditCopyParCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl)
 {
-    int iSel = m_pDrawObjects->GetSelectCount();
+    int iSel = m_pDrawObjects->GetSelectCount(2);
     if(iSel != 1) return 0;
 
     PDObject pObj = m_pDrawObjects->GetSelected(0);
@@ -1925,7 +1951,7 @@ LRESULT CMainWnd::ToolsCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl, int iTool)
 
     if(iTool == tolDimen)
     {
-        if(m_pDrawObjects->GetSelectCount() != 1)
+        if(m_pDrawObjects->GetSelectCount(2) != 1)
         {
             wchar_t sCap[64];
             wchar_t sMsg[128];
@@ -3104,7 +3130,7 @@ LRESULT CMainWnd::WMMouseMove(HWND hwnd, WPARAM fwKeys, int xPos, int yPos)
 
         if(iDynMode == 4)
         {
-            iCnt = m_pDrawObjects->GetSelectCount();
+            iCnt = m_pDrawObjects->GetSelectCount(2);
             if(iCnt == 1)
             {
                 pObj1 = m_pDrawObjects->GetSelected(0);
@@ -3141,7 +3167,7 @@ LRESULT CMainWnd::WMMouseMove(HWND hwnd, WPARAM fwKeys, int xPos, int yPos)
                 CDPoint cMainDir = {1.0, 0.0};
                 CDLine cPtX;
 
-                iCnt = m_pDrawObjects->GetSelectCount();
+                iCnt = m_pDrawObjects->GetSelectCount(2);
                 if(iCnt == 1)
                 {
                     pObj1 = m_pDrawObjects->GetSelected(0);
@@ -3254,7 +3280,7 @@ LRESULT CMainWnd::WMMouseMove(HWND hwnd, WPARAM fwKeys, int xPos, int yPos)
 
                 if(iDynMode == 3)
                 {
-                    iCnt = m_pDrawObjects->GetSelectCount();
+                    iCnt = m_pDrawObjects->GetSelectCount(2);
                     if(iCnt == 2)
                     {
                         pObj1 = m_pDrawObjects->GetSelected(0);
@@ -3368,7 +3394,7 @@ LRESULT CMainWnd::WMMouseMove(HWND hwnd, WPARAM fwKeys, int xPos, int yPos)
         }
         else if(iDynMode == 4)
         {
-            iCnt = m_pDrawObjects->GetSelectCount();
+            iCnt = m_pDrawObjects->GetSelectCount(2);
             if(iCnt == 1)
             {
 //SendMessage(g_hStatus, SB_SETTEXT, 2, (LPARAM)L"Dobry 1");
@@ -3682,7 +3708,7 @@ void CMainWnd::StartNewObject(HWND hWnd)
 
     if(m_iToolMode == tolRound)
     {
-        int iCnt = m_pDrawObjects->GetSelectCount();
+        int iCnt = m_pDrawObjects->GetSelectCount(2);
         if(iCnt == 2)
         {
             m_pActiveObject = new CDObject(dtCircle, m_cFSR.dDefLineWidth);
@@ -3775,7 +3801,7 @@ void CMainWnd::SetTitle(HWND hWnd, bool bForce)
     free(wsCap);
 }
 
-LRESULT CMainWnd::ToolsBreakCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl)
+/*LRESULT CMainWnd::ToolsBreakCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl)
 {
     RECT rc;
     GetClientRect(hwnd, &rc);
@@ -3806,7 +3832,7 @@ LRESULT CMainWnd::ToolsBreakCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl)
     ClearPolygonList(pRegions);
     delete pRegions;
     return 0;
-}
+}*/
 
 LRESULT CMainWnd::ToolsScaleCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl)
 {
@@ -3876,5 +3902,50 @@ LRESULT CMainWnd::ToolsStatCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl)
     cSR.iDimens = iStats[0];
 
     m_pStatDlg->ShowDialog(hwnd, &cSR);
+    return 0;
+}
+
+LRESULT CMainWnd::PathCreateCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl)
+{
+    return 0;
+}
+
+LRESULT CMainWnd::PathBreakCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl)
+{
+    return 0;
+}
+
+LRESULT CMainWnd::PathAreaCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl)
+{
+    return 0;
+}
+
+LRESULT CMainWnd::PathGroupCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl)
+{
+    return 0;
+}
+
+LRESULT CMainWnd::PathUngroupCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl)
+{
+    return 0;
+}
+
+LRESULT CMainWnd::PathMoveUpCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl)
+{
+    return 0;
+}
+
+LRESULT CMainWnd::PathMoveDownCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl)
+{
+    return 0;
+}
+
+LRESULT CMainWnd::PathMoveTopCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl)
+{
+    return 0;
+}
+
+LRESULT CMainWnd::PathMoveBottomCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl)
+{
     return 0;
 }

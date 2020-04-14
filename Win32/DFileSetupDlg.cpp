@@ -1,5 +1,5 @@
 #include "DFileSetupDlg.hpp"
-#include "SteamCAD.rh"
+#include "SteamCAD2.rh"
 #include "../Source/DDataTypes.hpp"
 
 #include <stdio.h>

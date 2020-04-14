@@ -1,5 +1,5 @@
 #include "DScaleDlg.hpp"
-#include "SteamCAD.rh"
+#include "SteamCAD2.rh"
 #include "DFileSetupDlg.hpp"
 #include "../Source/DMath.hpp"
 
