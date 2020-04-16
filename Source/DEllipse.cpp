@@ -339,6 +339,7 @@ double GetElpsLen(double da, double db, double dOffset, double dBreak, double dl
     iDir = -1;
     dx *= (double)iDir;
   }
+printf("Dobry 1 - %f, %f, %d\n", dRef, dx, iQuad);
 
   double dRes = (double)iQuad*(dl1 + dl2);
   if(iQuad % 2 > 0)
@@ -348,10 +349,11 @@ double GetElpsLen(double da, double db, double dOffset, double dBreak, double dl
   }
   else
   {
-    if(M_PI - dx < dBreak - g_dPrec)
-      dRes += iDir*(2.0*(dl1 + dl2) - GetElpsPureLen(da, db, dOffset, 0.0, dBreak, iSeg1, M_PI - dx));
-    else dRes += iDir*(2.0*dl1 + dl2 - GetElpsPureLen(da, db, dOffset, dBreak, pi2, iSeg2, M_PI - dx));
+    if(dx < dBreak - g_dPrec)
+      dRes -= iDir*GetElpsPureLen(da, db, dOffset, 0.0, dBreak, iSeg1, dx);
+    else dRes -= iDir*(dl1 + GetElpsPureLen(da, db, dOffset, dBreak, pi2, iSeg2, dx));
   }
+printf("Dobry 2 - %f\n", dRes);
   return dRes;
 }
 
@@ -434,7 +436,7 @@ double GetElpsRef(double da, double db, double dOffset, double dBreak, double dl
     dx *= (double)iDir;
   }
 
-  double dRes = (double)iQuad*dQuartLen;
+  double dRes = (double)iQuad*pi2;
   if(iQuad % 2 > 0)
   {
     if(dx < dl1 - g_dPrec) dRes += iDir*GetElpsPureRef(da, db, dOffset, 0.0, dBreak, iSeg1, dx);
@@ -442,9 +444,9 @@ double GetElpsRef(double da, double db, double dOffset, double dBreak, double dl
   }
   else
   {
-    if(dQuartLen - dx < dl1 - g_dPrec)
-      dRes += iDir*(M_PI - GetElpsPureRef(da, db, dOffset, 0.0, dBreak, iSeg1, 2.0*dQuartLen - dx));
-    else dRes += iDir*(dBreak + M_PI/2.0 - GetElpsPureRef(da, db, dOffset, dBreak, pi2, iSeg2, 2.0*dQuartLen - dx));
+    if(dx < dl1 - g_dPrec)
+      dRes -= iDir*GetElpsPureRef(da, db, dOffset, 0.0, dBreak, iSeg1, dx);
+    else dRes -= iDir*(dBreak + GetElpsPureRef(da, db, dOffset, dBreak, pi2, iSeg2, dx));
   }
   return dRes;
 }
@@ -1052,7 +1054,7 @@ void BuildEllipseWithBounds(double da, double db, double dr, double dtStart, dou
 void BuildEllipseWithBoundsBreaks(double da, double db, double dr, double dtStart, double dtEnd,
   CDPoint cOrig, CDPoint cMainDir, double dAngle, bool bFullCycle, PDPrimObject pPrimList)
 {
-  int iSegs;
+/*  int iSegs;
   double dBnds[4];
 
   iSegs = MergeBounds(dtStart, dtEnd, dAngle - M_PI, -dAngle, bFullCycle, dBnds);
@@ -1077,7 +1079,8 @@ void BuildEllipseWithBoundsBreaks(double da, double db, double dr, double dtStar
   for(int i = 0; i < iSegs; i++)
   {
     BuildEllipseWithBounds(da, db, dr, dBnds[2*i], dBnds[2*i + 1], cOrig, cMainDir, pPrimList);
-  }
+  }*/
+  double dBnds[4] = {dAngle - M_PI, -dAngle, dAngle, M_PI - dAngle};
 }
 
 void BuildEllipseQuadsWithBounds(double da, double db, double dr, double dtStart, double dtEnd,
@@ -1928,13 +1931,14 @@ bool GetElpsPointRefDist(double dRef, PDPointList pCache, double *pdDist)
   //double dAng = fabs(dRef);
 
   int iBreaks = pCache->GetCount(4);
-  CDPoint cBreak = {M_PI/2.0, 0.0};
+  CDPoint cBreak = {-1.0, 0.0};
   CDPoint cLength = {0.0, 0.0};
   if(iBreaks > 0)
   {
     cBreak = pCache->GetPoint(0, 4).cPoint;
     cLength = pCache->GetPoint(1, 4).cPoint;
   }
+  if(cBreak.x < -0.5) cBreak.x = M_PI/4.0;
 
   *pdDist = GetElpsLen(cRad.x, cRad.y, dDist, cBreak.x, cLength.x, cLength.y, dRef);
 
@@ -2014,7 +2018,7 @@ bool GetElpsPointRefDist(double dRef, PDPointList pCache, double *pdDist)
   return true;
 }
 
-double GetElpsPointAtDist(double da, double db, double dr, double dBreak, double dDist)
+/*double GetElpsPointAtDist(double da, double db, double dr, double dBreak, double dDist)
 {
   double dStep = M_PI/8.0;
   double dDir = 1.0;
@@ -2039,7 +2043,7 @@ double GetElpsPointAtDist(double da, double db, double dr, double dBreak, double
   cBnds[0].dRef = 0.0;
   cBnds[1].dRef = 0.0;
 
-  /*if(dBreak > -0.5)
+  if(dBreak > -0.5)
   {
     int iSteps = (int)dBreak/dStep + 1;
     dStep = dBreak/iSteps;
@@ -2146,7 +2150,7 @@ double GetElpsPointAtDist(double da, double db, double dr, double dBreak, double
       }
     }
   }
-  else*/
+  else
   {
     while(!bFound)
     {
@@ -2185,17 +2189,17 @@ double GetElpsPointAtDist(double da, double db, double dr, double dBreak, double
   if(cBnds[0].dRef < dt0 - dr0) cBnds[0].dRef = dt0 - dr0;
 
   CDPoint cPt1 = GetQuadPoint(&cQuad, dt1);
-  /*cPt1.y *= dDir;
+  cPt1.y *= dDir;
   if(dDir < 0.0)
   {
     dt = -cBnds[0].dRef;
     cBnds[0].dRef = -cBnds[1].dRef;
     cBnds[1].dRef = dt;
-  }*/
+  }
 
   CDPoint cProj = GetElpsPtProj(da, db, cPt1, cPt1, dr, 0, cBnds);
   return dDir*fabs(atan2(cProj.y, cProj.x));
-}
+}*/
 
 void AddElpsSegment(double d1, double d2, double dExt, PDPointList pCache, PDPrimObject pPrimList)
 {
@@ -2234,7 +2238,7 @@ void AddElpsSegment(double d1, double d2, double dExt, PDPointList pCache, PDPri
   if(nOffs > 0) dr = pCache->GetPoint(0, 2).cPoint.x;
 
   int iBreaks = pCache->GetCount(4);
-  CDPoint cBreak = {-0.6, 0.0};
+  CDPoint cBreak = {-1.0, 0.0};
   CDPoint cLengths = {0.0, 0.0};
 //printf("%d, %f, %f\n", iBreaks, d1, d2);
   if(iBreaks > 0)
@@ -2244,10 +2248,13 @@ void AddElpsSegment(double d1, double d2, double dExt, PDPointList pCache, PDPri
 //    if(d1 < -2.0*cLengths.x) d1 += 2.0*cLengths.x;
 //    if(d2 > cLengths.x) d2 -= 2.0*cLengths.x;
   }
-//printf("%f, %f\n", d1, d2);
+  if(cBreak.x < -0.5) cBreak.x = M_PI/4.0;
+printf("%f, %f, %f\n", cBreak.x, cLengths.x, cLengths.y);
 
-  double dt1 = GetElpsPointAtDist(cRad.x, cRad.y, dr, cBreak.x, d1);
-  double dt2 = GetElpsPointAtDist(cRad.x, cRad.y, dr, cBreak.x, d2);
+  //double dt1 = GetElpsPointAtDist(cRad.x, cRad.y, dr, cBreak.x, d1);
+  //double dt2 = GetElpsPointAtDist(cRad.x, cRad.y, dr, cBreak.x, d2);
+  double dt1 = GetElpsRef(cRad.x, cRad.y, dr, cBreak.x, cLengths.x, cLengths.y, d1);
+  double dt2 = GetElpsRef(cRad.x, cRad.y, dr, cBreak.x, cLengths.x, cLengths.y, d2);
 //printf("%f, %f\n", dt1, dt2);
 /*  if(cLengths.y > g_dPrec)
   {
@@ -2256,8 +2263,7 @@ void AddElpsSegment(double d1, double d2, double dExt, PDPointList pCache, PDPri
   }*/
 
   bool bFullCycle = fabs(dt2 - dt1 - 2.0*M_PI) < g_dPrec;
-printf("%f, %f, %d\n", dt1, dt2, bFullCycle);
-bFullCycle = true;
+printf("Dobry 4 - %f, %f - %f, %f, %d\n", d1, d2, dt1, dt2, bFullCycle);
 
   if(cBreak.x > -0.4)
     BuildEllipseWithBoundsBreaks(cRad.x, cRad.y, dr, dt1, dt2,
@@ -2405,16 +2411,18 @@ bool GetElpsReference(double dDist, PDPointList pCache, double *pdRef)
   if(nOffs > 0) dr = pCache->GetPoint(0, 2).cPoint.x;
 
   int iBreaks = pCache->GetCount(4);
-  CDPoint cBreak = {-0.5, 0.0};
+  CDPoint cBreak = {-1.0, 0.0};
   CDPoint cLengths = {0.0, 0.0};
   if(iBreaks > 0)
   {
     cBreak = pCache->GetPoint(0, 4).cPoint;
     cLengths = pCache->GetPoint(1, 4).cPoint;
   }
+  if(cBreak.x < -0.5) cBreak.x = M_PI/4.0;
 
-  double dt = GetElpsPointAtDist(cRad.x, cRad.y, dr, cBreak.x, dDist);
-  if(cLengths.y > g_dPrec) dt *= M_PI/cLengths.y;
+  //double dt = GetElpsPointAtDist(cRad.x, cRad.y, dr, cBreak.x, dDist);
+  double dt = GetElpsRef(cRad.x, cRad.y, dr, cBreak.x, cLengths.x, cLengths.y, dDist);
+  //if(cLengths.y > g_dPrec) dt *= M_PI/cLengths.y;
 
   *pdRef = dt;
   return true;
