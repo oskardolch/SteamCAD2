@@ -761,6 +761,8 @@ LRESULT CMainWnd::WMPaint(HWND hwnd, HDC hdc)
     HBRUSH hOldBr = (HBRUSH)SelectObject(ldc, GetStockObject(NULL_BRUSH));
     HPEN hOldPen = (HPEN)SelectObject(ldc, m_hBrownPen);
 
+    Pen brownPen(Color(255, 128, 76, 0), 1);
+
     if(m_iDrawGridMode > 0)
     {
         double dx = m_dUnitScale*m_cFSR.dXGrid;
@@ -790,24 +792,27 @@ LRESULT CMainWnd::WMPaint(HWND hwnd, HDC hdc)
                 else dGray = 0.7;
                 iGray = 255*dGray;
 
-                hlPen = CreatePen(PS_SOLID, 0, RGB(iGray, iGray, iGray));
-                SelectObject(ldc, hlPen);
+                //hlPen = CreatePen(PS_SOLID, 0, RGB(iGray, iGray, iGray));
+                //SelectObject(ldc, hlPen);
+                Pen grayPen(Color(255, iGray, iGray, iGray), 1);
                 for(int i = iMin; i <= iMax; i++)
                 {
                     dx = m_cViewOrigin.x + (double)i*m_dUnitScale*m_cFSR.dXGrid;
                     ix = Round(dx);
-                    MoveToEx(ldc, ix, 0, NULL);
-                    LineTo(ldc, ix, cr.bottom);
+                    graphics.DrawLine(&grayPen, ix, 0, ix, cr.bottom);
+                    //MoveToEx(ldc, ix, 0, NULL);
+                    //LineTo(ldc, ix, cr.bottom);
                 }
                 for(int j = jMin; j <= jMax; j++)
                 {
                     dy = m_cViewOrigin.y + (double)j*m_dUnitScale*m_cFSR.dYGrid;
                     iy = Round(dy);
-                    MoveToEx(ldc, 0, iy, NULL);
-                    LineTo(ldc, cr.right, iy);
+                    graphics.DrawLine(&grayPen, 0, iy, cr.right, iy);
+                    //MoveToEx(ldc, 0, iy, NULL);
+                    //LineTo(ldc, cr.right, iy);
                 }
-                SelectObject(ldc, hOldPen);
-                DeleteObject(hlPen);
+                //SelectObject(ldc, hOldPen);
+                //DeleteObject(hlPen);
             }
 
             if(m_iDrawGridMode & 1)
@@ -851,9 +856,11 @@ LRESULT CMainWnd::WMPaint(HWND hwnd, HDC hdc)
         }
     }
 
-    SelectObject(ldc, m_hBrownPen);
-    Rectangle(ldc, m_cViewOrigin.x, m_cViewOrigin.y,
-        m_cViewOrigin.x + m_dUnitScale*m_dwPage, m_cViewOrigin.y + m_dUnitScale*m_dhPage);
+    //SelectObject(ldc, m_hBrownPen);
+    //Rectangle(ldc, m_cViewOrigin.x, m_cViewOrigin.y,
+    //    m_cViewOrigin.x + m_dUnitScale*m_dwPage, m_cViewOrigin.y + m_dUnitScale*m_dhPage);
+    graphics.DrawRectangle(&brownPen, (REAL)m_cViewOrigin.x, (REAL)m_cViewOrigin.y,
+      (REAL)(m_cViewOrigin.x + m_dUnitScale*m_dwPage), (REAL)(m_cViewOrigin.y + m_dUnitScale*m_dhPage));
 
     CDRect cdr;
     cdr.cPt1.x = (rc.left - m_cViewOrigin.x)/m_dUnitScale;
@@ -2879,6 +2886,144 @@ void CMainWnd::DrawPrimitive(HDC hdc, PDPrimitive pPrim)
 }
 
 void CMainWnd::DrawObject(HWND hWnd, HDC hdc, PDObject pObj, int iMode, int iDimen)
+{
+    bool bSel = pObj->GetSelected();
+    CDLineStyle cStyle = pObj->GetLineStyle();
+
+    DWORD dwColor = 0;
+    if(iMode == 1) dwColor = m_lActiveColor;
+    else if(iMode == 2) dwColor = m_lHighColor;
+    else if(bSel) dwColor = m_lSelColor;
+
+    int iWidth = Round(fabs(cStyle.dWidth)*m_dUnitScale);
+    int iPtRad = iWidth;
+    if(iPtRad < 2) iPtRad = 2;
+    HPEN hPen = CreatePen(PS_SOLID, iWidth, dwColor);
+    HPEN hPtPen = CreatePen(PS_SOLID, 0, dwColor);
+    HPEN hCentPen = CreatePen(PS_SOLID, 0, 0x00888888);
+
+    LOGBRUSH lb;
+    lb.lbStyle = BS_SOLID;
+    lb.lbColor = dwColor/2;
+    HBRUSH hBr = CreateBrushIndirect(&lb);
+    HBRUSH hPrevBr;
+
+    HPEN hPrevPen;
+    hPrevPen = (HPEN)SelectObject(hdc, hPen);
+
+    CDPrimitive cPrim;
+    PDDimension pDim;
+    pObj->GetFirstPrimitive(&cPrim, m_dUnitScale, iDimen);
+
+    if(iDimen < -1)
+    {
+        while(cPrim.iType > 0)
+        {
+            if(cPrim.iType == 6)
+            {
+                SelectObject(hdc, hPtPen);
+                hPrevBr = (HBRUSH)SelectObject(hdc, hBr);
+                Ellipse(hdc, cPrim.cPt1.x + m_cViewOrigin.x - iPtRad,
+                    cPrim.cPt1.y + m_cViewOrigin.y - iPtRad,
+                    cPrim.cPt1.x + m_cViewOrigin.x + iPtRad,
+                    cPrim.cPt1.y + m_cViewOrigin.y + iPtRad);
+                SelectObject(hdc, hPrevBr);
+                SelectObject(hdc, hPen);
+            }
+            else if(cPrim.iType == 7)
+            {
+                if(iMode == 0) SelectObject(hdc, hCentPen);
+                else SelectObject(hdc, hPtPen);
+                DrawPrimitive(hdc, &cPrim);
+                SelectObject(hdc, hPen);
+            }
+            else if(cPrim.iType == 8)
+            {
+                SelectObject(hdc, hPtPen);
+                hPrevBr = (HBRUSH)SelectObject(hdc, hBr);
+                Rectangle(hdc, cPrim.cPt1.x + m_cViewOrigin.x - iPtRad,
+                    cPrim.cPt1.y + m_cViewOrigin.y - iPtRad,
+                    cPrim.cPt1.x + m_cViewOrigin.x + iPtRad,
+                    cPrim.cPt1.y + m_cViewOrigin.y + iPtRad);
+                SelectObject(hdc, hPrevBr);
+                SelectObject(hdc, hPen);
+            }
+            else if(cPrim.iType == 10)
+            {
+                DrawDimText(hWnd, hdc, &cPrim, pObj, dwColor, fabs(cStyle.dWidth));
+            }
+            else DrawPrimitive(hdc, &cPrim);
+            pObj->GetNextPrimitive(&cPrim, m_dUnitScale, iDimen);
+        }
+
+        if(iMode == 0)
+        {
+            SelectObject(hdc, hPrevPen);
+            DeleteObject(hPen);
+            hPen = CreatePen(PS_SOLID, iWidth, 0);
+            HPEN hSelPen = CreatePen(PS_SOLID, iWidth, m_lSelColor);
+            hPrevPen = (HPEN)SelectObject(hdc, hPen);
+            for(int i = 0; i < pObj->GetDimenCount(); i++)
+            {
+                pDim = pObj->GetDimen(i);
+                if(pDim->bSelected)
+                {
+                    dwColor = m_lSelColor;
+                    SelectObject(hdc, hSelPen);
+                }
+                else
+                {
+                    dwColor = 0;
+                    SelectObject(hdc, hPen);
+                }
+
+                pObj->GetFirstPrimitive(&cPrim, m_dUnitScale, i);
+                while(cPrim.iType > 0)
+                {
+                    if(cPrim.iType == 10)
+                    {
+                        DrawDimText(hWnd, hdc, &cPrim, pObj, dwColor, fabs(cStyle.dWidth));
+                    }
+                    else DrawPrimitive(hdc, &cPrim);
+                    pObj->GetNextPrimitive(&cPrim, m_dUnitScale, i);
+                }
+            }
+            SelectObject(hdc, hPen);
+            DeleteObject(hSelPen);
+        }
+    }
+    else
+    {
+        if((iMode < 1) && (iDimen > -1))
+        {
+            pDim = pObj->GetDimen(iDimen);
+            if(pDim->bSelected) dwColor = m_lSelColor;
+            else dwColor = 0;
+            SelectObject(hdc, hPrevPen);
+            DeleteObject(hPen);
+            hPen = CreatePen(PS_SOLID, iWidth, dwColor);
+            hPrevPen = (HPEN)SelectObject(hdc, hPen);
+        }
+
+        while(cPrim.iType > 0)
+        {
+            if(cPrim.iType == 10)
+            {
+                DrawDimText(hWnd, hdc, &cPrim, pObj, dwColor, fabs(cStyle.dWidth));
+            }
+            else DrawPrimitive(hdc, &cPrim);
+            pObj->GetNextPrimitive(&cPrim, m_dUnitScale, iDimen);
+        }
+    }
+
+    SelectObject(hdc, hPrevPen);
+    DeleteObject(hBr);
+    DeleteObject(hCentPen);
+    DeleteObject(hPtPen);
+    DeleteObject(hPen);
+}
+
+void CMainWnd::DrawObjectPlus(HWND hWnd, HDC hdc, PDObject pObj, int iMode, int iDimen)
 {
     bool bSel = pObj->GetSelected();
     CDLineStyle cStyle = pObj->GetLineStyle();
