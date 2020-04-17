@@ -173,6 +173,9 @@ double GetElpsLen(double da, double db, double dOffset, double dBreak, double dl
 
 double GetElpsRef(double da, double db, double dOffset, double dBreak, double dl1, double dl2, double dLen)
 {
+  int iSeg1 = (int)Round(8.0*dBreak/M_PI);
+  if((iSeg1 < 1) && (dBreak > g_dPrec)) iSeg1 = 1;
+  if((iSeg1 > 3) && (dBreak < pi2 - g_dPrec)) iSeg1 = 3;
 }
 
 bool AddEllipsePoint(double x, double y, char iCtrl, PDPointList pPoints, int iInputLines)
@@ -2455,7 +2458,7 @@ bool ElpsRemovePart(bool bDown, PDPointList pCache, PDRefPoint pBounds)
 
     double *pdVal = &pBounds[1].dRef;
     if(bDown) pdVal = &pBounds[0].dRef;
-    
+
     switch(iEnd)
     {
     case 0:
@@ -2527,7 +2530,7 @@ bool ElpsRemovePart(bool bDown, PDPointList pCache, PDRefPoint pBounds)
 
     double *pdVal = &pBounds[1].dRef;
     if(bDown) pdVal = &pBounds[0].dRef;
-    
+
     switch(iEnd)
     {
     case 0:
@@ -2593,7 +2596,7 @@ bool ElpsRemovePart(bool bDown, PDPointList pCache, PDRefPoint pBounds)
 
   double *pdVal = &pBounds[1].dRef;
   if(bDown) pdVal = &pBounds[0].dRef;
-  
+
   switch(iEnd)
   {
   case 0:
