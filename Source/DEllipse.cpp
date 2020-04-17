@@ -1566,9 +1566,7 @@ bool GetElpsReference(double dDist, PDPointList pCache, double *pdRef)
   }
   if(cBreak.x < -0.5) cBreak.x = M_PI/4.0;
 
-  double dt = GetElpsRef(cRad.x, cRad.y, dr, cBreak.x, cLengths.x, cLengths.y, dDist);
-
-  *pdRef = dt;
+  *pdRef = GetElpsRef(cRad.x, cRad.y, dr, cBreak.x, cLengths.x, cLengths.y, dDist);
   return true;
 }
 
