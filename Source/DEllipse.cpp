@@ -1700,7 +1700,7 @@ bool ElpsRemovePart(bool bDown, PDPointList pCache, PDRefPoint pBounds)
 
     double *pdVal = &pBounds[1].dRef;
     if(bDown) pdVal = &pBounds[0].dRef;
-    
+
     switch(iEnd)
     {
     case 0:
@@ -1772,7 +1772,7 @@ bool ElpsRemovePart(bool bDown, PDPointList pCache, PDRefPoint pBounds)
 
     double *pdVal = &pBounds[1].dRef;
     if(bDown) pdVal = &pBounds[0].dRef;
-    
+
     switch(iEnd)
     {
     case 0:
@@ -1838,7 +1838,7 @@ bool ElpsRemovePart(bool bDown, PDPointList pCache, PDRefPoint pBounds)
 
   double *pdVal = &pBounds[1].dRef;
   if(bDown) pdVal = &pBounds[0].dRef;
-  
+
   switch(iEnd)
   {
   case 0:
