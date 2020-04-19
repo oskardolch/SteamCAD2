@@ -43,7 +43,7 @@ private:
     int m_iButton; // 0 nothing, 1 LButon, 2 MButton, 3 RButton
     int m_iToolMode;
 
-    POINT m_cViewOrigin;
+    CDPoint m_cViewOrigin;
     POINT m_cZoomOrig;
     POINT m_cLastMovePt;
     POINT m_cLastSnapPt;

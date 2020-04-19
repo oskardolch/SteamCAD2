@@ -110,8 +110,8 @@ CMainWnd::CMainWnd(HINSTANCE hInstance)
     m_iButton = 0;
     m_iToolMode = tolNone;
 
-    m_cViewOrigin.x = 0;
-    m_cViewOrigin.y = 0;
+    m_cViewOrigin.x = 0.0;
+    m_cViewOrigin.y = 0.0;
     m_cLastSnapPt.x = -100;
     m_cLastSnapPt.y = -100;
 
@@ -860,7 +860,7 @@ LRESULT CMainWnd::WMPaint(HWND hwnd, HDC hdc)
     //Rectangle(ldc, m_cViewOrigin.x, m_cViewOrigin.y,
     //    m_cViewOrigin.x + m_dUnitScale*m_dwPage, m_cViewOrigin.y + m_dUnitScale*m_dhPage);
     graphics.DrawRectangle(&brownPen, (REAL)m_cViewOrigin.x, (REAL)m_cViewOrigin.y,
-      (REAL)(m_cViewOrigin.x + m_dUnitScale*m_dwPage), (REAL)(m_cViewOrigin.y + m_dUnitScale*m_dhPage));
+      (REAL)(m_dUnitScale*m_dwPage), (REAL)(m_dUnitScale*m_dhPage));
 
     CDRect cdr;
     cdr.cPt1.x = (rc.left - m_cViewOrigin.x)/m_dUnitScale;
