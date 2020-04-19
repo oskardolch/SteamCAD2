@@ -20,6 +20,9 @@
 #define stMidPoint 0x04
 #define stIntersect 0x08
 
+#define min(a,b) ((a)<(b)?(a):(b))
+#define max(a,b) ((a)>(b)?(a):(b))
+
 using namespace Gdiplus;
 
 class CMainWnd
@@ -53,6 +56,7 @@ private:
     HPEN m_hRedPen;
     HPEN m_hSelPen;
     HPEN m_hBrownPen;
+    Bitmap *m_pDrawBuffer;
 
     long m_lSelColor;
     long m_lHighColor;
@@ -154,8 +158,9 @@ private:
     void GetPageDims();
     void DrawDimArrow(HDC hdc, PDPrimitive pPrim);
     void DrawPrimitive(HDC hdc, PDPrimitive pPrim);
+    void DrawPrimitivePlus(Graphics *graphics, Pen *pen, PDPrimitive pPrim);
     void DrawObject(HWND hWnd, HDC hdc, PDObject pObj, int iMode, int iDimen);
-    void DrawObjectPlus(HWND hWnd, HDC hdc, PDObject pObj, int iMode, int iDimen);
+    void DrawObjectPlus(HWND hWnd, Graphics *graphics, PDObject pObj, int iMode, int iDimen);
     void StartNewObject(HWND hWnd);
     void GetDeviceToUnitScale(HWND hWnd);
     bool PromptForSave(HWND hWnd);
