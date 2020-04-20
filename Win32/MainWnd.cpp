@@ -116,15 +116,11 @@ CMainWnd::CMainWnd(HINSTANCE hInstance)
   m_cLastSnapPt.y = -100;
   m_pDrawBuffer = NULL;
 
-  //m_hRedPen = CreatePen(PS_SOLID, 0, 0x000000FF);
   m_redPen = new Pen(Color(255, 255, 0, 0), 1);
 
   m_lSelColor = 0xFF24E907; //0x00008888;
   m_lHighColor = 0xFFEDD52C; //0x00888800;
   m_lActiveColor = 0xFFFF0000;
-
-  m_hSelPen = CreatePen(PS_SOLID, 0, m_lSelColor);
-  m_hBrownPen = CreatePen(PS_SOLID, 0, 0x00004C80);
 
   m_pDrawObjects = new CDataList();
   m_pUndoObjects = new CDataList();
@@ -208,9 +204,6 @@ CMainWnd::~CMainWnd()
   //delete m_pToolBar;
 
   if(m_pDrawBuffer) delete m_pDrawBuffer;
-  DeleteObject(m_hBrownPen);
-  DeleteObject(m_hSelPen);
-  //DeleteObject(m_hRedPen);
   delete m_redPen;
 
   free(m_sAppPath);
@@ -767,11 +760,8 @@ LRESULT CMainWnd::WMPaint(HWND hwnd, HDC hdc)
   //graphics.Clear(Color::White);
   SolidBrush whiteBrush(Color::White);
   graphics.FillRectangle(&whiteBrush, (INT)rc.left, (INT)(rc.top - m_iToolBarHeight),
-  (INT)(rc.right - rc.left), (INT)(rc.bottom - rc.top + m_iToolBarHeight));
+    (INT)(rc.right - rc.left), (INT)(rc.bottom - rc.top + m_iToolBarHeight));
   graphics.SetSmoothingMode(SmoothingModeAntiAlias);
-
-  HBRUSH hOldBr = (HBRUSH)SelectObject(ldc, GetStockObject(NULL_BRUSH));
-  HPEN hOldPen = (HPEN)SelectObject(ldc, m_hBrownPen);
 
   if(m_iDrawGridMode > 0)
   {
@@ -905,9 +895,6 @@ LRESULT CMainWnd::WMPaint(HWND hwnd, HDC hdc)
       DrawObjectPlus(hwnd, &dstgraph, m_pActiveObject, 1, -2);
     }
   }
-
-  SelectObject(ldc, hOldPen);
-  SelectObject(ldc, hOldBr);
 
   EndPaint(hwnd, &ps);
 
@@ -1633,15 +1620,24 @@ LRESULT CMainWnd::EditLineStyleCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl)
         cLSRec.bWidthSet = (iMask & 1);
         cLSRec.bExcSet = (iMask & 2);
         cLSRec.bPatSet = (iMask & 4);
+        cLSRec.bCapSet = (iMask & 8);
+        cLSRec.bJoinSet = (iMask & 16);
+        cLSRec.bColorSet = (iMask & 32);
         cLSRec.bWidthChanged = false;
         cLSRec.bExcChanged = false;
         cLSRec.bPatChanged = false;
+        cLSRec.bCapChanged = false;
+        cLSRec.bJoinChanged = false;
+        cLSRec.bColorChanged = false;
         if(m_pLineStyleDlg->ShowDialog(hwnd, &cLSRec) == IDOK)
         {
             iMask = 0;
             if(cLSRec.bWidthSet && cLSRec.bWidthChanged) iMask |= 1;
             if(cLSRec.bExcSet && cLSRec.bExcChanged) iMask |= 2;
             if(cLSRec.bPatSet && cLSRec.bPatChanged) iMask |= 4;
+            if(cLSRec.bCapSet && cLSRec.bCapChanged) iMask |= 8;
+            if(cLSRec.bJoinSet && cLSRec.bJoinChanged) iMask |= 16;
+            if(cLSRec.bColorSet && cLSRec.bColorChanged) iMask |= 32;
             if(m_pDrawObjects->SetSelectedLineStyle(iMask, &cLSRec.cLineStyle, pRegions))
             {
                 RECT rc;

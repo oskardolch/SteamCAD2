@@ -55,8 +55,8 @@ private:
 
     //HPEN m_hRedPen;
     Pen *m_redPen;
-    HPEN m_hSelPen;
-    HPEN m_hBrownPen;
+    //HPEN m_hSelPen;
+    //HPEN m_hBrownPen;
     Bitmap *m_pDrawBuffer;
 
     long m_lSelColor;

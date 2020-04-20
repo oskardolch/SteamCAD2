@@ -14,9 +14,15 @@ typedef struct CDLineStyleRec
     bool bWidthSet;
     bool bExcSet;
     bool bPatSet;
+    bool bCapSet;
+    bool bJoinSet;
+    bool bColorSet;
     bool bWidthChanged;
     bool bExcChanged;
     bool bPatChanged;
+    bool bCapChanged;
+    bool bJoinChanged;
+    bool bColorChanged;
 } *PDLineStyleRec;
 
 typedef class CDLineStyleDlg
@@ -27,13 +33,15 @@ private:
     int m_iY;
     bool m_bSettingUp;
     PDLineStyleRec m_pLSR;
-    bool m_bWidthChanged;
-    bool m_bExcChanged;
-    bool m_bPatChanged;
+    //bool m_bWidthChanged;
+    //bool m_bExcChanged;
+    //bool m_bPatChanged;
 
     INT_PTR OKBtnClick(HWND hWnd);
     INT_PTR LineWidthChange(HWND hWnd, WORD wNotifyCode, HWND hwndCtl);
+    INT_PTR LineCapChange(HWND hWnd, WORD wNotifyCode, HWND hwndCtl);
     INT_PTR LineExcChange(HWND hWnd, WORD wNotifyCode, HWND hwndCtl);
+    INT_PTR LineJoinChange(HWND hWnd, WORD wNotifyCode, HWND hwndCtl);
     INT_PTR LinePatChange(HWND hWnd, WORD wNotifyCode, int iSeg, HWND hwndCtl);
 public:
     CDLineStyleDlg(HINSTANCE hInstance);

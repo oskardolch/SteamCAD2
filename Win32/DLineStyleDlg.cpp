@@ -89,6 +89,16 @@ INT_PTR CDLineStyleDlg::WMInitDialog(HWND hWnd, HWND hwndFocus, LPARAM lInitPara
     wnd = GetDlgItem(hWnd, LSD_LBL_LINEWIDTHUNIT);
     SendMessage(wnd, WM_SETTEXT, 0, (LPARAM)m_pLSR->cUnit.wsAbbrev);
 
+    wnd = GetDlgItem(hWnd, LSD_CB_LINECAP);
+    for(int i = IDS_LINECAPBUTT; i <= IDS_LINECAPSQUARE; i++)
+    {
+        LoadString(m_hInstance, i, buf, 64);
+        SendMessage(wnd, CB_ADDSTRING, 0, (LPARAM)buf);
+    }
+    if(m_pLSR->bCapSet)
+        SendMessage(wnd, CB_SETCURSEL, m_pLSR->cLineStyle.cCapType, 0);
+    else SendMessage(wnd, CB_SETCURSEL, (WPARAM)-1, 0);
+
     wnd = GetDlgItem(hWnd, LSD_EDT_LINEPERC);
     SendMessage(wnd, EM_LIMITTEXT, 64, 0);
     if(m_pLSR->bExcSet)
@@ -96,6 +106,37 @@ INT_PTR CDLineStyleDlg::WMInitDialog(HWND hWnd, HWND hwndFocus, LPARAM lInitPara
         FormatFloatStr(m_pLSR->cLineStyle.dPercent, buf);
         SendMessage(wnd, WM_SETTEXT, 0, (LPARAM)buf);
     }
+
+    wnd = GetDlgItem(hWnd, LSD_CB_LINEJOIN);
+    for(int i = IDS_LINEJOINMITTER; i <= IDS_LINEJOINBEVEL; i++)
+    {
+        LoadString(m_hInstance, i, buf, 64);
+        SendMessage(wnd, CB_ADDSTRING, 0, (LPARAM)buf);
+    }
+    if(m_pLSR->bJoinSet)
+        SendMessage(wnd, CB_SETCURSEL, m_pLSR->cLineStyle.cJoinType, 0);
+    else SendMessage(wnd, CB_SETCURSEL, (WPARAM)-1, 0);
+
+    wnd = GetDlgItem(hWnd, LSD_BTN_COLOR);
+    RECT rc;
+    GetWindowRect(wnd, &rc);
+    int iWidth = 0.5*(rc.right - rc.left);
+    int iHeight = 0.6*(rc.bottom - rc.top);
+    HDC hdc = GetDC(wnd);
+    HDC memDC = CreateCompatibleDC(hdc);
+    HBITMAP memBM = CreateCompatibleBitmap(hdc, iWidth, iHeight);
+    SelectObject(memDC, memBM);
+    HPEN hPen = CreatePen(PS_SOLID, 1, 0x008F8F8F);
+    HBRUSH hBr = CreateSolidBrush(0x0000FF00); // set the color
+    SelectObject(memDC, hPen);
+    SelectObject(memDC, hBr);
+    Rectangle(memDC, 0, 0, iWidth, iHeight);
+    DeleteObject(hBr);
+    DeleteObject(hPen);
+    DeleteDC(memDC);
+    ReleaseDC(wnd, NULL);
+    SendMessage(wnd, BM_SETIMAGE, IMAGE_BITMAP, (LPARAM)memBM);
+    DeleteObject(memBM);
 
     wnd = GetDlgItem(hWnd, LSD_LBL_LINEPATUNIT);
     swprintf(buf, L"(%s)", m_pLSR->cUnit.wsAbbrev);
@@ -139,8 +180,12 @@ INT_PTR CDLineStyleDlg::WMCommand(HWND hWnd, WORD wNotifyCode, WORD wID, HWND hw
         return(TRUE);
     case LSD_EDT_LINEWIDTH:
         return LineWidthChange(hWnd, wNotifyCode, hwndCtl);
+    case LSD_CB_LINECAP:
+        return LineCapChange(hWnd, wNotifyCode, hwndCtl);
     case LSD_EDT_LINEPERC:
         return LineExcChange(hWnd, wNotifyCode, hwndCtl);
+    case LSD_CB_LINEJOIN:
+        return LineJoinChange(hWnd, wNotifyCode, hwndCtl);
     case LSD_EDT_LINEPAT1:
     case LSD_EDT_LINEPAT2:
     case LSD_EDT_LINEPAT3:
@@ -193,6 +238,13 @@ INT_PTR CDLineStyleDlg::OKBtnClick(HWND hWnd)
         else m_pLSR->bWidthSet = false;
     }
 
+    if(m_pLSR->bCapChanged)
+    {
+        wnd = GetDlgItem(hWnd, LSD_CB_LINECAP);
+        m_pLSR->cLineStyle.cCapType = SendMessage(wnd, CB_GETCURSEL, 0, 0);
+        m_pLSR->bCapSet = true;
+    }
+
     if(m_pLSR->bExcChanged)
     {
         wnd = GetDlgItem(hWnd, LSD_EDT_LINEPERC);
@@ -215,6 +267,13 @@ INT_PTR CDLineStyleDlg::OKBtnClick(HWND hWnd)
             }
         }
         else m_pLSR->bExcSet = false;
+    }
+
+    if(m_pLSR->bJoinChanged)
+    {
+        wnd = GetDlgItem(hWnd, LSD_CB_LINEJOIN);
+        m_pLSR->cLineStyle.cJoinType = SendMessage(wnd, CB_GETCURSEL, 0, 0);
+        m_pLSR->bJoinSet = true;
     }
 
     if(m_pLSR->bPatChanged)
@@ -276,10 +335,24 @@ INT_PTR CDLineStyleDlg::LineWidthChange(HWND hWnd, WORD wNotifyCode, HWND hwndCt
     return TRUE;
 }
 
+INT_PTR CDLineStyleDlg::LineCapChange(HWND hWnd, WORD wNotifyCode, HWND hwndCtl)
+{
+    if(m_bSettingUp) return 0;
+    if(wNotifyCode == CBN_SELCHANGE) m_pLSR->bCapChanged = true;
+    return TRUE;
+}
+
 INT_PTR CDLineStyleDlg::LineExcChange(HWND hWnd, WORD wNotifyCode, HWND hwndCtl)
 {
     if(m_bSettingUp) return 0;
     if(wNotifyCode == EN_CHANGE) m_pLSR->bExcChanged = true;
+    return TRUE;
+}
+
+INT_PTR CDLineStyleDlg::LineJoinChange(HWND hWnd, WORD wNotifyCode, HWND hwndCtl)
+{
+    if(m_bSettingUp) return 0;
+    if(wNotifyCode == CBN_SELCHANGE) m_pLSR->bJoinChanged = true;
     return TRUE;
 }
 
