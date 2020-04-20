@@ -49,11 +49,12 @@ private:
     CDPoint m_cViewOrigin;
     POINT m_cZoomOrig;
     POINT m_cLastMovePt;
-    POINT m_cLastSnapPt;
     POINT m_cLastDownPt;
+    CDPoint m_cLastSnapPt;
     CDPoint m_cLastDrawPt;
 
-    HPEN m_hRedPen;
+    //HPEN m_hRedPen;
+    Pen *m_redPen;
     HPEN m_hSelPen;
     HPEN m_hBrownPen;
     Bitmap *m_pDrawBuffer;
@@ -157,9 +158,9 @@ private:
     //void UpdateSnapMenu(HMENU hMenu);
     void GetPageDims();
     void DrawDimArrow(HDC hdc, PDPrimitive pPrim);
-    void DrawPrimitive(HDC hdc, PDPrimitive pPrim);
+    //void DrawPrimitive(HDC hdc, PDPrimitive pPrim);
     void DrawPrimitivePlus(Graphics *graphics, Pen *pen, PDPrimitive pPrim);
-    void DrawObject(HWND hWnd, HDC hdc, PDObject pObj, int iMode, int iDimen);
+    //void DrawObject(HWND hWnd, HDC hdc, PDObject pObj, int iMode, int iDimen);
     void DrawObjectPlus(HWND hWnd, Graphics *graphics, PDObject pObj, int iMode, int iDimen);
     void StartNewObject(HWND hWnd);
     void GetDeviceToUnitScale(HWND hWnd);

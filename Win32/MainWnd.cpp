@@ -116,7 +116,8 @@ CMainWnd::CMainWnd(HINSTANCE hInstance)
   m_cLastSnapPt.y = -100;
   m_pDrawBuffer = NULL;
 
-  m_hRedPen = CreatePen(PS_SOLID, 0, 0x000000FF);
+  //m_hRedPen = CreatePen(PS_SOLID, 0, 0x000000FF);
+  m_redPen = new Pen(Color(255, 255, 0, 0), 1);
 
   m_lSelColor = 0xFF24E907; //0x00008888;
   m_lHighColor = 0xFFEDD52C; //0x00888800;
@@ -209,7 +210,8 @@ CMainWnd::~CMainWnd()
   if(m_pDrawBuffer) delete m_pDrawBuffer;
   DeleteObject(m_hBrownPen);
   DeleteObject(m_hSelPen);
-  DeleteObject(m_hRedPen);
+  //DeleteObject(m_hRedPen);
+  delete m_redPen;
 
   free(m_sAppPath);
 }
@@ -657,295 +659,275 @@ void CMainWnd::LoadSettings(HWND hwnd)
 
 void CMainWnd::SaveSettings(HWND hwnd)
 {
-    //wchar_t wsBuf[64];
+  //wchar_t wsBuf[64];
 
-    LPWSTR ininame = (LPWSTR)malloc((wcslen(m_sAppPath) + 40)*sizeof(wchar_t));
-    wcscpy(ininame, m_sAppPath);
-    wcscat(ininame, L"SteamCAD2.xml");
+  LPWSTR ininame = (LPWSTR)malloc((wcslen(m_sAppPath) + 40)*sizeof(wchar_t));
+  wcscpy(ininame, m_sAppPath);
+  wcscat(ininame, L"SteamCAD2.xml");
 
-    CXMLWritter* pWrit = new CXMLWritter(ininame);
-    pWrit->WriteComment(L"SteamCAD2 Workspace Settings");
-    pWrit->CreateRoot(L"Settings");
+  CXMLWritter* pWrit = new CXMLWritter(ininame);
+  pWrit->WriteComment(L"SteamCAD2 Workspace Settings");
+  pWrit->CreateRoot(L"Settings");
 
-    IXMLDOMElement* pElem = NULL;
-    IXMLDOMElement* pE1 = NULL;
+  IXMLDOMElement* pElem = NULL;
+  IXMLDOMElement* pE1 = NULL;
 
-    WINDOWPLACEMENT wndpl;
-    wndpl.length = sizeof(WINDOWPLACEMENT);
-    wndpl.flags = 0;
-    wndpl.showCmd = 0;
-    GetWindowPlacement(hwnd, &wndpl);
+  WINDOWPLACEMENT wndpl;
+  wndpl.length = sizeof(WINDOWPLACEMENT);
+  wndpl.flags = 0;
+  wndpl.showCmd = 0;
+  GetWindowPlacement(hwnd, &wndpl);
 
-    pElem = pWrit->CreateSection(L"MainForm");
-    pWrit->AddIntValue(pElem, L"WindowState", wndpl.showCmd);
-    pWrit->AddIntValue(pElem, L"Left", wndpl.rcNormalPosition.left);
-    pWrit->AddIntValue(pElem, L"Top", wndpl.rcNormalPosition.top);
-    pWrit->AddIntValue(pElem, L"Right", wndpl.rcNormalPosition.right);
-    pWrit->AddIntValue(pElem, L"Bottom", wndpl.rcNormalPosition.bottom);
-    pElem->Release();
+  pElem = pWrit->CreateSection(L"MainForm");
+  pWrit->AddIntValue(pElem, L"WindowState", wndpl.showCmd);
+  pWrit->AddIntValue(pElem, L"Left", wndpl.rcNormalPosition.left);
+  pWrit->AddIntValue(pElem, L"Top", wndpl.rcNormalPosition.top);
+  pWrit->AddIntValue(pElem, L"Right", wndpl.rcNormalPosition.right);
+  pWrit->AddIntValue(pElem, L"Bottom", wndpl.rcNormalPosition.bottom);
+  pElem->Release();
 
-    pElem = pWrit->CreateSection(L"DrawSettings");
-    pWrit->AddIntValue(pElem, L"PaperUnits", (int)m_bPaperUnits);
-    pWrit->AddIntValue(pElem, L"LastExportType", (int)m_iLastExportType);
-    pWrit->AddIntValue(pElem, L"DrawGridMode", (int)m_iDrawGridMode);
-    pElem->Release();
+  pElem = pWrit->CreateSection(L"DrawSettings");
+  pWrit->AddIntValue(pElem, L"PaperUnits", (int)m_bPaperUnits);
+  pWrit->AddIntValue(pElem, L"LastExportType", (int)m_iLastExportType);
+  pWrit->AddIntValue(pElem, L"DrawGridMode", (int)m_iDrawGridMode);
+  pElem->Release();
 
-    pElem = pWrit->CreateSection(L"PageSettings");
-    pE1 = pWrit->CreateSubSection(pElem, L"PaperSize");
-    pWrit->AddStringValue(pE1, L"PaperName", m_cFSR.cPaperSize.wsPaperSizeName);
-    pWrit->AddDoubleValue(pE1, L"PaperWidth", m_cFSR.cPaperSize.dPaperWidth);
-    pWrit->AddDoubleValue(pE1, L"PaperHeight", m_cFSR.cPaperSize.dPaperHeight);
-    pE1->Release();
-    pWrit->AddByteValue(pElem, L"Portrait", m_cFSR.bPortrait);
-    pE1 = pWrit->CreateSubSection(pElem, L"LengthUnit");
-    pWrit->AddStringValue(pE1, L"UnitName", m_cFSR.cLenUnit.wsName);
-    pWrit->AddStringValue(pE1, L"UnitAbbrev", m_cFSR.cLenUnit.wsAbbrev);
-    pWrit->AddDoubleValue(pE1, L"UnitScale", m_cFSR.cLenUnit.dBaseToUnit);
-    pWrit->AddStringValue(pE1, L"UnitAbbrev2", m_cFSR.cLenUnit.wsAbbrev2);
-    pE1->Release();
-    pWrit->AddDoubleValue(pElem, L"ScaleNomin", m_cFSR.dScaleNomin);
-    pWrit->AddDoubleValue(pElem, L"ScaleDenom", m_cFSR.dScaleDenom);
-    pE1 = pWrit->CreateSubSection(pElem, L"AngularUnit");
-    pWrit->AddStringValue(pE1, L"UnitName", m_cFSR.cAngUnit.wsName);
-    pWrit->AddStringValue(pE1, L"UnitAbbrev", m_cFSR.cAngUnit.wsAbbrev);
-    pWrit->AddDoubleValue(pE1, L"UnitScale", m_cFSR.cAngUnit.dBaseToUnit);
-    pWrit->AddStringValue(pE1, L"UnitAbbrev2", m_cFSR.cAngUnit.wsAbbrev2);
-    pE1->Release();
-    pE1 = pWrit->CreateSubSection(pElem, L"PaperUnit");
-    pWrit->AddStringValue(pE1, L"UnitName", m_cFSR.cPaperUnit.wsName);
-    pWrit->AddStringValue(pE1, L"UnitAbbrev", m_cFSR.cPaperUnit.wsAbbrev);
-    pWrit->AddDoubleValue(pE1, L"UnitScale", m_cFSR.cPaperUnit.dBaseToUnit);
-    pWrit->AddStringValue(pE1, L"UnitAbbrev2", m_cFSR.cPaperUnit.wsAbbrev2);
-    pE1->Release();
-    pE1 = pWrit->CreateSubSection(pElem, L"GraphUnit");
-    pWrit->AddStringValue(pE1, L"UnitName", m_cFSR.cGraphUnit.wsName);
-    pWrit->AddStringValue(pE1, L"UnitAbbrev", m_cFSR.cGraphUnit.wsAbbrev);
-    pWrit->AddDoubleValue(pE1, L"UnitScale", m_cFSR.cGraphUnit.dBaseToUnit);
-    pWrit->AddStringValue(pE1, L"UnitAbbrev2", m_cFSR.cGraphUnit.wsAbbrev2);
-    pE1->Release();
-    //pWrit->AddIntValue(pElem, L"AngularUnit", m_cFSR.iAngUnit);
-    pWrit->AddDoubleValue(pElem, L"AngularGrid", m_cFSR.dAngGrid);
-    pWrit->AddDoubleValue(pElem, L"XGrid", m_cFSR.dXGrid);
-    pWrit->AddDoubleValue(pElem, L"YGrid", m_cFSR.dYGrid);
-    pWrit->AddDoubleValue(pElem, L"DefLineWidth", m_cFSR.dDefLineWidth);
-    pE1 = pWrit->CreateSubSection(pElem, L"Dimensioning");
-    pWrit->AddIntValue(pE1, L"ArrowType", m_cFSR.iArrowType);
-    pWrit->AddDoubleValue(pE1, L"ArrowLength", m_cFSR.dArrowLen);
-    pWrit->AddDoubleValue(pE1, L"ArrowWidth", m_cFSR.dArrowWidth);
-    pWrit->AddIntValue(pE1, L"FontAttrs", m_cFSR.bFontAttrs);
-    pWrit->AddDoubleValue(pE1, L"FontSize", m_cFSR.dFontSize);
-    pWrit->AddDoubleValue(pE1, L"BaseLine", m_cFSR.dBaseLine);
-    pWrit->AddStringValue(pE1, L"FontFace", m_cFSR.wsFontFace);
-    pWrit->AddStringValue(pE1, L"LengthMask", m_cFSR.wsLengthMask);
-    pWrit->AddStringValue(pE1, L"AngleMask", m_cFSR.wsAngleMask);
-    pE1->Release();
-    pElem->Release();
+  pElem = pWrit->CreateSection(L"PageSettings");
+  pE1 = pWrit->CreateSubSection(pElem, L"PaperSize");
+  pWrit->AddStringValue(pE1, L"PaperName", m_cFSR.cPaperSize.wsPaperSizeName);
+  pWrit->AddDoubleValue(pE1, L"PaperWidth", m_cFSR.cPaperSize.dPaperWidth);
+  pWrit->AddDoubleValue(pE1, L"PaperHeight", m_cFSR.cPaperSize.dPaperHeight);
+  pE1->Release();
+  pWrit->AddByteValue(pElem, L"Portrait", m_cFSR.bPortrait);
+  pE1 = pWrit->CreateSubSection(pElem, L"LengthUnit");
+  pWrit->AddStringValue(pE1, L"UnitName", m_cFSR.cLenUnit.wsName);
+  pWrit->AddStringValue(pE1, L"UnitAbbrev", m_cFSR.cLenUnit.wsAbbrev);
+  pWrit->AddDoubleValue(pE1, L"UnitScale", m_cFSR.cLenUnit.dBaseToUnit);
+  pWrit->AddStringValue(pE1, L"UnitAbbrev2", m_cFSR.cLenUnit.wsAbbrev2);
+  pE1->Release();
+  pWrit->AddDoubleValue(pElem, L"ScaleNomin", m_cFSR.dScaleNomin);
+  pWrit->AddDoubleValue(pElem, L"ScaleDenom", m_cFSR.dScaleDenom);
+  pE1 = pWrit->CreateSubSection(pElem, L"AngularUnit");
+  pWrit->AddStringValue(pE1, L"UnitName", m_cFSR.cAngUnit.wsName);
+  pWrit->AddStringValue(pE1, L"UnitAbbrev", m_cFSR.cAngUnit.wsAbbrev);
+  pWrit->AddDoubleValue(pE1, L"UnitScale", m_cFSR.cAngUnit.dBaseToUnit);
+  pWrit->AddStringValue(pE1, L"UnitAbbrev2", m_cFSR.cAngUnit.wsAbbrev2);
+  pE1->Release();
+  pE1 = pWrit->CreateSubSection(pElem, L"PaperUnit");
+  pWrit->AddStringValue(pE1, L"UnitName", m_cFSR.cPaperUnit.wsName);
+  pWrit->AddStringValue(pE1, L"UnitAbbrev", m_cFSR.cPaperUnit.wsAbbrev);
+  pWrit->AddDoubleValue(pE1, L"UnitScale", m_cFSR.cPaperUnit.dBaseToUnit);
+  pWrit->AddStringValue(pE1, L"UnitAbbrev2", m_cFSR.cPaperUnit.wsAbbrev2);
+  pE1->Release();
+  pE1 = pWrit->CreateSubSection(pElem, L"GraphUnit");
+  pWrit->AddStringValue(pE1, L"UnitName", m_cFSR.cGraphUnit.wsName);
+  pWrit->AddStringValue(pE1, L"UnitAbbrev", m_cFSR.cGraphUnit.wsAbbrev);
+  pWrit->AddDoubleValue(pE1, L"UnitScale", m_cFSR.cGraphUnit.dBaseToUnit);
+  pWrit->AddStringValue(pE1, L"UnitAbbrev2", m_cFSR.cGraphUnit.wsAbbrev2);
+  pE1->Release();
+  //pWrit->AddIntValue(pElem, L"AngularUnit", m_cFSR.iAngUnit);
+  pWrit->AddDoubleValue(pElem, L"AngularGrid", m_cFSR.dAngGrid);
+  pWrit->AddDoubleValue(pElem, L"XGrid", m_cFSR.dXGrid);
+  pWrit->AddDoubleValue(pElem, L"YGrid", m_cFSR.dYGrid);
+  pWrit->AddDoubleValue(pElem, L"DefLineWidth", m_cFSR.dDefLineWidth);
+  pE1 = pWrit->CreateSubSection(pElem, L"Dimensioning");
+  pWrit->AddIntValue(pE1, L"ArrowType", m_cFSR.iArrowType);
+  pWrit->AddDoubleValue(pE1, L"ArrowLength", m_cFSR.dArrowLen);
+  pWrit->AddDoubleValue(pE1, L"ArrowWidth", m_cFSR.dArrowWidth);
+  pWrit->AddIntValue(pE1, L"FontAttrs", m_cFSR.bFontAttrs);
+  pWrit->AddDoubleValue(pE1, L"FontSize", m_cFSR.dFontSize);
+  pWrit->AddDoubleValue(pE1, L"BaseLine", m_cFSR.dBaseLine);
+  pWrit->AddStringValue(pE1, L"FontFace", m_cFSR.wsFontFace);
+  pWrit->AddStringValue(pE1, L"LengthMask", m_cFSR.wsLengthMask);
+  pWrit->AddStringValue(pE1, L"AngleMask", m_cFSR.wsAngleMask);
+  pE1->Release();
+  pElem->Release();
 
-    m_pFileSetupDlg->SaveSettings(pWrit);
-    m_pLineStyleDlg->SaveSettings(pWrit);
-    m_pDimEditDlg->SaveSettings(pWrit);
-    m_pScaleDlg->SaveSettings(pWrit);
-    m_pStatDlg->SaveSettings(pWrit);
-    m_pSnapDlg->SaveSettings(pWrit);
+  m_pFileSetupDlg->SaveSettings(pWrit);
+  m_pLineStyleDlg->SaveSettings(pWrit);
+  m_pDimEditDlg->SaveSettings(pWrit);
+  m_pScaleDlg->SaveSettings(pWrit);
+  m_pStatDlg->SaveSettings(pWrit);
+  m_pSnapDlg->SaveSettings(pWrit);
 
-    pWrit->Save();
-    delete pWrit;
+  pWrit->Save();
+  delete pWrit;
 
-    free(ininame);
+  free(ininame);
 }
 
 LRESULT CMainWnd::WMPaint(HWND hwnd, HDC hdc)
 {
-    RECT rc;
-    if(!GetUpdateRect(hwnd, &rc, TRUE)) return(0);
+  RECT rc;
+  if(!GetUpdateRect(hwnd, &rc, TRUE)) return(0);
 
-    PAINTSTRUCT ps;
-    HDC ldc = BeginPaint(hwnd, &ps);
-    Graphics graphics(m_pDrawBuffer);
-    graphics.Clear(Color::White);
-    graphics.SetSmoothingMode(SmoothingModeAntiAlias);
+  PAINTSTRUCT ps;
+  HDC ldc = BeginPaint(hwnd, &ps);
+  Graphics graphics(m_pDrawBuffer);
+  //graphics.Clear(Color::White);
+  SolidBrush whiteBrush(Color::White);
+  graphics.FillRectangle(&whiteBrush, (INT)rc.left, (INT)(rc.top - m_iToolBarHeight),
+  (INT)(rc.right - rc.left), (INT)(rc.bottom - rc.top + m_iToolBarHeight));
+  graphics.SetSmoothingMode(SmoothingModeAntiAlias);
 
-    HBRUSH hOldBr = (HBRUSH)SelectObject(ldc, GetStockObject(NULL_BRUSH));
-    HPEN hOldPen = (HPEN)SelectObject(ldc, m_hBrownPen);
+  HBRUSH hOldBr = (HBRUSH)SelectObject(ldc, GetStockObject(NULL_BRUSH));
+  HPEN hOldPen = (HPEN)SelectObject(ldc, m_hBrownPen);
 
-    Pen brownPen(Color(255, 128, 76, 0), 1);
-
-    if(m_iDrawGridMode > 0)
+  if(m_iDrawGridMode > 0)
+  {
+    double dx = m_dUnitScale*m_cFSR.dXGrid;
+    double dy = m_dUnitScale*m_cFSR.dYGrid;
+    if((dx > 5) && (dy > 5))
     {
-        double dx = m_dUnitScale*m_cFSR.dXGrid;
-        double dy = m_dUnitScale*m_cFSR.dYGrid;
-        int ix, iy;
-        if((dx > 5) && (dy > 5))
+      RECT cr;
+      GetClientRect(hwnd, &cr);
+      HPEN hlPen;
+
+      int iMin = -m_cViewOrigin.x/m_dUnitScale/m_cFSR.dXGrid;
+      int iMax = (cr.right - m_cViewOrigin.x)/m_dUnitScale/m_cFSR.dXGrid;
+      int jMin = -m_cViewOrigin.y/m_dUnitScale/m_cFSR.dYGrid;
+      int jMax = (cr.bottom - m_cViewOrigin.y)/m_dUnitScale/m_cFSR.dYGrid;
+
+      double dGray;
+      int iGray;
+
+      if(m_iDrawGridMode & 2)
+      {
+        if((dx < 200) || (dy < 200))
         {
-            RECT cr;
-            GetClientRect(hwnd, &cr);
-            HPEN hlPen;
-
-            int iMin = -m_cViewOrigin.x/m_dUnitScale/m_cFSR.dXGrid;
-            int iMax = (cr.right - m_cViewOrigin.x)/m_dUnitScale/m_cFSR.dXGrid;
-            int jMin = -m_cViewOrigin.y/m_dUnitScale/m_cFSR.dYGrid;
-            int jMax = (cr.bottom - m_cViewOrigin.y)/m_dUnitScale/m_cFSR.dYGrid;
-
-            double dGray;
-            int iGray;
-
-            if(m_iDrawGridMode & 2)
-            {
-                if((dx < 200) || (dy < 200))
-                {
-                    if(dx < dy) dGray = 0.7 + 0.2*(200.0 - dx)/195.0;
-                    else dGray = 0.7 + 0.2*(200.0 - dy)/195.0;
-                }
-                else dGray = 0.7;
-                iGray = 255*dGray;
-
-                //hlPen = CreatePen(PS_SOLID, 0, RGB(iGray, iGray, iGray));
-                //SelectObject(ldc, hlPen);
-                Pen grayPen(Color(255, iGray, iGray, iGray), 1);
-                for(int i = iMin; i <= iMax; i++)
-                {
-                    dx = m_cViewOrigin.x + (double)i*m_dUnitScale*m_cFSR.dXGrid;
-                    ix = Round(dx);
-                    graphics.DrawLine(&grayPen, ix, 0, ix, cr.bottom);
-                    //MoveToEx(ldc, ix, 0, NULL);
-                    //LineTo(ldc, ix, cr.bottom);
-                }
-                for(int j = jMin; j <= jMax; j++)
-                {
-                    dy = m_cViewOrigin.y + (double)j*m_dUnitScale*m_cFSR.dYGrid;
-                    iy = Round(dy);
-                    graphics.DrawLine(&grayPen, 0, iy, cr.right, iy);
-                    //MoveToEx(ldc, 0, iy, NULL);
-                    //LineTo(ldc, cr.right, iy);
-                }
-                //SelectObject(ldc, hOldPen);
-                //DeleteObject(hlPen);
-            }
-
-            if(m_iDrawGridMode & 1)
-            {
-                if(m_iDrawGridMode & 2)
-                {
-                    if((dx < 200) || (dy < 200))
-                    {
-                        if(dx < dy) dGray = 0.5 + 0.5*(200.0 - dx)/195.0;
-                        else dGray = 0.5 + 0.5*(200.0 - dy)/195.0;
-                    }
-                    else dGray = 0.5;
-                }
-                else
-                {
-                    if((dx < 200) || (dy < 200))
-                    {
-                        if(dx < dy) dGray = 0.3 + 0.3*(200.0 - dx)/195.0;
-                        else dGray = 0.3 + 0.3*(200.0 - dy)/195.0;
-                    }
-                    else dGray = 0.3;
-                }
-                iGray = 255*dGray;
-
-                hlPen = CreatePen(PS_SOLID, 0, RGB(iGray, iGray, iGray));
-                SelectObject(ldc, hlPen);
-                for(int i = iMin; i <= iMax; i++)
-                {
-                    dx = m_cViewOrigin.x + (double)i*m_dUnitScale*m_cFSR.dXGrid;
-                    ix = Round(dx);
-                    for(int j = jMin; j <= jMax; j++)
-                    {
-                        dy = m_cViewOrigin.y + (double)j*m_dUnitScale*m_cFSR.dYGrid;
-                        iy = Round(dy);
-                        Ellipse(ldc, ix - 1, iy - 1, ix + 2, iy + 2);
-                    }
-                }
-                SelectObject(ldc, hOldPen);
-                DeleteObject(hlPen);
-            }
+          if(dx < dy) dGray = 0.7 + 0.2*(200.0 - dx)/195.0;
+          else dGray = 0.7 + 0.2*(200.0 - dy)/195.0;
         }
-    }
+        else dGray = 0.7;
+        iGray = 255*dGray;
 
-    //SelectObject(ldc, m_hBrownPen);
-    //Rectangle(ldc, m_cViewOrigin.x, m_cViewOrigin.y,
-    //    m_cViewOrigin.x + m_dUnitScale*m_dwPage, m_cViewOrigin.y + m_dUnitScale*m_dhPage);
-    graphics.DrawRectangle(&brownPen, (REAL)m_cViewOrigin.x, (REAL)m_cViewOrigin.y,
-      (REAL)(m_dUnitScale*m_dwPage), (REAL)(m_dUnitScale*m_dhPage));
-
-    CDRect cdr;
-    cdr.cPt1.x = (rc.left - m_cViewOrigin.x)/m_dUnitScale;
-    cdr.cPt1.y = (rc.top - m_cViewOrigin.y)/m_dUnitScale;
-    cdr.cPt2.x = (rc.right - m_cViewOrigin.x)/m_dUnitScale;
-    cdr.cPt2.y = (rc.bottom - m_cViewOrigin.y)/m_dUnitScale;
-
-    m_pDrawObjects->BuildAllPrimitives(&cdr);
-
-    PDObject pObj;
-    int iObjs = m_pDrawObjects->GetCount();
-    for(int i = 0; i < iObjs; i++)
-    {
-        pObj = m_pDrawObjects->GetItem(i);
-        DrawObjectPlus(hwnd, &graphics, pObj, 0, -2);
-    }
-
-    if(m_pHighObject) DrawObjectPlus(hwnd, &graphics, m_pHighObject, 2, m_iHighDimen);
-
-    int iDynMode = GetDynMode();
-    CDLine cPtX;
-    cPtX.cOrigin = m_cLastDrawPt;
-    if(iDynMode == 1)
-    {
-        cPtX.bIsSet = m_cLastDynPt.bIsSet;
-        cPtX.cDirection = m_cLastDynPt.cOrigin;
-    }
-    else if(iDynMode == 2)
-    {
-        cPtX.cDirection.x = 0.0;
-        if(IS_LENGTH_VAL(m_iRestrictSet))
+        Pen grayPen(Color(255, iGray, iGray, iGray), 1);
+        for(int i = iMin; i <= iMax; i++)
         {
-            cPtX.cDirection.x = 1.0;
-            cPtX.cDirection.y = m_dSavedDist;
+          dx = m_cViewOrigin.x + (double)i*m_dUnitScale*m_cFSR.dXGrid;
+          graphics.DrawLine(&grayPen, (REAL)dx, (REAL)0.0, (REAL)dx, (REAL)cr.bottom);
         }
-    }
-
-    if((m_iDrawMode > modSelect) || (m_iToolMode > tolNone))
-    {
-        int iPrevROP = SetROP2(ldc, R2_NOTXORPEN);
-        SelectObject(ldc, m_hRedPen);
-        MoveToEx(ldc, m_cLastSnapPt.x - 10, m_cLastSnapPt.y, NULL);
-        LineTo(ldc, m_cLastSnapPt.x + 10, m_cLastSnapPt.y);
-        MoveToEx(ldc, m_cLastSnapPt.x, m_cLastSnapPt.y - 10, NULL);
-        LineTo(ldc, m_cLastSnapPt.x, m_cLastSnapPt.y + 10);
-        if(m_pActiveObject)
+        for(int j = jMin; j <= jMax; j++)
         {
-            m_pActiveObject->BuildPrimitives(cPtX, iDynMode, &cdr, 0, NULL);
-            DrawObjectPlus(hwnd, &graphics, m_pActiveObject, 1, -2);
+          dy = m_cViewOrigin.y + (double)j*m_dUnitScale*m_cFSR.dYGrid;
+          graphics.DrawLine(&grayPen, (REAL)0, (REAL)dy, (REAL)cr.right, (REAL)dy);
         }
-        SetROP2(ldc, iPrevROP);
+      }
+
+      if(m_iDrawGridMode & 1)
+      {
+        if(m_iDrawGridMode & 2)
+        {
+          if((dx < 200) || (dy < 200))
+          {
+            if(dx < dy) dGray = 0.5 + 0.5*(200.0 - dx)/195.0;
+            else dGray = 0.5 + 0.5*(200.0 - dy)/195.0;
+          }
+          else dGray = 0.5;
+        }
+        else
+        {
+          if((dx < 200) || (dy < 200))
+          {
+            if(dx < dy) dGray = 0.3 + 0.3*(200.0 - dx)/195.0;
+            else dGray = 0.3 + 0.3*(200.0 - dy)/195.0;
+          }
+          else dGray = 0.3;
+        }
+        iGray = 255*dGray;
+
+        Pen grayPen(Color(255, iGray, iGray, iGray), 1);
+        for(int i = iMin; i <= iMax; i++)
+        {
+          dx = m_cViewOrigin.x + (double)i*m_dUnitScale*m_cFSR.dXGrid;
+          for(int j = jMin; j <= jMax; j++)
+          {
+            dy = m_cViewOrigin.y + (double)j*m_dUnitScale*m_cFSR.dYGrid;
+            graphics.DrawEllipse(&grayPen, (REAL)(dx - 1), (REAL)(dy - 1), (REAL)2.0, (REAL)2.0);
+          }
+        }
+      }
     }
+  }
 
-    SelectObject(ldc, hOldPen);
-    SelectObject(ldc, hOldBr);
+  Pen brownPen(Color(255, 128, 76, 0), 1);
+  graphics.DrawRectangle(&brownPen, (REAL)m_cViewOrigin.x, (REAL)m_cViewOrigin.y,
+    (REAL)(m_dUnitScale*m_dwPage), (REAL)(m_dUnitScale*m_dhPage));
 
-    Graphics dstgraph(ldc);
-    dstgraph.DrawImage(m_pDrawBuffer, 0, 0);
+  CDRect cdr;
+  cdr.cPt1.x = (rc.left - m_cViewOrigin.x)/m_dUnitScale;
+  cdr.cPt1.y = (rc.top - m_cViewOrigin.y)/m_dUnitScale;
+  cdr.cPt2.x = (rc.right - m_cViewOrigin.x)/m_dUnitScale;
+  cdr.cPt2.y = (rc.bottom - m_cViewOrigin.y)/m_dUnitScale;
 
-    EndPaint(hwnd, &ps);
+  m_pDrawObjects->BuildAllPrimitives(&cdr);
 
-    GetClientRect(hwnd, &rc);
-    rc.top += m_iToolBarHeight;
-    rc.bottom -= m_iStatusHeight;
+  PDObject pObj;
+  int iObjs = m_pDrawObjects->GetCount();
+  for(int i = 0; i < iObjs; i++)
+  {
+    pObj = m_pDrawObjects->GetItem(i);
+    DrawObjectPlus(hwnd, &graphics, pObj, 0, -2);
+  }
 
-    cdr.cPt1.x = (rc.left - m_cViewOrigin.x)/m_dUnitScale;
-    cdr.cPt1.y = (rc.top - m_cViewOrigin.y)/m_dUnitScale;
-    cdr.cPt2.x = (rc.right - m_cViewOrigin.x)/m_dUnitScale;
-    cdr.cPt2.y = (rc.bottom - m_cViewOrigin.y)/m_dUnitScale;
+  Graphics dstgraph(ldc);
+  dstgraph.DrawImage(m_pDrawBuffer, 0, 0);
 
-    m_pDrawObjects->BuildAllPrimitives(&cdr);
+  if(m_pHighObject) DrawObjectPlus(hwnd, &dstgraph, m_pHighObject, 2, m_iHighDimen);
+
+  int iDynMode = GetDynMode();
+  CDLine cPtX;
+  cPtX.cOrigin = m_cLastDrawPt;
+  if(iDynMode == 1)
+  {
+    cPtX.bIsSet = m_cLastDynPt.bIsSet;
+    cPtX.cDirection = m_cLastDynPt.cOrigin;
+  }
+  else if(iDynMode == 2)
+  {
+    cPtX.cDirection.x = 0.0;
+    if(IS_LENGTH_VAL(m_iRestrictSet))
+    {
+      cPtX.cDirection.x = 1.0;
+      cPtX.cDirection.y = m_dSavedDist;
+    }
+  }
+
+  if((m_iDrawMode > modSelect) || (m_iToolMode > tolNone))
+  {
+    dstgraph.DrawLine(m_redPen, (REAL)(m_cLastSnapPt.x - 10), (REAL)m_cLastSnapPt.y,
+      (REAL)(m_cLastSnapPt.x + 10), (REAL)m_cLastSnapPt.y);
+    dstgraph.DrawLine(m_redPen, (REAL)m_cLastSnapPt.x, (REAL)(m_cLastSnapPt.y - 10),
+      (REAL)m_cLastSnapPt.x, (REAL)(m_cLastSnapPt.y + 10));
     if(m_pActiveObject)
     {
-        m_pActiveObject->BuildPrimitives(cPtX, iDynMode, &cdr, 0, NULL);
+      m_pActiveObject->BuildPrimitives(cPtX, iDynMode, &cdr, 0, NULL);
+      DrawObjectPlus(hwnd, &dstgraph, m_pActiveObject, 1, -2);
     }
+  }
 
-    //SendMessage(m_hStatus, WM_PAINT, 0, 0);
-    return(0);
+  SelectObject(ldc, hOldPen);
+  SelectObject(ldc, hOldBr);
+
+  EndPaint(hwnd, &ps);
+
+  GetClientRect(hwnd, &rc);
+  rc.top += m_iToolBarHeight;
+  rc.bottom -= m_iStatusHeight;
+
+  cdr.cPt1.x = (rc.left - m_cViewOrigin.x)/m_dUnitScale;
+  cdr.cPt1.y = (rc.top - m_cViewOrigin.y)/m_dUnitScale;
+  cdr.cPt2.x = (rc.right - m_cViewOrigin.x)/m_dUnitScale;
+  cdr.cPt2.y = (rc.bottom - m_cViewOrigin.y)/m_dUnitScale;
+
+  m_pDrawObjects->BuildAllPrimitives(&cdr);
+  if(m_pActiveObject)
+  {
+    m_pActiveObject->BuildPrimitives(cPtX, iDynMode, &cdr, 0, NULL);
+  }
+
+  //SendMessage(m_hStatus, WM_PAINT, 0, 0);
+  return 0;
 }
 
 bool CMainWnd::PromptForSave(HWND hWnd)
@@ -1391,7 +1373,7 @@ LRESULT CMainWnd::ModeCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl, int iMode)
 
     if(m_pActiveObject)
     {
-        hdc = GetDC(hwnd);
+        /*hdc = GetDC(hwnd);
         IntersectClipRect(hdc, rc.left, rc.top, rc.right, rc.bottom);
 
         HBRUSH hPrevBr = (HBRUSH)SelectObject(hdc, GetStockObject(HOLLOW_BRUSH));
@@ -1400,7 +1382,7 @@ LRESULT CMainWnd::ModeCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl, int iMode)
         SetROP2(hdc, iPrevROP);
         SelectObject(hdc, hPrevBr);
         SelectClipRgn(hdc, NULL);
-        ReleaseDC(hwnd, NULL);
+        ReleaseDC(hwnd, NULL);*/
 
         delete m_pActiveObject;
         m_pActiveObject = NULL;
@@ -1545,14 +1527,19 @@ void CMainWnd::DrawCross(HWND hWnd)
     HDC hdc = GetDC(hWnd);
     IntersectClipRect(hdc, rc.left, rc.top, rc.right, rc.bottom);
 
-    HPEN hPrevPen = (HPEN)SelectObject(hdc, m_hRedPen);
-    int iPrevROP = SetROP2(hdc, R2_NOTXORPEN);
-    MoveToEx(hdc, m_cLastSnapPt.x - 10, m_cLastSnapPt.y, NULL);
-    LineTo(hdc, m_cLastSnapPt.x + 10, m_cLastSnapPt.y);
-    MoveToEx(hdc, m_cLastSnapPt.x, m_cLastSnapPt.y - 10, NULL);
-    LineTo(hdc, m_cLastSnapPt.x, m_cLastSnapPt.y + 10);
-    SetROP2(hdc, iPrevROP);
-    SelectObject(hdc, hPrevPen);
+    Bitmap bmp(rc.right - rc.left, rc.bottom - rc.top);
+    Graphics graphics(&bmp);
+    graphics.SetSmoothingMode(SmoothingModeAntiAlias);
+    graphics.DrawImage(m_pDrawBuffer, (INT)rc.left, (INT)rc.top);
+
+    graphics.DrawLine(m_redPen, (REAL)(m_cLastSnapPt.x - 10), (REAL)m_cLastSnapPt.y,
+      (REAL)(m_cLastSnapPt.x + 10), (REAL)m_cLastSnapPt.y);
+    graphics.DrawLine(m_redPen, (REAL)m_cLastSnapPt.x, (REAL)(m_cLastSnapPt.y - 10),
+      (REAL)m_cLastSnapPt.x, (REAL)(m_cLastSnapPt.y + 10));
+
+    Graphics dstgraph(hdc);
+    dstgraph.DrawImage(&bmp, 0, 0);
+
     SelectClipRgn(hdc, NULL);
     ReleaseDC(hWnd, NULL);
 }
@@ -1947,7 +1934,7 @@ LRESULT CMainWnd::ToolsCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl, int iTool)
 
     if(m_pActiveObject)
     {
-        hdc = GetDC(hwnd);
+        /*hdc = GetDC(hwnd);
         IntersectClipRect(hdc, rc.left, rc.top, rc.right, rc.bottom);
 
         HBRUSH hPrevBr = (HBRUSH)SelectObject(hdc, GetStockObject(HOLLOW_BRUSH));
@@ -1956,7 +1943,7 @@ LRESULT CMainWnd::ToolsCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl, int iTool)
         SetROP2(hdc, iPrevROP);
         SelectObject(hdc, hPrevBr);
         SelectClipRgn(hdc, NULL);
-        ReleaseDC(hwnd, NULL);
+        ReleaseDC(hwnd, NULL);*/
 
         delete m_pActiveObject;
         m_pActiveObject = NULL;
@@ -2806,7 +2793,7 @@ void CMainWnd::DrawDimText(HWND hWnd, HDC hdc, PDPrimitive pPrim, PDObject pObj,
     if(iLen > 0) free(psBuf);
 }
 
-void CMainWnd::DrawPrimitive(HDC hdc, PDPrimitive pPrim)
+/*void CMainWnd::DrawPrimitive(HDC hdc, PDPrimitive pPrim)
 {
     double dr;
     POINT pPts[3];
@@ -2894,101 +2881,89 @@ void CMainWnd::DrawPrimitive(HDC hdc, PDPrimitive pPrim)
         DrawDimArrow(hdc, pPrim);
         break;
     }
-}
+}*/
 
 void CMainWnd::DrawPrimitivePlus(Graphics *graphics, Pen *pen, PDPrimitive pPrim)
 {
-    double dr;
-    POINT pPts[3];
+  double dr;
+  //POINT pPts[3];
 
-    CDPoint cStartPt, cEndPt;
-    CDPoint cPt1, cPt2;
-//Pen locPen(Color(255, 0, 0, 255), 2.5);
+  CDPoint cStartPt, cEndPt;
+  CDPoint cPt1, cPt2;
+  //Pen locPen(Color(255, 0, 0, 255), 2.5);
 
-    switch(pPrim->iType)
+  switch(pPrim->iType)
+  {
+  case 1:
+    cStartPt.x = pPrim->cPt1.x + m_cViewOrigin.x;
+    cStartPt.y = pPrim->cPt1.y + m_cViewOrigin.y;
+    cEndPt.x = pPrim->cPt2.x + m_cViewOrigin.x;
+    cEndPt.y = pPrim->cPt2.y + m_cViewOrigin.y;
+    graphics->DrawLine(pen, (REAL)cStartPt.x, (REAL)cStartPt.y, (REAL)cEndPt.x, (REAL)cEndPt.y);
+    break;
+  case 2:
+    cStartPt.x = pPrim->cPt1.x + m_cViewOrigin.x + pPrim->cPt2.x*cos(pPrim->cPt3.x);
+    cStartPt.y = pPrim->cPt1.y + m_cViewOrigin.y + pPrim->cPt2.x*sin(pPrim->cPt3.x);
+    cEndPt.x = pPrim->cPt1.x + m_cViewOrigin.x + pPrim->cPt2.x*cos(pPrim->cPt3.y);
+    cEndPt.y = pPrim->cPt1.y + m_cViewOrigin.y + pPrim->cPt2.x*sin(pPrim->cPt3.y);
+
+    dr = GetDist(cStartPt, cEndPt);
+    if((dr > 2) || (fabs(pPrim->cPt3.y - pPrim->cPt3.x) > 0.001))
     {
-    case 1:
-        cStartPt.x = pPrim->cPt1.x + m_cViewOrigin.x;
-        cStartPt.y = pPrim->cPt1.y + m_cViewOrigin.y;
-        //MoveToEx(hdc, cStartPt.x, cStartPt.y, NULL);
-        cEndPt.x = pPrim->cPt2.x + m_cViewOrigin.x;
-        cEndPt.y = pPrim->cPt2.y + m_cViewOrigin.y;
-        //LineTo(hdc, cEndPt.x, cEndPt.y);
-        graphics->DrawLine(pen, (REAL)cStartPt.x, (REAL)cStartPt.y, (REAL)cEndPt.x, (REAL)cEndPt.y);
-        break;
-/*    case 2:
-        cStartPt.x = pPrim->cPt3.x + m_cViewOrigin.x;
-        cStartPt.y = pPrim->cPt3.y + m_cViewOrigin.y;
-        cEndPt.x = pPrim->cPt4.x + m_cViewOrigin.x;
-        cEndPt.y = pPrim->cPt4.y + m_cViewOrigin.y;
-
-        dr = GetPtDist(&cStartPt, cEndPt.x, cEndPt.y);
-        if(dr > 2)
-        {
-            dr = (pPrim->cPt2.x - pPrim->cPt1.x);
-            Arc(hdc, m_cViewOrigin.x + pPrim->cPt1.x - dr, m_cViewOrigin.y + pPrim->cPt1.y - dr,
-                m_cViewOrigin.x + pPrim->cPt1.x + dr, m_cViewOrigin.y + pPrim->cPt1.y + dr,
-                cStartPt.x, cStartPt.y, cEndPt.x, cEndPt.y);
-        }
-        else
-        {
-            MoveToEx(hdc, cStartPt.x, cStartPt.y, NULL);
-            LineTo(hdc, cEndPt.x, cEndPt.y);
-        }
-        break;
-    case 3:
-        dr = (pPrim->cPt2.x - pPrim->cPt1.x);
-        Arc(hdc, m_cViewOrigin.x + pPrim->cPt1.x - dr, m_cViewOrigin.y + pPrim->cPt1.y - dr,
-            m_cViewOrigin.x + pPrim->cPt1.x + dr, m_cViewOrigin.y + pPrim->cPt1.y + dr,
-            m_cViewOrigin.x + pPrim->cPt1.x + dr, m_cViewOrigin.y + pPrim->cPt1.y,
-            m_cViewOrigin.x + pPrim->cPt1.x + dr, m_cViewOrigin.y + pPrim->cPt1.y);
-        break;
-    case 4:
-        cStartPt.x = pPrim->cPt1.x + m_cViewOrigin.x;
-        cStartPt.y = pPrim->cPt1.y + m_cViewOrigin.y;
-        MoveToEx(hdc, cStartPt.x, cStartPt.y, NULL);
-
-        cPt1 = (pPrim->cPt1 + 2.0*pPrim->cPt2)/3.0;
-        cPt2 = (pPrim->cPt3 + 2.0*pPrim->cPt2)/3.0;
-
-        pPts[0].x = (int)m_cViewOrigin.x + cPt1.x;
-        pPts[0].y = (int)m_cViewOrigin.y + cPt1.y;
-        pPts[1].x = (int)m_cViewOrigin.x + cPt2.x;
-        pPts[1].y = (int)m_cViewOrigin.y + cPt2.y;
-        pPts[2].x = (int)m_cViewOrigin.x + pPrim->cPt3.x;
-        pPts[2].y = (int)m_cViewOrigin.y + pPrim->cPt3.y;
-        PolyBezierTo(hdc, pPts, 3);
-        break;
-    case 5:
-        cStartPt.x = pPrim->cPt1.x + m_cViewOrigin.x;
-        cStartPt.y = pPrim->cPt1.y + m_cViewOrigin.y;
-        MoveToEx(hdc, cStartPt.x, cStartPt.y, NULL);
-
-        pPts[0].x = (int)m_cViewOrigin.x + pPrim->cPt2.x;
-        pPts[0].y = (int)m_cViewOrigin.y + pPrim->cPt2.y;
-        pPts[1].x = (int)m_cViewOrigin.x + pPrim->cPt3.x;
-        pPts[1].y = (int)m_cViewOrigin.y + pPrim->cPt3.y;
-        pPts[2].x = (int)m_cViewOrigin.x + pPrim->cPt4.x;
-        pPts[2].y = (int)m_cViewOrigin.y + pPrim->cPt4.y;
-        PolyBezierTo(hdc, pPts, 3);
-        break;
-    case 7:
-        cStartPt.x = pPrim->cPt1.x + m_cViewOrigin.x - 6;
-        cStartPt.y = pPrim->cPt1.y + m_cViewOrigin.y;
-        MoveToEx(hdc, cStartPt.x, cStartPt.y, NULL);
-        LineTo(hdc, cStartPt.x + 13, cStartPt.y);
-        cEndPt.x = pPrim->cPt1.x + m_cViewOrigin.x;
-        cEndPt.y = pPrim->cPt1.y + m_cViewOrigin.y + 7;
-        MoveToEx(hdc, cEndPt.x, cEndPt.y - 13, NULL);
-        LineTo(hdc, cEndPt.x, cEndPt.y);
-        break;
-    case 9:
-        DrawDimArrow(hdc, pPrim);
-        break;*/
+      dr = pPrim->cPt2.x;
+      cStartPt.x = pPrim->cPt3.x*180.0/M_PI;
+      cStartPt.y = (pPrim->cPt3.y - pPrim->cPt3.x)*180.0/M_PI;
+      if(cStartPt.y < 0.0) cStartPt.y += 360.0;
+      graphics->DrawArc(pen, (REAL)(m_cViewOrigin.x + pPrim->cPt1.x - dr),
+        (REAL)(m_cViewOrigin.y + pPrim->cPt1.y - dr),
+        (REAL)2.0*dr, (REAL)2.0*dr, (REAL)cStartPt.x, (REAL)cStartPt.y);
     }
+    else
+      graphics->DrawLine(pen, (REAL)cStartPt.x, (REAL)cStartPt.y, (REAL)cEndPt.x, (REAL)cEndPt.y);
+    break;
+  case 3:
+    //dr = (pPrim->cPt2.x - pPrim->cPt1.x);
+    dr = pPrim->cPt2.x;
+    graphics->DrawEllipse(pen, (REAL)(m_cViewOrigin.x + pPrim->cPt1.x - dr),
+      (REAL)(m_cViewOrigin.y + pPrim->cPt1.y - dr), (REAL)2.0*dr, (REAL)2.0*dr);
+    break;
+  case 4:
+    cPt1 = (pPrim->cPt1 + 2.0*pPrim->cPt2)/3.0;
+    cPt2 = (pPrim->cPt3 + 2.0*pPrim->cPt2)/3.0;
+    graphics->DrawBezier(pen, (REAL)(m_cViewOrigin.x + pPrim->cPt1.x),
+      (REAL)(m_cViewOrigin.y + pPrim->cPt1.y),
+      (REAL)(m_cViewOrigin.x + cPt1.x),
+      (REAL)(m_cViewOrigin.y + cPt1.y),
+      (REAL)(m_cViewOrigin.x + cPt2.x),
+      (REAL)(m_cViewOrigin.y + cPt2.y),
+      (REAL)(m_cViewOrigin.x + pPrim->cPt3.x),
+      (REAL)(m_cViewOrigin.y + pPrim->cPt3.y));
+    break;
+  case 5:
+    graphics->DrawBezier(pen, (REAL)(m_cViewOrigin.x + pPrim->cPt1.x),
+      (REAL)(m_cViewOrigin.y + pPrim->cPt1.y),
+      (REAL)(m_cViewOrigin.x + pPrim->cPt2.x),
+      (REAL)(m_cViewOrigin.y + pPrim->cPt2.y),
+      (REAL)(m_cViewOrigin.x + pPrim->cPt3.x),
+      (REAL)(m_cViewOrigin.y + pPrim->cPt3.y),
+      (REAL)(m_cViewOrigin.x + pPrim->cPt4.x),
+      (REAL)(m_cViewOrigin.y + pPrim->cPt4.y));
+    break;
+  case 7:
+    cStartPt.x = pPrim->cPt1.x + m_cViewOrigin.x - 6;
+    cStartPt.y = pPrim->cPt1.y + m_cViewOrigin.y;
+    graphics->DrawLine(pen, (REAL)cStartPt.x, (REAL)cStartPt.y, (REAL)(cStartPt.x + 13), (REAL)cStartPt.y);
+    cEndPt.x = pPrim->cPt1.x + m_cViewOrigin.x;
+    cEndPt.y = pPrim->cPt1.y + m_cViewOrigin.y + 7;
+    graphics->DrawLine(pen, (REAL)cEndPt.x, (REAL)(cEndPt.y - 13), (REAL)cEndPt.x, (REAL)cEndPt.y);
+    break;
+  /*case 9:
+    DrawDimArrow(hdc, pPrim);
+    break;*/
+  }
 }
 
-void CMainWnd::DrawObject(HWND hWnd, HDC hdc, PDObject pObj, int iMode, int iDimen)
+/*void CMainWnd::DrawObject(HWND hWnd, HDC hdc, PDObject pObj, int iMode, int iDimen)
 {
     bool bSel = pObj->GetSelected();
     CDLineStyle cStyle = pObj->GetLineStyle();
@@ -3124,7 +3099,7 @@ void CMainWnd::DrawObject(HWND hWnd, HDC hdc, PDObject pObj, int iMode, int iDim
     DeleteObject(hCentPen);
     DeleteObject(hPtPen);
     DeleteObject(hPen);
-}
+}*/
 
 DWORD CodeRGBColor(unsigned char *pColor)
 {
@@ -3137,13 +3112,6 @@ ARGB EncodeColor(DWORD dwColor)
   unsigned char green = (dwColor >> 8) & 0xFF;
   unsigned char blue = (dwColor >> 16) & 0xFF;
   unsigned char alpha = (dwColor >> 24) & 0xFF;
-//  BYTE alpha = (dwColor >> 24) & 0xFF;
-//  return (dwColor << 8) | alpha;
-//  return (dwColor << 8) | 0xFF;
-  //return 0xFF000000;
-  //return dwColor;
-//  unsigned char lColor[4] = {255, 0, 0, 255};
-//  return CodeRGBColor(lColor);
   return blue | (green << 8) | (red << 16) | (alpha << 24);
 }
 
@@ -3163,16 +3131,7 @@ void CMainWnd::DrawObjectPlus(HWND hWnd, Graphics *graphics, PDObject pObj, int 
 
   Pen hPen(Color(EncodeColor(dwColor)), rWidth);
   Pen hPtPen(Color(EncodeColor(dwColor)), 0.0);
-  Pen hCentPen(Color(EncodeColor(0x00888888)), 0.0);
-
-  /*LOGBRUSH lb;
-  lb.lbStyle = BS_SOLID;
-  lb.lbColor = dwColor/2;
-  HBRUSH hBr = CreateBrushIndirect(&lb);
-  HBRUSH hPrevBr;
-
-  HPEN hPrevPen;
-  hPrevPen = (HPEN)SelectObject(hdc, hPen);*/
+  Pen hCentPen(Color(EncodeColor(0xFF888888)), 0.0);
 
   CDPrimitive cPrim;
   PDDimension pDim;
@@ -3186,34 +3145,14 @@ void CMainWnd::DrawObjectPlus(HWND hWnd, Graphics *graphics, PDObject pObj, int 
       {
         graphics->DrawEllipse(&hPtPen, (REAL)(cPrim.cPt1.x + m_cViewOrigin.x - rPtRad),
           (REAL)(cPrim.cPt1.y + m_cViewOrigin.y - rPtRad), (REAL)2.0*rPtRad, (REAL)2.0*rPtRad);
-        /*SelectObject(hdc, hPtPen);
-        hPrevBr = (HBRUSH)SelectObject(hdc, hBr);
-        Ellipse(hdc, cPrim.cPt1.x + m_cViewOrigin.x - iPtRad,
-          cPrim.cPt1.y + m_cViewOrigin.y - iPtRad,
-          cPrim.cPt1.x + m_cViewOrigin.x + iPtRad,
-          cPrim.cPt1.y + m_cViewOrigin.y + iPtRad);
-        SelectObject(hdc, hPrevBr);
-        SelectObject(hdc, hPen);*/
       }
       else if(cPrim.iType == 7)
       {
-        /*if(iMode == 0) SelectObject(hdc, hCentPen);
-        else SelectObject(hdc, hPtPen);
-        DrawPrimitive(hdc, &cPrim);
-        SelectObject(hdc, hPen);*/
         if(iMode == 0) DrawPrimitivePlus(graphics, &hCentPen, &cPrim);
         else DrawPrimitivePlus(graphics, &hPtPen, &cPrim);
       }
       else if(cPrim.iType == 8)
       {
-        /*SelectObject(hdc, hPtPen);
-        hPrevBr = (HBRUSH)SelectObject(hdc, hBr);
-        Rectangle(hdc, cPrim.cPt1.x + m_cViewOrigin.x - iPtRad,
-          cPrim.cPt1.y + m_cViewOrigin.y - iPtRad,
-          cPrim.cPt1.x + m_cViewOrigin.x + iPtRad,
-          cPrim.cPt1.y + m_cViewOrigin.y + iPtRad);
-        SelectObject(hdc, hPrevBr);
-        SelectObject(hdc, hPen);*/
         graphics->DrawRectangle(&hPtPen, (REAL)(cPrim.cPt1.x + m_cViewOrigin.x - rPtRad),
           (REAL)(cPrim.cPt1.y + m_cViewOrigin.y - rPtRad), (REAL)2.0*rPtRad, (REAL)2.0*rPtRad);
       }
@@ -3284,12 +3223,6 @@ void CMainWnd::DrawObjectPlus(HWND hWnd, Graphics *graphics, PDObject pObj, int 
       pObj->GetNextPrimitive(&cPrim, m_dUnitScale, iDimen);
     }*/
   }
-
-  /*SelectObject(hdc, hPrevPen);
-  DeleteObject(hBr);
-  DeleteObject(hCentPen);
-  DeleteObject(hPtPen);
-  DeleteObject(hPen);*/
 }
 
 int CMainWnd::GetDynMode()
@@ -3334,11 +3267,7 @@ LRESULT CMainWnd::WMMouseMove(HWND hwnd, WPARAM fwKeys, int xPos, int yPos)
   double dy = (yPos - m_cViewOrigin.y)/m_dUnitScale;
 
   HDC hdc;
-  HPEN hPrevPen;
-  HBRUSH hPrevBr;
-  int iPrevROP;
   double dTol;
-
   CDRect cdr;
   int iDynMode = GetDynMode();
 
@@ -3378,14 +3307,21 @@ LRESULT CMainWnd::WMMouseMove(HWND hwnd, WPARAM fwKeys, int xPos, int yPos)
 
       if((m_pHighObject != pNewHigh) || (iDimen != m_iHighDimen))
       {
+        Bitmap bmp(rc.right - rc.left, rc.bottom - rc.top);
+        Graphics graphics(&bmp);
+        graphics.SetSmoothingMode(SmoothingModeAntiAlias);
+        graphics.DrawImage(m_pDrawBuffer, 0, 0);
+        if(pNewHigh) DrawObjectPlus(hwnd, &graphics, pNewHigh, 2, iDimen);
+
         hdc = GetDC(hwnd);
         IntersectClipRect(hdc, rc.left, rc.top, rc.right, rc.bottom);
-        HBRUSH hPrevBr = (HBRUSH)SelectObject(hdc, GetStockObject(HOLLOW_BRUSH));
-        if(m_pHighObject) DrawObject(hwnd, hdc, m_pHighObject, 0, m_iHighDimen);
-        if(pNewHigh) DrawObject(hwnd, hdc, pNewHigh, 2, iDimen);
-        SelectObject(hdc, hPrevBr);
+
+        Graphics dstgraph(hdc);
+        dstgraph.DrawImage(&bmp, 0, 0);
+
         SelectClipRgn(hdc, NULL);
         ReleaseDC(hwnd, NULL);
+
         m_pHighObject = pNewHigh;
         m_iHighDimen = iDimen;
       }
@@ -3401,421 +3337,384 @@ LRESULT CMainWnd::WMMouseMove(HWND hwnd, WPARAM fwKeys, int xPos, int yPos)
   int iCnt = 0;
   PDObject pObj1, pObj2;
 
-  if(m_iDrawMode + m_iToolMode > 0)
-  {
-    hdc = GetDC(hwnd);
-    IntersectClipRect(hdc, rc.left, rc.top, rc.right, rc.bottom);
-
-    /*hPrevPen = (HPEN)SelectObject(hdc, m_hRedPen);
-    hPrevBr = (HBRUSH)SelectObject(hdc, GetStockObject(HOLLOW_BRUSH));
-    iPrevROP = SetROP2(hdc, R2_NOTXORPEN);
-    MoveToEx(hdc, m_cLastSnapPt.x - 10, m_cLastSnapPt.y, NULL);
-    LineTo(hdc, m_cLastSnapPt.x + 10, m_cLastSnapPt.y);
-    MoveToEx(hdc, m_cLastSnapPt.x, m_cLastSnapPt.y - 10, NULL);
-    LineTo(hdc, m_cLastSnapPt.x, m_cLastSnapPt.y + 10);
-
-    if(m_pActiveObject) DrawObject(hwnd, hdc, m_pActiveObject, 1, -2);
-
-    if(iDynMode == 4)
-    {
-        iCnt = m_pDrawObjects->GetSelectCount(2);
-        if(iCnt == 1)
-        {
-            pObj1 = m_pDrawObjects->GetSelected(0);
-            DrawObject(hwnd, hdc, pObj1, 1, -1);
-        }
-    }*/
-  }
-
   m_cLastSnapPt.x = xPos;
   m_cLastSnapPt.y = yPos;
 
   if(m_iDrawMode + m_iToolMode > 0)
   {
-      CDLine cSnapPt;
-      bool bHasLastPoint = false;
-      CDInputPoint cLstInPt;
-      CDPoint cDir1, cDir2;
-      double dAng1;
-      bool bDoSnap = true;
+    CDLine cSnapPt;
+    bool bHasLastPoint = false;
+    CDInputPoint cLstInPt;
+    CDPoint cDir1, cDir2;
+    double dAng1;
+    bool bDoSnap = true;
 
-      if((m_iDrawMode == modLine) && m_pActiveObject)
+    if((m_iDrawMode == modLine) && m_pActiveObject)
+    {
+      bHasLastPoint = m_pActiveObject->GetPoint(0, 0, &cLstInPt);
+    }
+
+    CDLine cPtX;
+
+    if(fwKeys & MK_CONTROL)
+    {
+      bDoSnap = false;
+
+      if(bHasLastPoint)
       {
-          bHasLastPoint = m_pActiveObject->GetPoint(0, 0, &cLstInPt);
+        CDPoint cMainDir = {1.0, 0.0};
+        CDLine cPtX;
+
+        iCnt = m_pDrawObjects->GetSelectCount(2);
+        if(iCnt == 1)
+        {
+          pObj1 = m_pDrawObjects->GetSelected(0);
+          if(m_cLastDynPt.bIsSet)
+          pObj1->GetDistFromPt(m_cLastDynPt.cOrigin, m_cLastDynPt.cOrigin, true, &cPtX, NULL);
+          else pObj1->GetDistFromPt(cLstInPt.cPoint, cLstInPt.cPoint, true, &cPtX, NULL);
+          if(cPtX.bIsSet) cMainDir = cPtX.cDirection;
+        }
+
+        if((fwKeys & MK_SHIFT) && (iCnt == 1))
+        {
+          cDir2.x = dx;
+          cDir2.y = dy;
+          cDir1 = pObj1->GetPointToDir(cLstInPt.cPoint, m_dSavedAngle, cDir2);
+          m_cLastDynPt.bIsSet = true;
+          m_cLastDynPt.cOrigin = cDir1;
+          m_cLastDrawPt = cDir2;
+          bDoSnap = true;
+        }
+        else
+        {
+          m_cLastDynPt.bIsSet = false;
+          cDir1.x = dx - cLstInPt.cPoint.x;
+          cDir1.y = dy - cLstInPt.cPoint.y;
+          cDir2 = Rotate(cDir1, cMainDir, false);
+          dAng1 = atan2(cDir2.y, cDir2.x);
+          dAng1 *= 180.0/M_PI/m_cFSR.cAngUnit.dBaseToUnit;
+          double dAng2 = m_cFSR.dAngGrid*(Round((double)dAng1/m_cFSR.dAngGrid));
+          dAng2 *= M_PI*m_cFSR.cAngUnit.dBaseToUnit/180.0;
+
+          m_dSavedAngle = dAng2;
+
+          CDPoint cDir3 = {cos(dAng2), sin(dAng2)};
+          cSnapPt.cOrigin = Rotate(cDir2, cDir3, false);
+          cSnapPt.cOrigin.y = 0.0;
+          cDir1 = Rotate(cSnapPt.cOrigin, cDir3, true);
+          m_cLastDrawPt = cLstInPt.cPoint + Rotate(cDir1, cMainDir, true);
+        }
       }
-
-      CDLine cPtX;
-
-      if(fwKeys & MK_CONTROL)
+      else
       {
-          bDoSnap = false;
-
-          if(bHasLastPoint)
-          {
-              CDPoint cMainDir = {1.0, 0.0};
-              CDLine cPtX;
-
-              iCnt = m_pDrawObjects->GetSelectCount(2);
-              if(iCnt == 1)
-              {
-                  pObj1 = m_pDrawObjects->GetSelected(0);
-                  if(m_cLastDynPt.bIsSet)
-                      pObj1->GetDistFromPt(m_cLastDynPt.cOrigin, m_cLastDynPt.cOrigin, true, &cPtX, NULL);
-                  else pObj1->GetDistFromPt(cLstInPt.cPoint, cLstInPt.cPoint, true, &cPtX, NULL);
-                  if(cPtX.bIsSet) cMainDir = cPtX.cDirection;
-              }
-
-              if((fwKeys & MK_SHIFT) && (iCnt == 1))
-              {
-                  cDir2.x = dx;
-                  cDir2.y = dy;
-                  cDir1 = pObj1->GetPointToDir(cLstInPt.cPoint, m_dSavedAngle, cDir2);
-                  m_cLastDynPt.bIsSet = true;
-                  m_cLastDynPt.cOrigin = cDir1;
-                  m_cLastDrawPt = cDir2;
-                  bDoSnap = true;
-              }
-              else
-              {
-                  m_cLastDynPt.bIsSet = false;
-                  cDir1.x = dx - cLstInPt.cPoint.x;
-                  cDir1.y = dy - cLstInPt.cPoint.y;
-                  cDir2 = Rotate(cDir1, cMainDir, false);
-                  dAng1 = atan2(cDir2.y, cDir2.x);
-                  dAng1 *= 180.0/M_PI/m_cFSR.cAngUnit.dBaseToUnit;
-                  double dAng2 = m_cFSR.dAngGrid*(Round((double)dAng1/m_cFSR.dAngGrid));
-                  dAng2 *= M_PI*m_cFSR.cAngUnit.dBaseToUnit/180.0;
-
-                  m_dSavedAngle = dAng2;
-
-                  CDPoint cDir3 = {cos(dAng2), sin(dAng2)};
-                  cSnapPt.cOrigin = Rotate(cDir2, cDir3, false);
-                  cSnapPt.cOrigin.y = 0.0;
-                  cDir1 = Rotate(cSnapPt.cOrigin, cDir3, true);
-                  m_cLastDrawPt = cLstInPt.cPoint + Rotate(cDir1, cMainDir, true);
-              }
-          }
-          else
-          {
-              dx = m_cFSR.dXGrid*(Round((double)dx/m_cFSR.dXGrid));
-              dy = m_cFSR.dYGrid*(Round((double)dy/m_cFSR.dYGrid));
-              m_cLastDrawPt.x = dx;
-              m_cLastDrawPt.y = dy;
-          }
-          m_cLastSnapPt.x = m_cViewOrigin.x + (int)Round(m_cLastDrawPt.x*m_dUnitScale);
-          m_cLastSnapPt.y = m_cViewOrigin.y + (int)Round(m_cLastDrawPt.y*m_dUnitScale);
+        dx = m_cFSR.dXGrid*(Round((double)dx/m_cFSR.dXGrid));
+        dy = m_cFSR.dYGrid*(Round((double)dy/m_cFSR.dYGrid));
+        m_cLastDrawPt.x = dx;
+        m_cLastDrawPt.y = dy;
       }
-      else m_cLastDynPt.bIsSet = false;
+      m_cLastSnapPt.x = m_cViewOrigin.x + m_cLastDrawPt.x*m_dUnitScale;
+      m_cLastSnapPt.y = m_cViewOrigin.y + m_cLastDrawPt.y*m_dUnitScale;
+    }
+    else m_cLastDynPt.bIsSet = false;
 
-      bool bRestrict = false;
-      double dRestrictVal = m_dRestrictValue;
+    bool bRestrict = false;
+    double dRestrictVal = m_dRestrictValue;
 
-      if(bDoSnap)
+    if(bDoSnap)
+    {
+      m_cLastDrawPt.x = (m_cLastSnapPt.x - m_cViewOrigin.x)/m_dUnitScale;
+      m_cLastDrawPt.y = (m_cLastSnapPt.y - m_cViewOrigin.y)/m_dUnitScale;
+      dTol = (double)m_iSnapTolerance/m_dUnitScale;
+
+      int iSnapType = 0;
+      if(m_iToolMode == tolConflict) iSnapType = 1;
+      if(m_pDrawObjects->GetSnapPoint(iSnapType, m_cLastDrawPt,
+        dTol, &cSnapPt, m_pActiveObject) > 0)
       {
-          m_cLastDrawPt.x = (m_cLastSnapPt.x - m_cViewOrigin.x)/m_dUnitScale;
-          m_cLastDrawPt.y = (m_cLastSnapPt.y - m_cViewOrigin.y)/m_dUnitScale;
-          dTol = (double)m_iSnapTolerance/m_dUnitScale;
-
-          int iSnapType = 0;
-          if(m_iToolMode == tolConflict) iSnapType = 1;
-          if(m_pDrawObjects->GetSnapPoint(iSnapType, m_cLastDrawPt,
-              dTol, &cSnapPt, m_pActiveObject) > 0)
+        if((fwKeys & MK_SHIFT) && (iCnt == 1))
+        {
+          for(int i = 0; i < 4; i++)
           {
-              if((fwKeys & MK_SHIFT) && (iCnt == 1))
-              {
-                  for(int i = 0; i < 4; i++)
-                  {
-                      cDir2 = cSnapPt.cOrigin;
-                      cDir1 = pObj1->GetPointToDir(cLstInPt.cPoint, m_dSavedAngle, cDir2);
-                      m_cLastDynPt.bIsSet = true;
-                      m_cLastDynPt.cOrigin = cDir1;
-                      m_cLastDrawPt = cDir2;
-                      m_pDrawObjects->GetSnapPoint(iSnapType, m_cLastDrawPt, dTol, &cSnapPt,
-                          m_pActiveObject);
-                  }
-              }
-
-              m_cLastDrawPt = cSnapPt.cOrigin;
-              m_cLastSnapPt.x = m_cViewOrigin.x + (int)Round(m_cLastDrawPt.x*m_dUnitScale);
-              m_cLastSnapPt.y = m_cViewOrigin.y + (int)Round(m_cLastDrawPt.y*m_dUnitScale);
+            cDir2 = cSnapPt.cOrigin;
+            cDir1 = pObj1->GetPointToDir(cLstInPt.cPoint, m_dSavedAngle, cDir2);
+            m_cLastDynPt.bIsSet = true;
+            m_cLastDynPt.cOrigin = cDir1;
+            m_cLastDrawPt = cDir2;
+            m_pDrawObjects->GetSnapPoint(iSnapType, m_cLastDrawPt, dTol, &cSnapPt,
+              m_pActiveObject);
           }
+        }
 
-          if(m_pActiveObject)
-          {
-              if((m_iDrawMode == modLine) && (iDynMode != 2))
-              {
-                  bRestrict = IS_ANGLE_VAL(m_iRestrictSet);
-                  if(bRestrict)
-                  {
-                      if(m_iRestrictSet == 0) dRestrictVal /= m_cFSR.cAngUnit.dBaseToUnit;
-                      if(m_iRestrictSet != 3) dRestrictVal *= M_PI/180.0;
-                  }
-              }
-              else
-              {
-                  bRestrict = IS_LENGTH_VAL(m_iRestrictSet);
-                  if(bRestrict)
-                  {
-                      if(m_iRestrictSet == 0)
-                      {
-                          if(m_bPaperUnits)
-                              dRestrictVal *= m_cFSR.cPaperUnit.dBaseToUnit;
-                          else dRestrictVal *= m_cFSR.cLenUnit.dBaseToUnit;
-                      }
-                      if(!m_bPaperUnits) dRestrictVal *= m_dDrawScale;
-                  }
-              }
-
-              if(iDynMode == 3)
-              {
-                  iCnt = m_pDrawObjects->GetSelectCount(2);
-                  if(iCnt == 2)
-                  {
-                      pObj1 = m_pDrawObjects->GetSelected(0);
-                      pObj2 = m_pDrawObjects->GetSelected(1);
-                      m_pActiveObject->BuildRound(pObj1, pObj2, m_cLastDrawPt, bRestrict,
-                          dRestrictVal);
-                  }
-              }
-
-              bRestrict = m_pActiveObject->GetRestrictPoint(m_cLastDrawPt,
-                  iDynMode, bRestrict, dRestrictVal, &cSnapPt.cOrigin);
-          }
-
-          if(bRestrict)
-          {
-              m_cLastDrawPt = cSnapPt.cOrigin;
-              m_cLastSnapPt.x = m_cViewOrigin.x + (int)Round(m_cLastDrawPt.x*m_dUnitScale);
-              m_cLastSnapPt.y = m_cViewOrigin.y + (int)Round(m_cLastDrawPt.y*m_dUnitScale);
-          }
-      }
-
-      Bitmap bmp(rc.right - rc.left, rc.bottom - rc.top);
-      Graphics graphics(&bmp);
-      graphics.SetSmoothingMode(SmoothingModeAntiAlias);
-      graphics.DrawImage(m_pDrawBuffer, 0, 0);
-
-      hPrevPen = (HPEN)SelectObject(hdc, m_hRedPen);
-      Pen redPen(Color(255, 255, 0, 0), 1);
-      graphics.DrawLine(&redPen, (REAL)(m_cLastSnapPt.x - 10), (REAL)m_cLastSnapPt.y,
-        (REAL)(m_cLastSnapPt.x + 10), (REAL)m_cLastSnapPt.y);
-      graphics.DrawLine(&redPen, (REAL)m_cLastSnapPt.x, (REAL)(m_cLastSnapPt.y - 10),
-        (REAL)m_cLastSnapPt.x, (REAL)(m_cLastSnapPt.y + 10));
-
-      /*MoveToEx(hdc, m_cLastSnapPt.x - 10, m_cLastSnapPt.y, NULL);
-      LineTo(hdc, m_cLastSnapPt.x + 10, m_cLastSnapPt.y);
-      MoveToEx(hdc, m_cLastSnapPt.x, m_cLastSnapPt.y - 10, NULL);
-      LineTo(hdc, m_cLastSnapPt.x, m_cLastSnapPt.y + 10);*/
-
-      cPtX.cOrigin = m_cLastDrawPt;
-      if(iDynMode == 1)
-      {
-          cPtX.bIsSet = m_cLastDynPt.bIsSet;
-          cPtX.cDirection = m_cLastDynPt.cOrigin;
-      }
-      else if(iDynMode == 2)
-      {
-          cPtX.cDirection.x = 0.0;
-          if(fwKeys & MK_SHIFT) cPtX.cDirection.x = -1.0;
-          if(bRestrict)
-          {
-              cPtX.cDirection.x = 1.0;
-              cPtX.cDirection.y = dRestrictVal;
-              m_dSavedDist = dRestrictVal;
-          }
+        m_cLastDrawPt = cSnapPt.cOrigin;
+        m_cLastSnapPt.x = m_cViewOrigin.x + m_cLastDrawPt.x*m_dUnitScale;
+        m_cLastSnapPt.y = m_cViewOrigin.y + m_cLastDrawPt.y*m_dUnitScale;
       }
 
       if(m_pActiveObject)
       {
-          double dVal;
-          if(!bRestrict)
+        if((m_iDrawMode == modLine) && (iDynMode != 2))
+        {
+          bRestrict = IS_ANGLE_VAL(m_iRestrictSet);
+          if(bRestrict)
           {
-              if(m_pActiveObject->GetDynValue(m_cLastDrawPt, iDynMode, &dVal))
-              {
-                  m_dSavedDist = dVal;
+            if(m_iRestrictSet == 0) dRestrictVal /= m_cFSR.cAngUnit.dBaseToUnit;
+            if(m_iRestrictSet != 3) dRestrictVal *= M_PI/180.0;
+          }
+        }
+        else
+        {
+          bRestrict = IS_LENGTH_VAL(m_iRestrictSet);
+          if(bRestrict)
+          {
+            if(m_iRestrictSet == 0)
+            {
+              if(m_bPaperUnits)
+              dRestrictVal *= m_cFSR.cPaperUnit.dBaseToUnit;
+              else dRestrictVal *= m_cFSR.cLenUnit.dBaseToUnit;
+            }
+            if(!m_bPaperUnits) dRestrictVal *= m_dDrawScale;
+          }
+        }
 
-                  if((m_iDrawMode == modLine) && (iDynMode != 2))
-                  {
-                      dVal *= m_cFSR.cAngUnit.dBaseToUnit*180.0/M_PI;
-                      swprintf(m_wsStatus2Msg, L"%s %.2f %s", m_wsStatus2Base, dVal,
-                          m_cFSR.cAngUnit.wsAbbrev);
-                  }
-                  else
-                  {
-                      if(m_bPaperUnits)
-                      {
-                          dVal /= m_cFSR.cPaperUnit.dBaseToUnit;
-                          swprintf(m_wsStatus2Msg, L"%s %.2f %s", m_wsStatus2Base, dVal,
-                              m_cFSR.cPaperUnit.wsAbbrev);
-                      }
-                      else
-                      {
-                          dVal /= m_dDrawScale;
-                          dVal /= m_cFSR.cLenUnit.dBaseToUnit;
-                          swprintf(m_wsStatus2Msg, L"%s %.2f %s", m_wsStatus2Base, dVal,
-                              m_cFSR.cLenUnit.wsAbbrev);
-                      }
-                  }
-                  SendMessage(m_hStatus, SB_SETTEXT, 1, (LPARAM)m_wsStatus2Msg);
-              }
+        if(iDynMode == 3)
+        {
+          iCnt = m_pDrawObjects->GetSelectCount(2);
+          if(iCnt == 2)
+          {
+            pObj1 = m_pDrawObjects->GetSelected(0);
+            pObj2 = m_pDrawObjects->GetSelected(1);
+            m_pActiveObject->BuildRound(pObj1, pObj2, m_cLastDrawPt, bRestrict,
+              dRestrictVal);
+          }
+        }
+
+        bRestrict = m_pActiveObject->GetRestrictPoint(m_cLastDrawPt,
+        iDynMode, bRestrict, dRestrictVal, &cSnapPt.cOrigin);
+      }
+
+      if(bRestrict)
+      {
+        m_cLastDrawPt = cSnapPt.cOrigin;
+        m_cLastSnapPt.x = m_cViewOrigin.x + m_cLastDrawPt.x*m_dUnitScale;
+        m_cLastSnapPt.y = m_cViewOrigin.y + m_cLastDrawPt.y*m_dUnitScale;
+      }
+    }
+
+    Bitmap bmp(rc.right - rc.left, rc.bottom - rc.top);
+    Graphics graphics(&bmp);
+    graphics.SetSmoothingMode(SmoothingModeAntiAlias);
+    graphics.DrawImage(m_pDrawBuffer, 0, 0);
+
+    graphics.DrawLine(m_redPen, (REAL)(m_cLastSnapPt.x - 10), (REAL)m_cLastSnapPt.y,
+      (REAL)(m_cLastSnapPt.x + 10), (REAL)m_cLastSnapPt.y);
+    graphics.DrawLine(m_redPen, (REAL)m_cLastSnapPt.x, (REAL)(m_cLastSnapPt.y - 10),
+      (REAL)m_cLastSnapPt.x, (REAL)(m_cLastSnapPt.y + 10));
+
+    cPtX.cOrigin = m_cLastDrawPt;
+    if(iDynMode == 1)
+    {
+      cPtX.bIsSet = m_cLastDynPt.bIsSet;
+      cPtX.cDirection = m_cLastDynPt.cOrigin;
+    }
+    else if(iDynMode == 2)
+    {
+      cPtX.cDirection.x = 0.0;
+      if(fwKeys & MK_SHIFT) cPtX.cDirection.x = -1.0;
+      if(bRestrict)
+      {
+        cPtX.cDirection.x = 1.0;
+        cPtX.cDirection.y = dRestrictVal;
+        m_dSavedDist = dRestrictVal;
+      }
+    }
+
+    if(m_pActiveObject)
+    {
+      double dVal;
+      if(!bRestrict)
+      {
+        if(m_pActiveObject->GetDynValue(m_cLastDrawPt, iDynMode, &dVal))
+        {
+          m_dSavedDist = dVal;
+
+          if((m_iDrawMode == modLine) && (iDynMode != 2))
+          {
+            dVal *= m_cFSR.cAngUnit.dBaseToUnit*180.0/M_PI;
+            swprintf(m_wsStatus2Msg, L"%s %.2f %s", m_wsStatus2Base, dVal,
+            m_cFSR.cAngUnit.wsAbbrev);
           }
           else
           {
-              dVal = m_dRestrictValue;
-              if((m_iDrawMode == modLine) && (iDynMode != 2))
-              {
-                  swprintf(m_wsStatus2Msg, L"%s %.2f %s", m_wsStatus2Base, dVal,
-                      m_cFSR.cAngUnit.wsAbbrev);
-              }
-              else
-              {
-                  if(m_bPaperUnits)
-                  {
-                      swprintf(m_wsStatus2Msg, L"%s %.2f %s", m_wsStatus2Base, dVal,
-                          m_cFSR.cPaperUnit.wsAbbrev);
-                  }
-                  else
-                  {
-                      swprintf(m_wsStatus2Msg, L"%s %.2f %s", m_wsStatus2Base, dVal,
-                          m_cFSR.cLenUnit.wsAbbrev);
-                  }
-              }
-              SendMessage(m_hStatus, SB_SETTEXT, 1, (LPARAM)m_wsStatus2Msg);
+            if(m_bPaperUnits)
+            {
+              dVal /= m_cFSR.cPaperUnit.dBaseToUnit;
+              swprintf(m_wsStatus2Msg, L"%s %.2f %s", m_wsStatus2Base, dVal,
+              m_cFSR.cPaperUnit.wsAbbrev);
+            }
+            else
+            {
+              dVal /= m_dDrawScale;
+              dVal /= m_cFSR.cLenUnit.dBaseToUnit;
+              swprintf(m_wsStatus2Msg, L"%s %.2f %s", m_wsStatus2Base, dVal,
+              m_cFSR.cLenUnit.wsAbbrev);
+            }
           }
-
-          cdr.cPt1.x = (rc.left - m_cViewOrigin.x)/m_dUnitScale;
-          cdr.cPt1.y = (rc.top - m_cViewOrigin.y)/m_dUnitScale;
-          cdr.cPt2.x = (rc.right - m_cViewOrigin.x)/m_dUnitScale;
-          cdr.cPt2.y = (rc.bottom - m_cViewOrigin.y)/m_dUnitScale;
-
-          m_pActiveObject->BuildPrimitives(cPtX, iDynMode, &cdr, 0, NULL);
-
-          DrawObject(hwnd, hdc, m_pActiveObject, 1, -2);
+          SendMessage(m_hStatus, SB_SETTEXT, 1, (LPARAM)m_wsStatus2Msg);
+        }
       }
-      else if(iDynMode == 4)
+      else
       {
-          iCnt = m_pDrawObjects->GetSelectCount(2);
-          if(iCnt == 1)
+        dVal = m_dRestrictValue;
+        if((m_iDrawMode == modLine) && (iDynMode != 2))
+        {
+          swprintf(m_wsStatus2Msg, L"%s %.2f %s", m_wsStatus2Base, dVal,
+            m_cFSR.cAngUnit.wsAbbrev);
+        }
+        else
+        {
+          if(m_bPaperUnits)
           {
-//SendMessage(g_hStatus, SB_SETTEXT, 2, (LPARAM)L"Dobry 1");
-              pObj1 = m_pDrawObjects->GetSelected(0);
-              CDFileAttrs cFAttrs;
-              FilePropsToData(&cFAttrs);
-              // we actualy don't need the drawing scale for the dimension,
-              // so we will use it to pass the view scale
-              cFAttrs.dScaleDenom = m_dUnitScale;
-
-              cdr.cPt1.x = (rc.left - m_cViewOrigin.x)/m_dUnitScale;
-              cdr.cPt1.y = (rc.top - m_cViewOrigin.y)/m_dUnitScale;
-              cdr.cPt2.x = (rc.right - m_cViewOrigin.x)/m_dUnitScale;
-              cdr.cPt2.y = (rc.bottom - m_cViewOrigin.y)/m_dUnitScale;
-
-              pObj1->BuildPrimitives(cPtX, iDynMode, &cdr, 0, &cFAttrs);
-              DrawObject(hwnd, hdc, pObj1, 1, -1);
+            swprintf(m_wsStatus2Msg, L"%s %.2f %s", m_wsStatus2Base, dVal,
+              m_cFSR.cPaperUnit.wsAbbrev);
           }
+          else
+          {
+            swprintf(m_wsStatus2Msg, L"%s %.2f %s", m_wsStatus2Base, dVal,
+              m_cFSR.cLenUnit.wsAbbrev);
+          }
+        }
+        SendMessage(m_hStatus, SB_SETTEXT, 1, (LPARAM)m_wsStatus2Msg);
       }
 
-      //hdc = GetDC(hwnd);
-      Graphics dstgraph(hdc);
-      dstgraph.DrawImage(&bmp, 0, 0);
+      cdr.cPt1.x = (rc.left - m_cViewOrigin.x)/m_dUnitScale;
+      cdr.cPt1.y = (rc.top - m_cViewOrigin.y)/m_dUnitScale;
+      cdr.cPt2.x = (rc.right - m_cViewOrigin.x)/m_dUnitScale;
+      cdr.cPt2.y = (rc.bottom - m_cViewOrigin.y)/m_dUnitScale;
 
-      /*SetROP2(hdc, iPrevROP);
-      SelectObject(hdc, hPrevBr);
-      SelectObject(hdc, hPrevPen);
-      SelectClipRgn(hdc, NULL);*/
-      ReleaseDC(hwnd, NULL);
+      m_pActiveObject->BuildPrimitives(cPtX, iDynMode, &cdr, 0, NULL);
 
-      if(m_iToolMode == tolMeas)
+      DrawObjectPlus(hwnd, &graphics, m_pActiveObject, 1, -2);
+    }
+    else if(iDynMode == 4)
+    {
+      iCnt = m_pDrawObjects->GetSelectCount(2);
+      if(iCnt == 1)
       {
-          if(m_cMeasPoint1.bIsSet && !m_cMeasPoint2.bIsSet)
-          {
-              CDPoint cDistPt = m_cLastDrawPt - m_cMeasPoint1.cOrigin;
-              wchar_t *wsUnit;
-              if(m_bPaperUnits)
-              {
-                  cDistPt /= m_cFSR.cPaperUnit.dBaseToUnit;
-                  wsUnit = m_cFSR.cPaperUnit.wsAbbrev;
-              }
-              else
-              {
-                  cDistPt /= m_dDrawScale;
-                  cDistPt /= m_cFSR.cLenUnit.dBaseToUnit;
-                  wsUnit = m_cFSR.cLenUnit.wsAbbrev;
-              }
-              double dNorm = GetNorm(cDistPt);
-              swprintf(m_wsStatus2Msg, L"dx: %.3f, dy: %.3f, dist: %.4f (%s)", fabs(cDistPt.x),
-                  fabs(cDistPt.y), dNorm, wsUnit);
-              SendMessage(m_hStatus, SB_SETTEXT, 1, (LPARAM)m_wsStatus2Msg);
-          }
+        //SendMessage(g_hStatus, SB_SETTEXT, 2, (LPARAM)L"Dobry 1");
+        pObj1 = m_pDrawObjects->GetSelected(0);
+        CDFileAttrs cFAttrs;
+        FilePropsToData(&cFAttrs);
+        // we actualy don't need the drawing scale for the dimension,
+        // so we will use it to pass the view scale
+        cFAttrs.dScaleDenom = m_dUnitScale;
+
+        cdr.cPt1.x = (rc.left - m_cViewOrigin.x)/m_dUnitScale;
+        cdr.cPt1.y = (rc.top - m_cViewOrigin.y)/m_dUnitScale;
+        cdr.cPt2.x = (rc.right - m_cViewOrigin.x)/m_dUnitScale;
+        cdr.cPt2.y = (rc.bottom - m_cViewOrigin.y)/m_dUnitScale;
+
+        pObj1->BuildPrimitives(cPtX, iDynMode, &cdr, 0, &cFAttrs);
+        DrawObjectPlus(hwnd, &graphics, pObj1, 1, -1);
       }
+    }
+
+    hdc = GetDC(hwnd);
+    IntersectClipRect(hdc, rc.left, rc.top, rc.right, rc.bottom);
+    Graphics dstgraph(hdc);
+    dstgraph.DrawImage(&bmp, 0, 0);
+    ReleaseDC(hwnd, NULL);
+
+    if(m_iToolMode == tolMeas)
+    {
+      if(m_cMeasPoint1.bIsSet && !m_cMeasPoint2.bIsSet)
+      {
+        CDPoint cDistPt = m_cLastDrawPt - m_cMeasPoint1.cOrigin;
+        wchar_t *wsUnit;
+        if(m_bPaperUnits)
+        {
+          cDistPt /= m_cFSR.cPaperUnit.dBaseToUnit;
+          wsUnit = m_cFSR.cPaperUnit.wsAbbrev;
+        }
+        else
+        {
+          cDistPt /= m_dDrawScale;
+          cDistPt /= m_cFSR.cLenUnit.dBaseToUnit;
+          wsUnit = m_cFSR.cLenUnit.wsAbbrev;
+        }
+        double dNorm = GetNorm(cDistPt);
+        swprintf(m_wsStatus2Msg, L"dx: %.3f, dy: %.3f, dist: %.4f (%s)", fabs(cDistPt.x),
+        fabs(cDistPt.y), dNorm, wsUnit);
+        SendMessage(m_hStatus, SB_SETTEXT, 1, (LPARAM)m_wsStatus2Msg);
+      }
+    }
   }
   return 0;
 }
 
 LRESULT CMainWnd::WMMouseWheel(HWND hwnd, WORD fwKeys, int zDelta, int xPos, int yPos)
 {
-    if(m_iButton == 0)
-    {
-        double dRatio = exp((double)zDelta/600.0);
+  if(m_iButton == 0)
+  {
+    double dRatio = exp((double)zDelta/600.0);
 
-        POINT cPt = {xPos, yPos};
-        MapWindowPoints(HWND_DESKTOP, hwnd, &cPt, 1);
+    POINT cPt = {xPos, yPos};
+    MapWindowPoints(HWND_DESKTOP, hwnd, &cPt, 1);
 
-        m_cViewOrigin.x = cPt.x + (m_cViewOrigin.x - cPt.x)*dRatio;
-        m_cViewOrigin.y = cPt.y + (m_cViewOrigin.y - cPt.y)*dRatio;
-        m_dUnitScale *= dRatio;
+    m_cViewOrigin.x = cPt.x + (m_cViewOrigin.x - cPt.x)*dRatio;
+    m_cViewOrigin.y = cPt.y + (m_cViewOrigin.y - cPt.y)*dRatio;
+    m_dUnitScale *= dRatio;
 
-        RECT rc;
-        GetClientRect(hwnd, &rc);
-        rc.top += m_iToolBarHeight;
-        rc.bottom -= m_iStatusHeight;
-        InvalidateRect(hwnd, &rc, TRUE);
-    }
-    return 0;
+    RECT rc;
+    GetClientRect(hwnd, &rc);
+    rc.top += m_iToolBarHeight;
+    rc.bottom -= m_iStatusHeight;
+    InvalidateRect(hwnd, &rc, TRUE);
+  }
+  return 0;
 }
 
 LRESULT CMainWnd::WMLButtonDblClk(HWND hwnd, WPARAM fwKeys, int xPos, int yPos)
 {
-    //MessageBox(hwnd, L"WMLButtonDblClk", L"Debug", MB_OK);
-    //if((m_iDrawMode > modSelect) || (m_iToolMode == tolCopyPar))
-    if(m_iDrawMode > modSelect)
+  //MessageBox(hwnd, L"WMLButtonDblClk", L"Debug", MB_OK);
+  //if((m_iDrawMode > modSelect) || (m_iToolMode == tolCopyPar))
+  if(m_iDrawMode > modSelect)
+  {
+    if(m_pActiveObject)
     {
-        if(m_pActiveObject)
+      if(m_pActiveObject->HasEnoughPoints())
+      {
+        RECT rc;
+        GetClientRect(hwnd, &rc);
+        rc.top += m_iToolBarHeight;
+        rc.bottom -= m_iStatusHeight;
+
+        PDPtrList pRegions = new CDPtrList();
+        pRegions->SetDblVal(m_dUnitScale);
+
+        m_pActiveObject->AddRegions(pRegions, -1);
+        m_pDrawObjects->Add(m_pActiveObject);
+        SetTitle(hwnd, false);
+        m_pActiveObject = NULL;
+
+        HRGN hRgn = GetUpdateRegion(pRegions);
+        //InvalidateRect(hwnd, &rc, TRUE);
+        if(hRgn)
         {
-            if(m_pActiveObject->HasEnoughPoints())
-            {
-                RECT rc;
-                GetClientRect(hwnd, &rc);
-                rc.top += m_iToolBarHeight;
-                rc.bottom -= m_iStatusHeight;
-
-                PDPtrList pRegions = new CDPtrList();
-                pRegions->SetDblVal(m_dUnitScale);
-
-                m_pActiveObject->AddRegions(pRegions, -1);
-                m_pDrawObjects->Add(m_pActiveObject);
-                SetTitle(hwnd, false);
-                m_pActiveObject = NULL;
-
-                HRGN hRgn = GetUpdateRegion(pRegions);
-                //InvalidateRect(hwnd, &rc, TRUE);
-                if(hRgn)
-                {
-                    InvalidateRgn(hwnd, hRgn, TRUE);
-                    DeleteObject(hRgn);
-                }
-
-                ClearPolygonList(pRegions);
-                delete pRegions;
-                StartNewObject(hwnd);
-            }
+          InvalidateRgn(hwnd, hRgn, TRUE);
+          DeleteObject(hRgn);
         }
+
+        ClearPolygonList(pRegions);
+        delete pRegions;
+        StartNewObject(hwnd);
+      }
     }
-    else if(m_iDrawMode + m_iToolMode < 1)
-    {
-        EditLineStyleCmd(hwnd, 0, 0);
-    }
-    return 0;
+  }
+  else if(m_iDrawMode + m_iToolMode < 1)
+  {
+    EditLineStyleCmd(hwnd, 0, 0);
+  }
+  return 0;
 }
 
 /*LRESULT CMainWnd::WMChar(HWND hwnd, wchar_t chCharCode, LPARAM lKeyData)
