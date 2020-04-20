@@ -268,23 +268,23 @@ void ExportObject(PDObject pObj, cairo_t *pct, PDFileAttrs pFileAttrs, double dR
   cairo_set_line_width(pct, dLineWdth*dRat);
 
   CDPrimitive cPrim;
-  pObj->GetFirstPrimitive(&cPrim, -dRat, -2);
+  pObj->GetFirstPrimitive(&cPrim, dRat, -2);
 
   while(cPrim.iType > 0)
   {
     if(cPrim.iType == 10) ExportDimText(pct, &cPrim, pObj, dScale, pUnits, dRat);
     else if(bVisible) ExportPrimitive(pct, &cPrim);
-    pObj->GetNextPrimitive(&cPrim, -dRat, -2);
+    pObj->GetNextPrimitive(&cPrim, dRat, -2);
   }
 
   for(int i = 0; i < pObj->GetDimenCount(); i++)
   {
-    pObj->GetFirstPrimitive(&cPrim, -dRat, i);
+    pObj->GetFirstPrimitive(&cPrim, dRat, i);
     while(cPrim.iType > 0)
     {
       if(cPrim.iType == 10) ExportDimText(pct, &cPrim, pObj, dScale, pUnits, dRat);
       else ExportPrimitive(pct, &cPrim);
-      pObj->GetNextPrimitive(&cPrim, -dRat, i);
+      pObj->GetNextPrimitive(&cPrim, dRat, i);
     }
   }
 }

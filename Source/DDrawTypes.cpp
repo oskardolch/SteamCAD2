@@ -1657,36 +1657,19 @@ void CDObject::GetNextPrimitive(PDPrimitive pPrim, double dScale, int iDimen)
     {
       pPrim->cPt1 = cStPrim.cPt1;
       pPrim->cPt2.x = cStPrim.cPt2.x;
-      if(dScale < -g_dPrec) pPrim->cPt2.y = -dScale*cStPrim.cPt2.y;
-      else pPrim->cPt2.y = Round(dScale*cStPrim.cPt2.y);
-      if(dScale < -g_dPrec) pPrim->cPt3 = -dScale*cStPrim.cPt3;
-      else pPrim->cPt3 = Round(dScale*cStPrim.cPt3);
+      pPrim->cPt2.y = dScale*cStPrim.cPt2.y;
+      pPrim->cPt3 = dScale*cStPrim.cPt3;
     }
     else
     {
-      if(dScale < -g_dPrec)
+      if(cStPrim.iType != 9) pPrim->cPt1 = dScale*cStPrim.cPt1;
+      else pPrim->cPt1 = cStPrim.cPt1;
+      if(cStPrim.iType != 10) pPrim->cPt2 = dScale*cStPrim.cPt2;
+      else pPrim->cPt2 = cStPrim.cPt2;
+      if(cStPrim.iType != 2)
       {
-        if(cStPrim.iType != 9) pPrim->cPt1 = -dScale*cStPrim.cPt1;
-        else pPrim->cPt1 = cStPrim.cPt1;
-        if(cStPrim.iType != 10) pPrim->cPt2 = -dScale*cStPrim.cPt2;
-        else pPrim->cPt2 = cStPrim.cPt2;
-        if(cStPrim.iType != 2)
-        {
-          pPrim->cPt3 = -dScale*cStPrim.cPt3;
-          pPrim->cPt4 = -dScale*cStPrim.cPt4;
-        }
-      }
-      else
-      {
-        if(cStPrim.iType != 9) pPrim->cPt1 = Round(dScale*cStPrim.cPt1);
-        else pPrim->cPt1 = cStPrim.cPt1;
-        if(cStPrim.iType != 10) pPrim->cPt2 = Round(dScale*cStPrim.cPt2);
-        else pPrim->cPt2 = cStPrim.cPt2;
-        if(cStPrim.iType != 2)
-        {
-          pPrim->cPt3 = Round(dScale*cStPrim.cPt3);
-          pPrim->cPt4 = Round(dScale*cStPrim.cPt4);
-        }
+        pPrim->cPt3 = dScale*cStPrim.cPt3;
+        pPrim->cPt4 = dScale*cStPrim.cPt4;
       }
     }
   }
@@ -1805,7 +1788,7 @@ bool CDObject::GetBSplines(int iParts, double dScale, int *piCtrls, double **ppd
             cPt1 = cPt2;
             cPrim1 = m_pPrimitive->GetPrimitive(i);
             cPt2 = cPrim1.cPt2;
-            ppPoints[0][i - piPairs[0]] = -dScale*cPt2;
+            ppPoints[0][i - piPairs[0]] = dScale*cPt2;
 
             dDom = GetDist(cPt1, cPt2);
             du = GetDist(cPt1, cPrim1.cPt1);
@@ -1848,9 +1831,9 @@ bool CDObject::GetBSplines(int iParts, double dScale, int *piCtrls, double **ppd
         piCtrls[i] = piPairs[2*i + 1] - piPairs[2*i] + 2;
         ppPoints[i] = (PDPoint)malloc(piCtrls[i]*sizeof(CDPoint));
         cPrim1 = m_pPrimitive->GetPrimitive(piPairs[2*i]);
-        ppPoints[i][0] = -dScale*cPrim1.cPt1;
+        ppPoints[i][0] = dScale*cPrim1.cPt1;
         cPrim1 = m_pPrimitive->GetPrimitive(piPairs[2*i + 1] - 1);
-        ppPoints[i][piCtrls[i] - 1] = -dScale*cPrim1.cPt3;
+        ppPoints[i][piCtrls[i] - 1] = dScale*cPrim1.cPt3;
 
         pdt = (double*)malloc((piCtrls[i] - 3)*sizeof(double));
 
@@ -1867,7 +1850,7 @@ bool CDObject::GetBSplines(int iParts, double dScale, int *piCtrls, double **ppd
             cPt1 = cPt2;
             cPrim1 = m_pPrimitive->GetPrimitive(j);
             cPt2 = cPrim1.cPt2;
-            ppPoints[i][j - piPairs[2*i] + 1] = -dScale*cPt2;
+            ppPoints[i][j - piPairs[2*i] + 1] = dScale*cPt2;
 
             if(j > piPairs[2*i])
             {

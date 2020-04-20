@@ -246,7 +246,7 @@ void DXFWriteObject(DL_Dxf *pdxf, DL_WriterA *dw, PDObject pObj, double dPageHei
             int *piCtrls = (int*)malloc(iParts*sizeof(int));
             PDPoint *ppPoints = (PDPoint*)malloc(iParts*sizeof(PDPoint));
             double **ppdKnots = (double**)malloc(iParts*sizeof(double*));
-            bool bClosed = pObj->GetBSplines(iParts, -1.0, piCtrls, ppdKnots, ppPoints);
+            bool bClosed = pObj->GetBSplines(iParts, 1.0, piCtrls, ppdKnots, ppPoints);
 
             for(int i = 0; i < iParts; i++)
             {
@@ -262,13 +262,13 @@ void DXFWriteObject(DL_Dxf *pdxf, DL_WriterA *dw, PDObject pObj, double dPageHei
     }
 
     CDPrimitive cPrim;
-    pObj->GetFirstPrimitive(&cPrim, -1.0, -2);
+    pObj->GetFirstPrimitive(&cPrim, 1.0, -2);
 
     while(cPrim.iType > 0)
     {
         if(cPrim.iType == 10) DXFExportDimText();
         else if(bVisible) DXFExportPrimitive(pdxf, dw, iWidth, dPageHeight, &cPrim, sLayer);
-        pObj->GetNextPrimitive(&cPrim, -1.0, -2);
+        pObj->GetNextPrimitive(&cPrim, 1.0, -2);
     }
 
     //PDDimension pDim;

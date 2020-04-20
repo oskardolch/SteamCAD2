@@ -1335,7 +1335,7 @@ void CDApplication::DrawObject(cairo_t *cr, PDObject pObj, int iMode, int iDimen
 
   CDPrimitive cPrim;
   PDDimension pDim;
-  pObj->GetFirstPrimitive(&cPrim, -m_dUnitScale, iDimen);
+  pObj->GetFirstPrimitive(&cPrim, m_dUnitScale, iDimen);
 
   if(iDimen < -1)
   {
@@ -1417,7 +1417,7 @@ void CDApplication::DrawObject(cairo_t *cr, PDObject pObj, int iMode, int iDimen
       {
         DrawPrimitive(cr, &cPrim);
       }
-      pObj->GetNextPrimitive(&cPrim, -m_dUnitScale, iDimen);
+      pObj->GetNextPrimitive(&cPrim, m_dUnitScale, iDimen);
     }
 
     if(iMode == 0)
@@ -1436,7 +1436,7 @@ void CDApplication::DrawObject(cairo_t *cr, PDObject pObj, int iMode, int iDimen
           SetLColor(cr, dwColor);
         }
 
-        pObj->GetFirstPrimitive(&cPrim, -m_dUnitScale, i);
+        pObj->GetFirstPrimitive(&cPrim, m_dUnitScale, i);
         while(cPrim.iType > 0)
         {
           if(cPrim.iType == 10)
@@ -1444,7 +1444,7 @@ void CDApplication::DrawObject(cairo_t *cr, PDObject pObj, int iMode, int iDimen
             DrawDimText(cr, &cPrim, pObj, dwColor, fabs(cStyle.dWidth));
           }
           else DrawPrimitive(cr, &cPrim);
-          pObj->GetNextPrimitive(&cPrim, -m_dUnitScale, i);
+          pObj->GetNextPrimitive(&cPrim, m_dUnitScale, i);
         }
       }
     }
@@ -1466,7 +1466,7 @@ void CDApplication::DrawObject(cairo_t *cr, PDObject pObj, int iMode, int iDimen
         DrawDimText(cr, &cPrim, pObj, dwColor, fabs(cStyle.dWidth));
       }
       else DrawPrimitive(cr, &cPrim);
-      pObj->GetNextPrimitive(&cPrim, -m_dUnitScale, iDimen);
+      pObj->GetNextPrimitive(&cPrim, m_dUnitScale, iDimen);
     }
   }
 }
