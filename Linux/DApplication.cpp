@@ -1590,6 +1590,7 @@ void CDApplication::Paint(GtkWidget *widget, GdkEventExpose *event)
 
 // for debuggin purpose
 double dOffset = 10.0;
+if(bNotWholeWindow) dOffset = 0.0;
 cairo_set_source_rgb(cr, 0.3, 0.3, 0.3);
 cairo_new_path(cr);
 cairo_rectangle(cr, dOffset, dOffset, iWidth - 2*dOffset, iHeight - 2*dOffset);

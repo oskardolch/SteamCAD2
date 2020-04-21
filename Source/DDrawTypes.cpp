@@ -335,6 +335,7 @@ void CDObject::AddCurveSegment(CDPrimitive cAddMode, PDPrimObject pPrimitive, PD
         if(cAddMode.cPt2.x > g_dPrec)
         {
           dDist = cAddMode.cPt3.y - pBnds[j].x - cAddMode.cPt3.x*cAddMode.cPt2.x;
+          if(cAddMode.cPt1.x > pBnds[j].x) dDist -= cAddMode.cPt4.y;
           int n = (int)dDist/cAddMode.cPt2.y/cAddMode.cPt2.x;
           cPath.cPt2.y = n*cAddMode.cPt2.y*cAddMode.cPt2.x - dDist;
         }
