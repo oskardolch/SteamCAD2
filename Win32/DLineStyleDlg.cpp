@@ -186,6 +186,8 @@ INT_PTR CDLineStyleDlg::WMCommand(HWND hWnd, WORD wNotifyCode, WORD wID, HWND hw
         return LineExcChange(hWnd, wNotifyCode, hwndCtl);
     case LSD_CB_LINEJOIN:
         return LineJoinChange(hWnd, wNotifyCode, hwndCtl);
+    case LSD_BTN_COLOR:
+        return ColorChange(hWnd, wNotifyCode, hwndCtl);
     case LSD_EDT_LINEPAT1:
     case LSD_EDT_LINEPAT2:
     case LSD_EDT_LINEPAT3:
@@ -353,6 +355,22 @@ INT_PTR CDLineStyleDlg::LineJoinChange(HWND hWnd, WORD wNotifyCode, HWND hwndCtl
 {
     if(m_bSettingUp) return 0;
     if(wNotifyCode == CBN_SELCHANGE) m_pLSR->bJoinChanged = true;
+    return TRUE;
+}
+
+INT_PTR CDLineStyleDlg::ColorChange(HWND hWnd, WORD wNotifyCode, HWND hwndCtl)
+{
+    if(m_bSettingUp) return 0;
+    if(wNotifyCode == BN_CLICKED)
+    {
+//MessageBox(hWnd, L"Changing the color", L"Debug", MB_OK);
+        CHOOSECOLOR ccl;
+        if(ChooseColor(&ccl))
+        {
+MessageBox(hWnd, L"Changing the color", L"Debug", MB_OK);
+            m_pLSR->bColorChanged = true;
+        }
+    }
     return TRUE;
 }
 

@@ -42,6 +42,7 @@ private:
     INT_PTR LineCapChange(HWND hWnd, WORD wNotifyCode, HWND hwndCtl);
     INT_PTR LineExcChange(HWND hWnd, WORD wNotifyCode, HWND hwndCtl);
     INT_PTR LineJoinChange(HWND hWnd, WORD wNotifyCode, HWND hwndCtl);
+    INT_PTR ColorChange(HWND hWnd, WORD wNotifyCode, HWND hwndCtl);
     INT_PTR LinePatChange(HWND hWnd, WORD wNotifyCode, int iSeg, HWND hwndCtl);
 public:
     CDLineStyleDlg(HINSTANCE hInstance);
