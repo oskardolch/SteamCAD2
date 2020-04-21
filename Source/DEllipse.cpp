@@ -353,21 +353,24 @@ CDPoint GetElpsFarProj(double da, double db, CDPoint cPt)
   return cRes;
 }
 
-CDPoint GetElpsBoundProj(double da, double db, CDPoint cPt, CDPoint cPtRef, bool bFar)
+CDPoint GetElpsBoundProj(double da, double db, double dOffset, CDPoint cPt, CDPoint cPtRef, bool bFar)
 {
   CDPoint pProjs[4];
   double pDists[4];
   int iRoots = GetElpsPtProj(da, db, cPt, pProjs, pDists);
   int i = 0;
   CDPoint cProjPt = {da*pProjs[i].x, db*pProjs[i].y};
-  double dMin = GetDist(cPtRef, cProjPt);
-  CDPoint cRes = pProjs[i++];
+  double dNorm, dMin = GetDist(cPtRef, cProjPt);
+  CDPoint cNorm, cRes = pProjs[i++];
   if(bFar)
   {
     while(i < iRoots)
     {
-      cProjPt.x = da*pProjs[i].x;
-      cProjPt.y = db*pProjs[i].y;
+      cNorm.x = db*pProjs[i].x;
+      cNorm.y = da*pProjs[i].y;
+      dNorm = GetNorm(cNorm);
+      cProjPt.x = da*pProjs[i].x + dOffset*cNorm.x/dNorm;
+      cProjPt.y = db*pProjs[i].y + dOffset*cNorm.y/dNorm;
       pDists[0] = GetDist(cPtRef, cProjPt);
       if(pDists[0] > dMin)
       {
@@ -381,8 +384,11 @@ CDPoint GetElpsBoundProj(double da, double db, CDPoint cPt, CDPoint cPtRef, bool
   {
     while(i < iRoots)
     {
-      cProjPt.x = da*pProjs[i].x;
-      cProjPt.y = db*pProjs[i].y;
+      cNorm.x = db*pProjs[i].x;
+      cNorm.y = da*pProjs[i].y;
+      dNorm = GetNorm(cNorm);
+      cProjPt.x = da*pProjs[i].x + dOffset*cNorm.x/dNorm;
+      cProjPt.y = db*pProjs[i].y + dOffset*cNorm.y/dNorm;
       pDists[0] = GetDist(cPtRef, cProjPt);
       if(pDists[0] < dMin)
       {
@@ -1353,7 +1359,7 @@ double GetElpsDistFromPt(CDPoint cPt, CDPoint cRefPt, int iSrchMask, PDPointList
     }
   }
 
-  CDPoint cProj = GetElpsBoundProj(cRad.x, cRad.y, cPt1, cRefPt1, iSrchMask & 2);
+  CDPoint cProj = GetElpsBoundProj(cRad.x, cRad.y, dDist, cPt1, cRefPt1, iSrchMask & 2);
   if(cProj.x > 4.0) return dMin;
 
   CDPoint cProjDir, cProjPt, cProjOrg;
