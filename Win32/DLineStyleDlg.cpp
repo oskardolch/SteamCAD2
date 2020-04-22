@@ -5,35 +5,39 @@
 #include <math.h>
 
 INT_PTR CALLBACK LineStyleDlgProc(HWND hwndDlg, UINT uMsg,
-    WPARAM wParam, LPARAM lParam)
+  WPARAM wParam, LPARAM lParam)
 {
-    PDLineStyleDlg plsd = NULL;
-    if(uMsg == WM_INITDIALOG) plsd = (PDLineStyleDlg)lParam;
-    else plsd = (PDLineStyleDlg)GetWindowLongPtr(hwndDlg, DWLP_USER);
+  PDLineStyleDlg plsd = NULL;
+  if(uMsg == WM_INITDIALOG) plsd = (PDLineStyleDlg)lParam;
+  else plsd = (PDLineStyleDlg)GetWindowLongPtr(hwndDlg, DWLP_USER);
 
-    switch(uMsg)
-    {
-    case WM_INITDIALOG:
-        return(plsd->WMInitDialog(hwndDlg, (HWND)wParam, lParam));
-    case WM_COMMAND:
-        return(plsd->WMCommand(hwndDlg, HIWORD(wParam), LOWORD(wParam),
-            (HWND)lParam));
-    case WM_MOVE:
-        return(plsd->WMMove(hwndDlg, (short int)LOWORD(lParam),
-            (short int)HIWORD(lParam)));
-    default:
-        return(FALSE);
-    }
+  switch(uMsg)
+  {
+  case WM_INITDIALOG:
+    return(plsd->WMInitDialog(hwndDlg, (HWND)wParam, lParam));
+  case WM_COMMAND:
+    return(plsd->WMCommand(hwndDlg, HIWORD(wParam), LOWORD(wParam),
+      (HWND)lParam));
+  case WM_MOVE:
+    return(plsd->WMMove(hwndDlg, (short int)LOWORD(lParam),
+      (short int)HIWORD(lParam)));
+  default:
+    return(FALSE);
+  }
 }
 
 // CDFileSetupDlg
 
 CDLineStyleDlg::CDLineStyleDlg(HINSTANCE hInstance)
 {
-    m_hInstance = hInstance;
-    m_iX = -100;
-    m_iY = -100;
-    m_bSettingUp = false;
+  m_hInstance = hInstance;
+  m_iX = -100;
+  m_iY = -100;
+  for(int i = 0; i < 16; i++)
+  {
+    m_rgbCustColors[i] = 0;
+  }
+  m_bSettingUp = false;
 }
 
 CDLineStyleDlg::~CDLineStyleDlg()
@@ -68,6 +72,48 @@ void CDLineStyleDlg::RestoreSettings(CXMLReader* pRdr)
         pE1->Release();
     }
     return;
+}
+
+DWORD CodeRGBColor(unsigned char *pColor)
+{
+  return pColor[0] | (pColor[1] << 8) | (pColor[2] << 16) | (pColor[3] << 24);
+}
+
+double GetAlpha(unsigned char *pColor)
+{
+  return (100.0*pColor[3])/255.0;
+}
+
+void DecodeRGBColor(DWORD dwColor, double dTrans, unsigned char *pColor)
+{
+  pColor[0] = dwColor & 0xFF;
+  pColor[1] = (dwColor >> 8) & 0xFF;
+  pColor[2] = (dwColor >> 16) & 0xFF;
+  pColor[3] = (int)(100.0 - 255.0*dTrans/100.0);
+}
+
+void CDLineStyleDlg::SetButtonColor(HWND hWnd)
+{
+    HWND wnd = GetDlgItem(hWnd, LSD_BTN_COLOR);
+    RECT rc;
+    GetWindowRect(wnd, &rc);
+    int iWidth = 0.5*(rc.right - rc.left);
+    int iHeight = 0.6*(rc.bottom - rc.top);
+    HDC hdc = GetDC(wnd);
+    HDC memDC = CreateCompatibleDC(hdc);
+    HBITMAP memBM = CreateCompatibleBitmap(hdc, iWidth, iHeight);
+    SelectObject(memDC, memBM);
+    HPEN hPen = CreatePen(PS_SOLID, 1, 0x008F8F8F);
+    HBRUSH hBr = CreateSolidBrush(m_rgbCurColor);
+    SelectObject(memDC, hPen);
+    SelectObject(memDC, hBr);
+    Rectangle(memDC, 0, 0, iWidth, iHeight);
+    DeleteObject(hBr);
+    DeleteObject(hPen);
+    DeleteDC(memDC);
+    ReleaseDC(wnd, NULL);
+    SendMessage(wnd, BM_SETIMAGE, IMAGE_BITMAP, (LPARAM)memBM);
+    DeleteObject(memBM);
 }
 
 INT_PTR CDLineStyleDlg::WMInitDialog(HWND hWnd, HWND hwndFocus, LPARAM lInitParam)
@@ -117,26 +163,12 @@ INT_PTR CDLineStyleDlg::WMInitDialog(HWND hWnd, HWND hwndFocus, LPARAM lInitPara
         SendMessage(wnd, CB_SETCURSEL, m_pLSR->cLineStyle.cJoinType, 0);
     else SendMessage(wnd, CB_SETCURSEL, (WPARAM)-1, 0);
 
-    wnd = GetDlgItem(hWnd, LSD_BTN_COLOR);
-    RECT rc;
-    GetWindowRect(wnd, &rc);
-    int iWidth = 0.5*(rc.right - rc.left);
-    int iHeight = 0.6*(rc.bottom - rc.top);
-    HDC hdc = GetDC(wnd);
-    HDC memDC = CreateCompatibleDC(hdc);
-    HBITMAP memBM = CreateCompatibleBitmap(hdc, iWidth, iHeight);
-    SelectObject(memDC, memBM);
-    HPEN hPen = CreatePen(PS_SOLID, 1, 0x008F8F8F);
-    HBRUSH hBr = CreateSolidBrush(0x0000FF00); // set the color
-    SelectObject(memDC, hPen);
-    SelectObject(memDC, hBr);
-    Rectangle(memDC, 0, 0, iWidth, iHeight);
-    DeleteObject(hBr);
-    DeleteObject(hPen);
-    DeleteDC(memDC);
-    ReleaseDC(wnd, NULL);
-    SendMessage(wnd, BM_SETIMAGE, IMAGE_BITMAP, (LPARAM)memBM);
-    DeleteObject(memBM);
+    wnd = GetDlgItem(hWnd, LSD_EDT_TRANS);
+    FormatFloatStr(100.0 - GetAlpha(m_pLSR->cLineStyle.cColor), buf);
+    SendMessage(wnd, WM_SETTEXT, 0, (LPARAM)buf);
+
+    m_rgbCurColor = CodeRGBColor(m_pLSR->cLineStyle.cColor);
+    SetButtonColor(hWnd);
 
     wnd = GetDlgItem(hWnd, LSD_LBL_LINEPATUNIT);
     swprintf(buf, L"(%s)", m_pLSR->cUnit.wsAbbrev);
@@ -186,6 +218,8 @@ INT_PTR CDLineStyleDlg::WMCommand(HWND hWnd, WORD wNotifyCode, WORD wID, HWND hw
         return LineExcChange(hWnd, wNotifyCode, hwndCtl);
     case LSD_CB_LINEJOIN:
         return LineJoinChange(hWnd, wNotifyCode, hwndCtl);
+    case LSD_EDT_TRANS:
+        return TranslucencyChange(hWnd, wNotifyCode, hwndCtl);
     case LSD_BTN_COLOR:
         return ColorChange(hWnd, wNotifyCode, hwndCtl);
     case LSD_EDT_LINEPAT1:
@@ -278,6 +312,17 @@ INT_PTR CDLineStyleDlg::OKBtnClick(HWND hWnd)
         m_pLSR->bJoinSet = true;
     }
 
+    if(m_pLSR->bColorChanged)
+    {
+        wnd = GetDlgItem(hWnd, LSD_CB_LINEJOIN);
+        SendMessage(wnd, WM_GETTEXT, 64, (LPARAM)buf);
+        if(swscanf(buf, L"%f", &f) == 1)
+        {
+          DecodeRGBColor(m_rgbCurColor, f, m_pLSR->cLineStyle.cColor);
+          m_pLSR->bColorSet = true;
+        }
+    }
+
     if(m_pLSR->bPatChanged)
     {
         m_pLSR->bExcSet = false;
@@ -358,16 +403,26 @@ INT_PTR CDLineStyleDlg::LineJoinChange(HWND hWnd, WORD wNotifyCode, HWND hwndCtl
     return TRUE;
 }
 
+INT_PTR CDLineStyleDlg::TranslucencyChange(HWND hWnd, WORD wNotifyCode, HWND hwndCtl)
+{
+  if(m_bSettingUp) return 0;
+  if(wNotifyCode == EN_CHANGE) m_pLSR->bColorChanged = true;
+  return TRUE;
+}
+
 INT_PTR CDLineStyleDlg::ColorChange(HWND hWnd, WORD wNotifyCode, HWND hwndCtl)
 {
     if(m_bSettingUp) return 0;
     if(wNotifyCode == BN_CLICKED)
     {
-//MessageBox(hWnd, L"Changing the color", L"Debug", MB_OK);
-        CHOOSECOLOR ccl;
+        CHOOSECOLOR ccl = {
+            sizeof(CHOOSECOLOR), hWnd, 0, m_rgbCurColor, m_rgbCustColors,
+            CC_RGBINIT, 0, NULL, NULL
+        };
         if(ChooseColor(&ccl))
         {
-MessageBox(hWnd, L"Changing the color", L"Debug", MB_OK);
+            m_rgbCurColor = ccl.rgbResult;
+            SetButtonColor(hWnd);
             m_pLSR->bColorChanged = true;
         }
     }

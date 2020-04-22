@@ -3095,12 +3095,12 @@ void CMainWnd::DrawPrimitivePlus(Graphics *graphics, Pen *pen, PDPrimitive pPrim
     DeleteObject(hCentPen);
     DeleteObject(hPtPen);
     DeleteObject(hPen);
-}*/
+}
 
 DWORD CodeRGBColor(unsigned char *pColor)
 {
   return pColor[0] | (pColor[1] << 8) | (pColor[2] << 16) | (pColor[3] << 24);
-}
+}*/
 
 ARGB EncodeColor(DWORD dwColor)
 {

@@ -33,17 +33,18 @@ private:
     int m_iY;
     bool m_bSettingUp;
     PDLineStyleRec m_pLSR;
-    //bool m_bWidthChanged;
-    //bool m_bExcChanged;
-    //bool m_bPatChanged;
+    COLORREF m_rgbCurColor;
+    COLORREF m_rgbCustColors[16];
 
     INT_PTR OKBtnClick(HWND hWnd);
     INT_PTR LineWidthChange(HWND hWnd, WORD wNotifyCode, HWND hwndCtl);
     INT_PTR LineCapChange(HWND hWnd, WORD wNotifyCode, HWND hwndCtl);
     INT_PTR LineExcChange(HWND hWnd, WORD wNotifyCode, HWND hwndCtl);
     INT_PTR LineJoinChange(HWND hWnd, WORD wNotifyCode, HWND hwndCtl);
+    INT_PTR TranslucencyChange(HWND hWnd, WORD wNotifyCode, HWND hwndCtl);
     INT_PTR ColorChange(HWND hWnd, WORD wNotifyCode, HWND hwndCtl);
     INT_PTR LinePatChange(HWND hWnd, WORD wNotifyCode, int iSeg, HWND hwndCtl);
+    void SetButtonColor(HWND hWnd);
 public:
     CDLineStyleDlg(HINSTANCE hInstance);
     ~CDLineStyleDlg();
@@ -55,5 +56,7 @@ public:
     INT_PTR WMCommand(HWND hWnd, WORD wNotifyCode, WORD wID, HWND hwndCtl);
     INT_PTR WMMove(HWND hWnd, short int xPos, short int yPos);
 } *PDLineStyleDlg;
+
+DWORD CodeRGBColor(unsigned char *pColor);
 
 #endif
