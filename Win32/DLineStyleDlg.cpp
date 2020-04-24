@@ -46,42 +46,42 @@ CDLineStyleDlg::~CDLineStyleDlg()
 
 bool CDLineStyleDlg::ShowDialog(HWND hWndParent, PDLineStyleRec pLSR)
 {
-    m_pLSR = pLSR;
-    int iRes = DialogBoxParam(m_hInstance, L"LINESTYLEDLG", hWndParent,
-        LineStyleDlgProc, (LPARAM)this);
-    return (iRes == 1);
+  m_pLSR = pLSR;
+  int iRes = DialogBoxParam(m_hInstance, L"LINESTYLEDLG", hWndParent,
+    LineStyleDlgProc, (LPARAM)this);
+  return (iRes == 1);
 }
 
 void CDLineStyleDlg::SaveSettings(CXMLWritter* pWrit)
 {
-    IXMLDOMElement* pE1 = pWrit->CreateSection(L"LineStyleDlg");
-    pWrit->AddIntValue(pE1, L"Left", m_iX);
-    pWrit->AddIntValue(pE1, L"Top", m_iY);
-    pE1->Release();
-    return;
+  IXMLDOMElement* pE1 = pWrit->CreateSection(L"LineStyleDlg");
+  pWrit->AddIntValue(pE1, L"Left", m_iX);
+  pWrit->AddIntValue(pE1, L"Top", m_iY);
+  pE1->Release();
+  return;
 }
 
 void CDLineStyleDlg::RestoreSettings(CXMLReader* pRdr)
 {
-    int i;
-    IXMLDOMElement* pE1 = pRdr->OpenSection(L"LineStyleDlg");
-    if(pE1)
-    {
-        if(pRdr->GetIntValue(pE1, L"Left", &i)) m_iX = i;
-        if(pRdr->GetIntValue(pE1, L"Top", &i)) m_iY = i;
-        pE1->Release();
-    }
-    return;
+  int i;
+  IXMLDOMElement* pE1 = pRdr->OpenSection(L"LineStyleDlg");
+  if(pE1)
+  {
+    if(pRdr->GetIntValue(pE1, L"Left", &i)) m_iX = i;
+    if(pRdr->GetIntValue(pE1, L"Top", &i)) m_iY = i;
+    pE1->Release();
+  }
+  return;
 }
 
 DWORD CodeRGBColor(unsigned char *pColor)
 {
-  return pColor[0] | (pColor[1] << 8) | (pColor[2] << 16) | (pColor[3] << 24);
+  return pColor[0] | (pColor[1] << 8) | (pColor[2] << 16);
 }
 
 double GetAlpha(unsigned char *pColor)
 {
-  return (100.0*pColor[3])/255.0;
+  return Round((100.0*pColor[3])/255.0);
 }
 
 void DecodeRGBColor(DWORD dwColor, double dTrans, unsigned char *pColor)
@@ -89,318 +89,320 @@ void DecodeRGBColor(DWORD dwColor, double dTrans, unsigned char *pColor)
   pColor[0] = dwColor & 0xFF;
   pColor[1] = (dwColor >> 8) & 0xFF;
   pColor[2] = (dwColor >> 16) & 0xFF;
-  pColor[3] = (int)(100.0 - 255.0*dTrans/100.0);
+  if(dTrans < 0.0) dTrans = 0.0;
+  if(dTrans > 100.0) dTrans = 100.0;
+  pColor[3] = (int)Round(255.0*(1.0 - dTrans/100.0));
 }
 
 void CDLineStyleDlg::SetButtonColor(HWND hWnd)
 {
-    HWND wnd = GetDlgItem(hWnd, LSD_BTN_COLOR);
-    RECT rc;
-    GetWindowRect(wnd, &rc);
-    int iWidth = 0.5*(rc.right - rc.left);
-    int iHeight = 0.6*(rc.bottom - rc.top);
-    HDC hdc = GetDC(wnd);
-    HDC memDC = CreateCompatibleDC(hdc);
-    HBITMAP memBM = CreateCompatibleBitmap(hdc, iWidth, iHeight);
-    SelectObject(memDC, memBM);
-    HPEN hPen = CreatePen(PS_SOLID, 1, 0x008F8F8F);
-    HBRUSH hBr = CreateSolidBrush(m_rgbCurColor);
-    SelectObject(memDC, hPen);
-    SelectObject(memDC, hBr);
-    Rectangle(memDC, 0, 0, iWidth, iHeight);
-    DeleteObject(hBr);
-    DeleteObject(hPen);
-    DeleteDC(memDC);
-    ReleaseDC(wnd, NULL);
-    SendMessage(wnd, BM_SETIMAGE, IMAGE_BITMAP, (LPARAM)memBM);
-    DeleteObject(memBM);
+  HWND wnd = GetDlgItem(hWnd, LSD_BTN_COLOR);
+  RECT rc;
+  GetWindowRect(wnd, &rc);
+  int iWidth = 0.5*(rc.right - rc.left);
+  int iHeight = 0.6*(rc.bottom - rc.top);
+  HDC hdc = GetDC(wnd);
+  HDC memDC = CreateCompatibleDC(hdc);
+  HBITMAP memBM = CreateCompatibleBitmap(hdc, iWidth, iHeight);
+  SelectObject(memDC, memBM);
+  HPEN hPen = CreatePen(PS_SOLID, 1, 0x008F8F8F);
+  HBRUSH hBr = CreateSolidBrush(m_rgbCurColor);
+  SelectObject(memDC, hPen);
+  SelectObject(memDC, hBr);
+  Rectangle(memDC, 0, 0, iWidth, iHeight);
+  DeleteObject(hBr);
+  DeleteObject(hPen);
+  DeleteDC(memDC);
+  ReleaseDC(wnd, NULL);
+  SendMessage(wnd, BM_SETIMAGE, IMAGE_BITMAP, (LPARAM)memBM);
+  DeleteObject(memBM);
 }
 
 INT_PTR CDLineStyleDlg::WMInitDialog(HWND hWnd, HWND hwndFocus, LPARAM lInitParam)
 {
-    SetWindowLongPtr(hWnd, DWLP_USER, lInitParam);
+  SetWindowLongPtr(hWnd, DWLP_USER, lInitParam);
 
-    m_bSettingUp = true;
+  m_bSettingUp = true;
 
-    wchar_t buf[64];
+  wchar_t buf[64];
 
-    HWND wnd = GetDlgItem(hWnd, LSD_EDT_LINEWIDTH);
-    SendMessage(wnd, EM_LIMITTEXT, 64, 0);
-    if(m_pLSR->bWidthSet)
-    {
-        FormatFloatStr(m_pLSR->cLineStyle.dWidth/m_pLSR->cUnit.dBaseToUnit, buf);
-        SendMessage(wnd, WM_SETTEXT, 0, (LPARAM)buf);
-    }
-
-    wnd = GetDlgItem(hWnd, LSD_LBL_LINEWIDTHUNIT);
-    SendMessage(wnd, WM_SETTEXT, 0, (LPARAM)m_pLSR->cUnit.wsAbbrev);
-
-    wnd = GetDlgItem(hWnd, LSD_CB_LINECAP);
-    for(int i = IDS_LINECAPBUTT; i <= IDS_LINECAPSQUARE; i++)
-    {
-        LoadString(m_hInstance, i, buf, 64);
-        SendMessage(wnd, CB_ADDSTRING, 0, (LPARAM)buf);
-    }
-    if(m_pLSR->bCapSet)
-        SendMessage(wnd, CB_SETCURSEL, m_pLSR->cLineStyle.cCapType, 0);
-    else SendMessage(wnd, CB_SETCURSEL, (WPARAM)-1, 0);
-
-    wnd = GetDlgItem(hWnd, LSD_EDT_LINEPERC);
-    SendMessage(wnd, EM_LIMITTEXT, 64, 0);
-    if(m_pLSR->bExcSet)
-    {
-        FormatFloatStr(m_pLSR->cLineStyle.dPercent, buf);
-        SendMessage(wnd, WM_SETTEXT, 0, (LPARAM)buf);
-    }
-
-    wnd = GetDlgItem(hWnd, LSD_CB_LINEJOIN);
-    for(int i = IDS_LINEJOINMITTER; i <= IDS_LINEJOINBEVEL; i++)
-    {
-        LoadString(m_hInstance, i, buf, 64);
-        SendMessage(wnd, CB_ADDSTRING, 0, (LPARAM)buf);
-    }
-    if(m_pLSR->bJoinSet)
-        SendMessage(wnd, CB_SETCURSEL, m_pLSR->cLineStyle.cJoinType, 0);
-    else SendMessage(wnd, CB_SETCURSEL, (WPARAM)-1, 0);
-
-    wnd = GetDlgItem(hWnd, LSD_EDT_TRANS);
-    FormatFloatStr(100.0 - GetAlpha(m_pLSR->cLineStyle.cColor), buf);
+  HWND wnd = GetDlgItem(hWnd, LSD_EDT_LINEWIDTH);
+  SendMessage(wnd, EM_LIMITTEXT, 64, 0);
+  if(m_pLSR->bWidthSet)
+  {
+    FormatFloatStr(m_pLSR->cLineStyle.dWidth/m_pLSR->cUnit.dBaseToUnit, buf);
     SendMessage(wnd, WM_SETTEXT, 0, (LPARAM)buf);
+  }
 
-    m_rgbCurColor = CodeRGBColor(m_pLSR->cLineStyle.cColor);
-    SetButtonColor(hWnd);
+  wnd = GetDlgItem(hWnd, LSD_LBL_LINEWIDTHUNIT);
+  SendMessage(wnd, WM_SETTEXT, 0, (LPARAM)m_pLSR->cUnit.wsAbbrev);
 
-    wnd = GetDlgItem(hWnd, LSD_LBL_LINEPATUNIT);
-    swprintf(buf, L"(%s)", m_pLSR->cUnit.wsAbbrev);
+  wnd = GetDlgItem(hWnd, LSD_CB_LINECAP);
+  for(int i = IDS_LINECAPBUTT; i <= IDS_LINECAPSQUARE; i++)
+  {
+    LoadString(m_hInstance, i, buf, 64);
+    SendMessage(wnd, CB_ADDSTRING, 0, (LPARAM)buf);
+  }
+  if(m_pLSR->bCapSet)
+    SendMessage(wnd, CB_SETCURSEL, m_pLSR->cLineStyle.cCapType, 0);
+  else SendMessage(wnd, CB_SETCURSEL, (WPARAM)-1, 0);
+
+  wnd = GetDlgItem(hWnd, LSD_EDT_LINEPERC);
+  SendMessage(wnd, EM_LIMITTEXT, 64, 0);
+  if(m_pLSR->bExcSet)
+  {
+    FormatFloatStr(m_pLSR->cLineStyle.dPercent, buf);
     SendMessage(wnd, WM_SETTEXT, 0, (LPARAM)buf);
+  }
 
-    for(int i = 0; i < 6; i++)
+  wnd = GetDlgItem(hWnd, LSD_CB_LINEJOIN);
+  for(int i = IDS_LINEJOINMITTER; i <= IDS_LINEJOINBEVEL; i++)
+  {
+    LoadString(m_hInstance, i, buf, 64);
+    SendMessage(wnd, CB_ADDSTRING, 0, (LPARAM)buf);
+  }
+  if(m_pLSR->bJoinSet)
+    SendMessage(wnd, CB_SETCURSEL, m_pLSR->cLineStyle.cJoinType, 0);
+  else SendMessage(wnd, CB_SETCURSEL, (WPARAM)-1, 0);
+
+  wnd = GetDlgItem(hWnd, LSD_EDT_TRANS);
+  FormatFloatStr(100.0 - GetAlpha(m_pLSR->cLineStyle.cColor), buf);
+  SendMessage(wnd, WM_SETTEXT, 0, (LPARAM)buf);
+
+  m_rgbCurColor = CodeRGBColor(m_pLSR->cLineStyle.cColor);
+  SetButtonColor(hWnd);
+
+  wnd = GetDlgItem(hWnd, LSD_LBL_LINEPATUNIT);
+  swprintf(buf, L"(%s)", m_pLSR->cUnit.wsAbbrev);
+  SendMessage(wnd, WM_SETTEXT, 0, (LPARAM)buf);
+
+  for(int i = 0; i < 6; i++)
+  {
+    wnd = GetDlgItem(hWnd, LSD_EDT_LINEPAT1 + i);
+    SendMessage(wnd, EM_LIMITTEXT, 64, 0);
+    if(m_pLSR->bPatSet && (i < m_pLSR->cLineStyle.iSegments))
     {
-        wnd = GetDlgItem(hWnd, LSD_EDT_LINEPAT1 + i);
-        SendMessage(wnd, EM_LIMITTEXT, 64, 0);
-        if(m_pLSR->bPatSet && (i < m_pLSR->cLineStyle.iSegments))
-        {
-            FormatFloatStr(m_pLSR->cLineStyle.dPattern[i]/m_pLSR->cUnit.dBaseToUnit, buf);
-            SendMessage(wnd, WM_SETTEXT, 0, (LPARAM)buf);
-        }
+      FormatFloatStr(m_pLSR->cLineStyle.dPattern[i]/m_pLSR->cUnit.dBaseToUnit, buf);
+      SendMessage(wnd, WM_SETTEXT, 0, (LPARAM)buf);
     }
+  }
 
-    if(m_iX > -100)
-    {
-        SetWindowPos(hWnd, NULL, m_iX, m_iY, 0, 0, SWP_NOSIZE);
-    }
-    else
-    {
-        RECT R;
-        GetWindowRect(hWnd, &R);
-        m_iX = R.left;
-        m_iY = R.top;
-    }
-
-    m_bSettingUp = false;
-    return TRUE;
-}
-
-INT_PTR CDLineStyleDlg::WMCommand(HWND hWnd, WORD wNotifyCode, WORD wID, HWND hwndCtl)
-{
-    switch(wID)
-    {
-    case IDOK:
-        return(OKBtnClick(hWnd));
-    case IDCANCEL:
-        EndDialog(hWnd, 0);
-        return(TRUE);
-    case LSD_EDT_LINEWIDTH:
-        return LineWidthChange(hWnd, wNotifyCode, hwndCtl);
-    case LSD_CB_LINECAP:
-        return LineCapChange(hWnd, wNotifyCode, hwndCtl);
-    case LSD_EDT_LINEPERC:
-        return LineExcChange(hWnd, wNotifyCode, hwndCtl);
-    case LSD_CB_LINEJOIN:
-        return LineJoinChange(hWnd, wNotifyCode, hwndCtl);
-    case LSD_EDT_TRANS:
-        return TranslucencyChange(hWnd, wNotifyCode, hwndCtl);
-    case LSD_BTN_COLOR:
-        return ColorChange(hWnd, wNotifyCode, hwndCtl);
-    case LSD_EDT_LINEPAT1:
-    case LSD_EDT_LINEPAT2:
-    case LSD_EDT_LINEPAT3:
-    case LSD_EDT_LINEPAT4:
-    case LSD_EDT_LINEPAT5:
-    case LSD_EDT_LINEPAT6:
-        return LinePatChange(hWnd, wNotifyCode, wID - LSD_EDT_LINEPAT1, hwndCtl);
-    default:
-        return(FALSE);
-    }
-}
-
-INT_PTR CDLineStyleDlg::WMMove(HWND hWnd, short int xPos, short int yPos)
-{
+  if(m_iX > -100)
+  {
+    SetWindowPos(hWnd, NULL, m_iX, m_iY, 0, 0, SWP_NOSIZE);
+  }
+  else
+  {
     RECT R;
     GetWindowRect(hWnd, &R);
     m_iX = R.left;
     m_iY = R.top;
-    return(FALSE);
+  }
+
+  m_bSettingUp = false;
+  return TRUE;
+}
+
+INT_PTR CDLineStyleDlg::WMCommand(HWND hWnd, WORD wNotifyCode, WORD wID, HWND hwndCtl)
+{
+  switch(wID)
+  {
+  case IDOK:
+    return(OKBtnClick(hWnd));
+  case IDCANCEL:
+    EndDialog(hWnd, 0);
+    return(TRUE);
+  case LSD_EDT_LINEWIDTH:
+    return LineWidthChange(hWnd, wNotifyCode, hwndCtl);
+  case LSD_CB_LINECAP:
+    return LineCapChange(hWnd, wNotifyCode, hwndCtl);
+  case LSD_EDT_LINEPERC:
+    return LineExcChange(hWnd, wNotifyCode, hwndCtl);
+  case LSD_CB_LINEJOIN:
+    return LineJoinChange(hWnd, wNotifyCode, hwndCtl);
+  case LSD_EDT_TRANS:
+    return TranslucencyChange(hWnd, wNotifyCode, hwndCtl);
+  case LSD_BTN_COLOR:
+    return ColorChange(hWnd, wNotifyCode, hwndCtl);
+  case LSD_EDT_LINEPAT1:
+  case LSD_EDT_LINEPAT2:
+  case LSD_EDT_LINEPAT3:
+  case LSD_EDT_LINEPAT4:
+  case LSD_EDT_LINEPAT5:
+  case LSD_EDT_LINEPAT6:
+    return LinePatChange(hWnd, wNotifyCode, wID - LSD_EDT_LINEPAT1, hwndCtl);
+  default:
+    return FALSE;
+  }
+}
+
+INT_PTR CDLineStyleDlg::WMMove(HWND hWnd, short int xPos, short int yPos)
+{
+  RECT R;
+  GetWindowRect(hWnd, &R);
+  m_iX = R.left;
+  m_iY = R.top;
+  return(FALSE);
 }
 
 INT_PTR CDLineStyleDlg::OKBtnClick(HWND hWnd)
 {
-    float f;
-    wchar_t buf[64];
-    wchar_t sMsg[256];
+  float f;
+  wchar_t buf[64];
+  wchar_t sMsg[256];
 
-    HWND wnd;
+  HWND wnd;
 
-    if(m_pLSR->bWidthChanged)
+  if(m_pLSR->bWidthChanged)
+  {
+    wnd = GetDlgItem(hWnd, LSD_EDT_LINEWIDTH);
+    SendMessage(wnd, WM_GETTEXT, 64, (LPARAM)buf);
+    if(swscanf(buf, L"%f", &f) == 1)
     {
-        wnd = GetDlgItem(hWnd, LSD_EDT_LINEWIDTH);
-        SendMessage(wnd, WM_GETTEXT, 64, (LPARAM)buf);
-        if(swscanf(buf, L"%f", &f) == 1)
+      /*if(f < -0.0001)
+      {
+        LoadString(m_hInstance, IDS_ERRORBASE, buf, 64);
+        LoadString(m_hInstance, IDS_ENEGATIVELINEWIDTH, sMsg, 256);
+        MessageBox(hWnd, sMsg, buf, MB_ICONERROR | MB_OK);
+        SendMessage(wnd, EM_SETSEL, 0, (LPARAM)-1);
+        SetFocus(wnd);
+        return 0;
+      }
+      if(f < 0.0001) f = 0.0;*/
+      if(fabs(f) < 0.0001) f = 0.0;
+      m_pLSR->cLineStyle.dWidth = f*m_pLSR->cUnit.dBaseToUnit;
+      m_pLSR->bWidthSet = true;
+    }
+    else m_pLSR->bWidthSet = false;
+  }
+
+  if(m_pLSR->bCapChanged)
+  {
+    wnd = GetDlgItem(hWnd, LSD_CB_LINECAP);
+    m_pLSR->cLineStyle.cCapType = SendMessage(wnd, CB_GETCURSEL, 0, 0);
+    m_pLSR->bCapSet = true;
+  }
+
+  if(m_pLSR->bExcChanged)
+  {
+    wnd = GetDlgItem(hWnd, LSD_EDT_LINEPERC);
+    SendMessage(wnd, WM_GETTEXT, 64, (LPARAM)buf);
+    if(swscanf(buf, L"%f", &f) == 1)
+    {
+      if(fabs(f) < 100.0001)
+      {
+        m_pLSR->cLineStyle.dPercent = f;
+        m_pLSR->bExcSet = true;
+      }
+      else
+      {
+        LoadString(m_hInstance, IDS_ERRORBASE, buf, 64);
+        LoadString(m_hInstance, IDS_EECCENTTOOBIG, sMsg, 256);
+        MessageBox(hWnd, sMsg, buf, MB_ICONERROR | MB_OK);
+        SendMessage(wnd, EM_SETSEL, 0, (LPARAM)-1);
+        SetFocus(wnd);
+        return 0;
+      }
+    }
+    else m_pLSR->bExcSet = false;
+  }
+
+  if(m_pLSR->bJoinChanged)
+  {
+    wnd = GetDlgItem(hWnd, LSD_CB_LINEJOIN);
+    m_pLSR->cLineStyle.cJoinType = SendMessage(wnd, CB_GETCURSEL, 0, 0);
+    m_pLSR->bJoinSet = true;
+  }
+
+  if(m_pLSR->bColorChanged)
+  {
+    wnd = GetDlgItem(hWnd, LSD_EDT_TRANS);
+    SendMessage(wnd, WM_GETTEXT, 64, (LPARAM)buf);
+    if(swscanf(buf, L"%f", &f) == 1)
+    {
+      DecodeRGBColor(m_rgbCurColor, f, m_pLSR->cLineStyle.cColor);
+      m_pLSR->bColorSet = true;
+    }
+  }
+
+  if(m_pLSR->bPatChanged)
+  {
+    m_pLSR->bExcSet = false;
+    m_pLSR->cLineStyle.iSegments = 0;
+    for(int i = 0; i < 6; i++)
+    {
+      wnd = GetDlgItem(hWnd, LSD_EDT_LINEPAT1 + i);
+      SendMessage(wnd, WM_GETTEXT, 64, (LPARAM)buf);
+      if(swscanf(buf, L"%f", &f) == 1)
+      {
+        if(f < -0.0001)
         {
-            /*if(f < -0.0001)
-            {
-                LoadString(m_hInstance, IDS_ERRORBASE, buf, 64);
-                LoadString(m_hInstance, IDS_ENEGATIVELINEWIDTH, sMsg, 256);
-                MessageBox(hWnd, sMsg, buf, MB_ICONERROR | MB_OK);
-                SendMessage(wnd, EM_SETSEL, 0, (LPARAM)-1);
-                SetFocus(wnd);
-                return 0;
-            }
-            if(f < 0.0001) f = 0.0;*/
-            if(fabs(f) < 0.0001) f = 0.0;
-            m_pLSR->cLineStyle.dWidth = f*m_pLSR->cUnit.dBaseToUnit;
-            m_pLSR->bWidthSet = true;
+          LoadString(m_hInstance, IDS_ERRORBASE, buf, 64);
+          LoadString(m_hInstance, IDS_ENEGATIVESEGLEN, sMsg, 256);
+          MessageBox(hWnd, sMsg, buf, MB_ICONERROR | MB_OK);
+          SendMessage(wnd, EM_SETSEL, 0, (LPARAM)-1);
+          SetFocus(wnd);
+          return 0;
         }
-        else m_pLSR->bWidthSet = false;
-    }
-
-    if(m_pLSR->bCapChanged)
-    {
-        wnd = GetDlgItem(hWnd, LSD_CB_LINECAP);
-        m_pLSR->cLineStyle.cCapType = SendMessage(wnd, CB_GETCURSEL, 0, 0);
-        m_pLSR->bCapSet = true;
-    }
-
-    if(m_pLSR->bExcChanged)
-    {
-        wnd = GetDlgItem(hWnd, LSD_EDT_LINEPERC);
-        SendMessage(wnd, WM_GETTEXT, 64, (LPARAM)buf);
-        if(swscanf(buf, L"%f", &f) == 1)
+        if(f > 0.0001)
         {
-            if(fabs(f) < 100.0001)
-            {
-                m_pLSR->cLineStyle.dPercent = f;
-                m_pLSR->bExcSet = true;
-            }
-            else
-            {
-                LoadString(m_hInstance, IDS_ERRORBASE, buf, 64);
-                LoadString(m_hInstance, IDS_EECCENTTOOBIG, sMsg, 256);
-                MessageBox(hWnd, sMsg, buf, MB_ICONERROR | MB_OK);
-                SendMessage(wnd, EM_SETSEL, 0, (LPARAM)-1);
-                SetFocus(wnd);
-                return 0;
-            }
-        }
-        else m_pLSR->bExcSet = false;
-    }
-
-    if(m_pLSR->bJoinChanged)
-    {
-        wnd = GetDlgItem(hWnd, LSD_CB_LINEJOIN);
-        m_pLSR->cLineStyle.cJoinType = SendMessage(wnd, CB_GETCURSEL, 0, 0);
-        m_pLSR->bJoinSet = true;
-    }
-
-    if(m_pLSR->bColorChanged)
-    {
-        wnd = GetDlgItem(hWnd, LSD_CB_LINEJOIN);
-        SendMessage(wnd, WM_GETTEXT, 64, (LPARAM)buf);
-        if(swscanf(buf, L"%f", &f) == 1)
-        {
-          DecodeRGBColor(m_rgbCurColor, f, m_pLSR->cLineStyle.cColor);
-          m_pLSR->bColorSet = true;
-        }
-    }
-
-    if(m_pLSR->bPatChanged)
-    {
-        m_pLSR->bExcSet = false;
-        m_pLSR->cLineStyle.iSegments = 0;
-        for(int i = 0; i < 6; i++)
-        {
-            wnd = GetDlgItem(hWnd, LSD_EDT_LINEPAT1 + i);
-            SendMessage(wnd, WM_GETTEXT, 64, (LPARAM)buf);
-            if(swscanf(buf, L"%f", &f) == 1)
-            {
-                if(f < -0.0001)
-                {
-                    LoadString(m_hInstance, IDS_ERRORBASE, buf, 64);
-                    LoadString(m_hInstance, IDS_ENEGATIVESEGLEN, sMsg, 256);
-                    MessageBox(hWnd, sMsg, buf, MB_ICONERROR | MB_OK);
-                    SendMessage(wnd, EM_SETSEL, 0, (LPARAM)-1);
-                    SetFocus(wnd);
-                    return 0;
-                }
-                if(f > 0.0001)
-                {
-                    if(m_pLSR->cLineStyle.iSegments < i)
-                    {
-                        LoadString(m_hInstance, IDS_ERRORBASE, buf, 64);
-                        LoadString(m_hInstance, IDS_ELINESEGINVALID, sMsg, 256);
-                        MessageBox(hWnd, sMsg, buf, MB_ICONERROR | MB_OK);
-                        SendMessage(wnd, EM_SETSEL, 0, (LPARAM)-1);
-                        SetFocus(wnd);
-                        return 0;
-                    }
-
-                    m_pLSR->cLineStyle.iSegments++;
-                    m_pLSR->cLineStyle.dPattern[i] = f*m_pLSR->cUnit.dBaseToUnit;
-                    m_pLSR->bExcSet = true;
-                }
-            }
-        }
-        if((m_pLSR->cLineStyle.iSegments % 2) > 0)
-        {
+          /*if(m_pLSR->cLineStyle.iSegments < i)
+          {
             LoadString(m_hInstance, IDS_ERRORBASE, buf, 64);
-            LoadString(m_hInstance, IDS_EODDSEGMENTS, sMsg, 256);
+            LoadString(m_hInstance, IDS_ELINESEGINVALID, sMsg, 256);
             MessageBox(hWnd, sMsg, buf, MB_ICONERROR | MB_OK);
             SendMessage(wnd, EM_SETSEL, 0, (LPARAM)-1);
             SetFocus(wnd);
             return 0;
-        }
-    }
+          }*/
 
-    EndDialog(hWnd, 1);
-    return(TRUE);
+          m_pLSR->cLineStyle.iSegments = i + 1;
+          m_pLSR->cLineStyle.dPattern[i] = f*m_pLSR->cUnit.dBaseToUnit;
+          m_pLSR->bExcSet = true;
+        }
+      }
+    }
+    if((m_pLSR->cLineStyle.iSegments % 2) > 0)
+    {
+      LoadString(m_hInstance, IDS_ERRORBASE, buf, 64);
+      LoadString(m_hInstance, IDS_EODDSEGMENTS, sMsg, 256);
+      MessageBox(hWnd, sMsg, buf, MB_ICONERROR | MB_OK);
+      SendMessage(wnd, EM_SETSEL, 0, (LPARAM)-1);
+      SetFocus(wnd);
+      return 0;
+    }
+  }
+
+  EndDialog(hWnd, 1);
+  return TRUE;
 }
 
 INT_PTR CDLineStyleDlg::LineWidthChange(HWND hWnd, WORD wNotifyCode, HWND hwndCtl)
 {
-    if(m_bSettingUp) return 0;
-    if(wNotifyCode == EN_CHANGE) m_pLSR->bWidthChanged = true;
-    return TRUE;
+  if(m_bSettingUp) return 0;
+  if(wNotifyCode == EN_CHANGE) m_pLSR->bWidthChanged = true;
+  return TRUE;
 }
 
 INT_PTR CDLineStyleDlg::LineCapChange(HWND hWnd, WORD wNotifyCode, HWND hwndCtl)
 {
-    if(m_bSettingUp) return 0;
-    if(wNotifyCode == CBN_SELCHANGE) m_pLSR->bCapChanged = true;
-    return TRUE;
+  if(m_bSettingUp) return 0;
+  if(wNotifyCode == CBN_SELCHANGE) m_pLSR->bCapChanged = true;
+  return TRUE;
 }
 
 INT_PTR CDLineStyleDlg::LineExcChange(HWND hWnd, WORD wNotifyCode, HWND hwndCtl)
 {
-    if(m_bSettingUp) return 0;
-    if(wNotifyCode == EN_CHANGE) m_pLSR->bExcChanged = true;
-    return TRUE;
+  if(m_bSettingUp) return 0;
+  if(wNotifyCode == EN_CHANGE) m_pLSR->bExcChanged = true;
+  return TRUE;
 }
 
 INT_PTR CDLineStyleDlg::LineJoinChange(HWND hWnd, WORD wNotifyCode, HWND hwndCtl)
 {
-    if(m_bSettingUp) return 0;
-    if(wNotifyCode == CBN_SELCHANGE) m_pLSR->bJoinChanged = true;
-    return TRUE;
+  if(m_bSettingUp) return 0;
+  if(wNotifyCode == CBN_SELCHANGE) m_pLSR->bJoinChanged = true;
+  return TRUE;
 }
 
 INT_PTR CDLineStyleDlg::TranslucencyChange(HWND hWnd, WORD wNotifyCode, HWND hwndCtl)
@@ -412,26 +414,26 @@ INT_PTR CDLineStyleDlg::TranslucencyChange(HWND hWnd, WORD wNotifyCode, HWND hwn
 
 INT_PTR CDLineStyleDlg::ColorChange(HWND hWnd, WORD wNotifyCode, HWND hwndCtl)
 {
-    if(m_bSettingUp) return 0;
-    if(wNotifyCode == BN_CLICKED)
+  if(m_bSettingUp) return 0;
+  if(wNotifyCode == BN_CLICKED)
+  {
+    CHOOSECOLOR ccl = {
+      sizeof(CHOOSECOLOR), hWnd, 0, m_rgbCurColor, m_rgbCustColors,
+      CC_RGBINIT, 0, NULL, NULL
+    };
+    if(ChooseColor(&ccl))
     {
-        CHOOSECOLOR ccl = {
-            sizeof(CHOOSECOLOR), hWnd, 0, m_rgbCurColor, m_rgbCustColors,
-            CC_RGBINIT, 0, NULL, NULL
-        };
-        if(ChooseColor(&ccl))
-        {
-            m_rgbCurColor = ccl.rgbResult;
-            SetButtonColor(hWnd);
-            m_pLSR->bColorChanged = true;
-        }
+      m_rgbCurColor = ccl.rgbResult;
+      SetButtonColor(hWnd);
+      m_pLSR->bColorChanged = true;
     }
-    return TRUE;
+  }
+  return TRUE;
 }
 
 INT_PTR CDLineStyleDlg::LinePatChange(HWND hWnd, WORD wNotifyCode, int iSeg, HWND hwndCtl)
 {
-    if(m_bSettingUp) return 0;
-    if(wNotifyCode == EN_CHANGE) m_pLSR->bPatChanged = true;
-    return TRUE;
+  if(m_bSettingUp) return 0;
+  if(wNotifyCode == EN_CHANGE) m_pLSR->bPatChanged = true;
+  return TRUE;
 }

@@ -14,57 +14,57 @@
 
 double GetPtDist(LPPOINT pPt, int x, int y)
 {
-    return fabs(pPt->x - x) + fabs(pPt->y - y);
+  return fabs(pPt->x - x) + fabs(pPt->y - y);
 }
 
 
 LRESULT CALLBACK MainWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
-    CMainWnd *mw = NULL;
-    if(uMsg == WM_CREATE) mw = (CMainWnd*)((LPCREATESTRUCT)lParam)->lpCreateParams;
-    else  mw = (CMainWnd*)GetWindowLongPtr(hwnd, GWLP_USERDATA);
+  CMainWnd *mw = NULL;
+  if(uMsg == WM_CREATE) mw = (CMainWnd*)((LPCREATESTRUCT)lParam)->lpCreateParams;
+  else  mw = (CMainWnd*)GetWindowLongPtr(hwnd, GWLP_USERDATA);
 
-    switch(uMsg)
-    {
-    case WM_CREATE:
-        return(mw->WMCreate(hwnd, (LPCREATESTRUCT)lParam));
-    case WM_COMMAND:
-        return(mw->WMCommand(hwnd, HIWORD(wParam), LOWORD(wParam),
-            (HWND)lParam));
-    case WM_PAINT:
-        return(mw->WMPaint(hwnd, (HDC)wParam));
-    case WM_SIZE:
-        return(mw->WMSize(hwnd, wParam, LOWORD(lParam), HIWORD(lParam)));
-    case WM_LBUTTONDBLCLK:
-        return(mw->WMLButtonDblClk(hwnd, wParam, (short int)LOWORD(lParam), (short int)HIWORD(lParam)));
-    case WM_MBUTTONDOWN:
-        return(mw->WMMButtonDown(hwnd, wParam, (short int)LOWORD(lParam), (short int)HIWORD(lParam)));
-    case WM_MBUTTONUP:
-        return(mw->WMMButtonUp(hwnd, wParam, (short int)LOWORD(lParam), (short int)HIWORD(lParam)));
-    case WM_LBUTTONDOWN:
-        return(mw->WMLButtonDown(hwnd, wParam, (short int)LOWORD(lParam), (short int)HIWORD(lParam)));
-    case WM_LBUTTONUP:
-        return(mw->WMLButtonUp(hwnd, wParam, (short int)LOWORD(lParam), (short int)HIWORD(lParam)));
-    case WM_RBUTTONDOWN:
-        return(mw->WMRButtonDown(hwnd, wParam, (short int)LOWORD(lParam), (short int)HIWORD(lParam)));
-    case WM_RBUTTONUP:
-        return(mw->WMRButtonUp(hwnd, wParam, (short int)LOWORD(lParam), (short int)HIWORD(lParam)));
-    case WM_MOUSEMOVE:
-        return(mw->WMMouseMove(hwnd, wParam, (short int)LOWORD(lParam), (short int)HIWORD(lParam)));
-    case WM_MOUSEWHEEL:
-        return(mw->WMMouseWheel(hwnd, LOWORD(wParam), (short int)HIWORD(wParam),
-            (short int)LOWORD(lParam), (short int)HIWORD(lParam)));
-    case WM_CLOSE:
-        return(mw->WMClose(hwnd));
-    case WM_DESTROY:
-        return(mw->WMDestroy(hwnd));
-    /*case WM_CHAR:
-        return(mw->WMChar(hwnd, (wchar_t)wParam, lParam));
-    case WM_KEYDOWN:
-        return(mw->WMKeyDown(hwnd, (int)wParam, lParam));*/
-    default:
-        return(CallWindowProc(DefWindowProc, hwnd, uMsg, wParam, lParam));
-    }
+  switch(uMsg)
+  {
+  case WM_CREATE:
+    return mw->WMCreate(hwnd, (LPCREATESTRUCT)lParam);
+  case WM_COMMAND:
+    return mw->WMCommand(hwnd, HIWORD(wParam), LOWORD(wParam),
+      (HWND)lParam);
+  case WM_PAINT:
+    return mw->WMPaint(hwnd, (HDC)wParam);
+  case WM_SIZE:
+    return mw->WMSize(hwnd, wParam, LOWORD(lParam), HIWORD(lParam));
+  case WM_LBUTTONDBLCLK:
+    return mw->WMLButtonDblClk(hwnd, wParam, (short int)LOWORD(lParam), (short int)HIWORD(lParam));
+  case WM_MBUTTONDOWN:
+    return mw->WMMButtonDown(hwnd, wParam, (short int)LOWORD(lParam), (short int)HIWORD(lParam));
+  case WM_MBUTTONUP:
+    return mw->WMMButtonUp(hwnd, wParam, (short int)LOWORD(lParam), (short int)HIWORD(lParam));
+  case WM_LBUTTONDOWN:
+    return mw->WMLButtonDown(hwnd, wParam, (short int)LOWORD(lParam), (short int)HIWORD(lParam));
+  case WM_LBUTTONUP:
+    return mw->WMLButtonUp(hwnd, wParam, (short int)LOWORD(lParam), (short int)HIWORD(lParam));
+  case WM_RBUTTONDOWN:
+    return mw->WMRButtonDown(hwnd, wParam, (short int)LOWORD(lParam), (short int)HIWORD(lParam));
+  case WM_RBUTTONUP:
+    return mw->WMRButtonUp(hwnd, wParam, (short int)LOWORD(lParam), (short int)HIWORD(lParam));
+  case WM_MOUSEMOVE:
+    return mw->WMMouseMove(hwnd, wParam, (short int)LOWORD(lParam), (short int)HIWORD(lParam));
+  case WM_MOUSEWHEEL:
+    return mw->WMMouseWheel(hwnd, LOWORD(wParam), (short int)HIWORD(wParam),
+      (short int)LOWORD(lParam), (short int)HIWORD(lParam));
+  case WM_CLOSE:
+    return mw->WMClose(hwnd);
+  case WM_DESTROY:
+    return mw->WMDestroy(hwnd);
+  /*case WM_CHAR:
+    return mw->WMChar(hwnd, (wchar_t)wParam, lParam);
+  case WM_KEYDOWN:
+    return mw->WMKeyDown(hwnd, (int)wParam, lParam);*/
+  default:
+    return CallWindowProc(DefWindowProc, hwnd, uMsg, wParam, lParam);
+  }
 }
 
 LRESULT CALLBACK StatusWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
@@ -211,443 +211,443 @@ CMainWnd::~CMainWnd()
 
 HWND CMainWnd::DisplayWindow()
 {
-    m_hWnd = CreateWindowEx(WS_EX_APPWINDOW, L"DRAWMAINFORM", L"Steam CAD",
-        //WS_POPUPWINDOW | WS_CAPTION | WS_MINIMIZEBOX | WS_MAXIMIZEBOX | WS_THICKFRAME,
-        WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT,
-        CW_USEDEFAULT, CW_USEDEFAULT, NULL, NULL,
-        m_hInstance, (LPVOID)this);
+  m_hWnd = CreateWindowEx(WS_EX_APPWINDOW, L"DRAWMAINFORM", L"Steam CAD",
+    //WS_POPUPWINDOW | WS_CAPTION | WS_MINIMIZEBOX | WS_MAXIMIZEBOX | WS_THICKFRAME,
+    WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT,
+    CW_USEDEFAULT, CW_USEDEFAULT, NULL, NULL,
+    m_hInstance, (LPVOID)this);
 
-    LoadSettings(m_hWnd);
+  LoadSettings(m_hWnd);
 
-    if(fabs(m_cFSR.dScaleDenom) > g_dPrec)
-        m_dDrawScale = m_cFSR.dScaleNomin/m_cFSR.dScaleDenom;
-    else m_dDrawScale = 1.0;
+  if(fabs(m_cFSR.dScaleDenom) > g_dPrec)
+    m_dDrawScale = m_cFSR.dScaleNomin/m_cFSR.dScaleDenom;
+  else m_dDrawScale = 1.0;
 
-    GetPageDims();
-    CDFileAttrs cFAttrs;
-    FilePropsToData(&cFAttrs);
-    m_pDrawObjects->SetFileAttrs(&cFAttrs, true);
-    SetTitle(m_hWnd, true);
+  GetPageDims();
+  CDFileAttrs cFAttrs;
+  FilePropsToData(&cFAttrs);
+  m_pDrawObjects->SetFileAttrs(&cFAttrs, true);
+  SetTitle(m_hWnd, true);
 
-    HMENU hMenu = GetMenu(m_hWnd);
-    //UpdateSnapMenu(hMenu);
+  HMENU hMenu = GetMenu(m_hWnd);
+  //UpdateSnapMenu(hMenu);
 
-    UINT uCheck = MF_BYCOMMAND | MF_CHECKED;
-    CheckMenuItem(hMenu, IDM_MODESELECT, uCheck);
+  UINT uCheck = MF_BYCOMMAND | MF_CHECKED;
+  CheckMenuItem(hMenu, IDM_MODESELECT, uCheck);
 
-    ViewFitCmd(m_hWnd, 0, 0);
+  ViewFitCmd(m_hWnd, 0, 0);
 
-    uCheck = MF_BYCOMMAND;
-    if(m_bPaperUnits) uCheck |= MF_CHECKED;
-    else uCheck |= MF_UNCHECKED;
-    CheckMenuItem(hMenu, IDM_EDITPAPERUNITS, uCheck);
+  uCheck = MF_BYCOMMAND;
+  if(m_bPaperUnits) uCheck |= MF_CHECKED;
+  else uCheck |= MF_UNCHECKED;
+  CheckMenuItem(hMenu, IDM_EDITPAPERUNITS, uCheck);
 
-    uCheck = MF_BYCOMMAND;
-    if(m_iDrawGridMode & 1) uCheck |= MF_CHECKED;
-    else uCheck |= MF_UNCHECKED;
-    CheckMenuItem(hMenu, IDM_VIEWGRIDPTS, uCheck);
+  uCheck = MF_BYCOMMAND;
+  if(m_iDrawGridMode & 1) uCheck |= MF_CHECKED;
+  else uCheck |= MF_UNCHECKED;
+  CheckMenuItem(hMenu, IDM_VIEWGRIDPTS, uCheck);
 
-    uCheck = MF_BYCOMMAND;
-    if(m_iDrawGridMode & 2) uCheck |= MF_CHECKED;
-    else uCheck |= MF_UNCHECKED;
-    CheckMenuItem(hMenu, IDM_VIEWGRIDLNS, uCheck);
-    return(m_hWnd);
+  uCheck = MF_BYCOMMAND;
+  if(m_iDrawGridMode & 2) uCheck |= MF_CHECKED;
+  else uCheck |= MF_UNCHECKED;
+  CheckMenuItem(hMenu, IDM_VIEWGRIDLNS, uCheck);
+  return(m_hWnd);
 }
 
 //extern HWND g_hStatus;
 
 LRESULT CMainWnd::WMCreate(HWND hwnd, LPCREATESTRUCT lpcs)
 {
-    SetWindowLongPtr(hwnd, GWLP_USERDATA, (LONG_PTR)lpcs->lpCreateParams);
+  SetWindowLongPtr(hwnd, GWLP_USERDATA, (LONG_PTR)lpcs->lpCreateParams);
 
-    /*m_hToolBar = CreateWindowEx(0, TOOLBARCLASSNAME, (LPCTSTR)NULL,
-        WS_CHILD | WS_VISIBLE, 0, 0, 0, 0, hwnd, (HMENU)IDC_STATUS,
-        m_hInstance, NULL);
+  /*m_hToolBar = CreateWindowEx(0, TOOLBARCLASSNAME, (LPCTSTR)NULL,
+    WS_CHILD | WS_VISIBLE, 0, 0, 0, 0, hwnd, (HMENU)IDC_STATUS,
+    m_hInstance, NULL);
 
-    m_pToolBar = new CDToolbar(m_hToolBar, m_hInstance, GetMenu(hwnd));*/
+  m_pToolBar = new CDToolbar(m_hToolBar, m_hInstance, GetMenu(hwnd));*/
 
-    m_hStatus = CreateWindowEx(WS_EX_CONTROLPARENT, STATUSCLASSNAME, (LPCTSTR)NULL,
-        WS_CHILD | WS_VISIBLE, 0, 0, 0, 0, hwnd, (HMENU)IDC_STATUS,
-        m_hInstance, NULL);
+  m_hStatus = CreateWindowEx(WS_EX_CONTROLPARENT, STATUSCLASSNAME, (LPCTSTR)NULL,
+    WS_CHILD | WS_VISIBLE, 0, 0, 0, 0, hwnd, (HMENU)IDC_STATUS,
+    m_hInstance, NULL);
     SendMessage(m_hStatus, SB_SETUNICODEFORMAT, (WPARAM)TRUE, 0);
 //g_hStatus = m_hStatus;
 
-    INT iWidth[3] = {150, 480, -1};
-    SendMessage(m_hStatus, SB_SETPARTS, 3, (LPARAM)&iWidth);
+  INT iWidth[3] = {150, 480, -1};
+  SendMessage(m_hStatus, SB_SETPARTS, 3, (LPARAM)&iWidth);
 
-    /*m_hProg = CreateWindowEx(0, PROGRESS_CLASS, NULL,
-        WS_CHILD, 0, 0, 0, 0, m_hStatus,
-        (HMENU)0, m_hInstance, NULL);*/
+  /*m_hProg = CreateWindowEx(0, PROGRESS_CLASS, NULL,
+    WS_CHILD, 0, 0, 0, 0, m_hStatus,
+    (HMENU)0, m_hInstance, NULL);*/
 
-    GetDeviceToUnitScale(hwnd);
+  GetDeviceToUnitScale(hwnd);
 
-    RECT rc;
-    /*GetClientRect(m_hToolBar, &rc);
-    m_iToolBarHeight = rc.bottom + 2;*/
-    m_iToolBarHeight = 0;
-    m_cViewOrigin.y = m_iToolBarHeight;
+  RECT rc;
+  /*GetClientRect(m_hToolBar, &rc);
+  m_iToolBarHeight = rc.bottom + 2;*/
+  m_iToolBarHeight = 0;
+  m_cViewOrigin.y = m_iToolBarHeight;
 
-    GetClientRect(m_hStatus, &rc);
-    m_iStatusHeight = rc.bottom;
+  GetClientRect(m_hStatus, &rc);
+  m_iStatusHeight = rc.bottom;
 
-    HFONT hFnt = (HFONT)SendMessage(m_hStatus, WM_GETFONT, 0, 0);
+  HFONT hFnt = (HFONT)SendMessage(m_hStatus, WM_GETFONT, 0, 0);
 
-    m_hEdt1 = CreateWindowEx(WS_EX_CONTROLPARENT, L"EDIT", NULL,
-        WS_CHILD | WS_BORDER | ES_AUTOHSCROLL | WS_TABSTOP, 280, 2, 50,
-        m_iStatusHeight - 3, m_hStatus, (HMENU)IDC_EDT1, m_hInstance, NULL);
-    SendMessage(m_hEdt1, WM_SETFONT, (WPARAM)hFnt, 0);
-    SendMessage(m_hEdt1, EM_LIMITTEXT, 64, 0);
-    m_hEdt2 = CreateWindowEx(WS_EX_CONTROLPARENT, L"EDIT", NULL,
-        WS_CHILD | WS_BORDER | ES_AUTOHSCROLL | WS_TABSTOP, 425, 2, 50, m_iStatusHeight - 3,
-        m_hStatus, (HMENU)IDC_EDT2, m_hInstance, NULL);
-    SendMessage(m_hEdt2, WM_SETFONT, (WPARAM)hFnt, 0);
-    SendMessage(m_hEdt2, EM_LIMITTEXT, 64, 0);
+  m_hEdt1 = CreateWindowEx(WS_EX_CONTROLPARENT, L"EDIT", NULL,
+    WS_CHILD | WS_BORDER | ES_AUTOHSCROLL | WS_TABSTOP, 280, 2, 50,
+    m_iStatusHeight - 3, m_hStatus, (HMENU)IDC_EDT1, m_hInstance, NULL);
+  SendMessage(m_hEdt1, WM_SETFONT, (WPARAM)hFnt, 0);
+  SendMessage(m_hEdt1, EM_LIMITTEXT, 64, 0);
+  m_hEdt2 = CreateWindowEx(WS_EX_CONTROLPARENT, L"EDIT", NULL,
+    WS_CHILD | WS_BORDER | ES_AUTOHSCROLL | WS_TABSTOP, 425, 2, 50, m_iStatusHeight - 3,
+    m_hStatus, (HMENU)IDC_EDT2, m_hInstance, NULL);
+  SendMessage(m_hEdt2, WM_SETFONT, (WPARAM)hFnt, 0);
+  SendMessage(m_hEdt2, EM_LIMITTEXT, 64, 0);
 
-    m_hLab1 = CreateWindowEx(0, L"STATIC", NULL,
-        WS_CHILD | SS_LEFT, 340, 4, 80, m_iStatusHeight - 5,
-        m_hStatus, (HMENU)IDC_LAB1, m_hInstance, NULL);
-    wchar_t buf[64];
-    LoadString(m_hInstance, IDS_NUMCOPIES, buf, 64);
-    SendMessage(m_hLab1, WM_SETFONT, (WPARAM)hFnt, 0);
-    SendMessage(m_hLab1, WM_SETTEXT, 0, (LPARAM)buf);
+  m_hLab1 = CreateWindowEx(0, L"STATIC", NULL,
+    WS_CHILD | SS_LEFT, 340, 4, 80, m_iStatusHeight - 5,
+    m_hStatus, (HMENU)IDC_LAB1, m_hInstance, NULL);
+  wchar_t buf[64];
+  LoadString(m_hInstance, IDS_NUMCOPIES, buf, 64);
+  SendMessage(m_hLab1, WM_SETFONT, (WPARAM)hFnt, 0);
+  SendMessage(m_hLab1, WM_SETTEXT, 0, (LPARAM)buf);
 
-    WNDPROC wPrevProc = (WNDPROC)SetWindowLongPtr(m_hStatus, GWLP_WNDPROC, (LONG_PTR)StatusWndProc);
-    SetWindowLongPtr(m_hStatus, GWLP_USERDATA, (LONG_PTR)wPrevProc);
+  WNDPROC wPrevProc = (WNDPROC)SetWindowLongPtr(m_hStatus, GWLP_WNDPROC, (LONG_PTR)StatusWndProc);
+  SetWindowLongPtr(m_hStatus, GWLP_USERDATA, (LONG_PTR)wPrevProc);
 
-    return(0);
+  return(0);
 }
 
 LRESULT CMainWnd::WMCommand(HWND hwnd, WORD wNotifyCode, WORD wID, HWND hwndCtl)
 {
-    switch(wID)
-    {
-    case IDM_FILENEW:
-        return(FileNewCmd(hwnd, wNotifyCode, hwndCtl));
-    case IDM_FILEOPEN:
-        return(FileOpenCmd(hwnd, wNotifyCode, hwndCtl));
-    case IDM_FILESAVE:
-        return(FileSaveCmd(hwnd, wNotifyCode, hwndCtl));
-    case IDM_FILESAVEAS:
-        return(FileSaveAsCmd(hwnd, wNotifyCode, hwndCtl));
-    case IDM_FILESAVESEL:
-        return(FileSaveSelCmd(hwnd, wNotifyCode, hwndCtl));
-    case IDM_FILEINCLUDE:
-        return(FileIncludeCmd(hwnd, wNotifyCode, hwndCtl));
-    case IDM_FILEEXPORT:
-        return(FileExportCmd(hwnd, wNotifyCode, hwndCtl));
-    case IDM_FILEPROPS:
-        return(FilePropsCmd(hwnd, wNotifyCode, hwndCtl));
-    //case IDM_FILEPRINTSET:
-    //    return(FilePrintSetCmd(hwnd, wNotifyCode, hwndCtl));
-    //case IDM_FILEPRINT:
-    //    return(FilePrintCmd(hwnd, wNotifyCode, hwndCtl));
-    case IDM_FILEEXIT:
-        return(FileExitCmd(hwnd, wNotifyCode, hwndCtl));
-    case IDM_ENABLESNAP:
-        m_pHighObject->SetSnapTo(true);
-        return 0;
-    case IDM_DISABLESNAP:
-        m_pHighObject->SetSnapTo(false);
-        return 0;
-    case IDM_MODESELECT:
-        return(ModeCmd(hwnd, wNotifyCode, hwndCtl, modSelect));
-    case IDM_MODELINE:
-        return(ModeCmd(hwnd, wNotifyCode, hwndCtl, modLine));
-    case IDM_MODECIRCLE:
-        return(ModeCmd(hwnd, wNotifyCode, hwndCtl, modCircle));
-    case IDM_MODEELLIPSE:
-        return(ModeCmd(hwnd, wNotifyCode, hwndCtl, modEllipse));
-    case IDM_MODEARCELLIPSE:
-        return(ModeCmd(hwnd, wNotifyCode, hwndCtl, modArcElps));
-    case IDM_MODEHYPERBOLA:
-        return(ModeCmd(hwnd, wNotifyCode, hwndCtl, modHyperbola));
-    case IDM_MODEPARABOLA:
-        return(ModeCmd(hwnd, wNotifyCode, hwndCtl, modParabola));
-    case IDM_MODESPLINE:
-        return(ModeCmd(hwnd, wNotifyCode, hwndCtl, modSpline));
-    case IDM_MODEEVEOLVENT:
-        return(ModeCmd(hwnd, wNotifyCode, hwndCtl, modEvolvent));
-    case IDM_MODEDIMEN:
-        return(ToolsCmd(hwnd, wNotifyCode, hwndCtl, tolDimen));
-    case IDM_EDITCOPY:
-        return(EditCopyCmd(hwnd, wNotifyCode, hwndCtl));
-    case IDM_EDITCUT:
-        return(EditCutCmd(hwnd, wNotifyCode, hwndCtl));
-    case IDM_EDITPASTE:
-        return(EditPasteCmd(hwnd, wNotifyCode, hwndCtl));
-    case IDM_EDITDELETE:
-        return(EditDeleteCmd(hwnd, wNotifyCode, hwndCtl));
-    case IDM_EDITDELLASTPT:
-        return(EditDelLastPtCmd(hwnd, wNotifyCode, hwndCtl));
-    case IDM_EDITCOPYPAR:
-        return(EditCopyParCmd(hwnd, wNotifyCode, hwndCtl));
-    case IDM_EDITMOVE:
-        return(EditMoveCmd(hwnd, wNotifyCode, hwndCtl));
-    case IDM_EDITROTATE:
-        return(EditRotateCmd(hwnd, wNotifyCode, hwndCtl));
-    case IDM_EDITMIRROR:
-        return(EditMirrorCmd(hwnd, wNotifyCode, hwndCtl));
-    case IDM_EDITLINESTYLE:
-        return(EditLineStyleCmd(hwnd, wNotifyCode, hwndCtl));
-    case IDM_EDITTOGGLESNAP:
-        return(EditToggleSnapCmd(hwnd, wNotifyCode, hwndCtl));
-    case IDM_EDITPAPERUNITS:
-        return(EditPaperUnitsCmd(hwnd, wNotifyCode, hwndCtl));
-    case IDM_EDITUNDO:
-        return(EditUndoCmd(hwnd, wNotifyCode, hwndCtl));
-    case IDM_EDITREDO:
-        return(EditRedoCmd(hwnd, wNotifyCode, hwndCtl));
-    case IDM_EDITCONFIRM:
-        return(EditConfirmCmd(hwnd, wNotifyCode, hwndCtl));
-    case IDM_VIEWFITALL:
-        return(ViewFitCmd(hwnd, wNotifyCode, hwndCtl));
-    case IDM_VIEWACTSIZE:
-        return(ViewActSizeCmd(hwnd, wNotifyCode, hwndCtl));
-    case IDM_VIEWGRIDPTS:
-        return(ViewGridCmd(hwnd, wNotifyCode, hwndCtl, 1));
-    case IDM_VIEWGRIDLNS:
-        return(ViewGridCmd(hwnd, wNotifyCode, hwndCtl, 2));
-    /*case IDM_SNAPELEMENT:
-    case IDM_SNAPENDPOINT:
-    case IDM_SNAPMIDPOINT:
-    case IDM_SNAPINTERSECT:
-        return(SnapCmd(hwnd, wNotifyCode, hwndCtl, wID - IDM_SNAPELEMENT));*/
-    case IDM_TOOLSKNIFE:
-        return(ToolsCmd(hwnd, wNotifyCode, hwndCtl, tolKnife));
-    case IDM_TOOLSROUND:
-        return(ToolsCmd(hwnd, wNotifyCode, hwndCtl, tolRound));
-    case IDM_TOOLSEXTEND:
-        return(ToolsCmd(hwnd, wNotifyCode, hwndCtl, tolExtend));
-    case IDM_TOOLSCONFLICTS:
-        return(ToolsCmd(hwnd, wNotifyCode, hwndCtl, tolConflict));
-    case IDM_TOOLSMEASURE:
-        return(ToolsCmd(hwnd, wNotifyCode, hwndCtl, tolMeas));
-    //case IDM_TOOLSBREAK:
-    //    return(ToolsBreakCmd(hwnd, wNotifyCode, hwndCtl));
-    case IDM_TOOLSCALE:
-        return(ToolsScaleCmd(hwnd, wNotifyCode, hwndCtl));
-    case IDM_TOOLSTAT:
-        return(ToolsStatCmd(hwnd, wNotifyCode, hwndCtl));
-    case IDM_PATHCREATE:
-        return PathCreateCmd(hwnd, wNotifyCode, hwndCtl);
-    case IDM_PATHBREAK:
-        return PathBreakCmd(hwnd, wNotifyCode, hwndCtl);
-    case IDM_PATHAREA:
-        return PathAreaCmd(hwnd, wNotifyCode, hwndCtl);
-    case IDM_PATHGROUP:
-        return PathGroupCmd(hwnd, wNotifyCode, hwndCtl);
-    case IDM_PATHUNGROUP:
-        return PathUngroupCmd(hwnd, wNotifyCode, hwndCtl);
-    case IDM_PATHMOVEUP:
-        return PathMoveUpCmd(hwnd, wNotifyCode, hwndCtl);
-    case IDM_PATHMOVEDOWN:
-        return PathMoveDownCmd(hwnd, wNotifyCode, hwndCtl);
-    case IDM_PATHMOVETOP:
-        return PathMoveTopCmd(hwnd, wNotifyCode, hwndCtl);
-    case IDM_PATHMOVEBOTTOM:
-        return PathMoveBottomCmd(hwnd, wNotifyCode, hwndCtl);
-    case IDM_HELPCONTENT:
-        return(HelpContentCmd(hwnd, wNotifyCode, hwndCtl));
-    case IDC_EDT1:
-        return(Edit1Cmd(hwnd, wNotifyCode, hwndCtl));
-    case IDC_EDT2:
-        return(Edit2Cmd(hwnd, wNotifyCode, hwndCtl));
-    default:
-        return(0);
-    }
+  switch(wID)
+  {
+  case IDM_FILENEW:
+    return FileNewCmd(hwnd, wNotifyCode, hwndCtl);
+  case IDM_FILEOPEN:
+    return FileOpenCmd(hwnd, wNotifyCode, hwndCtl);
+  case IDM_FILESAVE:
+    return FileSaveCmd(hwnd, wNotifyCode, hwndCtl);
+  case IDM_FILESAVEAS:
+    return FileSaveAsCmd(hwnd, wNotifyCode, hwndCtl);
+  case IDM_FILESAVESEL:
+    return FileSaveSelCmd(hwnd, wNotifyCode, hwndCtl);
+  case IDM_FILEINCLUDE:
+    return FileIncludeCmd(hwnd, wNotifyCode, hwndCtl);
+  case IDM_FILEEXPORT:
+    return FileExportCmd(hwnd, wNotifyCode, hwndCtl);
+  case IDM_FILEPROPS:
+    return FilePropsCmd(hwnd, wNotifyCode, hwndCtl);
+  //case IDM_FILEPRINTSET:
+  //  return FilePrintSetCmd(hwnd, wNotifyCode, hwndCtl);
+  //case IDM_FILEPRINT:
+  //  return FilePrintCmd(hwnd, wNotifyCode, hwndCtl);
+  case IDM_FILEEXIT:
+    return FileExitCmd(hwnd, wNotifyCode, hwndCtl);
+  case IDM_ENABLESNAP:
+    m_pHighObject->SetSnapTo(true);
+    return 0;
+  case IDM_DISABLESNAP:
+    m_pHighObject->SetSnapTo(false);
+    return 0;
+  case IDM_MODESELECT:
+    return ModeCmd(hwnd, wNotifyCode, hwndCtl, modSelect);
+  case IDM_MODELINE:
+    return ModeCmd(hwnd, wNotifyCode, hwndCtl, modLine);
+  case IDM_MODECIRCLE:
+    return ModeCmd(hwnd, wNotifyCode, hwndCtl, modCircle);
+  case IDM_MODEELLIPSE:
+    return ModeCmd(hwnd, wNotifyCode, hwndCtl, modEllipse);
+  case IDM_MODEARCELLIPSE:
+    return ModeCmd(hwnd, wNotifyCode, hwndCtl, modArcElps);
+  case IDM_MODEHYPERBOLA:
+    return ModeCmd(hwnd, wNotifyCode, hwndCtl, modHyperbola);
+  case IDM_MODEPARABOLA:
+    return ModeCmd(hwnd, wNotifyCode, hwndCtl, modParabola);
+  case IDM_MODESPLINE:
+    return ModeCmd(hwnd, wNotifyCode, hwndCtl, modSpline);
+  case IDM_MODEEVEOLVENT:
+    return ModeCmd(hwnd, wNotifyCode, hwndCtl, modEvolvent);
+  case IDM_MODEDIMEN:
+    return ToolsCmd(hwnd, wNotifyCode, hwndCtl, tolDimen);
+  case IDM_EDITCOPY:
+    return EditCopyCmd(hwnd, wNotifyCode, hwndCtl);
+  case IDM_EDITCUT:
+    return EditCutCmd(hwnd, wNotifyCode, hwndCtl);
+  case IDM_EDITPASTE:
+    return EditPasteCmd(hwnd, wNotifyCode, hwndCtl);
+  case IDM_EDITDELETE:
+    return EditDeleteCmd(hwnd, wNotifyCode, hwndCtl);
+  case IDM_EDITDELLASTPT:
+    return EditDelLastPtCmd(hwnd, wNotifyCode, hwndCtl);
+  case IDM_EDITCOPYPAR:
+    return EditCopyParCmd(hwnd, wNotifyCode, hwndCtl);
+  case IDM_EDITMOVE:
+    return EditMoveCmd(hwnd, wNotifyCode, hwndCtl);
+  case IDM_EDITROTATE:
+    return EditRotateCmd(hwnd, wNotifyCode, hwndCtl);
+  case IDM_EDITMIRROR:
+    return EditMirrorCmd(hwnd, wNotifyCode, hwndCtl);
+  case IDM_EDITLINESTYLE:
+    return EditLineStyleCmd(hwnd, wNotifyCode, hwndCtl);
+  case IDM_EDITTOGGLESNAP:
+    return EditToggleSnapCmd(hwnd, wNotifyCode, hwndCtl);
+  case IDM_EDITPAPERUNITS:
+    return EditPaperUnitsCmd(hwnd, wNotifyCode, hwndCtl);
+  case IDM_EDITUNDO:
+    return EditUndoCmd(hwnd, wNotifyCode, hwndCtl);
+  case IDM_EDITREDO:
+    return EditRedoCmd(hwnd, wNotifyCode, hwndCtl);
+  case IDM_EDITCONFIRM:
+    return EditConfirmCmd(hwnd, wNotifyCode, hwndCtl);
+  case IDM_VIEWFITALL:
+    return ViewFitCmd(hwnd, wNotifyCode, hwndCtl);
+  case IDM_VIEWACTSIZE:
+    return ViewActSizeCmd(hwnd, wNotifyCode, hwndCtl);
+  case IDM_VIEWGRIDPTS:
+    return ViewGridCmd(hwnd, wNotifyCode, hwndCtl, 1);
+  case IDM_VIEWGRIDLNS:
+    return ViewGridCmd(hwnd, wNotifyCode, hwndCtl, 2);
+  /*case IDM_SNAPELEMENT:
+  case IDM_SNAPENDPOINT:
+  case IDM_SNAPMIDPOINT:
+  case IDM_SNAPINTERSECT:
+    return SnapCmd(hwnd, wNotifyCode, hwndCtl, wID - IDM_SNAPELEMENT);*/
+  case IDM_TOOLSKNIFE:
+    return ToolsCmd(hwnd, wNotifyCode, hwndCtl, tolKnife);
+  case IDM_TOOLSROUND:
+    return ToolsCmd(hwnd, wNotifyCode, hwndCtl, tolRound);
+  case IDM_TOOLSEXTEND:
+    return ToolsCmd(hwnd, wNotifyCode, hwndCtl, tolExtend);
+  case IDM_TOOLSCONFLICTS:
+    return ToolsCmd(hwnd, wNotifyCode, hwndCtl, tolConflict);
+  case IDM_TOOLSMEASURE:
+    return ToolsCmd(hwnd, wNotifyCode, hwndCtl, tolMeas);
+  //case IDM_TOOLSBREAK:
+  //  return ToolsBreakCmd(hwnd, wNotifyCode, hwndCtl);
+  case IDM_TOOLSCALE:
+    return ToolsScaleCmd(hwnd, wNotifyCode, hwndCtl);
+  case IDM_TOOLSTAT:
+    return ToolsStatCmd(hwnd, wNotifyCode, hwndCtl);
+  case IDM_PATHCREATE:
+    return PathCreateCmd(hwnd, wNotifyCode, hwndCtl);
+  case IDM_PATHBREAK:
+    return PathBreakCmd(hwnd, wNotifyCode, hwndCtl);
+  case IDM_PATHAREA:
+    return PathAreaCmd(hwnd, wNotifyCode, hwndCtl);
+  case IDM_PATHGROUP:
+    return PathGroupCmd(hwnd, wNotifyCode, hwndCtl);
+  case IDM_PATHUNGROUP:
+    return PathUngroupCmd(hwnd, wNotifyCode, hwndCtl);
+  case IDM_PATHMOVEUP:
+    return PathMoveUpCmd(hwnd, wNotifyCode, hwndCtl);
+  case IDM_PATHMOVEDOWN:
+    return PathMoveDownCmd(hwnd, wNotifyCode, hwndCtl);
+  case IDM_PATHMOVETOP:
+    return PathMoveTopCmd(hwnd, wNotifyCode, hwndCtl);
+  case IDM_PATHMOVEBOTTOM:
+    return PathMoveBottomCmd(hwnd, wNotifyCode, hwndCtl);
+  case IDM_HELPCONTENT:
+    return HelpContentCmd(hwnd, wNotifyCode, hwndCtl);
+  case IDC_EDT1:
+    return Edit1Cmd(hwnd, wNotifyCode, hwndCtl);
+  case IDC_EDT2:
+    return Edit2Cmd(hwnd, wNotifyCode, hwndCtl);
+  default:
+    return(0);
+  }
 }
 
 LRESULT CMainWnd::WMClose(HWND hwnd)
 {
-    if(!PromptForSave(hwnd)) return 0;
+  if(!PromptForSave(hwnd)) return 0;
 
-    SaveSettings(hwnd);
-    DestroyWindow(hwnd);
-    return(0);
+  SaveSettings(hwnd);
+  DestroyWindow(hwnd);
+  return(0);
 }
 
 LRESULT CMainWnd::WMSize(HWND hwnd, WPARAM fwSizeType, WORD nWidth, WORD nHeight)
 {
-    SendMessage(m_hStatus, WM_SIZE, 0, 0);
+  SendMessage(m_hStatus, WM_SIZE, 0, 0);
 
-    /*RECT R1, rc;
-    m_pToolBar->Resize(m_hToolBar, &R1, 0);
+  /*RECT R1, rc;
+  m_pToolBar->Resize(m_hToolBar, &R1, 0);
 
-    SendMessage(m_hStatus, SB_GETRECT, 0, (LPARAM)&rc);
-    SetWindowPos(m_hProg, NULL, rc.left, rc.top, rc.right - rc.left,
-        rc.bottom - rc.top, SWP_NOZORDER);
+  SendMessage(m_hStatus, SB_GETRECT, 0, (LPARAM)&rc);
+  SetWindowPos(m_hProg, NULL, rc.left, rc.top, rc.right - rc.left,
+    rc.bottom - rc.top, SWP_NOZORDER);
 
-    InvalidateRect(hwnd, NULL, TRUE);*/
+  InvalidateRect(hwnd, NULL, TRUE);*/
 
-    if(m_pDrawBuffer) delete m_pDrawBuffer;
-    m_pDrawBuffer = new Bitmap(nWidth, nHeight);
+  if(m_pDrawBuffer) delete m_pDrawBuffer;
+  m_pDrawBuffer = new Bitmap(nWidth, nHeight);
 
-    CDRect cdr;
-    cdr.cPt1.x = -m_cViewOrigin.x/m_dUnitScale;
-    cdr.cPt1.y = (m_iToolBarHeight - m_cViewOrigin.y)/m_dUnitScale;
-    cdr.cPt2.x = (nWidth - m_cViewOrigin.x)/m_dUnitScale;
-    cdr.cPt2.y = (nHeight - m_iStatusHeight - m_cViewOrigin.y)/m_dUnitScale;
-    m_pDrawObjects->BuildAllPrimitives(&cdr);
+  CDRect cdr;
+  cdr.cPt1.x = -m_cViewOrigin.x/m_dUnitScale;
+  cdr.cPt1.y = (m_iToolBarHeight - m_cViewOrigin.y)/m_dUnitScale;
+  cdr.cPt2.x = (nWidth - m_cViewOrigin.x)/m_dUnitScale;
+  cdr.cPt2.y = (nHeight - m_iStatusHeight - m_cViewOrigin.y)/m_dUnitScale;
+  m_pDrawObjects->BuildAllPrimitives(&cdr);
 
-    m_iButton = 0;
+  m_iButton = 0;
 
-    return(0);
+  return(0);
 }
 
 LRESULT CMainWnd::WMDestroy(HWND hwnd)
 {
-    PostQuitMessage(0);
-    return(0);
+  PostQuitMessage(0);
+  return(0);
 }
 
 void CMainWnd::GetAppPath()
 {
-    wchar_t *buf = GetCommandLine();
-    int slen = wcslen(buf);
-    wchar_t *newbuf = (wchar_t*)malloc((slen + 1)*sizeof(wchar_t));
-    wcscpy(newbuf, buf);
-    wchar_t *bufstart = newbuf, *bufend = NULL;
-    if(bufstart[0] == '"') bufend = wcschr(++bufstart, '"');
-    else bufend = wcschr(bufstart, ' ');
+  wchar_t *buf = GetCommandLine();
+  int slen = wcslen(buf);
+  wchar_t *newbuf = (wchar_t*)malloc((slen + 1)*sizeof(wchar_t));
+  wcscpy(newbuf, buf);
+  wchar_t *bufstart = newbuf, *bufend = NULL;
+  if(bufstart[0] == '"') bufend = wcschr(++bufstart, '"');
+  else bufend = wcschr(bufstart, ' ');
 
-    wchar_t *qbufstart = bufend;
-    qbufstart++;
+  wchar_t *qbufstart = bufend;
+  qbufstart++;
 
-    if(bufend) *bufend = 0;
-    bufend = wcsrchr(bufstart, '\\');
+  if(bufend) *bufend = 0;
+  bufend = wcsrchr(bufstart, '\\');
 
-    slen = bufend - bufstart + 1;
-    m_sAppPath = (wchar_t*)malloc((slen + 1)*sizeof(wchar_t));
-    wcsncpy(m_sAppPath, bufstart, slen);
-    m_sAppPath[slen] = 0;
+  slen = bufend - bufstart + 1;
+  m_sAppPath = (wchar_t*)malloc((slen + 1)*sizeof(wchar_t));
+  wcsncpy(m_sAppPath, bufstart, slen);
+  m_sAppPath[slen] = 0;
 }
 
 void CMainWnd::LoadSettings(HWND hwnd)
 {
-    LPWSTR ininame = (LPWSTR)malloc((wcslen(m_sAppPath) + 32)*sizeof(wchar_t));
-    wcscpy(ininame, m_sAppPath);
-    wcscat(ininame, L"SteamCAD2.xml");
+  LPWSTR ininame = (LPWSTR)malloc((wcslen(m_sAppPath) + 32)*sizeof(wchar_t));
+  wcscpy(ininame, m_sAppPath);
+  wcscat(ininame, L"SteamCAD2.xml");
 
-    CXMLReader* pRdr = new CXMLReader(ininame);
+  CXMLReader* pRdr = new CXMLReader(ininame);
 
-    IXMLDOMElement* pElem = pRdr->OpenSection(L"MainForm");
-    int i;
+  IXMLDOMElement* pElem = pRdr->OpenSection(L"MainForm");
+  int i;
 
-    if(pElem)
+  if(pElem)
+  {
+    WINDOWPLACEMENT wndpl;
+    wndpl.length = sizeof(WINDOWPLACEMENT);
+    wndpl.flags = 0;
+    wndpl.showCmd = SW_SHOWNORMAL;
+    wndpl.rcNormalPosition.left = 20;
+    wndpl.rcNormalPosition.top = 20;
+    wndpl.rcNormalPosition.right = 400;
+    wndpl.rcNormalPosition.bottom = 300;
+    if(pRdr->GetIntValue(pElem, L"WindowState", &i)) wndpl.showCmd = i;
+    if(pRdr->GetIntValue(pElem, L"Left", &i)) wndpl.rcNormalPosition.left = i;
+    if(pRdr->GetIntValue(pElem, L"Top", &i)) wndpl.rcNormalPosition.top = i;
+    if(pRdr->GetIntValue(pElem, L"Right", &i)) wndpl.rcNormalPosition.right = i;
+    if(pRdr->GetIntValue(pElem, L"Bottom", &i)) wndpl.rcNormalPosition.bottom = i;
+
+    pElem->Release();
+
+    SetWindowPlacement(hwnd, &wndpl);
+  }
+
+  pElem = pRdr->OpenSection(L"DrawSettings");
+  if(pElem)
+  {
+    if(pRdr->GetIntValue(pElem, L"PaperUnits", &i)) m_bPaperUnits = i;
+    if(pRdr->GetIntValue(pElem, L"LastExportType", &i)) m_iLastExportType = i;
+    if(pRdr->GetIntValue(pElem, L"DrawGridMode", &i)) m_iDrawGridMode = i;
+
+    pElem->Release();
+  }
+
+  double d;
+  BYTE b;
+  IXMLDOMElement *pE1;
+
+  pElem = pRdr->OpenSection(L"PageSettings");
+  if(pElem)
+  {
+    pE1 = pRdr->OpenSubSection(pElem, L"PaperSize");
+    if(pE1)
     {
-        WINDOWPLACEMENT wndpl;
-        wndpl.length = sizeof(WINDOWPLACEMENT);
-        wndpl.flags = 0;
-        wndpl.showCmd = SW_SHOWNORMAL;
-        wndpl.rcNormalPosition.left = 20;
-        wndpl.rcNormalPosition.top = 20;
-        wndpl.rcNormalPosition.right = 400;
-        wndpl.rcNormalPosition.bottom = 300;
-        if(pRdr->GetIntValue(pElem, L"WindowState", &i)) wndpl.showCmd = i;
-        if(pRdr->GetIntValue(pElem, L"Left", &i)) wndpl.rcNormalPosition.left = i;
-        if(pRdr->GetIntValue(pElem, L"Top", &i)) wndpl.rcNormalPosition.top = i;
-        if(pRdr->GetIntValue(pElem, L"Right", &i)) wndpl.rcNormalPosition.right = i;
-        if(pRdr->GetIntValue(pElem, L"Bottom", &i)) wndpl.rcNormalPosition.bottom = i;
-
-        pElem->Release();
-
-        SetWindowPlacement(hwnd, &wndpl);
+      pRdr->GetStringValueBuf(pE1, L"PaperName", m_cFSR.cPaperSize.wsPaperSizeName, 64);
+      if(pRdr->GetDoubleValue(pE1, L"PaperWidth", &d)) m_cFSR.cPaperSize.dPaperWidth = d;
+      if(pRdr->GetDoubleValue(pE1, L"PaperHeight", &d)) m_cFSR.cPaperSize.dPaperHeight = d;
+      pE1->Release();
     }
-
-    pElem = pRdr->OpenSection(L"DrawSettings");
-    if(pElem)
+    if(pRdr->GetByteValue(pElem, L"Portrait", &b)) m_cFSR.bPortrait = b;
+    pE1 = pRdr->OpenSubSection(pElem, L"LengthUnit");
+    if(pE1)
     {
-        if(pRdr->GetIntValue(pElem, L"PaperUnits", &i)) m_bPaperUnits = i;
-        if(pRdr->GetIntValue(pElem, L"LastExportType", &i)) m_iLastExportType = i;
-        if(pRdr->GetIntValue(pElem, L"DrawGridMode", &i)) m_iDrawGridMode = i;
-
-        pElem->Release();
+      pRdr->GetStringValueBuf(pE1, L"UnitName", m_cFSR.cLenUnit.wsName, 32);
+      pRdr->GetStringValueBuf(pE1, L"UnitAbbrev", m_cFSR.cLenUnit.wsAbbrev, 8);
+      if(pRdr->GetDoubleValue(pE1, L"UnitScale", &d)) m_cFSR.cLenUnit.dBaseToUnit = d;
+      pRdr->GetStringValueBuf(pE1, L"UnitAbbrev2", m_cFSR.cLenUnit.wsAbbrev2, 8);
+      pE1->Release();
     }
-
-    double d;
-    BYTE b;
-    IXMLDOMElement *pE1;
-
-    pElem = pRdr->OpenSection(L"PageSettings");
-    if(pElem)
+    if(pRdr->GetDoubleValue(pElem, L"ScaleNomin", &d)) m_cFSR.dScaleNomin = d;
+    if(pRdr->GetDoubleValue(pElem, L"ScaleDenom", &d)) m_cFSR.dScaleDenom = d;
+    pE1 = pRdr->OpenSubSection(pElem, L"AngularUnit");
+    if(pE1)
     {
-        pE1 = pRdr->OpenSubSection(pElem, L"PaperSize");
-        if(pE1)
-        {
-            pRdr->GetStringValueBuf(pE1, L"PaperName", m_cFSR.cPaperSize.wsPaperSizeName, 64);
-            if(pRdr->GetDoubleValue(pE1, L"PaperWidth", &d)) m_cFSR.cPaperSize.dPaperWidth = d;
-            if(pRdr->GetDoubleValue(pE1, L"PaperHeight", &d)) m_cFSR.cPaperSize.dPaperHeight = d;
-            pE1->Release();
-        }
-        if(pRdr->GetByteValue(pElem, L"Portrait", &b)) m_cFSR.bPortrait = b;
-        pE1 = pRdr->OpenSubSection(pElem, L"LengthUnit");
-        if(pE1)
-        {
-            pRdr->GetStringValueBuf(pE1, L"UnitName", m_cFSR.cLenUnit.wsName, 32);
-            pRdr->GetStringValueBuf(pE1, L"UnitAbbrev", m_cFSR.cLenUnit.wsAbbrev, 8);
-            if(pRdr->GetDoubleValue(pE1, L"UnitScale", &d)) m_cFSR.cLenUnit.dBaseToUnit = d;
-            pRdr->GetStringValueBuf(pE1, L"UnitAbbrev2", m_cFSR.cLenUnit.wsAbbrev2, 8);
-            pE1->Release();
-        }
-        if(pRdr->GetDoubleValue(pElem, L"ScaleNomin", &d)) m_cFSR.dScaleNomin = d;
-        if(pRdr->GetDoubleValue(pElem, L"ScaleDenom", &d)) m_cFSR.dScaleDenom = d;
-        pE1 = pRdr->OpenSubSection(pElem, L"AngularUnit");
-        if(pE1)
-        {
-            pRdr->GetStringValueBuf(pE1, L"UnitName", m_cFSR.cAngUnit.wsName, 32);
-            pRdr->GetStringValueBuf(pE1, L"UnitAbbrev", m_cFSR.cAngUnit.wsAbbrev, 8);
-            if(pRdr->GetDoubleValue(pE1, L"UnitScale", &d)) m_cFSR.cAngUnit.dBaseToUnit = d;
-            pRdr->GetStringValueBuf(pE1, L"UnitAbbrev2", m_cFSR.cAngUnit.wsAbbrev2, 8);
-            pE1->Release();
-        }
-        pE1 = pRdr->OpenSubSection(pElem, L"PaperUnit");
-        if(pE1)
-        {
-            pRdr->GetStringValueBuf(pE1, L"UnitName", m_cFSR.cPaperUnit.wsName, 32);
-            pRdr->GetStringValueBuf(pE1, L"UnitAbbrev", m_cFSR.cPaperUnit.wsAbbrev, 8);
-            if(pRdr->GetDoubleValue(pE1, L"UnitScale", &d)) m_cFSR.cPaperUnit.dBaseToUnit = d;
-            pRdr->GetStringValueBuf(pE1, L"UnitAbbrev2", m_cFSR.cPaperUnit.wsAbbrev2, 8);
-            pE1->Release();
-        }
-        pE1 = pRdr->OpenSubSection(pElem, L"GraphUnit");
-        if(pE1)
-        {
-            pRdr->GetStringValueBuf(pE1, L"UnitName", m_cFSR.cGraphUnit.wsName, 32);
-            pRdr->GetStringValueBuf(pE1, L"UnitAbbrev", m_cFSR.cGraphUnit.wsAbbrev, 8);
-            if(pRdr->GetDoubleValue(pE1, L"UnitScale", &d)) m_cFSR.cGraphUnit.dBaseToUnit = d;
-            pRdr->GetStringValueBuf(pE1, L"UnitAbbrev2", m_cFSR.cGraphUnit.wsAbbrev2, 8);
-            pE1->Release();
-        }
-        if(pRdr->GetDoubleValue(pElem, L"AngularGrid", &d)) m_cFSR.dAngGrid = d;
-        if(pRdr->GetDoubleValue(pElem, L"XGrid", &d)) m_cFSR.dXGrid = d;
-        if(pRdr->GetDoubleValue(pElem, L"YGrid", &d)) m_cFSR.dYGrid = d;
-        if(pRdr->GetDoubleValue(pElem, L"DefLineWidth", &d)) m_cFSR.dDefLineWidth = d;
-        pE1 = pRdr->OpenSubSection(pElem, L"Dimensioning");
-        if(pE1)
-        {
-            if(pRdr->GetIntValue(pE1, L"ArrowType", &i)) m_cFSR.iArrowType = i;
-            if(pRdr->GetDoubleValue(pE1, L"ArrowLength", &d)) m_cFSR.dArrowLen = d;
-            if(pRdr->GetDoubleValue(pE1, L"ArrowWidth", &d)) m_cFSR.dArrowWidth = d;
-            if(pRdr->GetIntValue(pE1, L"FontAttrs", &i)) m_cFSR.bFontAttrs = i;
-            if(pRdr->GetDoubleValue(pE1, L"FontSize", &d)) m_cFSR.dFontSize = d;
-            if(pRdr->GetDoubleValue(pE1, L"BaseLine", &d)) m_cFSR.dBaseLine = d;
-            pRdr->GetStringValueBuf(pE1, L"FontFace", m_cFSR.wsFontFace, 64);
-            pRdr->GetStringValueBuf(pE1, L"LengthMask", m_cFSR.wsLengthMask, 64);
-            pRdr->GetStringValueBuf(pE1, L"AngleMask", m_cFSR.wsAngleMask, 64);
-            pE1->Release();
-        }
-        pElem->Release();
+      pRdr->GetStringValueBuf(pE1, L"UnitName", m_cFSR.cAngUnit.wsName, 32);
+      pRdr->GetStringValueBuf(pE1, L"UnitAbbrev", m_cFSR.cAngUnit.wsAbbrev, 8);
+      if(pRdr->GetDoubleValue(pE1, L"UnitScale", &d)) m_cFSR.cAngUnit.dBaseToUnit = d;
+      pRdr->GetStringValueBuf(pE1, L"UnitAbbrev2", m_cFSR.cAngUnit.wsAbbrev2, 8);
+      pE1->Release();
     }
+    pE1 = pRdr->OpenSubSection(pElem, L"PaperUnit");
+    if(pE1)
+    {
+      pRdr->GetStringValueBuf(pE1, L"UnitName", m_cFSR.cPaperUnit.wsName, 32);
+      pRdr->GetStringValueBuf(pE1, L"UnitAbbrev", m_cFSR.cPaperUnit.wsAbbrev, 8);
+      if(pRdr->GetDoubleValue(pE1, L"UnitScale", &d)) m_cFSR.cPaperUnit.dBaseToUnit = d;
+      pRdr->GetStringValueBuf(pE1, L"UnitAbbrev2", m_cFSR.cPaperUnit.wsAbbrev2, 8);
+      pE1->Release();
+    }
+    pE1 = pRdr->OpenSubSection(pElem, L"GraphUnit");
+    if(pE1)
+    {
+      pRdr->GetStringValueBuf(pE1, L"UnitName", m_cFSR.cGraphUnit.wsName, 32);
+      pRdr->GetStringValueBuf(pE1, L"UnitAbbrev", m_cFSR.cGraphUnit.wsAbbrev, 8);
+      if(pRdr->GetDoubleValue(pE1, L"UnitScale", &d)) m_cFSR.cGraphUnit.dBaseToUnit = d;
+      pRdr->GetStringValueBuf(pE1, L"UnitAbbrev2", m_cFSR.cGraphUnit.wsAbbrev2, 8);
+      pE1->Release();
+    }
+    if(pRdr->GetDoubleValue(pElem, L"AngularGrid", &d)) m_cFSR.dAngGrid = d;
+    if(pRdr->GetDoubleValue(pElem, L"XGrid", &d)) m_cFSR.dXGrid = d;
+    if(pRdr->GetDoubleValue(pElem, L"YGrid", &d)) m_cFSR.dYGrid = d;
+    if(pRdr->GetDoubleValue(pElem, L"DefLineWidth", &d)) m_cFSR.dDefLineWidth = d;
+    pE1 = pRdr->OpenSubSection(pElem, L"Dimensioning");
+    if(pE1)
+    {
+      if(pRdr->GetIntValue(pE1, L"ArrowType", &i)) m_cFSR.iArrowType = i;
+      if(pRdr->GetDoubleValue(pE1, L"ArrowLength", &d)) m_cFSR.dArrowLen = d;
+      if(pRdr->GetDoubleValue(pE1, L"ArrowWidth", &d)) m_cFSR.dArrowWidth = d;
+      if(pRdr->GetIntValue(pE1, L"FontAttrs", &i)) m_cFSR.bFontAttrs = i;
+      if(pRdr->GetDoubleValue(pE1, L"FontSize", &d)) m_cFSR.dFontSize = d;
+      if(pRdr->GetDoubleValue(pE1, L"BaseLine", &d)) m_cFSR.dBaseLine = d;
+      pRdr->GetStringValueBuf(pE1, L"FontFace", m_cFSR.wsFontFace, 64);
+      pRdr->GetStringValueBuf(pE1, L"LengthMask", m_cFSR.wsLengthMask, 64);
+      pRdr->GetStringValueBuf(pE1, L"AngleMask", m_cFSR.wsAngleMask, 64);
+      pE1->Release();
+    }
+    pElem->Release();
+  }
 
-    m_pFileSetupDlg->RestoreSettings(pRdr);
-    m_pLineStyleDlg->RestoreSettings(pRdr);
-    m_pDimEditDlg->RestoreSettings(pRdr);
-    m_pScaleDlg->RestoreSettings(pRdr);
-    m_pStatDlg->RestoreSettings(pRdr);
-    m_pSnapDlg->RestoreSettings(pRdr);
+  m_pFileSetupDlg->RestoreSettings(pRdr);
+  m_pLineStyleDlg->RestoreSettings(pRdr);
+  m_pDimEditDlg->RestoreSettings(pRdr);
+  m_pScaleDlg->RestoreSettings(pRdr);
+  m_pStatDlg->RestoreSettings(pRdr);
+  m_pSnapDlg->RestoreSettings(pRdr);
 
-    delete pRdr;
-    return;
+  delete pRdr;
+  return;
 }
 
 void CMainWnd::SaveSettings(HWND hwnd)
@@ -919,61 +919,25 @@ LRESULT CMainWnd::WMPaint(HWND hwnd, HDC hdc)
 
 bool CMainWnd::PromptForSave(HWND hWnd)
 {
-    if(!m_pDrawObjects->GetChanged()) return true;
+  if(!m_pDrawObjects->GetChanged()) return true;
 
-    wchar_t wsCaption[64];
-    wchar_t wsPrompt[256];
-    LoadString(m_hInstance, IDS_WARNING, wsCaption, 64);
-    LoadString(m_hInstance, IDS_FILECHANGED, wsPrompt, 256);
+  wchar_t wsCaption[64];
+  wchar_t wsPrompt[256];
+  LoadString(m_hInstance, IDS_WARNING, wsCaption, 64);
+  LoadString(m_hInstance, IDS_FILECHANGED, wsPrompt, 256);
 
-    int iRes = MessageBox(hWnd, wsPrompt, wsCaption, MB_YESNOCANCEL | MB_ICONWARNING);
-    if(iRes == IDCANCEL) return false;
-    if(iRes == IDNO) return true;
+  int iRes = MessageBox(hWnd, wsPrompt, wsCaption, MB_YESNOCANCEL | MB_ICONWARNING);
+  if(iRes == IDCANCEL) return false;
+  if(iRes == IDNO) return true;
 
-    return SaveFile(hWnd, m_wsFileName, false);
+  return SaveFile(hWnd, m_wsFileName, false);
 }
 
 bool CMainWnd::SaveFile(HWND hWnd, LPWSTR wsFile, bool bSelectOnly)
 {
-    bool bSave = true;
-    if(!wsFile[0])
-    {
-        wchar_t wsFilter[128], wsCurDir[1];
-        wsCurDir[0] = 0;
-        LoadString(m_hInstance, IDS_STEAMDRAWFILTER, wsFilter, 128);
-
-        int n = wcslen(wsFilter);
-        for(int i = 0; i < n; i++)
-        {
-            if(wsFilter[i] == 1) wsFilter[i] = 0;
-        }
-
-        OPENFILENAME ofn = {sizeof(OPENFILENAME), hWnd, m_hInstance, wsFilter,
-            NULL, 0, 0, wsFile, MAX_PATH, NULL, 0, wsCurDir, NULL,
-            OFN_ENABLESIZING | OFN_EXPLORER | OFN_OVERWRITEPROMPT | OFN_PATHMUSTEXIST,
-            0, 0, L"sdr", 0, NULL, NULL};
-
-        bSave = GetSaveFileName(&ofn);
-    }
-    if(!bSave) return false;
-
-    unsigned char cVer = 2;
-    LPWSTR sDot = wcsrchr(wsFile, '.');
-    if(sDot)
-    {
-        if(wcsicmp(sDot, L".sdr") == 0) cVer = 1;
-    }
-
-    // save the file
-    FILE *pf = _wfopen(wsFile, L"wb");
-    m_pDrawObjects->SaveToFile(pf, true, bSelectOnly, cVer);
-    fclose(pf);
-
-    return true;
-}
-
-bool CMainWnd::LoadFile(HWND hWnd, LPWSTR wsFile, bool bClear)
-{
+  bool bSave = true;
+  if(!wsFile[0])
+  {
     wchar_t wsFilter[128], wsCurDir[1];
     wsCurDir[0] = 0;
     LoadString(m_hInstance, IDS_STEAMDRAWFILTER, wsFilter, 128);
@@ -981,173 +945,298 @@ bool CMainWnd::LoadFile(HWND hWnd, LPWSTR wsFile, bool bClear)
     int n = wcslen(wsFilter);
     for(int i = 0; i < n; i++)
     {
-        if(wsFilter[i] == 1) wsFilter[i] = 0;
+      if(wsFilter[i] == 1) wsFilter[i] = 0;
     }
 
     OPENFILENAME ofn = {sizeof(OPENFILENAME), hWnd, m_hInstance, wsFilter,
-        NULL, 0, 0, wsFile, MAX_PATH, NULL, 0, wsCurDir, NULL,
-        OFN_ENABLESIZING | OFN_EXPLORER | OFN_FILEMUSTEXIST,
-        0, 0, L"sdr", 0, NULL, NULL};
+      NULL, 0, 0, wsFile, MAX_PATH, NULL, 0, wsCurDir, NULL,
+      OFN_ENABLESIZING | OFN_EXPLORER | OFN_OVERWRITEPROMPT | OFN_PATHMUSTEXIST,
+      0, 0, L"sdr", 0, NULL, NULL};
 
-    if(GetOpenFileName(&ofn))
+    bSave = GetSaveFileName(&ofn);
+  }
+  if(!bSave) return false;
+
+  unsigned char cVer = 2;
+  LPWSTR sDot = wcsrchr(wsFile, '.');
+  if(sDot)
+  {
+    if(wcsicmp(sDot, L".sdr") == 0) cVer = 1;
+  }
+
+  // save the file
+  FILE *pf = _wfopen(wsFile, L"wb");
+  m_pDrawObjects->SaveToFile(pf, true, bSelectOnly, cVer);
+  fclose(pf);
+
+  return true;
+}
+
+bool CMainWnd::LoadFile(HWND hWnd, LPWSTR wsFile, bool bClear)
+{
+  wchar_t wsFilter[128], wsCurDir[1];
+  wsCurDir[0] = 0;
+  LoadString(m_hInstance, IDS_STEAMDRAWFILTER, wsFilter, 128);
+
+  int n = wcslen(wsFilter);
+  for(int i = 0; i < n; i++)
+  {
+    if(wsFilter[i] == 1) wsFilter[i] = 0;
+  }
+
+  OPENFILENAME ofn = {sizeof(OPENFILENAME), hWnd, m_hInstance, wsFilter,
+    NULL, 0, 0, wsFile, MAX_PATH, NULL, 0, wsCurDir, NULL,
+    OFN_ENABLESIZING | OFN_EXPLORER | OFN_FILEMUSTEXIST,
+    0, 0, L"sdr", 0, NULL, NULL};
+
+  if(GetOpenFileName(&ofn))
+  {
+    // load the file
+    FILE *pf = _wfopen(wsFile, L"rb");
+    bool bRead = m_pDrawObjects->ReadFromFile(pf, true, bClear);
+    fclose(pf);
+    if(bRead)
     {
-        // load the file
-        FILE *pf = _wfopen(wsFile, L"rb");
-        bool bRead = m_pDrawObjects->ReadFromFile(pf, true, bClear);
-        fclose(pf);
-        if(bRead)
-        {
-            if(bClear)
-            {
-                DataToFileProps();
-                GetPageDims();
-                m_pUndoObjects->ClearAll();
-                m_iRedoCount = 0;
-            }
+      if(bClear)
+      {
+        DataToFileProps();
+        GetPageDims();
+        m_pUndoObjects->ClearAll();
+        m_iRedoCount = 0;
+      }
 
-            RECT rc;
-            GetClientRect(hWnd, &rc);
-            rc.top += m_iToolBarHeight;
-            rc.bottom -= m_iStatusHeight;
+      RECT rc;
+      GetClientRect(hWnd, &rc);
+      rc.top += m_iToolBarHeight;
+      rc.bottom -= m_iStatusHeight;
 
-            InvalidateRect(hWnd, &rc, TRUE);
-            SetTitle(hWnd, true);
-        }
-        return bRead;
+      InvalidateRect(hWnd, &rc, TRUE);
+      SetTitle(hWnd, true);
     }
-    return false;
+    return bRead;
+  }
+  return false;
 }
 
 LRESULT CMainWnd::FileNewCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl)
 {
-    if(!PromptForSave(hwnd)) return 0;
+  if(!PromptForSave(hwnd)) return 0;
 
-    if(m_pActiveObject) delete m_pActiveObject;
-    m_pActiveObject = NULL;
-    m_pHighObject = NULL;
-    m_pDrawObjects->ClearAll();
-    m_pUndoObjects->ClearAll();
-    m_wsFileName[0] = 0;
-    m_iRedoCount = 0;
+  if(m_pActiveObject) delete m_pActiveObject;
+  m_pActiveObject = NULL;
+  m_pHighObject = NULL;
+  m_pDrawObjects->ClearAll();
+  m_pUndoObjects->ClearAll();
+  m_wsFileName[0] = 0;
+  m_iRedoCount = 0;
 
-    CDFileAttrs cFAttrs;
-    FilePropsToData(&cFAttrs);
-    m_pDrawObjects->SetFileAttrs(&cFAttrs, true);
+  CDFileAttrs cFAttrs;
+  FilePropsToData(&cFAttrs);
+  m_pDrawObjects->SetFileAttrs(&cFAttrs, true);
 
-    InvalidateRect(hwnd, NULL, true);
-    SetTitle(hwnd, true);
-    return 0;
+  InvalidateRect(hwnd, NULL, true);
+  SetTitle(hwnd, true);
+  return 0;
 }
 
 LRESULT CMainWnd::FileOpenCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl)
 {
-    if(!PromptForSave(hwnd)) return 0;
+  if(!PromptForSave(hwnd)) return 0;
 
-    LoadFile(hwnd, m_wsFileName, true);
-    return 0;
+  LoadFile(hwnd, m_wsFileName, true);
+  return 0;
 }
 
 LRESULT CMainWnd::FileSaveCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl)
 {
-    if(SaveFile(hwnd, m_wsFileName, false))
-    {
-        if(m_wsFileName) SetTitle(hwnd, true);
-    }
-    return 0;
+  if(SaveFile(hwnd, m_wsFileName, false))
+  {
+    if(m_wsFileName) SetTitle(hwnd, true);
+  }
+  return 0;
 }
 
 LRESULT CMainWnd::FileSaveAsCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl)
 {
-    wchar_t wsNewName[MAX_PATH];
-    wsNewName[0] = 0;
-    if(SaveFile(hwnd, wsNewName, false))
-    {
-        wcscpy(m_wsFileName, wsNewName);
-        SetTitle(hwnd, true);
-    }
-    return 0;
+  wchar_t wsNewName[MAX_PATH];
+  wsNewName[0] = 0;
+  if(SaveFile(hwnd, wsNewName, false))
+  {
+    wcscpy(m_wsFileName, wsNewName);
+    SetTitle(hwnd, true);
+  }
+  return 0;
 }
 
 LRESULT CMainWnd::FileSaveSelCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl)
 {
-    wchar_t wsNewName[MAX_PATH];
-    wsNewName[0] = 0;
-    SaveFile(hwnd, wsNewName, true);
-    return 0;
+  wchar_t wsNewName[MAX_PATH];
+  wsNewName[0] = 0;
+  SaveFile(hwnd, wsNewName, true);
+  return 0;
 }
 
 LRESULT CMainWnd::FileIncludeCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl)
 {
-    wchar_t wsNewName[MAX_PATH];
-    wsNewName[0] = 0;
-    LoadFile(hwnd, wsNewName, false);
-    return 0;
+  wchar_t wsNewName[MAX_PATH];
+  wsNewName[0] = 0;
+  LoadFile(hwnd, wsNewName, false);
+  return 0;
 }
 
 LRESULT CMainWnd::FileExportCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl)
 {
-    bool bSave = true;
-    wchar_t wsFile[MAX_PATH];
+  bool bSave = true;
+  wchar_t wsFile[MAX_PATH];
 
-    wsFile[0] = 0;
-    wchar_t wsFilter[256], wsCurDir[1];
-    wsCurDir[0] = 0;
-    LoadString(m_hInstance, IDS_STEAMEXPORTFILTER, wsFilter, 256);
+  wsFile[0] = 0;
+  wchar_t wsFilter[256], wsCurDir[1];
+  wsCurDir[0] = 0;
+  LoadString(m_hInstance, IDS_STEAMEXPORTFILTER, wsFilter, 256);
 
-    int n = wcslen(wsFilter);
-    for(int i = 0; i < n; i++)
+  int n = wcslen(wsFilter);
+  for(int i = 0; i < n; i++)
+  {
+    if(wsFilter[i] == 1) wsFilter[i] = 0;
+  }
+
+  if(m_wsFileName[0])
+  {
+    wchar_t *wsSlash = wcsrchr(m_wsFileName, '\\');
+    if(wsSlash) wcscpy(wsFile, &wsSlash[1]);
+    else wcscpy(wsFile, m_wsFileName);
+
+    wchar_t *wsDot = wcsrchr(wsFile, '.');
+    if(wsDot) *wsDot = 0;
+  }
+
+  wchar_t sDefExt[4];
+  switch(m_iLastExportType)
+  {
+  case 0:
+    wcscpy(sDefExt, L"pdf");
+    break;
+  case 1:
+    wcscpy(sDefExt, L"ps");
+    break;
+  case 2:
+    wcscpy(sDefExt, L"eps");
+    break;
+  case 3:
+    wcscpy(sDefExt, L"png");
+    break;
+  case 4:
+    wcscpy(sDefExt, L"svg");
+    break;
+  default:
+    sDefExt[0] = 0;
+  }
+
+  OPENFILENAME ofn = {sizeof(OPENFILENAME), hwnd, m_hInstance, wsFilter,
+    NULL, 0, m_iLastExportType + 1, wsFile, MAX_PATH, NULL, 0, wsCurDir, NULL,
+    OFN_ENABLESIZING | OFN_EXPLORER | OFN_OVERWRITEPROMPT | OFN_PATHMUSTEXIST,
+    0, 0, sDefExt, 0, NULL, NULL};
+
+  if(!GetSaveFileName(&ofn)) return 0;
+
+  m_iLastExportType = ofn.nFilterIndex - 1;
+
+  // export to the file
+  FILE *pf = _wfopen(wsFile, L"wb");
+  if(m_iLastExportType < 5)
+    ExportCairoFile(m_iLastExportType, pf, m_pDrawObjects, m_pFileSetupDlg->GetUnitList());
+  else
+    ExportDXFFile(pf, m_pDrawObjects, m_pFileSetupDlg->GetUnitList());
+  fclose(pf);
+
+  RECT rc;
+  GetClientRect(hwnd, &rc);
+  rc.top += m_iToolBarHeight;
+  rc.bottom -= m_iStatusHeight;
+
+  CDRect cdr;
+  cdr.cPt1.x = (rc.left - m_cViewOrigin.x)/m_dUnitScale;
+  cdr.cPt1.y = (rc.top - m_cViewOrigin.y)/m_dUnitScale;
+  cdr.cPt2.x = (rc.right - m_cViewOrigin.x)/m_dUnitScale;
+  cdr.cPt2.y = (rc.bottom - m_cViewOrigin.y)/m_dUnitScale;
+
+  m_pDrawObjects->BuildAllPrimitives(&cdr);
+  return 0;
+}
+
+void CMainWnd::FilePropsToData(PDFileAttrs pFAttrs)
+{
+  pFAttrs->dWidth = m_cFSR.cPaperSize.dPaperWidth;
+  pFAttrs->dHeight = m_cFSR.cPaperSize.dPaperHeight;
+  if(m_cFSR.bPortrait)
+  {
+    if(pFAttrs->dWidth > pFAttrs->dHeight)
     {
-        if(wsFilter[i] == 1) wsFilter[i] = 0;
+      pFAttrs->dWidth = m_cFSR.cPaperSize.dPaperHeight;
+      pFAttrs->dHeight = m_cFSR.cPaperSize.dPaperWidth;
     }
+  }
+  else if(pFAttrs->dWidth < pFAttrs->dHeight)
+  {
+    pFAttrs->dWidth = m_cFSR.cPaperSize.dPaperHeight;
+    pFAttrs->dHeight = m_cFSR.cPaperSize.dPaperWidth;
+  }
+  pFAttrs->dScaleNom = m_cFSR.dScaleNomin;
+  pFAttrs->dScaleDenom = m_cFSR.dScaleDenom;
+  pFAttrs->iArrowType = m_cFSR.iArrowType;
+  pFAttrs->cArrowDim.x = m_cFSR.dArrowLen;
+  pFAttrs->cArrowDim.y = m_cFSR.dArrowWidth;
+  pFAttrs->dFontSize = m_cFSR.dFontSize;
+  pFAttrs->dBaseLine = m_cFSR.dBaseLine;
+  pFAttrs->bFontAttrs = m_cFSR.bFontAttrs;
+  WideCharToMultiByte(CP_UTF8, 0, m_cFSR.wsFontFace, -1, pFAttrs->sFontFace, 64, NULL, NULL);
+  WideCharToMultiByte(CP_UTF8, 0, m_cFSR.wsLengthMask, -1, pFAttrs->sLengthMask, 64, NULL, NULL);
+  WideCharToMultiByte(CP_UTF8, 0, m_cFSR.wsAngleMask, -1, pFAttrs->sAngleMask, 64, NULL, NULL);
+}
 
-    if(m_wsFileName[0])
-    {
-        wchar_t *wsSlash = wcsrchr(m_wsFileName, '\\');
-        if(wsSlash) wcscpy(wsFile, &wsSlash[1]);
-        else wcscpy(wsFile, m_wsFileName);
+void CMainWnd::DataToFileProps()
+{
+  CDFileAttrs cFAttrs;
+  m_pDrawObjects->GetFileAttrs(&cFAttrs);
 
-        wchar_t *wsDot = wcsrchr(wsFile, '.');
-        if(wsDot) *wsDot = 0;
-    }
+  if(cFAttrs.dHeight > cFAttrs.dWidth)
+  {
+    m_cFSR.bPortrait = true;
+    m_cFSR.cPaperSize.dPaperWidth = cFAttrs.dHeight;
+    m_cFSR.cPaperSize.dPaperHeight = cFAttrs.dWidth;
+  }
+  else
+  {
+    m_cFSR.bPortrait = false;
+    m_cFSR.cPaperSize.dPaperWidth = cFAttrs.dWidth;
+    m_cFSR.cPaperSize.dPaperHeight = cFAttrs.dHeight;
+  }
 
-    wchar_t sDefExt[4];
-    switch(m_iLastExportType)
-    {
-    case 0:
-        wcscpy(sDefExt, L"pdf");
-        break;
-    case 1:
-        wcscpy(sDefExt, L"ps");
-        break;
-    case 2:
-        wcscpy(sDefExt, L"eps");
-        break;
-    case 3:
-        wcscpy(sDefExt, L"png");
-        break;
-    case 4:
-        wcscpy(sDefExt, L"svg");
-        break;
-    default:
-        sDefExt[0] = 0;
-    }
+  PDPaperSize pSize = m_pFileSetupDlg->FindPaper(cFAttrs.dWidth, cFAttrs.dHeight);
+  if(pSize) wcscpy(m_cFSR.cPaperSize.wsPaperSizeName, pSize->wsPaperSizeName);
 
-    OPENFILENAME ofn = {sizeof(OPENFILENAME), hwnd, m_hInstance, wsFilter,
-        NULL, 0, m_iLastExportType + 1, wsFile, MAX_PATH, NULL, 0, wsCurDir, NULL,
-        OFN_ENABLESIZING | OFN_EXPLORER | OFN_OVERWRITEPROMPT | OFN_PATHMUSTEXIST,
-        0, 0, sDefExt, 0, NULL, NULL};
+  m_cFSR.dScaleNomin = cFAttrs.dScaleNom;
+  m_cFSR.dScaleDenom = cFAttrs.dScaleDenom;
 
-    if(!GetSaveFileName(&ofn)) return 0;
+  if(fabs(m_cFSR.dScaleDenom) > g_dPrec)
+    m_dDrawScale = m_cFSR.dScaleNomin/m_cFSR.dScaleDenom;
+  else m_dDrawScale = 1.0;
+}
 
-    m_iLastExportType = ofn.nFilterIndex - 1;
+LRESULT CMainWnd::FilePropsCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl)
+{
+  if(m_pFileSetupDlg->ShowDialog(hwnd, &m_cFSR))
+  {
+    if(fabs(m_cFSR.dScaleDenom) > g_dPrec)
+      m_dDrawScale = m_cFSR.dScaleNomin/m_cFSR.dScaleDenom;
+    else m_dDrawScale = 1.0;
 
-    // export to the file
-    FILE *pf = _wfopen(wsFile, L"wb");
-    if(m_iLastExportType < 5)
-        ExportCairoFile(m_iLastExportType, pf, m_pDrawObjects, m_pFileSetupDlg->GetUnitList());
-    else
-        ExportDXFFile(pf, m_pDrawObjects, m_pFileSetupDlg->GetUnitList());
-    fclose(pf);
+    GetPageDims();
+
+    CDFileAttrs cFAttrs;
+    FilePropsToData(&cFAttrs);
+    // set new file attributes
+    m_pDrawObjects->SetFileAttrs(&cFAttrs, false);
 
     RECT rc;
     GetClientRect(hwnd, &rc);
@@ -1161,83 +1250,396 @@ LRESULT CMainWnd::FileExportCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl)
     cdr.cPt2.y = (rc.bottom - m_cViewOrigin.y)/m_dUnitScale;
 
     m_pDrawObjects->BuildAllPrimitives(&cdr);
+    InvalidateRect(hwnd, &rc, TRUE);
+    SetTitle(hwnd, false);
+  }
+  return 0;
+}
+
+/*LRESULT CMainWnd::FilePrintSetCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl)
+{
+  PAGESETUPDLG cps;
+  cps.lStructSize = sizeof(PAGESETUPDLG);
+  cps.hwndOwner = hwnd;
+  cps.hDevMode = NULL;
+  cps.hDevNames = NULL;
+  cps.Flags = 0;
+  cps.hInstance = m_hInstance;
+  PageSetupDlg(&cps);
+  return 0;
+}
+
+LRESULT CMainWnd::FilePrintCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl)
+{
+  return 0;
+}*/
+
+LRESULT CMainWnd::FileExitCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl)
+{
+  SendMessage(hwnd, WM_CLOSE, 0, 0);
+  return 0;
+}
+
+UINT MapDrawModeToMenu(int iDrawMode)
+{
+  switch(iDrawMode)
+  {
+  case modLine:
+    return IDM_MODELINE;
+  case modCircle:
+    return IDM_MODECIRCLE;
+  case modEllipse:
+    return IDM_MODEELLIPSE;
+  case modArcElps:
+    return IDM_MODEARCELLIPSE;
+  case modHyperbola:
+    return IDM_MODEHYPERBOLA;
+  case modParabola:
+    return IDM_MODEPARABOLA;
+  case modSpline:
+    return IDM_MODESPLINE;
+  case modEvolvent:
+    return IDM_MODEEVEOLVENT;
+  default:
+    return IDM_MODESELECT;
+  }
+}
+
+LRESULT CMainWnd::ModeCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl, int iMode)
+{
+  if((wNotifyCode == 1) && (iMode > 0) && (IsWindowVisible(m_hEdt1) || IsWindowVisible(m_hEdt2)))
+  {
+    HWND hFocus = GetFocus();
+    char c = 0;
+    switch(iMode)
+    {
+    case 1:
+      c = 'l';
+      break;
+    case 2:
+      c = 'c';
+      break;
+    case 3:
+      c = 'e';
+      break;
+    case 4:
+      c = 'a';
+      break;
+    case 5:
+      c = 'h';
+      break;
+    case 6:
+      c = 'p';
+      break;
+    case 7:
+      c = 's';
+      break;
+    case 8:
+      c = 'v';
+      break;
+    }
+    if(hFocus == m_hEdt1)
+    {
+      SendMessage(m_hEdt1, WM_CHAR, c, 0);
+    }
+    else if(hFocus == m_hEdt2)
+    {
+      SendMessage(m_hEdt2, WM_CHAR, c, 0);
+    }
     return 0;
+  }
+
+  ShowWindow(m_hEdt1, SW_HIDE);
+  ShowWindow(m_hEdt2, SW_HIDE);
+
+  RECT rc;
+  GetClientRect(hwnd, &rc);
+  rc.top += m_iToolBarHeight;
+  rc.bottom -= m_iStatusHeight;
+  HDC hdc;
+
+  if(m_pActiveObject)
+  {
+    /*hdc = GetDC(hwnd);
+    IntersectClipRect(hdc, rc.left, rc.top, rc.right, rc.bottom);
+
+    HBRUSH hPrevBr = (HBRUSH)SelectObject(hdc, GetStockObject(HOLLOW_BRUSH));
+    int iPrevROP = SetROP2(hdc, R2_NOTXORPEN);
+    DrawObject(hwnd, hdc, m_pActiveObject, 1, -2);
+    SetROP2(hdc, iPrevROP);
+    SelectObject(hdc, hPrevBr);
+    SelectClipRgn(hdc, NULL);
+    ReleaseDC(hwnd, NULL);*/
+
+    delete m_pActiveObject;
+    m_pActiveObject = NULL;
+  }
+  else if(m_pSelForDimen)
+  {
+    m_pSelForDimen->DiscardDimen();
+    m_pSelForDimen = NULL;
+  }
+
+  if(((m_iDrawMode + m_iToolMode > 0) && (iMode == 0)) ||
+    ((m_iDrawMode + m_iToolMode == 0) && (iMode > 0)))
+  {
+    DrawCross(hwnd);
+  }
+
+  m_iToolMode = tolNone;
+
+  HMENU hMenu = GetMenu(hwnd);
+
+  UINT uCheck = MF_BYCOMMAND | MF_UNCHECKED;
+  CheckMenuItem(hMenu, MapDrawModeToMenu(m_iDrawMode), uCheck);
+
+  m_iDrawMode = iMode;
+
+  StartNewObject(hwnd);
+  if(!m_pActiveObject && (m_iDrawMode))
+  {
+    m_iDrawMode = modSelect;
+    DrawCross(hwnd);
+  }
+
+  uCheck = MF_BYCOMMAND | MF_CHECKED;
+  CheckMenuItem(hMenu, MapDrawModeToMenu(m_iDrawMode), uCheck);
+  return 0;
 }
 
-void CMainWnd::FilePropsToData(PDFileAttrs pFAttrs)
+LRESULT CMainWnd::EditCopyCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl)
 {
-    pFAttrs->dWidth = m_cFSR.cPaperSize.dPaperWidth;
-    pFAttrs->dHeight = m_cFSR.cPaperSize.dPaperHeight;
-    if(m_cFSR.bPortrait)
-    {
-        if(pFAttrs->dWidth > pFAttrs->dHeight)
-        {
-            pFAttrs->dWidth = m_cFSR.cPaperSize.dPaperHeight;
-            pFAttrs->dHeight = m_cFSR.cPaperSize.dPaperWidth;
-        }
-    }
-    else if(pFAttrs->dWidth < pFAttrs->dHeight)
-    {
-        pFAttrs->dWidth = m_cFSR.cPaperSize.dPaperHeight;
-        pFAttrs->dHeight = m_cFSR.cPaperSize.dPaperWidth;
-    }
-    pFAttrs->dScaleNom = m_cFSR.dScaleNomin;
-    pFAttrs->dScaleDenom = m_cFSR.dScaleDenom;
-    pFAttrs->iArrowType = m_cFSR.iArrowType;
-    pFAttrs->cArrowDim.x = m_cFSR.dArrowLen;
-    pFAttrs->cArrowDim.y = m_cFSR.dArrowWidth;
-    pFAttrs->dFontSize = m_cFSR.dFontSize;
-    pFAttrs->dBaseLine = m_cFSR.dBaseLine;
-    pFAttrs->bFontAttrs = m_cFSR.bFontAttrs;
-    WideCharToMultiByte(CP_UTF8, 0, m_cFSR.wsFontFace, -1, pFAttrs->sFontFace, 64, NULL, NULL);
-    WideCharToMultiByte(CP_UTF8, 0, m_cFSR.wsLengthMask, -1, pFAttrs->sLengthMask, 64, NULL, NULL);
-    WideCharToMultiByte(CP_UTF8, 0, m_cFSR.wsAngleMask, -1, pFAttrs->sAngleMask, 64, NULL, NULL);
+  return 0;
 }
 
-void CMainWnd::DataToFileProps()
+LRESULT CMainWnd::EditCutCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl)
 {
-    CDFileAttrs cFAttrs;
-    m_pDrawObjects->GetFileAttrs(&cFAttrs);
-
-    if(cFAttrs.dHeight > cFAttrs.dWidth)
-    {
-        m_cFSR.bPortrait = true;
-        m_cFSR.cPaperSize.dPaperWidth = cFAttrs.dHeight;
-        m_cFSR.cPaperSize.dPaperHeight = cFAttrs.dWidth;
-    }
-    else
-    {
-        m_cFSR.bPortrait = false;
-        m_cFSR.cPaperSize.dPaperWidth = cFAttrs.dWidth;
-        m_cFSR.cPaperSize.dPaperHeight = cFAttrs.dHeight;
-    }
-
-    PDPaperSize pSize = m_pFileSetupDlg->FindPaper(cFAttrs.dWidth, cFAttrs.dHeight);
-    if(pSize) wcscpy(m_cFSR.cPaperSize.wsPaperSizeName, pSize->wsPaperSizeName);
-
-    m_cFSR.dScaleNomin = cFAttrs.dScaleNom;
-    m_cFSR.dScaleDenom = cFAttrs.dScaleDenom;
-
-    if(fabs(m_cFSR.dScaleDenom) > g_dPrec)
-        m_dDrawScale = m_cFSR.dScaleNomin/m_cFSR.dScaleDenom;
-    else m_dDrawScale = 1.0;
+  return 0;
 }
 
-LRESULT CMainWnd::FilePropsCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl)
+LRESULT CMainWnd::EditPasteCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl)
 {
-    if(m_pFileSetupDlg->ShowDialog(hwnd, &m_cFSR))
+  return 0;
+}
+
+HRGN CMainWnd::GetUpdateRegion(PDPtrList pPolygons)
+{
+  int iCnt = pPolygons->GetCount();
+  int iTot = 0;
+  INT *pCnts = (INT*)malloc(iCnt*sizeof(INT));
+
+  PDPolygon pPoly;
+  for(int i = 0; i < iCnt; i++)
+  {
+    pPoly = (PDPolygon)pPolygons->GetItem(i);
+    pCnts[i] = pPoly->iPoints;
+    iTot += pPoly->iPoints;
+  }
+
+  POINT *pPts = (POINT*)malloc(iTot*sizeof(POINT));
+  int j = 0;
+  for(int i = 0; i < iCnt; i++)
+  {
+    pPoly = (PDPolygon)pPolygons->GetItem(i);
+    for(int k = 0; k < pPoly->iPoints; k++)
     {
-        if(fabs(m_cFSR.dScaleDenom) > g_dPrec)
-            m_dDrawScale = m_cFSR.dScaleNomin/m_cFSR.dScaleDenom;
-        else m_dDrawScale = 1.0;
+      pPts[j].x = Round(m_cViewOrigin.x + m_dUnitScale*pPoly->pPoints[k].x);
+      pPts[j++].y = Round(m_cViewOrigin.y + m_dUnitScale*pPoly->pPoints[k].y);
+    }
+  }
 
-        GetPageDims();
+  HRGN hRes = CreatePolyPolygonRgn(pPts, pCnts, iCnt, WINDING);
+  free(pPts);
+  free(pCnts);
+  return hRes;
+}
 
-        CDFileAttrs cFAttrs;
-        FilePropsToData(&cFAttrs);
-        // set new file attributes
-        m_pDrawObjects->SetFileAttrs(&cFAttrs, false);
+LRESULT CMainWnd::EditDeleteCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl)
+{
+//MessageBox(hwnd, L"Dobry", L"Debug", MB_OK);
+  if(m_iDrawMode + m_iToolMode > 0)
+  {
+    HWND hFocus = GetFocus();
+    if(hFocus == m_hEdt1) SendMessage(m_hEdt1, WM_KEYDOWN, VK_DELETE, 0);
+    if(hFocus == m_hEdt2) SendMessage(m_hEdt2, WM_KEYDOWN, VK_DELETE, 0);
+    return 0;
+  }
 
+  m_pActiveObject = NULL;
+  m_pHighObject = NULL;
+
+  RECT rc;
+  GetClientRect(hwnd, &rc);
+  rc.top += m_iToolBarHeight;
+  rc.bottom -= m_iStatusHeight;
+
+  CDRect cdr;
+  cdr.cPt1.x = (rc.left - m_cViewOrigin.x)/m_dUnitScale;
+  cdr.cPt1.y = (rc.top - m_cViewOrigin.y)/m_dUnitScale;
+  cdr.cPt2.x = (rc.right - m_cViewOrigin.x)/m_dUnitScale;
+  cdr.cPt2.y = (rc.bottom - m_cViewOrigin.y)/m_dUnitScale;
+
+  PDPtrList pRegions = new CDPtrList();
+  pRegions->SetDblVal(m_dUnitScale);
+
+  if(m_pDrawObjects->DeleteSelected(m_pUndoObjects, &cdr, pRegions))
+  {
+    HRGN hRgn = GetUpdateRegion(pRegions);
+    //InvalidateRect(hwnd, NULL, true);
+    if(hRgn)
+    {
+      InvalidateRgn(hwnd, hRgn, TRUE);
+      DeleteObject(hRgn);
+    }
+    SetTitle(hwnd, false);
+  }
+
+  ClearPolygonList(pRegions);
+  delete pRegions;
+  return 0;
+}
+
+LRESULT CMainWnd::EditDelLastPtCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl)
+{
+  return 0;
+}
+
+void CMainWnd::DrawCross(HWND hWnd)
+{
+  RECT rc;
+  GetClientRect(hWnd, &rc);
+  rc.top += m_iToolBarHeight;
+  rc.bottom -= m_iStatusHeight;
+
+  HDC hdc = GetDC(hWnd);
+  IntersectClipRect(hdc, rc.left, rc.top, rc.right, rc.bottom);
+
+  Bitmap bmp(rc.right - rc.left, rc.bottom - rc.top);
+  Graphics graphics(&bmp);
+  graphics.SetSmoothingMode(SmoothingModeAntiAlias);
+  graphics.DrawImage(m_pDrawBuffer, (INT)rc.left, (INT)rc.top);
+
+  graphics.DrawLine(m_redPen, (REAL)(m_cLastSnapPt.x - 10), (REAL)m_cLastSnapPt.y,
+  (REAL)(m_cLastSnapPt.x + 10), (REAL)m_cLastSnapPt.y);
+  graphics.DrawLine(m_redPen, (REAL)m_cLastSnapPt.x, (REAL)(m_cLastSnapPt.y - 10),
+  (REAL)m_cLastSnapPt.x, (REAL)(m_cLastSnapPt.y + 10));
+
+  Graphics dstgraph(hdc);
+  dstgraph.DrawImage(&bmp, 0, 0);
+
+  SelectClipRgn(hdc, NULL);
+  ReleaseDC(hWnd, NULL);
+}
+
+LRESULT CMainWnd::EditCopyParCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl)
+{
+  int iSel = m_pDrawObjects->GetSelectCount(2);
+  if(iSel != 1) return 0;
+
+  PDObject pObj = m_pDrawObjects->GetSelected(0);
+  if(!pObj) return 0;
+
+  PDObject pNewObj = NULL;
+  int iType = pObj->GetType();
+  pNewObj = pObj->Copy();
+  if(!pNewObj) return 0;
+
+  m_pActiveObject = pNewObj;
+  m_iToolMode = tolCopyPar;
+
+  DrawCross(hwnd);
+
+  LoadString(m_hInstance, IDS_DISTANCE, m_wsStatus2Base, 64);
+  wcscpy(m_wsStatus2Msg, m_wsStatus2Base);
+  SendMessage(m_hStatus, SB_SETTEXT, 1, (LPARAM)m_wsStatus2Msg);
+
+  ShowWindow(m_hEdt1, SW_SHOW);
+  SetFocus(m_hEdt1);
+  return 0;
+}
+
+LRESULT CMainWnd::EditMoveCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl)
+{
+  DrawCross(hwnd);
+  LoadString(m_hInstance, IDS_DISTANCE, m_wsStatus2Base, 64);
+  SendMessage(m_hStatus, SB_SETTEXT, 1, (LPARAM)m_wsStatus2Base);
+  ShowWindow(m_hEdt1, SW_SHOW);
+  ShowWindow(m_hEdt2, SW_SHOW);
+  ShowWindow(m_hLab1, SW_SHOW);
+
+  SetFocus(m_hEdt1);
+
+  wchar_t wBuf[64];
+  SendMessage(m_hEdt1, WM_GETTEXT, 64, (LPARAM)wBuf);
+  char sBuf[64];
+  WideCharToMultiByte(CP_UTF8, 0, wBuf, -1, sBuf, 64, NULL, NULL);
+  m_iRestrictSet = ParseInputString(sBuf, m_pFileSetupDlg->GetUnitList(), &m_dRestrictValue);
+  if(IS_LENGTH_VAL(m_iRestrictSet))
+    LoadString(m_hInstance, IDS_SELLINETOMOVE, m_wsStatus2Msg, 128);
+  else LoadString(m_hInstance, IDS_SELPOINTFROMMOVE, m_wsStatus2Msg, 128);
+  SendMessage(m_hStatus, SB_SETTEXT, 2, (LPARAM)m_wsStatus2Msg);
+  m_iToolMode = tolMove;
+  return 0;
+}
+
+LRESULT CMainWnd::EditRotateCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl)
+{
+  DrawCross(hwnd);
+  LoadString(m_hInstance, IDS_ANGLE, m_wsStatus2Base, 64);
+  SendMessage(m_hStatus, SB_SETTEXT, 1, (LPARAM)m_wsStatus2Base);
+  ShowWindow(m_hEdt1, SW_SHOW);
+  ShowWindow(m_hEdt2, SW_SHOW);
+  ShowWindow(m_hLab1, SW_SHOW);
+  SetFocus(m_hEdt1);
+  LoadString(m_hInstance, IDS_SELPOINTTOROTATE, m_wsStatus2Msg, 128);
+  SendMessage(m_hStatus, SB_SETTEXT, 2, (LPARAM)m_wsStatus2Msg);
+  m_iToolMode = tolRotate;
+  return 0;
+}
+
+LRESULT CMainWnd::EditMirrorCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl)
+{
+  DrawCross(hwnd);
+  LoadString(m_hInstance, IDS_SELLINETOMIRROR, m_wsStatus2Msg, 128);
+  SendMessage(m_hStatus, SB_SETTEXT, 2, (LPARAM)m_wsStatus2Msg);
+  m_iToolMode = tolMirror;
+  return 0;
+}
+
+LRESULT CMainWnd::EditLineStyleCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl)
+{
+  CDLineStyleRec cLSRec;
+  CDDimension cDimen;
+  cDimen.psLab = NULL;
+  PDPtrList pRegions = new CDPtrList();
+  pRegions->SetDblVal(m_dUnitScale);
+  int iMask = m_pDrawObjects->GetSelectedLineStyle(&cLSRec.cLineStyle);
+  if(iMask > -1)
+  {
+    memcpy(&cLSRec.cUnit, &m_cFSR.cGraphUnit, sizeof(CDFileUnit));
+    cLSRec.bWidthSet = (iMask & 1);
+    cLSRec.bExcSet = (iMask & 2);
+    cLSRec.bPatSet = (iMask & 4);
+    cLSRec.bCapSet = (iMask & 8);
+    cLSRec.bJoinSet = (iMask & 16);
+    cLSRec.bColorSet = (iMask & 32);
+    cLSRec.bWidthChanged = false;
+    cLSRec.bExcChanged = false;
+    cLSRec.bPatChanged = false;
+    cLSRec.bCapChanged = false;
+    cLSRec.bJoinChanged = false;
+    cLSRec.bColorChanged = false;
+    if(m_pLineStyleDlg->ShowDialog(hwnd, &cLSRec) == IDOK)
+    {
+      iMask = 0;
+      if(cLSRec.bWidthSet && cLSRec.bWidthChanged) iMask |= 1;
+      if(cLSRec.bExcSet && cLSRec.bExcChanged) iMask |= 2;
+      if(cLSRec.bPatSet && cLSRec.bPatChanged) iMask |= 4;
+      if(cLSRec.bCapSet && cLSRec.bCapChanged) iMask |= 8;
+      if(cLSRec.bJoinSet && cLSRec.bJoinChanged) iMask |= 16;
+      if(cLSRec.bColorSet && cLSRec.bColorChanged) iMask |= 32;
+      if(m_pDrawObjects->SetSelectedLineStyle(iMask, &cLSRec.cLineStyle, pRegions))
+      {
         RECT rc;
         GetClientRect(hwnd, &rc);
         rc.top += m_iToolBarHeight;
@@ -1250,1543 +1652,1141 @@ LRESULT CMainWnd::FilePropsCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl)
         cdr.cPt2.y = (rc.bottom - m_cViewOrigin.y)/m_dUnitScale;
 
         m_pDrawObjects->BuildAllPrimitives(&cdr);
-        InvalidateRect(hwnd, &rc, TRUE);
-        SetTitle(hwnd, false);
-    }
-    return 0;
-}
-
-/*LRESULT CMainWnd::FilePrintSetCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl)
-{
-    PAGESETUPDLG cps;
-    cps.lStructSize = sizeof(PAGESETUPDLG);
-    cps.hwndOwner = hwnd;
-    cps.hDevMode = NULL;
-    cps.hDevNames = NULL;
-    cps.Flags = 0;
-    cps.hInstance = m_hInstance;
-    PageSetupDlg(&cps);
-    return 0;
-}
-
-LRESULT CMainWnd::FilePrintCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl)
-{
-    return 0;
-}*/
-
-LRESULT CMainWnd::FileExitCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl)
-{
-    SendMessage(hwnd, WM_CLOSE, 0, 0);
-    return 0;
-}
-
-UINT MapDrawModeToMenu(int iDrawMode)
-{
-    switch(iDrawMode)
-    {
-    case modLine:
-        return IDM_MODELINE;
-    case modCircle:
-        return IDM_MODECIRCLE;
-    case modEllipse:
-        return IDM_MODEELLIPSE;
-    case modArcElps:
-        return IDM_MODEARCELLIPSE;
-    case modHyperbola:
-        return IDM_MODEHYPERBOLA;
-    case modParabola:
-        return IDM_MODEPARABOLA;
-    case modSpline:
-        return IDM_MODESPLINE;
-    case modEvolvent:
-        return IDM_MODEEVEOLVENT;
-    default:
-        return IDM_MODESELECT;
-    }
-}
-
-LRESULT CMainWnd::ModeCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl, int iMode)
-{
-    if((wNotifyCode == 1) && (iMode > 0) && (IsWindowVisible(m_hEdt1) || IsWindowVisible(m_hEdt2)))
-    {
-        HWND hFocus = GetFocus();
-        char c = 0;
-        switch(iMode)
-        {
-        case 1:
-            c = 'l';
-            break;
-        case 2:
-            c = 'c';
-            break;
-        case 3:
-            c = 'e';
-            break;
-        case 4:
-            c = 'a';
-            break;
-        case 5:
-            c = 'h';
-            break;
-        case 6:
-            c = 'p';
-            break;
-        case 7:
-            c = 's';
-            break;
-        case 8:
-            c = 'v';
-            break;
-        }
-        if(hFocus == m_hEdt1)
-        {
-            SendMessage(m_hEdt1, WM_CHAR, c, 0);
-        }
-        else if(hFocus == m_hEdt2)
-        {
-            SendMessage(m_hEdt2, WM_CHAR, c, 0);
-        }
-        return 0;
-    }
-
-    ShowWindow(m_hEdt1, SW_HIDE);
-    ShowWindow(m_hEdt2, SW_HIDE);
-
-    RECT rc;
-    GetClientRect(hwnd, &rc);
-    rc.top += m_iToolBarHeight;
-    rc.bottom -= m_iStatusHeight;
-    HDC hdc;
-
-    if(m_pActiveObject)
-    {
-        /*hdc = GetDC(hwnd);
-        IntersectClipRect(hdc, rc.left, rc.top, rc.right, rc.bottom);
-
-        HBRUSH hPrevBr = (HBRUSH)SelectObject(hdc, GetStockObject(HOLLOW_BRUSH));
-        int iPrevROP = SetROP2(hdc, R2_NOTXORPEN);
-        DrawObject(hwnd, hdc, m_pActiveObject, 1, -2);
-        SetROP2(hdc, iPrevROP);
-        SelectObject(hdc, hPrevBr);
-        SelectClipRgn(hdc, NULL);
-        ReleaseDC(hwnd, NULL);*/
-
-        delete m_pActiveObject;
-        m_pActiveObject = NULL;
-    }
-    else if(m_pSelForDimen)
-    {
-        m_pSelForDimen->DiscardDimen();
-        m_pSelForDimen = NULL;
-    }
-
-    if(((m_iDrawMode + m_iToolMode > 0) && (iMode == 0)) ||
-       ((m_iDrawMode + m_iToolMode == 0) && (iMode > 0)))
-    {
-        DrawCross(hwnd);
-    }
-
-    m_iToolMode = tolNone;
-
-    HMENU hMenu = GetMenu(hwnd);
-
-    UINT uCheck = MF_BYCOMMAND | MF_UNCHECKED;
-    CheckMenuItem(hMenu, MapDrawModeToMenu(m_iDrawMode), uCheck);
-
-    m_iDrawMode = iMode;
-
-    StartNewObject(hwnd);
-    if(!m_pActiveObject && (m_iDrawMode))
-    {
-        m_iDrawMode = modSelect;
-        DrawCross(hwnd);
-    }
-
-    uCheck = MF_BYCOMMAND | MF_CHECKED;
-    CheckMenuItem(hMenu, MapDrawModeToMenu(m_iDrawMode), uCheck);
-    return 0;
-}
-
-LRESULT CMainWnd::EditCopyCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl)
-{
-    return 0;
-}
-
-LRESULT CMainWnd::EditCutCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl)
-{
-    return 0;
-}
-
-LRESULT CMainWnd::EditPasteCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl)
-{
-    return 0;
-}
-
-HRGN CMainWnd::GetUpdateRegion(PDPtrList pPolygons)
-{
-    int iCnt = pPolygons->GetCount();
-    int iTot = 0;
-    INT *pCnts = (INT*)malloc(iCnt*sizeof(INT));
-
-    PDPolygon pPoly;
-    for(int i = 0; i < iCnt; i++)
-    {
-        pPoly = (PDPolygon)pPolygons->GetItem(i);
-        pCnts[i] = pPoly->iPoints;
-        iTot += pPoly->iPoints;
-    }
-
-    POINT *pPts = (POINT*)malloc(iTot*sizeof(POINT));
-    int j = 0;
-    for(int i = 0; i < iCnt; i++)
-    {
-        pPoly = (PDPolygon)pPolygons->GetItem(i);
-        for(int k = 0; k < pPoly->iPoints; k++)
-        {
-            pPts[j].x = Round(m_cViewOrigin.x + m_dUnitScale*pPoly->pPoints[k].x);
-            pPts[j++].y = Round(m_cViewOrigin.y + m_dUnitScale*pPoly->pPoints[k].y);
-        }
-    }
-
-    HRGN hRes = CreatePolyPolygonRgn(pPts, pCnts, iCnt, WINDING);
-    free(pPts);
-    free(pCnts);
-    return hRes;
-}
-
-LRESULT CMainWnd::EditDeleteCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl)
-{
-//MessageBox(hwnd, L"Dobry", L"Debug", MB_OK);
-    if(m_iDrawMode + m_iToolMode > 0)
-    {
-        HWND hFocus = GetFocus();
-        if(hFocus == m_hEdt1) SendMessage(m_hEdt1, WM_KEYDOWN, VK_DELETE, 0);
-        if(hFocus == m_hEdt2) SendMessage(m_hEdt2, WM_KEYDOWN, VK_DELETE, 0);
-        return 0;
-    }
-
-    m_pActiveObject = NULL;
-    m_pHighObject = NULL;
-
-    RECT rc;
-    GetClientRect(hwnd, &rc);
-    rc.top += m_iToolBarHeight;
-    rc.bottom -= m_iStatusHeight;
-
-    CDRect cdr;
-    cdr.cPt1.x = (rc.left - m_cViewOrigin.x)/m_dUnitScale;
-    cdr.cPt1.y = (rc.top - m_cViewOrigin.y)/m_dUnitScale;
-    cdr.cPt2.x = (rc.right - m_cViewOrigin.x)/m_dUnitScale;
-    cdr.cPt2.y = (rc.bottom - m_cViewOrigin.y)/m_dUnitScale;
-
-    PDPtrList pRegions = new CDPtrList();
-    pRegions->SetDblVal(m_dUnitScale);
-
-    if(m_pDrawObjects->DeleteSelected(m_pUndoObjects, &cdr, pRegions))
-    {
         HRGN hRgn = GetUpdateRegion(pRegions);
         //InvalidateRect(hwnd, NULL, true);
         if(hRgn)
         {
-            InvalidateRgn(hwnd, hRgn, TRUE);
-            DeleteObject(hRgn);
+          InvalidateRgn(hwnd, hRgn, TRUE);
+          DeleteObject(hRgn);
         }
         SetTitle(hwnd, false);
+      }
     }
-
-    ClearPolygonList(pRegions);
-    delete pRegions;
-    return 0;
-}
-
-LRESULT CMainWnd::EditDelLastPtCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl)
-{
-    return 0;
-}
-
-void CMainWnd::DrawCross(HWND hWnd)
-{
-    RECT rc;
-    GetClientRect(hWnd, &rc);
-    rc.top += m_iToolBarHeight;
-    rc.bottom -= m_iStatusHeight;
-
-    HDC hdc = GetDC(hWnd);
-    IntersectClipRect(hdc, rc.left, rc.top, rc.right, rc.bottom);
-
-    Bitmap bmp(rc.right - rc.left, rc.bottom - rc.top);
-    Graphics graphics(&bmp);
-    graphics.SetSmoothingMode(SmoothingModeAntiAlias);
-    graphics.DrawImage(m_pDrawBuffer, (INT)rc.left, (INT)rc.top);
-
-    graphics.DrawLine(m_redPen, (REAL)(m_cLastSnapPt.x - 10), (REAL)m_cLastSnapPt.y,
-      (REAL)(m_cLastSnapPt.x + 10), (REAL)m_cLastSnapPt.y);
-    graphics.DrawLine(m_redPen, (REAL)m_cLastSnapPt.x, (REAL)(m_cLastSnapPt.y - 10),
-      (REAL)m_cLastSnapPt.x, (REAL)(m_cLastSnapPt.y + 10));
-
-    Graphics dstgraph(hdc);
-    dstgraph.DrawImage(&bmp, 0, 0);
-
-    SelectClipRgn(hdc, NULL);
-    ReleaseDC(hWnd, NULL);
-}
-
-LRESULT CMainWnd::EditCopyParCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl)
-{
-    int iSel = m_pDrawObjects->GetSelectCount(2);
-    if(iSel != 1) return 0;
-
-    PDObject pObj = m_pDrawObjects->GetSelected(0);
-    if(!pObj) return 0;
-
-    PDObject pNewObj = NULL;
-    int iType = pObj->GetType();
-    pNewObj = pObj->Copy();
-    if(!pNewObj) return 0;
-
-    m_pActiveObject = pNewObj;
-    m_iToolMode = tolCopyPar;
-
-    DrawCross(hwnd);
-
-    LoadString(m_hInstance, IDS_DISTANCE, m_wsStatus2Base, 64);
-    wcscpy(m_wsStatus2Msg, m_wsStatus2Base);
-    SendMessage(m_hStatus, SB_SETTEXT, 1, (LPARAM)m_wsStatus2Msg);
-
-    ShowWindow(m_hEdt1, SW_SHOW);
-    SetFocus(m_hEdt1);
-    return 0;
-}
-
-LRESULT CMainWnd::EditMoveCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl)
-{
-    DrawCross(hwnd);
-    LoadString(m_hInstance, IDS_DISTANCE, m_wsStatus2Base, 64);
-    SendMessage(m_hStatus, SB_SETTEXT, 1, (LPARAM)m_wsStatus2Base);
-    ShowWindow(m_hEdt1, SW_SHOW);
-    ShowWindow(m_hEdt2, SW_SHOW);
-    ShowWindow(m_hLab1, SW_SHOW);
-
-    SetFocus(m_hEdt1);
-
-    wchar_t wBuf[64];
-    SendMessage(m_hEdt1, WM_GETTEXT, 64, (LPARAM)wBuf);
-    char sBuf[64];
-    WideCharToMultiByte(CP_UTF8, 0, wBuf, -1, sBuf, 64, NULL, NULL);
-    m_iRestrictSet = ParseInputString(sBuf, m_pFileSetupDlg->GetUnitList(), &m_dRestrictValue);
-    if(IS_LENGTH_VAL(m_iRestrictSet))
-        LoadString(m_hInstance, IDS_SELLINETOMOVE, m_wsStatus2Msg, 128);
-    else LoadString(m_hInstance, IDS_SELPOINTFROMMOVE, m_wsStatus2Msg, 128);
-    SendMessage(m_hStatus, SB_SETTEXT, 2, (LPARAM)m_wsStatus2Msg);
-    m_iToolMode = tolMove;
-    return 0;
-}
-
-LRESULT CMainWnd::EditRotateCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl)
-{
-    DrawCross(hwnd);
-    LoadString(m_hInstance, IDS_ANGLE, m_wsStatus2Base, 64);
-    SendMessage(m_hStatus, SB_SETTEXT, 1, (LPARAM)m_wsStatus2Base);
-    ShowWindow(m_hEdt1, SW_SHOW);
-    ShowWindow(m_hEdt2, SW_SHOW);
-    ShowWindow(m_hLab1, SW_SHOW);
-    SetFocus(m_hEdt1);
-    LoadString(m_hInstance, IDS_SELPOINTTOROTATE, m_wsStatus2Msg, 128);
-    SendMessage(m_hStatus, SB_SETTEXT, 2, (LPARAM)m_wsStatus2Msg);
-    m_iToolMode = tolRotate;
-    return 0;
-}
-
-LRESULT CMainWnd::EditMirrorCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl)
-{
-    DrawCross(hwnd);
-    LoadString(m_hInstance, IDS_SELLINETOMIRROR, m_wsStatus2Msg, 128);
-    SendMessage(m_hStatus, SB_SETTEXT, 2, (LPARAM)m_wsStatus2Msg);
-    m_iToolMode = tolMirror;
-    return 0;
-}
-
-LRESULT CMainWnd::EditLineStyleCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl)
-{
-    CDLineStyleRec cLSRec;
-    CDDimension cDimen;
-    cDimen.psLab = NULL;
-    PDPtrList pRegions = new CDPtrList();
-    pRegions->SetDblVal(m_dUnitScale);
-    int iMask = m_pDrawObjects->GetSelectedLineStyle(&cLSRec.cLineStyle);
-    if(iMask > -1)
+  }
+  else if(m_pDrawObjects->GetSelectedDimen(&cDimen))
+  {
+    if(m_pDimEditDlg->ShowDialog(hwnd, &cDimen, m_pFileSetupDlg->GetUnitList(),
+      &m_cFSR.cGraphUnit) == IDOK)
     {
-        memcpy(&cLSRec.cUnit, &m_cFSR.cGraphUnit, sizeof(CDFileUnit));
-        cLSRec.bWidthSet = (iMask & 1);
-        cLSRec.bExcSet = (iMask & 2);
-        cLSRec.bPatSet = (iMask & 4);
-        cLSRec.bCapSet = (iMask & 8);
-        cLSRec.bJoinSet = (iMask & 16);
-        cLSRec.bColorSet = (iMask & 32);
-        cLSRec.bWidthChanged = false;
-        cLSRec.bExcChanged = false;
-        cLSRec.bPatChanged = false;
-        cLSRec.bCapChanged = false;
-        cLSRec.bJoinChanged = false;
-        cLSRec.bColorChanged = false;
-        if(m_pLineStyleDlg->ShowDialog(hwnd, &cLSRec) == IDOK)
-        {
-            iMask = 0;
-            if(cLSRec.bWidthSet && cLSRec.bWidthChanged) iMask |= 1;
-            if(cLSRec.bExcSet && cLSRec.bExcChanged) iMask |= 2;
-            if(cLSRec.bPatSet && cLSRec.bPatChanged) iMask |= 4;
-            if(cLSRec.bCapSet && cLSRec.bCapChanged) iMask |= 8;
-            if(cLSRec.bJoinSet && cLSRec.bJoinChanged) iMask |= 16;
-            if(cLSRec.bColorSet && cLSRec.bColorChanged) iMask |= 32;
-            if(m_pDrawObjects->SetSelectedLineStyle(iMask, &cLSRec.cLineStyle, pRegions))
-            {
-                RECT rc;
-                GetClientRect(hwnd, &rc);
-                rc.top += m_iToolBarHeight;
-                rc.bottom -= m_iStatusHeight;
-
-                CDRect cdr;
-                cdr.cPt1.x = (rc.left - m_cViewOrigin.x)/m_dUnitScale;
-                cdr.cPt1.y = (rc.top - m_cViewOrigin.y)/m_dUnitScale;
-                cdr.cPt2.x = (rc.right - m_cViewOrigin.x)/m_dUnitScale;
-                cdr.cPt2.y = (rc.bottom - m_cViewOrigin.y)/m_dUnitScale;
-
-                m_pDrawObjects->BuildAllPrimitives(&cdr);
-                HRGN hRgn = GetUpdateRegion(pRegions);
-                //InvalidateRect(hwnd, NULL, true);
-                if(hRgn)
-                {
-                    InvalidateRgn(hwnd, hRgn, TRUE);
-                    DeleteObject(hRgn);
-                }
-                SetTitle(hwnd, false);
-            }
-        }
-    }
-    else if(m_pDrawObjects->GetSelectedDimen(&cDimen))
-    {
-        if(m_pDimEditDlg->ShowDialog(hwnd, &cDimen, m_pFileSetupDlg->GetUnitList(),
-            &m_cFSR.cGraphUnit) == IDOK)
-        {
-            if(m_pDrawObjects->SetSelectedDimen(&cDimen, pRegions))
-            {
-                RECT rc;
-                GetClientRect(hwnd, &rc);
-                rc.top += m_iToolBarHeight;
-                rc.bottom -= m_iStatusHeight;
-
-                CDRect cdr;
-                cdr.cPt1.x = (rc.left - m_cViewOrigin.x)/m_dUnitScale;
-                cdr.cPt1.y = (rc.top - m_cViewOrigin.y)/m_dUnitScale;
-                cdr.cPt2.x = (rc.right - m_cViewOrigin.x)/m_dUnitScale;
-                cdr.cPt2.y = (rc.bottom - m_cViewOrigin.y)/m_dUnitScale;
-
-                m_pDrawObjects->BuildAllPrimitives(&cdr);
-                HRGN hRgn = GetUpdateRegion(pRegions);
-                //InvalidateRect(hwnd, NULL, true);
-                if(hRgn)
-                {
-                    InvalidateRgn(hwnd, hRgn, true);
-                    DeleteObject(hRgn);
-                }
-                SetTitle(hwnd, false);
-            }
-        }
-        if(cDimen.psLab) free(cDimen.psLab);
-    }
-    ClearPolygonList(pRegions);
-    delete pRegions;
-    return 0;
-}
-
-LRESULT CMainWnd::EditToggleSnapCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl)
-{
-    bool bSnapEnabled = m_pDrawObjects->GetSelSnapEnabled();
-    if(m_pSnapDlg->ShowDialog(hwnd, &bSnapEnabled))
-    {
-        m_pDrawObjects->SetSelSnapEnabled(bSnapEnabled);
-    }
-    return 0;
-}
-
-LRESULT CMainWnd::EditPaperUnitsCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl)
-{
-    HMENU hMnu = GetMenu(hwnd);
-    UINT uiCheck = MF_BYCOMMAND;
-    if(m_bPaperUnits)
-    {
-        m_bPaperUnits = false;
-        uiCheck |= MF_UNCHECKED;
-    }
-    else
-    {
-        m_bPaperUnits = true;
-        uiCheck |= MF_CHECKED;
-    }
-    CheckMenuItem(hMnu, IDM_EDITPAPERUNITS, uiCheck);
-    return 0;
-}
-
-LRESULT CMainWnd::EditUndoCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl)
-{
-    int iCnt = m_pUndoObjects->GetCount();
-    if(iCnt < 1) return 0;
-
-    PDPtrList pRegions = new CDPtrList();
-    pRegions->SetDblVal(m_dUnitScale);
-
-    PDObject pObj = m_pUndoObjects->GetItem(iCnt - 1);
-    m_pUndoObjects->ClearSelection(pRegions);
-    pObj->SetSelected(true, false, -1, pRegions);
-
-    if(m_pUndoObjects->DeleteSelected(m_pDrawObjects, NULL, pRegions))
-    {
-        m_iRedoCount++;
-        m_pDrawObjects->SetChanged();
-        SetTitle(hwnd, false);
-
-        HRGN hRgn = GetUpdateRegion(pRegions);
-        //InvalidateRect(hwnd, NULL, true);
-        if(hRgn)
-        {
-            InvalidateRgn(hwnd, hRgn, TRUE);
-            DeleteObject(hRgn);
-        }
-    }
-
-    ClearPolygonList(pRegions);
-    delete pRegions;
-    return 0;
-}
-
-LRESULT CMainWnd::EditRedoCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl)
-{
-    if(m_iRedoCount < 1) return 0;
-    int iCnt = m_pDrawObjects->GetCount();
-    if(iCnt < 1) return 0;
-
-    PDPtrList pRegions = new CDPtrList();
-    pRegions->SetDblVal(m_dUnitScale);
-
-    PDObject pObj = m_pDrawObjects->GetItem(iCnt - 1);
-    m_pDrawObjects->ClearSelection(pRegions);
-    pObj->SetSelected(true, false, -1, pRegions);
-
-    if(m_pDrawObjects->DeleteSelected(m_pUndoObjects, NULL, pRegions))
-    {
-        m_iRedoCount--;
-        HRGN hRgn = GetUpdateRegion(pRegions);
-        //InvalidateRect(hwnd, NULL, true);
-        if(hRgn)
-        {
-            InvalidateRgn(hwnd, hRgn, TRUE);
-            DeleteObject(hRgn);
-        }
-        SetTitle(hwnd, false);
-    }
-
-    ClearPolygonList(pRegions);
-    delete pRegions;
-    return 0;
-}
-
-LRESULT CMainWnd::EditConfirmCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl)
-{
-    bool bConfirm = (m_iDrawMode == modLine) || (m_iDrawMode == modCircle) ||
-        (m_iToolMode == tolRound) || (m_iToolMode == tolCopyPar);
-    if(bConfirm)
-    {
-        wchar_t wBuf[64];
-        SendMessage(m_hEdt1, WM_GETTEXT, 64, (LPARAM)wBuf);
-        char sBuf[64];
-        WideCharToMultiByte(CP_UTF8, 0, wBuf, -1, sBuf, 64, NULL, NULL);
-        m_iRestrictSet = ParseInputString(sBuf, m_pFileSetupDlg->GetUnitList(), &m_dRestrictValue);
-    }
-    return 0;
-}
-
-void CMainWnd::GetPageDims()
-{
-    m_dwPage = m_cFSR.cPaperSize.dPaperWidth;
-    m_dhPage = m_cFSR.cPaperSize.dPaperHeight;
-    if(m_cFSR.bPortrait)
-    {
-        if(m_dwPage > m_dhPage)
-        {
-            m_dwPage = m_cFSR.cPaperSize.dPaperHeight;
-            m_dhPage = m_cFSR.cPaperSize.dPaperWidth;
-        }
-    }
-    else if(m_dwPage < m_dhPage)
-    {
-        m_dwPage = m_cFSR.cPaperSize.dPaperHeight;
-        m_dhPage = m_cFSR.cPaperSize.dPaperWidth;
-    }
-}
-
-LRESULT CMainWnd::ViewFitCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl)
-{
-    RECT rc;
-    GetClientRect(hwnd, &rc);
-    rc.top += m_iToolBarHeight;
-    rc.bottom -= m_iStatusHeight;
-
-    double dwWin = rc.right - rc.left - 20;
-    double dhWin = rc.bottom - rc.top - 20;
-
-    double drw = dwWin/m_dwPage;
-    double drh = dhWin/m_dhPage;
-
-    if(drw < drh)
-    {
-        m_dUnitScale = drw;
-        m_cViewOrigin.x = 10;
-        m_cViewOrigin.y = m_iToolBarHeight + (dhWin + 20 - m_dUnitScale*m_dhPage)/2;
-    }
-    else
-    {
-        m_dUnitScale = drh;
-        m_cViewOrigin.x = (dwWin + 20 - m_dUnitScale*m_dwPage)/2;
-        m_cViewOrigin.y = 10 + m_iToolBarHeight;
-    }
-
-    InvalidateRect(hwnd, &rc, TRUE);
-    return 0;
-}
-
-LRESULT CMainWnd::ViewActSizeCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl)
-{
-    RECT rc;
-    GetClientRect(hwnd, &rc);
-    rc.top += m_iToolBarHeight;
-    rc.bottom -= m_iStatusHeight;
-
-    CDPoint cOrigOff;
-    int idx = (rc.right - rc.left)/2.0;
-    int idy = (rc.bottom - rc.top)/2.0;
-    cOrigOff.x = (idx - m_cViewOrigin.x)/m_dUnitScale;
-    cOrigOff.y = (idy - m_cViewOrigin.y)/m_dUnitScale;
-
-    m_dUnitScale = m_dDeviceToUnitScale;
-
-    m_cViewOrigin.x = (int)(idx - cOrigOff.x*m_dUnitScale);
-    m_cViewOrigin.y = (int)(idy - cOrigOff.y*m_dUnitScale);
-
-    InvalidateRect(hwnd, &rc, TRUE);
-    return 0;
-}
-
-LRESULT CMainWnd::ViewGridCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl, int iType)
-{
-    HMENU hMnu = GetMenu(hwnd);
-    UINT uiCheck = MF_BYCOMMAND;
-    BOOL bChecked = (m_iDrawGridMode & iType);
-    if(bChecked)
-    {
-        m_iDrawGridMode &= ~iType;
-        uiCheck |= MF_UNCHECKED;
-    }
-    else
-    {
-        m_iDrawGridMode |= iType;
-        uiCheck |= MF_CHECKED;
-    }
-    CheckMenuItem(hMnu, IDM_VIEWGRIDPTS + iType - 1, uiCheck);
-    InvalidateRect(hwnd, NULL, TRUE);
-    return 0;
-}
-
-/*LRESULT CMainWnd::SnapCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl, int iSnap)
-{
-    int iSnapBit = (1 << iSnap);
-    if(m_iSnapType & iSnapBit) m_iSnapType &= ~iSnapBit;
-    else m_iSnapType |= iSnapBit;
-    UpdateSnapMenu(GetMenu(hwnd));
-    return 0;
-}*/
-
-LRESULT CMainWnd::ToolsCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl, int iTool)
-{
-    if((wNotifyCode == 1) && (iTool == tolDimen) && (IsWindowVisible(m_hEdt1) || IsWindowVisible(m_hEdt2)))
-    {
-        HWND hFocus = GetFocus();
-        char c = 'd';
-        if(hFocus == m_hEdt1)
-        {
-            SendMessage(m_hEdt1, WM_CHAR, c, 0);
-        }
-        else if(hFocus == m_hEdt2)
-        {
-            SendMessage(m_hEdt2, WM_CHAR, c, 0);
-        }
-        return 0;
-    }
-
-    RECT rc;
-    GetClientRect(hwnd, &rc);
-    rc.top += m_iToolBarHeight;
-    rc.bottom -= m_iStatusHeight;
-    HDC hdc;
-
-    if(m_pActiveObject)
-    {
-        /*hdc = GetDC(hwnd);
-        IntersectClipRect(hdc, rc.left, rc.top, rc.right, rc.bottom);
-
-        HBRUSH hPrevBr = (HBRUSH)SelectObject(hdc, GetStockObject(HOLLOW_BRUSH));
-        int iPrevROP = SetROP2(hdc, R2_NOTXORPEN);
-        DrawObject(hwnd, hdc, m_pActiveObject, 1, -2);
-        SetROP2(hdc, iPrevROP);
-        SelectObject(hdc, hPrevBr);
-        SelectClipRgn(hdc, NULL);
-        ReleaseDC(hwnd, NULL);*/
-
-        delete m_pActiveObject;
-        m_pActiveObject = NULL;
-    }
-    else if(m_pSelForDimen)
-    {
-        m_pSelForDimen->DiscardDimen();
-        m_pSelForDimen = NULL;
-    }
-
-    if(iTool == tolDimen)
-    {
-        if(m_pDrawObjects->GetSelectCount(2) != 1)
-        {
-            wchar_t sCap[64];
-            wchar_t sMsg[128];
-            LoadString(m_hInstance, IDS_WARNING, sCap, 64);
-            LoadString(m_hInstance, IDS_ONEOBJFORDIMEN, sMsg, 128);
-            MessageBox(hwnd, sMsg, sCap, MB_OK | MB_ICONWARNING);
-            return 0;
-        }
-        m_pSelForDimen = m_pDrawObjects->GetSelected(0);
-    }
-
-    if(((m_iDrawMode + m_iToolMode > 0) && (iTool == 0)) ||
-       ((m_iDrawMode + m_iToolMode == 0) && (iTool > 0)))
-    {
-        DrawCross(hwnd);
-    }
-
-    m_iToolMode = iTool;
-    m_iDrawMode = modSelect;
-
-    StartNewObject(hwnd);
-    return 0;
-}
-
-LRESULT CMainWnd::HelpContentCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl)
-{
-    MessageBox(hwnd, L"Help is not implemented yet", L"Information", MB_OK);
-    return 0;
-}
-
-/*void CMainWnd::UpdateSnapMenu(HMENU hMenu)
-{
-    int iSnapBit = 1;
-    int iSnapCount = IDM_SNAPINTERSECT - IDM_SNAPELEMENT + 1;
-    UINT uCheck;
-    for(int i = 0; i < iSnapCount; i++)
-    {
-        uCheck = MF_BYCOMMAND;
-        if(m_iSnapType & iSnapBit) uCheck |= MF_CHECKED;
-        else uCheck |= MF_UNCHECKED;
-        CheckMenuItem(hMenu, IDM_SNAPELEMENT + i, uCheck);
-        iSnapBit <<= 1;
-    }
-}*/
-
-LRESULT CMainWnd::WMMButtonDown(HWND hwnd, WPARAM fwKeys, int xPos, int yPos)
-{
-    if(m_iButton > 0) return 0;
-
-    m_iButton = 2;
-    m_cZoomOrig.x = xPos - m_cViewOrigin.x;
-    m_cZoomOrig.y = yPos - m_cViewOrigin.y;
-    m_cLastMovePt.x = xPos;
-    m_cLastMovePt.y = yPos;
-    SetCapture(hwnd);
-    return 0;
-}
-
-LRESULT CMainWnd::WMMButtonUp(HWND hwnd, WPARAM fwKeys, int xPos, int yPos)
-{
-    RECT rc;
-    if(m_iButton == 2)
-    {
-        ReleaseCapture();
-
-        //m_cViewOrigin.x = (xPos - m_cZoomOrig.x);
-        //m_cViewOrigin.y = (yPos - m_cZoomOrig.y);
-
-        GetClientRect(hwnd, &rc);
-        rc.top += m_iToolBarHeight;
-        rc.bottom -= m_iStatusHeight;
-        InvalidateRect(hwnd, &rc, TRUE);
-    }
-    m_iButton = 0;
-    return 0;
-}
-
-LRESULT CMainWnd::WMLButtonDown(HWND hwnd, WPARAM fwKeys, int xPos, int yPos)
-{
-    if(m_iButton > 0) return 0;
-
-    m_cLastDownPt.x = xPos;
-    m_cLastDownPt.y = yPos;
-    m_cLastMovePt.x = xPos;
-    m_cLastMovePt.y = yPos;
-    m_iButton = 1;
-
-    return 0;
-}
-
-LRESULT CMainWnd::WMLButtonUp(HWND hwnd, WPARAM fwKeys, int xPos, int yPos)
-{
-    if(m_iButton != 1) return 0;
-
-    m_iButton = 0;
-
-    RECT rc;
-    GetClientRect(hwnd, &rc);
-    rc.top += m_iToolBarHeight;
-    rc.bottom -= m_iStatusHeight;
-
-    CDRect cdr;
-    cdr.cPt1.x = (rc.left - m_cViewOrigin.x)/m_dUnitScale;
-    cdr.cPt1.y = (rc.top - m_cViewOrigin.y)/m_dUnitScale;
-    cdr.cPt2.x = (rc.right - m_cViewOrigin.x)/m_dUnitScale;
-    cdr.cPt2.y = (rc.bottom - m_cViewOrigin.y)/m_dUnitScale;
-
-    double dTol = (double)m_iSnapTolerance/m_dUnitScale;
-    CDPoint cDistPt;
-    wchar_t wsBuf[128];
-    double dNorm;
-    wchar_t *wsUnit;
-
-    PDPtrList pRegions = new CDPtrList();
-    pRegions->SetDblVal(m_dUnitScale);
-    HRGN hRgn;
-
-    if(m_iDrawMode + m_iToolMode < 1) // selection
-    {
-        if(!(fwKeys & MK_CONTROL)) m_pDrawObjects->ClearSelection(pRegions);
-
-        if(GetPtDist(&m_cLastDownPt, xPos, yPos) > 4) // select by rectangle
-        {
-            CDRect cdr1;
-            cdr1.cPt1.x = (m_cLastDownPt.x - m_cViewOrigin.x)/m_dUnitScale;
-            cdr1.cPt1.y = (m_cLastDownPt.y - m_cViewOrigin.y)/m_dUnitScale;
-            cdr1.cPt2.x = (xPos - m_cViewOrigin.x)/m_dUnitScale;
-            cdr1.cPt2.y = (yPos - m_cViewOrigin.y)/m_dUnitScale;
-            m_pDrawObjects->SelectByRectangle(&cdr1, 2, pRegions);
-        }
-        else
-        {
-            if(m_pHighObject)
-                m_pHighObject->SetSelected(true, fwKeys & MK_CONTROL, m_iHighDimen, pRegions);
-        }
-        hRgn = GetUpdateRegion(pRegions);
-        //InvalidateRect(hwnd, &rc, TRUE);
-        if(hRgn)
-        {
-            InvalidateRgn(hwnd, hRgn, TRUE);
-            DeleteObject(hRgn);
-        }
-    }
-    else if((m_iToolMode > 20) && (m_iToolMode != tolRound))
-    {
-        if(GetPtDist(&m_cLastDownPt, xPos, yPos) > 4)
-        {
-            delete pRegions;
-            return 0;
-        }
-
-        switch(m_iToolMode)
-        {
-        case tolKnife:
-            if(m_pDrawObjects->CutSelected(m_cLastDrawPt, dTol, &cdr, pRegions))
-            {
-                hRgn = GetUpdateRegion(pRegions);
-                //InvalidateRect(hwnd, &rc, TRUE);
-                if(hRgn)
-                {
-                    InvalidateRgn(hwnd, hRgn, TRUE);
-                    DeleteObject(hRgn);
-                }
-                SetTitle(hwnd, false);
-            }
-            break;
-        case tolExtend:
-            if(m_pDrawObjects->ExtendSelected(m_cLastDrawPt, dTol, &cdr, pRegions))
-            {
-                hRgn = GetUpdateRegion(pRegions);
-                //InvalidateRect(hwnd, &rc, TRUE);
-                if(hRgn)
-                {
-                    InvalidateRgn(hwnd, hRgn, TRUE);
-                    DeleteObject(hRgn);
-                }
-                SetTitle(hwnd, false);
-            }
-            break;
-        case tolConflict:
-            if(m_pDrawObjects->SetCrossSelected(m_cLastDrawPt, dTol, &cdr, pRegions))
-            {
-                hRgn = GetUpdateRegion(pRegions);
-                //InvalidateRect(hwnd, &rc, TRUE);
-                if(hRgn)
-                {
-                    InvalidateRgn(hwnd, hRgn, TRUE);
-                    DeleteObject(hRgn);
-                }
-                SetTitle(hwnd, false);
-            }
-            break;
-        case tolMeas:
-            if(!m_cMeasPoint1.bIsSet)
-            {
-                m_cMeasPoint1.bIsSet = true;
-                m_cMeasPoint1.cOrigin = m_cLastDrawPt;
-            }
-            else if(!m_cMeasPoint2.bIsSet)
-            {
-                m_cMeasPoint2.bIsSet = true;
-                m_cMeasPoint2.cOrigin = m_cLastDrawPt;
-                cDistPt = m_cMeasPoint2.cOrigin - m_cMeasPoint1.cOrigin;
-                if(m_bPaperUnits)
-                {
-                    cDistPt /= m_cFSR.cPaperUnit.dBaseToUnit;
-                    wsUnit = m_cFSR.cPaperUnit.wsAbbrev;
-                }
-                else
-                {
-                    cDistPt /= m_dDrawScale;
-                    cDistPt /= m_cFSR.cLenUnit.dBaseToUnit;
-                    wsUnit = m_cFSR.cLenUnit.wsAbbrev;
-                }
-                dNorm = GetNorm(cDistPt);
-                swprintf(wsBuf, L"dx: %.3f, dy: %.3f, dist: %.4f (%s)", fabs(cDistPt.x),
-                    fabs(cDistPt.y), dNorm, wsUnit);
-                SendMessage(m_hStatus, SB_SETTEXT, 1, (LPARAM)wsBuf);
-            }
-            else
-            {
-                m_cMeasPoint1.bIsSet = true;
-                m_cMeasPoint1.cOrigin = m_cLastDrawPt;
-                m_cMeasPoint2.bIsSet = false;
-                SendMessage(m_hStatus, SB_SETTEXT, 1, (LPARAM)L"");
-            }
-            break;
-        }
-    }
-    else
-    {
-        if(GetPtDist(&m_cLastDownPt, xPos, yPos) > 4)
-        {
-            delete pRegions;
-            return 0;
-        }
-
+      if(m_pDrawObjects->SetSelectedDimen(&cDimen, pRegions))
+      {
         RECT rc;
         GetClientRect(hwnd, &rc);
         rc.top += m_iToolBarHeight;
         rc.bottom -= m_iStatusHeight;
 
-        wchar_t buf[64];
-        float f;
-        int i;
-        bool bdValSet = false;
-        double dVal = 0;
-        int iCop = 0;
-        PDObject pSelLine = NULL;
-        CDLine cLine;
+        CDRect cdr;
+        cdr.cPt1.x = (rc.left - m_cViewOrigin.x)/m_dUnitScale;
+        cdr.cPt1.y = (rc.top - m_cViewOrigin.y)/m_dUnitScale;
+        cdr.cPt2.x = (rc.right - m_cViewOrigin.x)/m_dUnitScale;
+        cdr.cPt2.y = (rc.bottom - m_cViewOrigin.y)/m_dUnitScale;
 
-        if((m_iToolMode > tolCopyPar) && (m_iToolMode < tolMirror))
+        m_pDrawObjects->BuildAllPrimitives(&cdr);
+        HRGN hRgn = GetUpdateRegion(pRegions);
+        //InvalidateRect(hwnd, NULL, true);
+        if(hRgn)
         {
-            SendMessage(m_hEdt1, WM_GETTEXT, 64, (LPARAM)buf);
-            if(swscanf(buf, L"%f", &f) == 1)
-            {
-                dVal = f;
-                bdValSet = true;
-            }
-            SendMessage(m_hEdt2, WM_GETTEXT, 64, (LPARAM)buf);
-            if(swscanf(buf, L"%d", &i) == 1) iCop = i;
+          InvalidateRgn(hwnd, hRgn, true);
+          DeleteObject(hRgn);
         }
+        SetTitle(hwnd, false);
+      }
+    }
+    if(cDimen.psLab) free(cDimen.psLab);
+  }
+  ClearPolygonList(pRegions);
+  delete pRegions;
+  return 0;
+}
 
-        if(m_iToolMode == tolMove)
-        {
-            if(m_cMeasPoint1.bIsSet)
-            {
-                cLine.bIsSet = true;
-                cLine.cOrigin = m_cMeasPoint1.cOrigin;
-                cDistPt = m_cLastDrawPt - m_cMeasPoint1.cOrigin;
-                dNorm = GetNorm(cDistPt);
-                if(dNorm > g_dPrec)
-                {
-                    cLine.cDirection = cDistPt/dNorm;
-                    if(m_pDrawObjects->MoveSelected(cLine, dNorm, iCop, &cdr, true, pRegions))
-                    {
-                        hRgn = GetUpdateRegion(pRegions);
-                        //InvalidateRect(hwnd, &rc, TRUE);
-                        if(hRgn)
-                        {
-                            InvalidateRgn(hwnd, hRgn, TRUE);
-                            DeleteObject(hRgn);
-                        }
-                        SetTitle(hwnd, false);
-                        StartNewObject(hwnd);
-                    }
-                }
-                m_iToolMode = tolNone;
-                m_cMeasPoint1.bIsSet = false;
-            }
-            else
-            {
-                if(bdValSet)
-                {
-                    pSelLine = m_pDrawObjects->SelectLineByPoint(m_cLastDrawPt, dTol);
-                    if(pSelLine)
-                    {
-                        cLine = pSelLine->GetLine();
-                        m_iToolMode = tolNone;
-                        if(!m_bPaperUnits) dVal *= m_dDrawScale;
-                        if(m_pDrawObjects->MoveSelected(cLine, dVal, iCop, &cdr, false, pRegions))
-                        {
-                            hRgn = GetUpdateRegion(pRegions);
-                            //InvalidateRect(hwnd, &rc, TRUE);
-                            if(hRgn)
-                            {
-                                InvalidateRgn(hwnd, hRgn, TRUE);
-                                DeleteObject(hRgn);
-                            }
-                            SetTitle(hwnd, false);
-                            StartNewObject(hwnd);
-                        }
-                    }
-                }
-                else
-                {
-                    m_cMeasPoint1.cOrigin = m_cLastDrawPt;
-                    m_cMeasPoint1.bIsSet = true;
-                    LoadString(m_hInstance, IDS_SELPOINTTOMOVE, m_wsStatus2Msg, 128);
-                    SendMessage(m_hStatus, SB_SETTEXT, 2, (LPARAM)m_wsStatus2Msg);
-                }
-            }
-        }
-        else if(m_iToolMode == tolRotate)
-        {
-            if(bdValSet)
-            {
-                //if(m_cFSR.iAngUnit < 1) dVal *= M_PI/180.0;
-                dVal *= M_PI/180.0/m_cFSR.cAngUnit.dBaseToUnit;
+LRESULT CMainWnd::EditToggleSnapCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl)
+{
+  bool bSnapEnabled = m_pDrawObjects->GetSelSnapEnabled();
+  if(m_pSnapDlg->ShowDialog(hwnd, &bSnapEnabled))
+  {
+    m_pDrawObjects->SetSelSnapEnabled(bSnapEnabled);
+  }
+  return 0;
+}
 
-                m_iToolMode = tolNone;
-                if(m_pDrawObjects->RotateSelected(m_cLastDrawPt, -dVal, iCop, &cdr, pRegions))
-                {
-                    hRgn = GetUpdateRegion(pRegions);
-                    //InvalidateRect(hwnd, &rc, TRUE);
-                    if(hRgn)
-                    {
-                        InvalidateRgn(hwnd, hRgn, TRUE);
-                        DeleteObject(hRgn);
-                    }
-                    SetTitle(hwnd, false);
-                    StartNewObject(hwnd);
-                }
-            }
-            else if(m_cMeasPoint2.bIsSet)
-            {
-                CDPoint cDir = m_cMeasPoint2.cOrigin - m_cMeasPoint1.cOrigin;
-                double dNorm = GetNorm(cDir);
-                if(dNorm > g_dPrec)
-                {
-                    cDir /= dNorm;
-                    CDPoint cPt1 = Rotate(m_cLastDrawPt - m_cMeasPoint1.cOrigin, cDir, false);
-                    dVal = atan2(cPt1.y, cPt1.x);
-                    m_cMeasPoint1.bIsSet = false;
-                    m_cMeasPoint2.bIsSet = false;
-                    m_iToolMode = tolNone;
-                    if(m_pDrawObjects->RotateSelected(m_cMeasPoint1.cOrigin, dVal, iCop, &cdr, pRegions))
-                    {
-                        hRgn = GetUpdateRegion(pRegions);
-                        //InvalidateRect(hwnd, &rc, TRUE);
-                        if(hRgn)
-                        {
-                            InvalidateRgn(hwnd, hRgn, TRUE);
-                            DeleteObject(hRgn);
-                        }
-                        SetTitle(hwnd, false);
-                        StartNewObject(hwnd);
-                    }
-                }
-            }
-            else if(m_cMeasPoint1.bIsSet)
-            {
-                m_cMeasPoint2.bIsSet = true;
-                m_cMeasPoint2.cOrigin = m_cLastDrawPt;
-                LoadString(m_hInstance, IDS_SELPOINTTOROT, m_wsStatus2Msg, 128);
-                SendMessage(m_hStatus, SB_SETTEXT, 2, (LPARAM)m_wsStatus2Msg);
-            }
-            else
-            {
-                m_cMeasPoint1.bIsSet = true;
-                m_cMeasPoint1.cOrigin = m_cLastDrawPt;
-                LoadString(m_hInstance, IDS_SELPOINTFROMROT, m_wsStatus2Msg, 128);
-                SendMessage(m_hStatus, SB_SETTEXT, 2, (LPARAM)m_wsStatus2Msg);
-            }
-        }
-        else if(m_iToolMode == tolMirror)
+LRESULT CMainWnd::EditPaperUnitsCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl)
+{
+  HMENU hMnu = GetMenu(hwnd);
+  UINT uiCheck = MF_BYCOMMAND;
+  if(m_bPaperUnits)
+  {
+    m_bPaperUnits = false;
+    uiCheck |= MF_UNCHECKED;
+  }
+  else
+  {
+    m_bPaperUnits = true;
+    uiCheck |= MF_CHECKED;
+  }
+  CheckMenuItem(hMnu, IDM_EDITPAPERUNITS, uiCheck);
+  return 0;
+}
+
+LRESULT CMainWnd::EditUndoCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl)
+{
+  int iCnt = m_pUndoObjects->GetCount();
+  if(iCnt < 1) return 0;
+
+  PDPtrList pRegions = new CDPtrList();
+  pRegions->SetDblVal(m_dUnitScale);
+
+  PDObject pObj = m_pUndoObjects->GetItem(iCnt - 1);
+  m_pUndoObjects->ClearSelection(pRegions);
+  pObj->SetSelected(true, false, -1, pRegions);
+
+  if(m_pUndoObjects->DeleteSelected(m_pDrawObjects, NULL, pRegions))
+  {
+    m_iRedoCount++;
+    m_pDrawObjects->SetChanged();
+    SetTitle(hwnd, false);
+
+    HRGN hRgn = GetUpdateRegion(pRegions);
+    //InvalidateRect(hwnd, NULL, true);
+    if(hRgn)
+    {
+      InvalidateRgn(hwnd, hRgn, TRUE);
+      DeleteObject(hRgn);
+    }
+  }
+
+  ClearPolygonList(pRegions);
+  delete pRegions;
+  return 0;
+}
+
+LRESULT CMainWnd::EditRedoCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl)
+{
+  if(m_iRedoCount < 1) return 0;
+  int iCnt = m_pDrawObjects->GetCount();
+  if(iCnt < 1) return 0;
+
+  PDPtrList pRegions = new CDPtrList();
+  pRegions->SetDblVal(m_dUnitScale);
+
+  PDObject pObj = m_pDrawObjects->GetItem(iCnt - 1);
+  m_pDrawObjects->ClearSelection(pRegions);
+  pObj->SetSelected(true, false, -1, pRegions);
+
+  if(m_pDrawObjects->DeleteSelected(m_pUndoObjects, NULL, pRegions))
+  {
+    m_iRedoCount--;
+    HRGN hRgn = GetUpdateRegion(pRegions);
+    //InvalidateRect(hwnd, NULL, true);
+    if(hRgn)
+    {
+      InvalidateRgn(hwnd, hRgn, TRUE);
+      DeleteObject(hRgn);
+    }
+    SetTitle(hwnd, false);
+  }
+
+  ClearPolygonList(pRegions);
+  delete pRegions;
+  return 0;
+}
+
+LRESULT CMainWnd::EditConfirmCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl)
+{
+  bool bConfirm = (m_iDrawMode == modLine) || (m_iDrawMode == modCircle) ||
+    (m_iToolMode == tolRound) || (m_iToolMode == tolCopyPar);
+  if(bConfirm)
+  {
+    wchar_t wBuf[64];
+    SendMessage(m_hEdt1, WM_GETTEXT, 64, (LPARAM)wBuf);
+    char sBuf[64];
+    WideCharToMultiByte(CP_UTF8, 0, wBuf, -1, sBuf, 64, NULL, NULL);
+    m_iRestrictSet = ParseInputString(sBuf, m_pFileSetupDlg->GetUnitList(), &m_dRestrictValue);
+  }
+  return 0;
+}
+
+void CMainWnd::GetPageDims()
+{
+  m_dwPage = m_cFSR.cPaperSize.dPaperWidth;
+  m_dhPage = m_cFSR.cPaperSize.dPaperHeight;
+  if(m_cFSR.bPortrait)
+  {
+    if(m_dwPage > m_dhPage)
+    {
+      m_dwPage = m_cFSR.cPaperSize.dPaperHeight;
+      m_dhPage = m_cFSR.cPaperSize.dPaperWidth;
+    }
+  }
+  else if(m_dwPage < m_dhPage)
+  {
+    m_dwPage = m_cFSR.cPaperSize.dPaperHeight;
+    m_dhPage = m_cFSR.cPaperSize.dPaperWidth;
+  }
+}
+
+LRESULT CMainWnd::ViewFitCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl)
+{
+  RECT rc;
+  GetClientRect(hwnd, &rc);
+  rc.top += m_iToolBarHeight;
+  rc.bottom -= m_iStatusHeight;
+
+  double dwWin = rc.right - rc.left - 20;
+  double dhWin = rc.bottom - rc.top - 20;
+
+  double drw = dwWin/m_dwPage;
+  double drh = dhWin/m_dhPage;
+
+  if(drw < drh)
+  {
+    m_dUnitScale = drw;
+    m_cViewOrigin.x = 10;
+    m_cViewOrigin.y = m_iToolBarHeight + (dhWin + 20 - m_dUnitScale*m_dhPage)/2;
+  }
+  else
+  {
+    m_dUnitScale = drh;
+    m_cViewOrigin.x = (dwWin + 20 - m_dUnitScale*m_dwPage)/2;
+    m_cViewOrigin.y = 10 + m_iToolBarHeight;
+  }
+
+  InvalidateRect(hwnd, &rc, TRUE);
+  return 0;
+}
+
+LRESULT CMainWnd::ViewActSizeCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl)
+{
+  RECT rc;
+  GetClientRect(hwnd, &rc);
+  rc.top += m_iToolBarHeight;
+  rc.bottom -= m_iStatusHeight;
+
+  CDPoint cOrigOff;
+  int idx = (rc.right - rc.left)/2.0;
+  int idy = (rc.bottom - rc.top)/2.0;
+  cOrigOff.x = (idx - m_cViewOrigin.x)/m_dUnitScale;
+  cOrigOff.y = (idy - m_cViewOrigin.y)/m_dUnitScale;
+
+  m_dUnitScale = m_dDeviceToUnitScale;
+
+  m_cViewOrigin.x = (int)(idx - cOrigOff.x*m_dUnitScale);
+  m_cViewOrigin.y = (int)(idy - cOrigOff.y*m_dUnitScale);
+
+  InvalidateRect(hwnd, &rc, TRUE);
+  return 0;
+}
+
+LRESULT CMainWnd::ViewGridCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl, int iType)
+{
+  HMENU hMnu = GetMenu(hwnd);
+  UINT uiCheck = MF_BYCOMMAND;
+  BOOL bChecked = (m_iDrawGridMode & iType);
+  if(bChecked)
+  {
+    m_iDrawGridMode &= ~iType;
+    uiCheck |= MF_UNCHECKED;
+  }
+  else
+  {
+    m_iDrawGridMode |= iType;
+    uiCheck |= MF_CHECKED;
+  }
+  CheckMenuItem(hMnu, IDM_VIEWGRIDPTS + iType - 1, uiCheck);
+  InvalidateRect(hwnd, NULL, TRUE);
+  return 0;
+}
+
+/*LRESULT CMainWnd::SnapCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl, int iSnap)
+{
+  int iSnapBit = (1 << iSnap);
+  if(m_iSnapType & iSnapBit) m_iSnapType &= ~iSnapBit;
+  else m_iSnapType |= iSnapBit;
+  UpdateSnapMenu(GetMenu(hwnd));
+  return 0;
+}*/
+
+LRESULT CMainWnd::ToolsCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl, int iTool)
+{
+  if((wNotifyCode == 1) && (iTool == tolDimen) && (IsWindowVisible(m_hEdt1) || IsWindowVisible(m_hEdt2)))
+  {
+    HWND hFocus = GetFocus();
+    char c = 'd';
+    if(hFocus == m_hEdt1)
+    {
+      SendMessage(m_hEdt1, WM_CHAR, c, 0);
+    }
+    else if(hFocus == m_hEdt2)
+    {
+      SendMessage(m_hEdt2, WM_CHAR, c, 0);
+    }
+    return 0;
+  }
+
+  RECT rc;
+  GetClientRect(hwnd, &rc);
+  rc.top += m_iToolBarHeight;
+  rc.bottom -= m_iStatusHeight;
+  HDC hdc;
+
+  if(m_pActiveObject)
+  {
+    /*hdc = GetDC(hwnd);
+    IntersectClipRect(hdc, rc.left, rc.top, rc.right, rc.bottom);
+
+    HBRUSH hPrevBr = (HBRUSH)SelectObject(hdc, GetStockObject(HOLLOW_BRUSH));
+    int iPrevROP = SetROP2(hdc, R2_NOTXORPEN);
+    DrawObject(hwnd, hdc, m_pActiveObject, 1, -2);
+    SetROP2(hdc, iPrevROP);
+    SelectObject(hdc, hPrevBr);
+    SelectClipRgn(hdc, NULL);
+    ReleaseDC(hwnd, NULL);*/
+
+    delete m_pActiveObject;
+    m_pActiveObject = NULL;
+  }
+  else if(m_pSelForDimen)
+  {
+    m_pSelForDimen->DiscardDimen();
+    m_pSelForDimen = NULL;
+  }
+
+  if(iTool == tolDimen)
+  {
+    if(m_pDrawObjects->GetSelectCount(2) != 1)
+    {
+      wchar_t sCap[64];
+      wchar_t sMsg[128];
+      LoadString(m_hInstance, IDS_WARNING, sCap, 64);
+      LoadString(m_hInstance, IDS_ONEOBJFORDIMEN, sMsg, 128);
+      MessageBox(hwnd, sMsg, sCap, MB_OK | MB_ICONWARNING);
+      return 0;
+    }
+    m_pSelForDimen = m_pDrawObjects->GetSelected(0);
+  }
+
+  if(((m_iDrawMode + m_iToolMode > 0) && (iTool == 0)) ||
+    ((m_iDrawMode + m_iToolMode == 0) && (iTool > 0)))
+  {
+    DrawCross(hwnd);
+  }
+
+  m_iToolMode = iTool;
+  m_iDrawMode = modSelect;
+
+  StartNewObject(hwnd);
+  return 0;
+}
+
+LRESULT CMainWnd::HelpContentCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl)
+{
+  MessageBox(hwnd, L"Help is not implemented yet", L"Information", MB_OK);
+  return 0;
+}
+
+/*void CMainWnd::UpdateSnapMenu(HMENU hMenu)
+{
+  int iSnapBit = 1;
+  int iSnapCount = IDM_SNAPINTERSECT - IDM_SNAPELEMENT + 1;
+  UINT uCheck;
+  for(int i = 0; i < iSnapCount; i++)
+  {
+    uCheck = MF_BYCOMMAND;
+    if(m_iSnapType & iSnapBit) uCheck |= MF_CHECKED;
+    else uCheck |= MF_UNCHECKED;
+    CheckMenuItem(hMenu, IDM_SNAPELEMENT + i, uCheck);
+    iSnapBit <<= 1;
+  }
+}*/
+
+LRESULT CMainWnd::WMMButtonDown(HWND hwnd, WPARAM fwKeys, int xPos, int yPos)
+{
+  if(m_iButton > 0) return 0;
+
+  m_iButton = 2;
+  m_cZoomOrig.x = xPos - m_cViewOrigin.x;
+  m_cZoomOrig.y = yPos - m_cViewOrigin.y;
+  m_cLastMovePt.x = xPos;
+  m_cLastMovePt.y = yPos;
+  SetCapture(hwnd);
+  return 0;
+}
+
+LRESULT CMainWnd::WMMButtonUp(HWND hwnd, WPARAM fwKeys, int xPos, int yPos)
+{
+  RECT rc;
+  if(m_iButton == 2)
+  {
+    ReleaseCapture();
+
+    //m_cViewOrigin.x = (xPos - m_cZoomOrig.x);
+    //m_cViewOrigin.y = (yPos - m_cZoomOrig.y);
+
+    GetClientRect(hwnd, &rc);
+    rc.top += m_iToolBarHeight;
+    rc.bottom -= m_iStatusHeight;
+    InvalidateRect(hwnd, &rc, TRUE);
+  }
+  m_iButton = 0;
+  return 0;
+}
+
+LRESULT CMainWnd::WMLButtonDown(HWND hwnd, WPARAM fwKeys, int xPos, int yPos)
+{
+  if(m_iButton > 0) return 0;
+
+  m_cLastDownPt.x = xPos;
+  m_cLastDownPt.y = yPos;
+  m_cLastMovePt.x = xPos;
+  m_cLastMovePt.y = yPos;
+  m_iButton = 1;
+
+  return 0;
+}
+
+LRESULT CMainWnd::WMLButtonUp(HWND hwnd, WPARAM fwKeys, int xPos, int yPos)
+{
+  if(m_iButton != 1) return 0;
+
+  m_iButton = 0;
+
+  RECT rc;
+  GetClientRect(hwnd, &rc);
+  rc.top += m_iToolBarHeight;
+  rc.bottom -= m_iStatusHeight;
+
+  CDRect cdr;
+  cdr.cPt1.x = (rc.left - m_cViewOrigin.x)/m_dUnitScale;
+  cdr.cPt1.y = (rc.top - m_cViewOrigin.y)/m_dUnitScale;
+  cdr.cPt2.x = (rc.right - m_cViewOrigin.x)/m_dUnitScale;
+  cdr.cPt2.y = (rc.bottom - m_cViewOrigin.y)/m_dUnitScale;
+
+  double dTol = (double)m_iSnapTolerance/m_dUnitScale;
+  CDPoint cDistPt;
+  wchar_t wsBuf[128];
+  double dNorm;
+  wchar_t *wsUnit;
+
+  PDPtrList pRegions = new CDPtrList();
+  pRegions->SetDblVal(m_dUnitScale);
+  HRGN hRgn;
+
+  if(m_iDrawMode + m_iToolMode < 1) // selection
+  {
+    if(!(fwKeys & MK_CONTROL)) m_pDrawObjects->ClearSelection(pRegions);
+
+    if(GetPtDist(&m_cLastDownPt, xPos, yPos) > 4) // select by rectangle
+    {
+      CDRect cdr1;
+      cdr1.cPt1.x = (m_cLastDownPt.x - m_cViewOrigin.x)/m_dUnitScale;
+      cdr1.cPt1.y = (m_cLastDownPt.y - m_cViewOrigin.y)/m_dUnitScale;
+      cdr1.cPt2.x = (xPos - m_cViewOrigin.x)/m_dUnitScale;
+      cdr1.cPt2.y = (yPos - m_cViewOrigin.y)/m_dUnitScale;
+      m_pDrawObjects->SelectByRectangle(&cdr1, 2, pRegions);
+    }
+    else
+    {
+      if(m_pHighObject)
+      m_pHighObject->SetSelected(true, fwKeys & MK_CONTROL, m_iHighDimen, pRegions);
+    }
+    hRgn = GetUpdateRegion(pRegions);
+    //InvalidateRect(hwnd, &rc, TRUE);
+    if(hRgn)
+    {
+      InvalidateRgn(hwnd, hRgn, TRUE);
+      DeleteObject(hRgn);
+    }
+  }
+  else if((m_iToolMode > 20) && (m_iToolMode != tolRound))
+  {
+    if(GetPtDist(&m_cLastDownPt, xPos, yPos) > 4)
+    {
+      delete pRegions;
+      return 0;
+    }
+
+    switch(m_iToolMode)
+    {
+    case tolKnife:
+      if(m_pDrawObjects->CutSelected(m_cLastDrawPt, dTol, &cdr, pRegions))
+      {
+        hRgn = GetUpdateRegion(pRegions);
+        //InvalidateRect(hwnd, &rc, TRUE);
+        if(hRgn)
         {
-            pSelLine = m_pDrawObjects->SelectLineByPoint(m_cLastDrawPt, dTol);
-            if(pSelLine)
-            {
-                cLine = pSelLine->GetLine();
-                m_iToolMode = tolNone;
-                if(m_pDrawObjects->MirrorSelected(cLine, &cdr, pRegions))
-                {
-                    hRgn = GetUpdateRegion(pRegions);
-                    //InvalidateRect(hwnd, &rc, TRUE);
-                    if(hRgn)
-                    {
-                        InvalidateRgn(hwnd, hRgn, TRUE);
-                        DeleteObject(hRgn);
-                    }
-                    SetTitle(hwnd, false);
-                    StartNewObject(hwnd);
-                }
-            }
+          InvalidateRgn(hwnd, hRgn, TRUE);
+          DeleteObject(hRgn);
         }
-        else if(m_iToolMode == tolDimen)
+        SetTitle(hwnd, false);
+      }
+      break;
+    case tolExtend:
+      if(m_pDrawObjects->ExtendSelected(m_cLastDrawPt, dTol, &cdr, pRegions))
+      {
+        hRgn = GetUpdateRegion(pRegions);
+        //InvalidateRect(hwnd, &rc, TRUE);
+        if(hRgn)
         {
-            if(m_pDrawObjects->AddDimen(m_pSelForDimen, m_cLastDrawPt, dTol, &cdr, pRegions))
-            {
-                hRgn = GetUpdateRegion(pRegions);
-                //InvalidateRect(hwnd, &rc, TRUE);
-                if(hRgn)
-                {
-                    InvalidateRgn(hwnd, hRgn, TRUE);
-                    DeleteObject(hRgn);
-                }
-                SetTitle(hwnd, false);
-            }
+          InvalidateRgn(hwnd, hRgn, TRUE);
+          DeleteObject(hRgn);
+        }
+        SetTitle(hwnd, false);
+      }
+      break;
+    case tolConflict:
+      if(m_pDrawObjects->SetCrossSelected(m_cLastDrawPt, dTol, &cdr, pRegions))
+      {
+        hRgn = GetUpdateRegion(pRegions);
+        //InvalidateRect(hwnd, &rc, TRUE);
+        if(hRgn)
+        {
+          InvalidateRgn(hwnd, hRgn, TRUE);
+          DeleteObject(hRgn);
+        }
+        SetTitle(hwnd, false);
+      }
+      break;
+    case tolMeas:
+      if(!m_cMeasPoint1.bIsSet)
+      {
+        m_cMeasPoint1.bIsSet = true;
+        m_cMeasPoint1.cOrigin = m_cLastDrawPt;
+      }
+      else if(!m_cMeasPoint2.bIsSet)
+      {
+        m_cMeasPoint2.bIsSet = true;
+        m_cMeasPoint2.cOrigin = m_cLastDrawPt;
+        cDistPt = m_cMeasPoint2.cOrigin - m_cMeasPoint1.cOrigin;
+        if(m_bPaperUnits)
+        {
+          cDistPt /= m_cFSR.cPaperUnit.dBaseToUnit;
+          wsUnit = m_cFSR.cPaperUnit.wsAbbrev;
         }
         else
         {
-            int iCtrl = 0;
-            if(m_iToolMode == tolCopyPar)
-            {
-                iCtrl = 2;
-                if(fwKeys & MK_SHIFT) iCtrl = 3;
-            }
-            if(m_cLastDynPt.bIsSet)
-            {
-                CDInputPoint cInPt;
-                m_pActiveObject->GetPoint(0, 0, &cInPt);
-                cInPt.cPoint = m_cLastDynPt.cOrigin;
-                m_pActiveObject->SetPoint(0, 0, cInPt);
-            }
-            if(m_pActiveObject->AddPoint(m_cLastDrawPt.x, m_cLastDrawPt.y, iCtrl, true))
-            {
-                m_pActiveObject->AddRegions(pRegions, -1);
-                m_pDrawObjects->Add(m_pActiveObject);
-                SetTitle(hwnd, false);
-                m_pActiveObject = NULL;
-                m_iToolMode = tolNone;
-                m_wsStatus2Base[0] = 0;
-                wcscpy(m_wsStatus2Msg, m_wsStatus2Base);
-                SendMessage(m_hStatus, SB_SETTEXT, 1, (LPARAM)m_wsStatus2Msg);
-
-                hRgn = GetUpdateRegion(pRegions);
-                //InvalidateRect(hwnd, &rc, TRUE);
-                if(hRgn)
-                {
-                    InvalidateRgn(hwnd, hRgn, TRUE);
-                    DeleteObject(hRgn);
-                }
-                StartNewObject(hwnd);
-            }
+          cDistPt /= m_dDrawScale;
+          cDistPt /= m_cFSR.cLenUnit.dBaseToUnit;
+          wsUnit = m_cFSR.cLenUnit.wsAbbrev;
         }
+        dNorm = GetNorm(cDistPt);
+        swprintf(wsBuf, L"dx: %.3f, dy: %.3f, dist: %.4f (%s)", fabs(cDistPt.x),
+        fabs(cDistPt.y), dNorm, wsUnit);
+        SendMessage(m_hStatus, SB_SETTEXT, 1, (LPARAM)wsBuf);
+      }
+      else
+      {
+        m_cMeasPoint1.bIsSet = true;
+        m_cMeasPoint1.cOrigin = m_cLastDrawPt;
+        m_cMeasPoint2.bIsSet = false;
+        SendMessage(m_hStatus, SB_SETTEXT, 1, (LPARAM)L"");
+      }
+      break;
     }
-
-    ClearPolygonList(pRegions);
-    delete pRegions;
-
-    m_cLastDynPt.bIsSet = false;
-    return 0;
-}
-
-LRESULT CMainWnd::WMRButtonDown(HWND hwnd, WPARAM fwKeys, int xPos, int yPos)
-{
-    if(m_iButton > 0) return 0;
-
-    m_cLastDownPt.x = xPos;
-    m_cLastDownPt.y = yPos;
-    m_cLastMovePt.x = xPos;
-    m_cLastMovePt.y = yPos;
-    m_iButton = 3;
-
-    return 0;
-}
-
-LRESULT CMainWnd::WMRButtonUp(HWND hwnd, WPARAM fwKeys, int xPos, int yPos)
-{
-    if(m_iButton != 3) return 0;
-
-    m_iButton = 0;
+  }
+  else
+  {
+    if(GetPtDist(&m_cLastDownPt, xPos, yPos) > 4)
+    {
+      delete pRegions;
+      return 0;
+    }
 
     RECT rc;
     GetClientRect(hwnd, &rc);
     rc.top += m_iToolBarHeight;
     rc.bottom -= m_iStatusHeight;
 
-    PDPtrList pRegions = new CDPtrList();
-    pRegions->SetDblVal(m_dUnitScale);
-    HRGN hRgn;
+    wchar_t buf[64];
+    float f;
+    int i;
+    bool bdValSet = false;
+    double dVal = 0;
+    int iCop = 0;
+    PDObject pSelLine = NULL;
+    CDLine cLine;
 
-    if(m_iDrawMode + m_iToolMode < 1) // selection
+    if((m_iToolMode > tolCopyPar) && (m_iToolMode < tolMirror))
     {
-        if(GetPtDist(&m_cLastDownPt, xPos, yPos) > 4) // select by rectangle
-        {
-            if(!(fwKeys & MK_CONTROL)) m_pDrawObjects->ClearSelection(pRegions);
-            //MessageBox(0, L"Dobry", L"Debug", MB_OK);
-            CDRect cdr1;
-            cdr1.cPt1.x = (m_cLastDownPt.x - m_cViewOrigin.x)/m_dUnitScale;
-            cdr1.cPt1.y = (m_cLastDownPt.y - m_cViewOrigin.y)/m_dUnitScale;
-            cdr1.cPt2.x = (xPos - m_cViewOrigin.x)/m_dUnitScale;
-            cdr1.cPt2.y = (yPos - m_cViewOrigin.y)/m_dUnitScale;
-            m_pDrawObjects->SelectByRectangle(&cdr1, 1, pRegions);
+      SendMessage(m_hEdt1, WM_GETTEXT, 64, (LPARAM)buf);
+      if(swscanf(buf, L"%f", &f) == 1)
+      {
+        dVal = f;
+        bdValSet = true;
+      }
+      SendMessage(m_hEdt2, WM_GETTEXT, 64, (LPARAM)buf);
+      if(swscanf(buf, L"%d", &i) == 1) iCop = i;
+    }
 
+    if(m_iToolMode == tolMove)
+    {
+      if(m_cMeasPoint1.bIsSet)
+      {
+        cLine.bIsSet = true;
+        cLine.cOrigin = m_cMeasPoint1.cOrigin;
+        cDistPt = m_cLastDrawPt - m_cMeasPoint1.cOrigin;
+        dNorm = GetNorm(cDistPt);
+        if(dNorm > g_dPrec)
+        {
+          cLine.cDirection = cDistPt/dNorm;
+          if(m_pDrawObjects->MoveSelected(cLine, dNorm, iCop, &cdr, true, pRegions))
+          {
             hRgn = GetUpdateRegion(pRegions);
             //InvalidateRect(hwnd, &rc, TRUE);
             if(hRgn)
             {
+              InvalidateRgn(hwnd, hRgn, TRUE);
+              DeleteObject(hRgn);
+            }
+            SetTitle(hwnd, false);
+            StartNewObject(hwnd);
+          }
+        }
+        m_iToolMode = tolNone;
+        m_cMeasPoint1.bIsSet = false;
+      }
+      else
+      {
+        if(bdValSet)
+        {
+          pSelLine = m_pDrawObjects->SelectLineByPoint(m_cLastDrawPt, dTol);
+          if(pSelLine)
+          {
+            cLine = pSelLine->GetLine();
+            m_iToolMode = tolNone;
+            if(!m_bPaperUnits) dVal *= m_dDrawScale;
+            if(m_pDrawObjects->MoveSelected(cLine, dVal, iCop, &cdr, false, pRegions))
+            {
+              hRgn = GetUpdateRegion(pRegions);
+              //InvalidateRect(hwnd, &rc, TRUE);
+              if(hRgn)
+              {
                 InvalidateRgn(hwnd, hRgn, TRUE);
                 DeleteObject(hRgn);
+              }
+              SetTitle(hwnd, false);
+              StartNewObject(hwnd);
             }
+          }
         }
         else
         {
-            if(m_pHighObject)
-            {
-                HMENU hMenu = LoadMenu(m_hInstance, L"POPUPMENU");
-                if(m_pHighObject->GetSnapTo()) hMenu = GetSubMenu(hMenu, 1);
-                else hMenu = GetSubMenu(hMenu, 0);
-                POINT pt = {xPos, yPos};
-                ClientToScreen(hwnd, &pt);
-                TrackPopupMenu(hMenu, TPM_RIGHTALIGN | TPM_BOTTOMALIGN | TPM_RIGHTBUTTON,
-                    pt.x, pt.y, 0, hwnd, NULL);
-            }
+          m_cMeasPoint1.cOrigin = m_cLastDrawPt;
+          m_cMeasPoint1.bIsSet = true;
+          LoadString(m_hInstance, IDS_SELPOINTTOMOVE, m_wsStatus2Msg, 128);
+          SendMessage(m_hStatus, SB_SETTEXT, 2, (LPARAM)m_wsStatus2Msg);
         }
+      }
     }
-    else if(m_iToolMode > tolNone)
+    else if(m_iToolMode == tolRotate)
     {
-    }
-    else
-    {
-        if(GetPtDist(&m_cLastDownPt, xPos, yPos) > 4)
-        {
-            delete pRegions;
-            return 0;
-        }
+      if(bdValSet)
+      {
+        //if(m_cFSR.iAngUnit < 1) dVal *= M_PI/180.0;
+        dVal *= M_PI/180.0/m_cFSR.cAngUnit.dBaseToUnit;
 
-        if(m_cLastDynPt.bIsSet)
+        m_iToolMode = tolNone;
+        if(m_pDrawObjects->RotateSelected(m_cLastDrawPt, -dVal, iCop, &cdr, pRegions))
         {
-            CDInputPoint cInPt;
-            m_pActiveObject->GetPoint(0, 0, &cInPt);
-            cInPt.cPoint = m_cLastDynPt.cOrigin;
-            m_pActiveObject->SetPoint(0, 0, cInPt);
+          hRgn = GetUpdateRegion(pRegions);
+          //InvalidateRect(hwnd, &rc, TRUE);
+          if(hRgn)
+          {
+            InvalidateRgn(hwnd, hRgn, TRUE);
+            DeleteObject(hRgn);
+          }
+          SetTitle(hwnd, false);
+          StartNewObject(hwnd);
         }
-        if(m_pActiveObject->AddPoint(m_cLastDrawPt.x, m_cLastDrawPt.y, 1, true))
+      }
+      else if(m_cMeasPoint2.bIsSet)
+      {
+        CDPoint cDir = m_cMeasPoint2.cOrigin - m_cMeasPoint1.cOrigin;
+        double dNorm = GetNorm(cDir);
+        if(dNorm > g_dPrec)
         {
-            m_pActiveObject->AddRegions(pRegions, -1);
-            m_pDrawObjects->Add(m_pActiveObject);
-            SetTitle(hwnd, false);
-            m_pActiveObject = NULL;
-            m_iToolMode = tolNone;
-            m_wsStatus2Base[0] = 0;
-            wcscpy(m_wsStatus2Msg, m_wsStatus2Base);
-            SendMessage(m_hStatus, SB_SETTEXT, 1, (LPARAM)m_wsStatus2Msg);
-
+          cDir /= dNorm;
+          CDPoint cPt1 = Rotate(m_cLastDrawPt - m_cMeasPoint1.cOrigin, cDir, false);
+          dVal = atan2(cPt1.y, cPt1.x);
+          m_cMeasPoint1.bIsSet = false;
+          m_cMeasPoint2.bIsSet = false;
+          m_iToolMode = tolNone;
+          if(m_pDrawObjects->RotateSelected(m_cMeasPoint1.cOrigin, dVal, iCop, &cdr, pRegions))
+          {
             hRgn = GetUpdateRegion(pRegions);
             //InvalidateRect(hwnd, &rc, TRUE);
             if(hRgn)
             {
-                InvalidateRgn(hwnd, hRgn, TRUE);
-                DeleteObject(hRgn);
+              InvalidateRgn(hwnd, hRgn, TRUE);
+              DeleteObject(hRgn);
             }
-
+            SetTitle(hwnd, false);
             StartNewObject(hwnd);
+          }
         }
+      }
+      else if(m_cMeasPoint1.bIsSet)
+      {
+        m_cMeasPoint2.bIsSet = true;
+        m_cMeasPoint2.cOrigin = m_cLastDrawPt;
+        LoadString(m_hInstance, IDS_SELPOINTTOROT, m_wsStatus2Msg, 128);
+        SendMessage(m_hStatus, SB_SETTEXT, 2, (LPARAM)m_wsStatus2Msg);
+      }
+      else
+      {
+        m_cMeasPoint1.bIsSet = true;
+        m_cMeasPoint1.cOrigin = m_cLastDrawPt;
+        LoadString(m_hInstance, IDS_SELPOINTFROMROT, m_wsStatus2Msg, 128);
+        SendMessage(m_hStatus, SB_SETTEXT, 2, (LPARAM)m_wsStatus2Msg);
+      }
+    }
+    else if(m_iToolMode == tolMirror)
+    {
+      pSelLine = m_pDrawObjects->SelectLineByPoint(m_cLastDrawPt, dTol);
+      if(pSelLine)
+      {
+        cLine = pSelLine->GetLine();
+        m_iToolMode = tolNone;
+        if(m_pDrawObjects->MirrorSelected(cLine, &cdr, pRegions))
+        {
+          hRgn = GetUpdateRegion(pRegions);
+          //InvalidateRect(hwnd, &rc, TRUE);
+          if(hRgn)
+          {
+            InvalidateRgn(hwnd, hRgn, TRUE);
+            DeleteObject(hRgn);
+          }
+          SetTitle(hwnd, false);
+          StartNewObject(hwnd);
+        }
+      }
+    }
+    else if(m_iToolMode == tolDimen)
+    {
+      if(m_pDrawObjects->AddDimen(m_pSelForDimen, m_cLastDrawPt, dTol, &cdr, pRegions))
+      {
+        hRgn = GetUpdateRegion(pRegions);
+        //InvalidateRect(hwnd, &rc, TRUE);
+        if(hRgn)
+        {
+          InvalidateRgn(hwnd, hRgn, TRUE);
+          DeleteObject(hRgn);
+        }
+        SetTitle(hwnd, false);
+      }
+    }
+    else
+    {
+      int iCtrl = 0;
+      if(m_iToolMode == tolCopyPar)
+      {
+        iCtrl = 2;
+        if(fwKeys & MK_SHIFT) iCtrl = 3;
+      }
+      if(m_cLastDynPt.bIsSet)
+      {
+        CDInputPoint cInPt;
+        m_pActiveObject->GetPoint(0, 0, &cInPt);
+        cInPt.cPoint = m_cLastDynPt.cOrigin;
+        m_pActiveObject->SetPoint(0, 0, cInPt);
+      }
+      if(m_pActiveObject->AddPoint(m_cLastDrawPt.x, m_cLastDrawPt.y, iCtrl, true))
+      {
+        m_pActiveObject->AddRegions(pRegions, -1);
+        m_pDrawObjects->Add(m_pActiveObject);
+        SetTitle(hwnd, false);
+        m_pActiveObject = NULL;
+        m_iToolMode = tolNone;
+        m_wsStatus2Base[0] = 0;
+        wcscpy(m_wsStatus2Msg, m_wsStatus2Base);
+        SendMessage(m_hStatus, SB_SETTEXT, 1, (LPARAM)m_wsStatus2Msg);
+
+        hRgn = GetUpdateRegion(pRegions);
+        //InvalidateRect(hwnd, &rc, TRUE);
+        if(hRgn)
+        {
+          InvalidateRgn(hwnd, hRgn, TRUE);
+          DeleteObject(hRgn);
+        }
+        StartNewObject(hwnd);
+      }
+    }
+  }
+
+  ClearPolygonList(pRegions);
+  delete pRegions;
+
+  m_cLastDynPt.bIsSet = false;
+  return 0;
+}
+
+LRESULT CMainWnd::WMRButtonDown(HWND hwnd, WPARAM fwKeys, int xPos, int yPos)
+{
+  if(m_iButton > 0) return 0;
+
+  m_cLastDownPt.x = xPos;
+  m_cLastDownPt.y = yPos;
+  m_cLastMovePt.x = xPos;
+  m_cLastMovePt.y = yPos;
+  m_iButton = 3;
+
+  return 0;
+}
+
+LRESULT CMainWnd::WMRButtonUp(HWND hwnd, WPARAM fwKeys, int xPos, int yPos)
+{
+  if(m_iButton != 3) return 0;
+
+  m_iButton = 0;
+
+  RECT rc;
+  GetClientRect(hwnd, &rc);
+  rc.top += m_iToolBarHeight;
+  rc.bottom -= m_iStatusHeight;
+
+  PDPtrList pRegions = new CDPtrList();
+  pRegions->SetDblVal(m_dUnitScale);
+  HRGN hRgn;
+
+  if(m_iDrawMode + m_iToolMode < 1) // selection
+  {
+    if(GetPtDist(&m_cLastDownPt, xPos, yPos) > 4) // select by rectangle
+    {
+      if(!(fwKeys & MK_CONTROL)) m_pDrawObjects->ClearSelection(pRegions);
+      //MessageBox(0, L"Dobry", L"Debug", MB_OK);
+      CDRect cdr1;
+      cdr1.cPt1.x = (m_cLastDownPt.x - m_cViewOrigin.x)/m_dUnitScale;
+      cdr1.cPt1.y = (m_cLastDownPt.y - m_cViewOrigin.y)/m_dUnitScale;
+      cdr1.cPt2.x = (xPos - m_cViewOrigin.x)/m_dUnitScale;
+      cdr1.cPt2.y = (yPos - m_cViewOrigin.y)/m_dUnitScale;
+      m_pDrawObjects->SelectByRectangle(&cdr1, 1, pRegions);
+
+      hRgn = GetUpdateRegion(pRegions);
+      //InvalidateRect(hwnd, &rc, TRUE);
+      if(hRgn)
+      {
+        InvalidateRgn(hwnd, hRgn, TRUE);
+        DeleteObject(hRgn);
+      }
+    }
+    else
+    {
+      if(m_pHighObject)
+      {
+        HMENU hMenu = LoadMenu(m_hInstance, L"POPUPMENU");
+        if(m_pHighObject->GetSnapTo()) hMenu = GetSubMenu(hMenu, 1);
+        else hMenu = GetSubMenu(hMenu, 0);
+        POINT pt = {xPos, yPos};
+        ClientToScreen(hwnd, &pt);
+        TrackPopupMenu(hMenu, TPM_RIGHTALIGN | TPM_BOTTOMALIGN | TPM_RIGHTBUTTON,
+        pt.x, pt.y, 0, hwnd, NULL);
+      }
+    }
+  }
+  else if(m_iToolMode > tolNone)
+  {
+  }
+  else
+  {
+    if(GetPtDist(&m_cLastDownPt, xPos, yPos) > 4)
+    {
+      delete pRegions;
+      return 0;
     }
 
-    ClearPolygonList(pRegions);
-    delete pRegions;
+    if(m_cLastDynPt.bIsSet)
+    {
+      CDInputPoint cInPt;
+      m_pActiveObject->GetPoint(0, 0, &cInPt);
+      cInPt.cPoint = m_cLastDynPt.cOrigin;
+      m_pActiveObject->SetPoint(0, 0, cInPt);
+    }
+    if(m_pActiveObject->AddPoint(m_cLastDrawPt.x, m_cLastDrawPt.y, 1, true))
+    {
+      m_pActiveObject->AddRegions(pRegions, -1);
+      m_pDrawObjects->Add(m_pActiveObject);
+      SetTitle(hwnd, false);
+      m_pActiveObject = NULL;
+      m_iToolMode = tolNone;
+      m_wsStatus2Base[0] = 0;
+      wcscpy(m_wsStatus2Msg, m_wsStatus2Base);
+      SendMessage(m_hStatus, SB_SETTEXT, 1, (LPARAM)m_wsStatus2Msg);
 
-    m_cLastDynPt.bIsSet = false;
-    return 0;
+      hRgn = GetUpdateRegion(pRegions);
+      //InvalidateRect(hwnd, &rc, TRUE);
+      if(hRgn)
+      {
+        InvalidateRgn(hwnd, hRgn, TRUE);
+        DeleteObject(hRgn);
+      }
+
+      StartNewObject(hwnd);
+    }
+  }
+
+  ClearPolygonList(pRegions);
+  delete pRegions;
+
+  m_cLastDynPt.bIsSet = false;
+  return 0;
 }
 
 bool PointsEqual(POINT cPt1, POINT cPt2)
 {
-    return (cPt1.x == cPt2.x) && (cPt1.y == cPt2.y);
+  return (cPt1.x == cPt2.x) && (cPt1.y == cPt2.y);
 }
 
 void CMainWnd::DrawDimArrow(HDC hdc, PDPrimitive pPrim)
 {
-    POINT cStartPt, cEndPt, cPoly[3];
-    int iType = Round(pPrim->cPt1.x);
-    HBRUSH hBr, hPrevBr;
-    hBr = (HBRUSH)GetStockObject(BLACK_BRUSH);
+  POINT cStartPt, cEndPt, cPoly[3];
+  int iType = Round(pPrim->cPt1.x);
+  HBRUSH hBr, hPrevBr;
+  hBr = (HBRUSH)GetStockObject(BLACK_BRUSH);
 
-    switch(iType)
-    {
-    case 1:
-        cStartPt.x = pPrim->cPt3.x + m_cViewOrigin.x;
-        cStartPt.y = pPrim->cPt3.y + m_cViewOrigin.y;
-        MoveToEx(hdc, cStartPt.x, cStartPt.y, NULL);
-        cEndPt.x = pPrim->cPt2.x + m_cViewOrigin.x;
-        cEndPt.y = pPrim->cPt2.y + m_cViewOrigin.y;
-        LineTo(hdc, cEndPt.x, cEndPt.y);
-        cEndPt.x = pPrim->cPt4.x + m_cViewOrigin.x;
-        cEndPt.y = pPrim->cPt4.y + m_cViewOrigin.y;
-        LineTo(hdc, cEndPt.x, cEndPt.y);
-        break;
-    case 2:
-        hPrevBr = (HBRUSH)SelectObject(hdc, hBr);
-        cPoly[0].x = pPrim->cPt3.x + m_cViewOrigin.x;
-        cPoly[0].y = pPrim->cPt3.y + m_cViewOrigin.y;
-        cPoly[1].x = pPrim->cPt2.x + m_cViewOrigin.x;
-        cPoly[1].y = pPrim->cPt2.y + m_cViewOrigin.y;
-        cPoly[2].x = pPrim->cPt4.x + m_cViewOrigin.x;
-        cPoly[2].y = pPrim->cPt4.y + m_cViewOrigin.y;
-        Polygon(hdc, cPoly, 3);
-        SelectObject(hdc, hPrevBr);
-        break;
-    case 3:
-        hPrevBr = (HBRUSH)SelectObject(hdc, hBr);
-        cStartPt.x = Round(pPrim->cPt3.x - pPrim->cPt2.x);
-        cStartPt.y = Round(pPrim->cPt3.y - pPrim->cPt2.y);
-        Ellipse(hdc, pPrim->cPt2.x + m_cViewOrigin.x - cStartPt.x,
-            pPrim->cPt2.y + m_cViewOrigin.y - cStartPt.y,
-            pPrim->cPt2.x + m_cViewOrigin.x + cStartPt.x,
-            pPrim->cPt2.y + m_cViewOrigin.y + cStartPt.y);
-        SelectObject(hdc, hPrevBr);
-        break;
-    case 4:
-    case 5:
-        cStartPt.x = pPrim->cPt3.x + m_cViewOrigin.x;
-        cStartPt.y = pPrim->cPt3.y + m_cViewOrigin.y;
-        MoveToEx(hdc, cStartPt.x, cStartPt.y, NULL);
-        cEndPt.x = pPrim->cPt4.x + m_cViewOrigin.x;
-        cEndPt.y = pPrim->cPt4.y + m_cViewOrigin.y;
-        LineTo(hdc, cEndPt.x, cEndPt.y);
-        break;
-    }
+  switch(iType)
+  {
+  case 1:
+    cStartPt.x = pPrim->cPt3.x + m_cViewOrigin.x;
+    cStartPt.y = pPrim->cPt3.y + m_cViewOrigin.y;
+    MoveToEx(hdc, cStartPt.x, cStartPt.y, NULL);
+    cEndPt.x = pPrim->cPt2.x + m_cViewOrigin.x;
+    cEndPt.y = pPrim->cPt2.y + m_cViewOrigin.y;
+    LineTo(hdc, cEndPt.x, cEndPt.y);
+    cEndPt.x = pPrim->cPt4.x + m_cViewOrigin.x;
+    cEndPt.y = pPrim->cPt4.y + m_cViewOrigin.y;
+    LineTo(hdc, cEndPt.x, cEndPt.y);
+    break;
+  case 2:
+    hPrevBr = (HBRUSH)SelectObject(hdc, hBr);
+    cPoly[0].x = pPrim->cPt3.x + m_cViewOrigin.x;
+    cPoly[0].y = pPrim->cPt3.y + m_cViewOrigin.y;
+    cPoly[1].x = pPrim->cPt2.x + m_cViewOrigin.x;
+    cPoly[1].y = pPrim->cPt2.y + m_cViewOrigin.y;
+    cPoly[2].x = pPrim->cPt4.x + m_cViewOrigin.x;
+    cPoly[2].y = pPrim->cPt4.y + m_cViewOrigin.y;
+    Polygon(hdc, cPoly, 3);
+    SelectObject(hdc, hPrevBr);
+    break;
+  case 3:
+    hPrevBr = (HBRUSH)SelectObject(hdc, hBr);
+    cStartPt.x = Round(pPrim->cPt3.x - pPrim->cPt2.x);
+    cStartPt.y = Round(pPrim->cPt3.y - pPrim->cPt2.y);
+    Ellipse(hdc, pPrim->cPt2.x + m_cViewOrigin.x - cStartPt.x,
+    pPrim->cPt2.y + m_cViewOrigin.y - cStartPt.y,
+    pPrim->cPt2.x + m_cViewOrigin.x + cStartPt.x,
+    pPrim->cPt2.y + m_cViewOrigin.y + cStartPt.y);
+    SelectObject(hdc, hPrevBr);
+    break;
+  case 4:
+  case 5:
+    cStartPt.x = pPrim->cPt3.x + m_cViewOrigin.x;
+    cStartPt.y = pPrim->cPt3.y + m_cViewOrigin.y;
+    MoveToEx(hdc, cStartPt.x, cStartPt.y, NULL);
+    cEndPt.x = pPrim->cPt4.x + m_cViewOrigin.x;
+    cEndPt.y = pPrim->cPt4.y + m_cViewOrigin.y;
+    LineTo(hdc, cEndPt.x, cEndPt.y);
+    break;
+  }
 }
 
 void CMainWnd::DrawDimText(HWND hWnd, HDC hdc, PDPrimitive pPrim, PDObject pObj, DWORD dwColor,
-    double dLineWidth)
+  double dLineWidth)
 {
-    POINT cStartPt, cEndPt;
-    int iPos = Round(pPrim->cPt2.y);
+  POINT cStartPt, cEndPt;
+  int iPos = Round(pPrim->cPt2.y);
 
-    char sBuf[64];
-    char *psBuf = sBuf;
-    int iLen = pObj->PreParseDimText(iPos, psBuf, 64, m_dDrawScale, m_pFileSetupDlg->GetUnitList());
-    if(iLen > 0)
+  char sBuf[64];
+  char *psBuf = sBuf;
+  int iLen = pObj->PreParseDimText(iPos, psBuf, 64, m_dDrawScale, m_pFileSetupDlg->GetUnitList());
+  if(iLen > 0)
+  {
+    psBuf = (char*)malloc(iLen*sizeof(char));
+    pObj->PreParseDimText(iPos, psBuf, iLen, m_dDrawScale, m_pFileSetupDlg->GetUnitList());
+  }
+
+  int iLen2 = strlen(psBuf);
+
+  CDFileAttrs cFileAttrs;
+  if(iPos < 0) m_pDrawObjects->GetFileAttrs(&cFileAttrs);
+  else pObj->GetDimFontAttrs(iPos, &cFileAttrs);
+
+  double dPi2 = M_PI/2.0;
+  double dco = cos(pPrim->cPt2.x - dPi2);
+  double dsi = sin(pPrim->cPt2.x - dPi2);
+
+  double dx1 = 100.0*(pPrim->cPt1.x + m_cViewOrigin.x)/m_dUnitScale;
+  double dy1 = -100.0*(pPrim->cPt1.y + m_cViewOrigin.y)/m_dUnitScale;
+  double da = cFileAttrs.dFontSize/2.0;
+  double dx2, dy2;
+
+  bool bDiam = (psBuf[0] == '*');
+  int iStart = 0;
+  if(bDiam) iStart = 1;
+  if(iStart >= iLen2)
+  {
+    psBuf[iStart] = '?';
+    psBuf[iStart + 1] = 0;
+    iLen2++;
+  }
+
+  int iwLen = MultiByteToWideChar(CP_UTF8, 0, &psBuf[iStart], -1, NULL, 0) + 1;
+  LPWSTR wsBufStart = (LPWSTR)malloc(iwLen*sizeof(wchar_t));
+  MultiByteToWideChar(CP_UTF8, 0, &psBuf[iStart], -1, wsBufStart, iwLen);
+  int iLenStart = wcslen(wsBufStart);
+  int iLenNom = 0;
+  int iLenDenom = 0;
+  int iLenEnd = 0;
+
+  LPWSTR wsFrac = wcschr(wsBufStart, '_');
+  wchar_t wsBufNom[4];
+  wchar_t wsBufDenom[4];
+  LPWSTR wsBufEnd = NULL;
+
+  if(wsFrac)
+  {
+    wsBufEnd = wsFrac + 1;
+    int i = 0;
+    while((*wsBufEnd >= '0') && (*wsBufEnd <= '9') && (i < 3))
     {
-        psBuf = (char*)malloc(iLen*sizeof(char));
-        pObj->PreParseDimText(iPos, psBuf, iLen, m_dDrawScale, m_pFileSetupDlg->GetUnitList());
+      wsBufNom[i++] = *(wsBufEnd++);
     }
+    wsBufNom[i] = 0;
 
-    int iLen2 = strlen(psBuf);
-
-    CDFileAttrs cFileAttrs;
-    if(iPos < 0) m_pDrawObjects->GetFileAttrs(&cFileAttrs);
-    else pObj->GetDimFontAttrs(iPos, &cFileAttrs);
-
-    double dPi2 = M_PI/2.0;
-    double dco = cos(pPrim->cPt2.x - dPi2);
-    double dsi = sin(pPrim->cPt2.x - dPi2);
-
-    double dx1 = 100.0*(pPrim->cPt1.x + m_cViewOrigin.x)/m_dUnitScale;
-    double dy1 = -100.0*(pPrim->cPt1.y + m_cViewOrigin.y)/m_dUnitScale;
-    double da = cFileAttrs.dFontSize/2.0;
-    double dx2, dy2;
-
-    bool bDiam = (psBuf[0] == '*');
-    int iStart = 0;
-    if(bDiam) iStart = 1;
-    if(iStart >= iLen2)
+    while(*wsBufEnd && (*wsBufEnd != '/')) wsBufEnd++;
+    if(*wsBufEnd) wsBufEnd++;
+    i = 0;
+    while((*wsBufEnd >= '0') && (*wsBufEnd <= '9') && (i < 3))
     {
-        psBuf[iStart] = '?';
-        psBuf[iStart + 1] = 0;
-        iLen2++;
+      wsBufDenom[i++] = *(wsBufEnd++);
     }
+    wsBufDenom[i] = 0;
+    *wsFrac = 0;
 
-    int iwLen = MultiByteToWideChar(CP_UTF8, 0, &psBuf[iStart], -1, NULL, 0) + 1;
-    LPWSTR wsBufStart = (LPWSTR)malloc(iwLen*sizeof(wchar_t));
-    MultiByteToWideChar(CP_UTF8, 0, &psBuf[iStart], -1, wsBufStart, iwLen);
-    int iLenStart = wcslen(wsBufStart);
-    int iLenNom = 0;
-    int iLenDenom = 0;
-    int iLenEnd = 0;
+    iLenStart = wcslen(wsBufStart);
+    iLenNom = wcslen(wsBufNom);
+    iLenDenom = wcslen(wsBufDenom);
+    iLenEnd = wcslen(wsBufEnd);
+  }
 
-    LPWSTR wsFrac = wcschr(wsBufStart, '_');
-    wchar_t wsBufNom[4];
-    wchar_t wsBufDenom[4];
-    LPWSTR wsBufEnd = NULL;
+  LOGFONT lFnt;
+  lFnt.lfHeight = -Round(400.0*cFileAttrs.dFontSize/3.0);
+  lFnt.lfWidth = 0;
+  lFnt.lfEscapement = 0;
+  lFnt.lfOrientation = 0;
+  lFnt.lfWeight = FW_NORMAL;
+  if(cFileAttrs.bFontAttrs & 8) lFnt.lfWeight = FW_BOLD;
+  lFnt.lfItalic = cFileAttrs.bFontAttrs & 1;
+  lFnt.lfUnderline = cFileAttrs.bFontAttrs & 2;
+  lFnt.lfStrikeOut = cFileAttrs.bFontAttrs & 4;
+  lFnt.lfCharSet = DEFAULT_CHARSET;
+  lFnt.lfOutPrecision = OUT_DEFAULT_PRECIS;
+  lFnt.lfClipPrecision = CLIP_DEFAULT_PRECIS;
+  lFnt.lfQuality = DEFAULT_QUALITY;
+  lFnt.lfPitchAndFamily = DEFAULT_PITCH;
+  MultiByteToWideChar(CP_UTF8, 0, cFileAttrs.sFontFace, -1, lFnt.lfFaceName, LF_FACESIZE);
+  HFONT hPrevFnt, hFnt, hFntSm;
+  hFnt = CreateFontIndirect(&lFnt);
+  if(wsFrac)
+  {
+    lFnt.lfHeight = -Round(80*cFileAttrs.dFontSize);
+    hFntSm = CreateFontIndirect(&lFnt);
+  }
 
-    if(wsFrac)
-    {
-        wsBufEnd = wsFrac + 1;
-        int i = 0;
-        while((*wsBufEnd >= '0') && (*wsBufEnd <= '9') && (i < 3))
-        {
-            wsBufNom[i++] = *(wsBufEnd++);
-        }
-        wsBufNom[i] = 0;
+  RECT R;
+  GetClientRect(hWnd, &R);
 
-        while(*wsBufEnd && (*wsBufEnd != '/')) wsBufEnd++;
-        if(*wsBufEnd) wsBufEnd++;
-        i = 0;
-        while((*wsBufEnd >= '0') && (*wsBufEnd <= '9') && (i < 3))
-        {
-            wsBufDenom[i++] = *(wsBufEnd++);
-        }
-        wsBufDenom[i] = 0;
-        *wsFrac = 0;
+  int iDC = SaveDC(hdc);
 
-        iLenStart = wcslen(wsBufStart);
-        iLenNom = wcslen(wsBufNom);
-        iLenDenom = wcslen(wsBufDenom);
-        iLenEnd = wcslen(wsBufEnd);
-    }
+  SetGraphicsMode(hdc, GM_ADVANCED);
 
-    LOGFONT lFnt;
-    lFnt.lfHeight = -Round(400.0*cFileAttrs.dFontSize/3.0);
-    lFnt.lfWidth = 0;
-    lFnt.lfEscapement = 0;
-    lFnt.lfOrientation = 0;
-    lFnt.lfWeight = FW_NORMAL;
-    if(cFileAttrs.bFontAttrs & 8) lFnt.lfWeight = FW_BOLD;
-    lFnt.lfItalic = cFileAttrs.bFontAttrs & 1;
-    lFnt.lfUnderline = cFileAttrs.bFontAttrs & 2;
-    lFnt.lfStrikeOut = cFileAttrs.bFontAttrs & 4;
-    lFnt.lfCharSet = DEFAULT_CHARSET;
-    lFnt.lfOutPrecision = OUT_DEFAULT_PRECIS;
-    lFnt.lfClipPrecision = CLIP_DEFAULT_PRECIS;
-    lFnt.lfQuality = DEFAULT_QUALITY;
-    lFnt.lfPitchAndFamily = DEFAULT_PITCH;
-    MultiByteToWideChar(CP_UTF8, 0, cFileAttrs.sFontFace, -1, lFnt.lfFaceName, LF_FACESIZE);
-    HFONT hPrevFnt, hFnt, hFntSm;
-    hFnt = CreateFontIndirect(&lFnt);
-    if(wsFrac)
-    {
-        lFnt.lfHeight = -Round(80*cFileAttrs.dFontSize);
-        hFntSm = CreateFontIndirect(&lFnt);
-    }
+  double dWidth = GetDeviceCaps(hdc, HORZSIZE); // mm
+  double dRes = GetDeviceCaps(hdc, HORZRES); // pt
+  double dScale = m_dUnitScale*dWidth/dRes;
 
-    RECT R;
-    GetClientRect(hWnd, &R);
+  SetMapMode(hdc, MM_HIMETRIC);
 
-    int iDC = SaveDC(hdc);
+  POINT pt = {R.right, R.bottom};
+  DPtoLP(hdc, &pt, 1);
 
-    SetGraphicsMode(hdc, GM_ADVANCED);
+  XFORM xMat = {dScale*dco, -dScale*dsi, dScale*dsi, dScale*dco, dx1*dScale, dy1*dScale};
+  SetWorldTransform(hdc, &xMat);
 
-    double dWidth = GetDeviceCaps(hdc, HORZSIZE); // mm
-    double dRes = GetDeviceCaps(hdc, HORZRES); // pt
-    double dScale = m_dUnitScale*dWidth/dRes;
+  hPrevFnt = (HFONT)SelectObject(hdc, hFnt);
 
-    SetMapMode(hdc, MM_HIMETRIC);
+  if(iPos > -1) SetBkMode(hdc, TRANSPARENT);
 
-    POINT pt = {R.right, R.bottom};
-    DPtoLP(hdc, &pt, 1);
+  PDDimension pDim = pObj->GetDimen(iPos);
 
-    XFORM xMat = {dScale*dco, -dScale*dsi, dScale*dsi, dScale*dco, dx1*dScale, dy1*dScale};
-    SetWorldTransform(hdc, &xMat);
+  SetTextColor(hdc, dwColor);
 
-    hPrevFnt = (HFONT)SelectObject(hdc, hFnt);
+  SetTextAlign(hdc, TA_BASELINE | TA_LEFT);
 
-    if(iPos > -1) SetBkMode(hdc, TRANSPARENT);
+  SIZE cSizeStart, cSizeNom, cSizeDenom, cSizeEnd;
+  GetTextExtentPoint32(hdc, wsBufStart, iLenStart, &cSizeStart);
+  int iTextWidth = cSizeStart.cx;
+  if(bDiam) iTextWidth += Round(150.0*da);
 
-    PDDimension pDim = pObj->GetDimen(iPos);
+  if(wsFrac)
+  {
+    GetTextExtentPoint32(hdc, wsBufEnd, iLenEnd, &cSizeEnd);
+    SelectObject(hdc, hFntSm);
+    GetTextExtentPoint32(hdc, wsBufNom, iLenNom, &cSizeNom);
+    GetTextExtentPoint32(hdc, wsBufDenom, iLenDenom, &cSizeDenom);
+    iTextWidth += (cSizeEnd.cx + cSizeNom.cx + cSizeDenom.cx + Round(3.0*da));
+    SelectObject(hdc, hFnt);
+  }
 
-    SetTextColor(hdc, dwColor);
+  pDim->cExt.cPt1.x = -iTextWidth/200.0;
+  pDim->cExt.cPt1.y = 0.0;
+  pDim->cExt.cPt2.x = iTextWidth/200.0;
+  pDim->cExt.cPt2.y = 1.15*cFileAttrs.dFontSize;
 
-    SetTextAlign(hdc, TA_BASELINE | TA_LEFT);
+  int iWidth = Round(100.0*dLineWidth);
+  HPEN hPen = CreatePen(PS_SOLID, iWidth, dwColor);
+  HPEN hPrevPen = (HPEN)SelectObject(hdc, hPen);
 
-    SIZE cSizeStart, cSizeNom, cSizeDenom, cSizeEnd;
-    GetTextExtentPoint32(hdc, wsBufStart, iLenStart, &cSizeStart);
-    int iTextWidth = cSizeStart.cx;
-    if(bDiam) iTextWidth += Round(150.0*da);
+  int ix = -iTextWidth/2;
+  if(bDiam) ix += Round(150.0*da);
+  TextOut(hdc, ix, 0, wsBufStart, iLenStart);
 
-    if(wsFrac)
-    {
-        GetTextExtentPoint32(hdc, wsBufEnd, iLenEnd, &cSizeEnd);
-        SelectObject(hdc, hFntSm);
-        GetTextExtentPoint32(hdc, wsBufNom, iLenNom, &cSizeNom);
-        GetTextExtentPoint32(hdc, wsBufDenom, iLenDenom, &cSizeDenom);
-        iTextWidth += (cSizeEnd.cx + cSizeNom.cx + cSizeDenom.cx + Round(3.0*da));
-        SelectObject(hdc, hFnt);
-    }
+  if(wsFrac)
+  {
+    ix += cSizeStart.cx + Round(da);
+    SelectObject(hdc, hFntSm);
+    TextOut(hdc, ix, 120.0*da, wsBufNom, iLenNom);
+    ix += cSizeNom.cx + Round(2.0*da);
+    TextOut(hdc, ix, -20.0*da, wsBufDenom, iLenDenom);
 
-    pDim->cExt.cPt1.x = -iTextWidth/200.0;
-    pDim->cExt.cPt1.y = 0.0;
-    pDim->cExt.cPt2.x = iTextWidth/200.0;
-    pDim->cExt.cPt2.y = 1.15*cFileAttrs.dFontSize;
+    MoveToEx(hdc, ix - Round(50.0*da), Round(55.0*da), NULL);
+    LineTo(hdc, ix + Round(50.0*da), Round(155.0*da));
 
-    int iWidth = Round(100.0*dLineWidth);
-    HPEN hPen = CreatePen(PS_SOLID, iWidth, dwColor);
-    HPEN hPrevPen = (HPEN)SelectObject(hdc, hPen);
+    SelectObject(hdc, hFnt);
+    ix += cSizeDenom.cx;
+    TextOut(hdc, ix, 0, wsBufEnd, iLenEnd);
+  }
 
-    int ix = -iTextWidth/2;
-    if(bDiam) ix += Round(150.0*da);
-    TextOut(hdc, ix, 0, wsBufStart, iLenStart);
+  if(bDiam)
+  {
+    dx2 = 60.0*da - iTextWidth/2; //ix - cSize.cx/2.0 - 180.0;
+    dy2 = 90.0*da;
+    da *= 60.0;
+    Ellipse(hdc, Round(dx2 - da), Round(dy2 - da), Round(dx2 + da), Round(dy2 + da));
+    MoveToEx(hdc, Round(dx2 - da), Round(dy2 - da), NULL);
+    LineTo(hdc, Round(dx2 + da), Round(dy2 + da));
+  }
 
-    if(wsFrac)
-    {
-        ix += cSizeStart.cx + Round(da);
-        SelectObject(hdc, hFntSm);
-        TextOut(hdc, ix, 120.0*da, wsBufNom, iLenNom);
-        ix += cSizeNom.cx + Round(2.0*da);
-        TextOut(hdc, ix, -20.0*da, wsBufDenom, iLenDenom);
+  //SelectObject(hdc, GetStockObject(BLACK_PEN));
+  //Rectangle(hdc, 100.0*pDim->cExt.cPt1.x, 100.0*pDim->cExt.cPt1.y,
+  //    100.0*pDim->cExt.cPt2.x, 100.0*pDim->cExt.cPt2.y);
+  //Rectangle(hdc, -100, -100, 100, 100);
+  DeleteObject(SelectObject(hdc, hPrevPen));
 
-        MoveToEx(hdc, ix - Round(50.0*da), Round(55.0*da), NULL);
-        LineTo(hdc, ix + Round(50.0*da), Round(155.0*da));
+  if(iPos > -1) SetBkMode(hdc, OPAQUE);
 
-        SelectObject(hdc, hFnt);
-        ix += cSizeDenom.cx;
-        TextOut(hdc, ix, 0, wsBufEnd, iLenEnd);
-    }
+  DeleteObject(SelectObject(hdc, hPrevFnt));
+  free(wsBufStart);
 
-    if(bDiam)
-    {
-        dx2 = 60.0*da - iTextWidth/2; //ix - cSize.cx/2.0 - 180.0;
-        dy2 = 90.0*da;
-        da *= 60.0;
-        Ellipse(hdc, Round(dx2 - da), Round(dy2 - da), Round(dx2 + da), Round(dy2 + da));
-        MoveToEx(hdc, Round(dx2 - da), Round(dy2 - da), NULL);
-        LineTo(hdc, Round(dx2 + da), Round(dy2 + da));
-    }
+  RestoreDC(hdc, iDC);
 
-    //SelectObject(hdc, GetStockObject(BLACK_PEN));
-    //Rectangle(hdc, 100.0*pDim->cExt.cPt1.x, 100.0*pDim->cExt.cPt1.y,
-    //    100.0*pDim->cExt.cPt2.x, 100.0*pDim->cExt.cPt2.y);
-    //Rectangle(hdc, -100, -100, 100, 100);
-    DeleteObject(SelectObject(hdc, hPrevPen));
-
-    if(iPos > -1) SetBkMode(hdc, OPAQUE);
-
-    DeleteObject(SelectObject(hdc, hPrevFnt));
-    free(wsBufStart);
-
-    RestoreDC(hdc, iDC);
-
-    if(iLen > 0) free(psBuf);
+  if(iLen > 0) free(psBuf);
 }
 
 /*void CMainWnd::DrawPrimitive(HDC hdc, PDPrimitive pPrim)
@@ -3095,12 +3095,12 @@ void CMainWnd::DrawPrimitivePlus(Graphics *graphics, Pen *pen, PDPrimitive pPrim
     DeleteObject(hCentPen);
     DeleteObject(hPtPen);
     DeleteObject(hPen);
-}
+}*/
 
-DWORD CodeRGBColor(unsigned char *pColor)
+DWORD CodeRGBAColor(unsigned char *pColor)
 {
   return pColor[0] | (pColor[1] << 8) | (pColor[2] << 16) | (pColor[3] << 24);
-}*/
+}
 
 ARGB EncodeColor(DWORD dwColor)
 {
@@ -3116,7 +3116,7 @@ void CMainWnd::DrawObjectPlus(HWND hWnd, Graphics *graphics, PDObject pObj, int 
   bool bSel = pObj->GetSelected();
   CDLineStyle cStyle = pObj->GetLineStyle();
 
-  DWORD dwColor = CodeRGBColor(cStyle.cColor);
+  DWORD dwColor = CodeRGBAColor(cStyle.cColor);
   if(iMode == 1) dwColor = m_lActiveColor;
   else if(iMode == 2) dwColor = m_lHighColor;
   else if(bSel) dwColor = m_lSelColor;
