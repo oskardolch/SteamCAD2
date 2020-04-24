@@ -333,7 +333,7 @@ CDPoint GetElpsNearProj(double da, double db, CDPoint cPt)
   return cRes;
 }
 
-CDPoint GetElpsFarProj(double da, double db, CDPoint cPt)
+/*CDPoint GetElpsFarProj(double da, double db, CDPoint cPt)
 {
   CDPoint pProjs[4];
   double pDists[4];
@@ -351,7 +351,7 @@ CDPoint GetElpsFarProj(double da, double db, CDPoint cPt)
     i++;
   }
   return cRes;
-}
+}*/
 
 CDPoint GetElpsBoundProj(double da, double db, double dOffset, CDPoint cPt, CDPoint cPtRef, bool bFar)
 {
@@ -589,7 +589,7 @@ double GetElpsPureRef(double da, double db, double dOffset, double dStart, doubl
   dt = GetQuadPointAtDist(&cQuad, 0.0, dLen);
   cQuad.cPt4 = GetQuadPoint(&cQuad, dt);
 
-  CDPoint cProj = GetElpsNearProj(da, db, cQuad.cPt4);
+  CDPoint cProj = GetElpsBoundProj(da, db, dOffset, cQuad.cPt4, cQuad.cPt4, false);
   return atan2(cProj.y, cProj.x);
 }
 
@@ -889,8 +889,16 @@ bool BuildEllipseCache(CDLine cTmpPt, int iMode, PDPointList pPoints, PDPointLis
 
       dr = GetElspBreakAngle(da, db, -dDist, dr1, dr2);
       pCache->AddPoint(dr, 0.0, 4);
-      dl1 = GetElpsLen(da, db, dDist, dr, -1.0, -1.0, dr);
-      dl2 = GetElpsLen(da, db, dDist, dr, dl1, -1.0, pi2);
+      if(dr > -0.5)
+      {
+        dl1 = GetElpsLen(da, db, dDist, dr, -1.0, -1.0, dr);
+        dl2 = GetElpsLen(da, db, dDist, dr, dl1, -1.0, pi2);
+      }
+      else
+      {
+        dl1 = GetElpsLen(da, db, dDist, pi2/2.0, -1.0, -1.0, pi2/2.0);
+        dl2 = GetElpsLen(da, db, dDist, pi2/2.0, dl1, -1.0, pi2);
+      }
       pCache->AddPoint(dl1, dl2, 4);
     }
     else
@@ -1417,7 +1425,8 @@ bool GetElpsRestrictPoint(CDPoint cPt, int iMode, double dRestrictValue, PDPoint
   double dRad = dDist + dRestrictValue;
 
   CDPoint cPt1 = Rotate(cPt - cOrig, cMainDir, false);
-  CDPoint cProj = GetElpsNearProj(cRad.x, cRad.y, cPt1);
+  //CDPoint cProj = GetElpsNearProj(cRad.x, cRad.y, cPt1);
+  CDPoint cProj = GetElpsBoundProj(cRad.x, cRad.y, dRad, cPt1, cPt1, false);
 
   CDPoint cDir;
   cDir.x = cRad.y*cProj.x;
@@ -1483,7 +1492,8 @@ double GetElpsRadiusAtPt(CDPoint cPt, PDPointList pCache, PDLine pPtR, bool bNew
 
   cPt1 = Rotate(cPt - cOrig, cMainDir, false);
 
-  CDPoint cProj = GetElpsNearProj(cRad.x, cRad.y, cPt1);
+  //CDPoint cProj = GetElpsNearProj(cRad.x, cRad.y, cPt1);
+  CDPoint cProj = GetElpsBoundProj(cRad.x, cRad.y, dDist, cPt1, cPt1, false);
   if(cProj.x > 4.0) return -1.0;
 
   cDir.x = cRad.y*cProj.x;
@@ -1590,6 +1600,13 @@ void AddElpsSegment(double d1, double d2, double dExt, PDPointList pCache, PDPri
     cLengths = pCache->GetPoint(1, 4).cPoint;
   }
   if(cBreak.x < -0.5) cBreak.x = M_PI/4.0;
+//for(int i = -20; i < 20; i++)
+//{
+//double dt = (double)i*M_PI/8.0;
+//double dl = GetElpsLen(cRad.x, cRad.y, dr, cBreak.x, cLengths.x, cLengths.y, dt);
+//double ds = GetElpsRef(cRad.x, cRad.y, dr, cBreak.x, cLengths.x, cLengths.y, dl);
+//printf("%d, %f, %f, %f\n", i, dt, dl, ds);
+//}
 
   double dt1 = GetElpsRef(cRad.x, cRad.y, dr, cBreak.x, cLengths.x, cLengths.y, d1);
   double dt2 = GetElpsRef(cRad.x, cRad.y, dr, cBreak.x, cLengths.x, cLengths.y, d2);
