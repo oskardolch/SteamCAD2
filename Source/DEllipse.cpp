@@ -359,9 +359,11 @@ CDPoint GetElpsBoundProj(double da, double db, double dOffset, CDPoint cPt, CDPo
   double pDists[4];
   int iRoots = GetElpsPtProj(da, db, cPt, pProjs, pDists);
   int i = 0;
-  CDPoint cProjPt = {da*pProjs[i].x, db*pProjs[i].y};
-  double dNorm, dMin = GetDist(cPtRef, cProjPt);
-  CDPoint cNorm, cRes = pProjs[i++];
+  CDPoint cNorm = {db*pProjs[i].x, da*pProjs[i].y};
+  double dNorm = GetNorm(cNorm);
+  CDPoint cProjPt = {da*pProjs[i].x + dOffset*cNorm.x/dNorm, db*pProjs[i].y + dOffset*cNorm.y/dNorm};
+  double dMin = GetDist(cPtRef, cProjPt);
+  CDPoint cRes = pProjs[i++];
   if(bFar)
   {
     while(i < iRoots)
