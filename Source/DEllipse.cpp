@@ -680,12 +680,17 @@ double GetElpsRef(double da, double db, double dOffset, double dBreak, double dl
 
 bool AddEllipsePoint(double x, double y, char iCtrl, double dRestrictVal, PDPointList pPoints, int iInputLines)
 {
-  if((iCtrl == 2) || (iCtrl == 3))
+  if((iCtrl == 2) || (iCtrl == 3) || (iCtrl == 4))
   {
     int nOffs2 = pPoints->GetCount(2);
     int nOffs3 = pPoints->GetCount(3);
+    int nOffs4 = pPoints->GetCount(4);
     if(nOffs2 > 0) pPoints->SetPoint(0, 2, x, y, iCtrl);
     else if(nOffs3 > 0) pPoints->SetPoint(0, 3, x, y, iCtrl);
+    else if(nOffs4 > 0)
+    {
+      pPoints->SetPoint(0, 3, x, y, iCtrl);
+    }
     else pPoints->AddPoint(x, y, iCtrl);
     return true;
   }
@@ -937,7 +942,7 @@ printf("Dobry 2\n");
         iSrchMask = 2;
       }
 
-      if(nOffs4 == 0)
+      if((iMode == 2) || (nOffs4 == 0))
         dDist = GetElpsDistFromPt(cPt1, cPt1, iSrchMask, pCache, &cPtX, NULL);
 
       if(iMode == 2)
