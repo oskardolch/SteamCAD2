@@ -3,7 +3,7 @@
 
 #include "DDataTypes.hpp"
 
-bool AddEllipsePoint(double x, double y, char iCtrl, PDPointList pPoints, int iInputLines);
+bool AddEllipsePoint(double x, double y, char iCtrl, double dRestrictVal, PDPointList pPoints, int iInputLines);
 bool BuildEllipseCache(CDLine cTmpPt, int iMode, PDPointList pPoints, PDPointList pCache,
   PDLine pLines, double *pdDist);
 int AddEllipseInterLine(CDPoint cPt1, CDPoint cPt2, double dOffset, PDPointList pCache, PDRefList pBounds);

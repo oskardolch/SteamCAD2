@@ -118,63 +118,63 @@ CDObject::~CDObject()
     delete m_pInputPoints;
 }
 
-bool CDObject::AddPoint(double x, double y, char iCtrl, bool bFromGui)
+bool CDObject::AddPoint(double x, double y, char iCtrl, double dRestrictVal, bool bFromGui)
 {
-    bool bRes = false;
-    int iInputLines = 0;
-    if(m_cLines[0].bIsSet) iInputLines++;
-    if(m_cLines[1].bIsSet) iInputLines++;
+  bool bRes = false;
+  int iInputLines = 0;
+  if(m_cLines[0].bIsSet) iInputLines++;
+  if(m_cLines[1].bIsSet) iInputLines++;
 
-    switch(m_iType)
-    {
-    case dtLine:
-        bRes = AddLinePoint(x, y, iCtrl, m_pInputPoints);
-        break;
-    case dtCircle:
-        bRes = AddCirclePoint(x, y, iCtrl, m_pInputPoints, m_cLines);
-        break;
-    case dtEllipse:
-        bRes = AddEllipsePoint(x, y, iCtrl, m_pInputPoints, iInputLines);
-        break;
-    case dtArcEllipse:
-        bRes = AddArcElpsPoint(x, y, iCtrl, m_pInputPoints, iInputLines);
-        break;
-    case dtHyperbola:
-        bRes = AddHyperPoint(x, y, iCtrl, m_pInputPoints, iInputLines);
-        break;
-    case dtParabola:
-        bRes = AddParabPoint(x, y, iCtrl, m_pInputPoints, iInputLines);
-        break;
-    case dtSpline:
-        bRes = AddSplinePoint(x, y, iCtrl, m_pInputPoints);
-        break;
-    case dtEvolvent:
-        bRes = AddEvolvPoint(x, y, iCtrl, m_pInputPoints, iInputLines);
-        break;
-    case dtPath:
-    case dtBorderPath:
-    case dtBorder:
-    case dtArea:
-    case dtGroup:
-        break;
-    }
+  switch(m_iType)
+  {
+  case dtLine:
+    bRes = AddLinePoint(x, y, iCtrl, m_pInputPoints);
+    break;
+  case dtCircle:
+    bRes = AddCirclePoint(x, y, iCtrl, m_pInputPoints, m_cLines);
+    break;
+  case dtEllipse:
+    bRes = AddEllipsePoint(x, y, iCtrl, dRestrictVal, m_pInputPoints, iInputLines);
+    break;
+  case dtArcEllipse:
+    bRes = AddArcElpsPoint(x, y, iCtrl, m_pInputPoints, iInputLines);
+    break;
+  case dtHyperbola:
+    bRes = AddHyperPoint(x, y, iCtrl, m_pInputPoints, iInputLines);
+    break;
+  case dtParabola:
+    bRes = AddParabPoint(x, y, iCtrl, m_pInputPoints, iInputLines);
+    break;
+  case dtSpline:
+    bRes = AddSplinePoint(x, y, iCtrl, m_pInputPoints);
+    break;
+  case dtEvolvent:
+    bRes = AddEvolvPoint(x, y, iCtrl, m_pInputPoints, iInputLines);
+    break;
+  case dtPath:
+  case dtBorderPath:
+  case dtBorder:
+  case dtArea:
+  case dtGroup:
+    break;
+  }
 
-    return bRes;
+  return bRes;
 }
 
 void CDObject::RemoveLastPoint()
 {
-    int iCnt = m_pInputPoints->GetCount(-1);
-    if(iCnt < 1) return;
+  int iCnt = m_pInputPoints->GetCount(-1);
+  if(iCnt < 1) return;
 
-    CDInputPoint cInPt = m_pInputPoints->GetPoint(iCnt - 1, -1);
-    m_pUndoPoints->AddPoint(cInPt.cPoint.x, cInPt.cPoint.y, cInPt.iCtrl);
-    m_pInputPoints->Remove(iCnt - 1, -1);
+  CDInputPoint cInPt = m_pInputPoints->GetPoint(iCnt - 1, -1);
+  m_pUndoPoints->AddPoint(cInPt.cPoint.x, cInPt.cPoint.y, cInPt.iCtrl);
+  m_pInputPoints->Remove(iCnt - 1, -1);
 }
 
 void CDObject::Undo()
 {
-    RemoveLastPoint();
+  RemoveLastPoint();
 }
 
 void CDObject::Redo()
@@ -2613,34 +2613,34 @@ void CDObject::SetLineStyle(int iMask, CDLineStyle cStyle)
 }
 
 bool CDObject::GetRestrictPoint(CDPoint cPt, int iMode, bool bRestrictSet, double dRestrictValue,
-    PDPoint pSnapPt)
+  PDPoint pSnapPt)
 {
-    *pSnapPt = cPt;
+  *pSnapPt = cPt;
 
-    if(!bRestrictSet) return false;
+  if(!bRestrictSet) return false;
 
-    switch(m_iType)
-    {
-    case dtLine:
-        return GetLineRestrictPoint(cPt, iMode, dRestrictValue, pSnapPt, m_pCachePoints);
-    case dtCircle:
-        return GetCircleRestrictPoint(cPt, iMode, dRestrictValue, pSnapPt, m_pCachePoints,
-            m_pInputPoints, m_cLines);
-    case dtEllipse:
-        return GetElpsRestrictPoint(cPt, iMode, dRestrictValue, pSnapPt, m_pCachePoints);
-    case dtArcEllipse:
-        return GetArcElpsRestrictPoint(cPt, iMode, dRestrictValue, pSnapPt, m_pCachePoints);
-    case dtHyperbola:
-        return GetHyperRestrictPoint(cPt, iMode, dRestrictValue, pSnapPt, m_pCachePoints);
-    case dtParabola:
-        return GetParabRestrictPoint(cPt, iMode, dRestrictValue, pSnapPt, m_pCachePoints);
-    case dtSpline:
-        return GetSplineRestrictPoint(cPt, iMode, dRestrictValue, pSnapPt, m_pCachePoints);
-    case dtEvolvent:
-        return GetEvolvRestrictPoint(cPt, iMode, dRestrictValue, pSnapPt, m_pCachePoints);
-    default:
-        return false;
-    }
+  switch(m_iType)
+  {
+  case dtLine:
+    return GetLineRestrictPoint(cPt, iMode, dRestrictValue, pSnapPt, m_pCachePoints);
+  case dtCircle:
+    return GetCircleRestrictPoint(cPt, iMode, dRestrictValue, pSnapPt, m_pCachePoints,
+      m_pInputPoints, m_cLines);
+  case dtEllipse:
+    return GetElpsRestrictPoint(cPt, iMode, dRestrictValue, pSnapPt, m_pCachePoints);
+  case dtArcEllipse:
+    return GetArcElpsRestrictPoint(cPt, iMode, dRestrictValue, pSnapPt, m_pCachePoints);
+  case dtHyperbola:
+    return GetHyperRestrictPoint(cPt, iMode, dRestrictValue, pSnapPt, m_pCachePoints);
+  case dtParabola:
+    return GetParabRestrictPoint(cPt, iMode, dRestrictValue, pSnapPt, m_pCachePoints);
+  case dtSpline:
+    return GetSplineRestrictPoint(cPt, iMode, dRestrictValue, pSnapPt, m_pCachePoints);
+  case dtEvolvent:
+    return GetEvolvRestrictPoint(cPt, iMode, dRestrictValue, pSnapPt, m_pCachePoints);
+  default:
+    return false;
+  }
 }
 
 CDObject* CDObject::Copy()
@@ -2653,7 +2653,7 @@ CDObject* CDObject::Copy()
     for(int i = 0; i < m_pInputPoints->GetCount(-1); i++)
     {
         cInPt = m_pInputPoints->GetPoint(i, -1);
-        pRes->AddPoint(cInPt.cPoint.x, cInPt.cPoint.y, cInPt.iCtrl, false);
+        pRes->AddPoint(cInPt.cPoint.x, cInPt.cPoint.y, cInPt.iCtrl, cInPt.cPoint.x, false);
     }
     pRes->SetBound(0, m_cBounds[0]);
     pRes->SetBound(1, m_cBounds[1]);

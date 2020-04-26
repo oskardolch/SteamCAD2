@@ -7,7 +7,7 @@
 
 bool AddLinePoint(double x, double y, char iCtrl, PDPointList pPoints)
 {
-  if((iCtrl == 2) || (iCtrl == 3))
+  if(iCtrl > 1)
   {
     if(pPoints->GetCount(-1) != 2) return false;
 

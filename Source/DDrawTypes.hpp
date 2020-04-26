@@ -128,7 +128,7 @@ private:
 public:
   CDObject(CDDrawType iType, double dWidth);
   ~CDObject();
-  bool AddPoint(double x, double y, char iCtrl, bool bFromGui); // returns true if the point is the last point
+  bool AddPoint(double x, double y, char iCtrl, double dRestrictVal, bool bFromGui); // returns true if the point is the last point
   void RemoveLastPoint();
   void Undo();
   void Redo();

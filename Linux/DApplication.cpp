@@ -3083,113 +3083,113 @@ void CDApplication::ViewGridCmd(GtkWidget *widget, bool bFromAccel, int iFlag)
 
 int CDApplication::GetDynMode()
 {
-    int iRes = 0;
-    if(m_iDrawMode > modSelect) iRes = 1;
-    else if(m_iToolMode == tolCopyPar) iRes = 2;
-    else if(m_iToolMode == tolRound) iRes = 3;
-    else if(m_iToolMode == tolDimen) iRes = 4;
-    return iRes;
+  int iRes = 0;
+  if(m_iDrawMode > modSelect) iRes = 1;
+  else if(m_iToolMode == tolCopyPar) iRes = 2;
+  else if(m_iToolMode == tolRound) iRes = 3;
+  else if(m_iToolMode == tolDimen) iRes = 4;
+  return iRes;
 }
 
 int Min2(int i1, int i2)
 {
-    return i1 < i2 ? i1 : i2;
+  return i1 < i2 ? i1 : i2;
 }
 
 int Max2(int i1, int i2)
 {
-    return i1 > i2 ? i1 : i2;
+  return i1 > i2 ? i1 : i2;
 }
 
 void CDApplication::DrawSizeRectClip(cairo_t *cr, double x, double y)
 {
-    int iMinX2 = Min2(m_cLastMovePt.x, x);
-    int iMinY2 = Min2(m_cLastMovePt.y, y);
-    int iMaxX2 = Max2(m_cLastMovePt.x, x);
-    int iMaxY2 = Max2(m_cLastMovePt.y, y);
+  int iMinX2 = Min2(m_cLastMovePt.x, x);
+  int iMinY2 = Min2(m_cLastMovePt.y, y);
+  int iMaxX2 = Max2(m_cLastMovePt.x, x);
+  int iMaxY2 = Max2(m_cLastMovePt.y, y);
 
-    cairo_new_path(cr);
-    if(m_cLastDownPt.x < iMinX2)
+  cairo_new_path(cr);
+  if(m_cLastDownPt.x < iMinX2)
+  {
+    if(m_cLastDownPt.y < iMinY2)
     {
-        if(m_cLastDownPt.y < iMinY2)
-        {
-            cairo_move_to(cr, m_cLastDownPt.x - 2, iMinY2 - 2);
-            cairo_line_to(cr, m_cLastDownPt.x - 2, iMaxY2 + 2);
-            cairo_line_to(cr, iMaxX2 + 2, iMaxY2 + 2);
-            cairo_line_to(cr, iMaxX2 + 2, m_cLastDownPt.y - 2);
-            cairo_line_to(cr, iMinX2 - 2, m_cLastDownPt.y - 2);
-            cairo_line_to(cr, iMinX2 - 2, iMinY2 - 2);
-        }
-        else if(m_cLastDownPt.y > iMaxY2)
-        {
-            cairo_move_to(cr, m_cLastDownPt.x - 2, iMaxY2 + 2);
-            cairo_line_to(cr, iMinX2 - 2, iMaxY2 + 2);
-            cairo_line_to(cr, iMinX2 - 2, m_cLastDownPt.y + 2);
-            cairo_line_to(cr, iMaxX2 + 2, m_cLastDownPt.y + 2);
-            cairo_line_to(cr, iMaxX2 + 2, iMinY2 - 2);
-            cairo_line_to(cr, m_cLastDownPt.x - 2, iMinY2 - 2);
-        }
-        else
-        {
-            cairo_move_to(cr, m_cLastDownPt.x - 2, iMaxY2 + 2);
-            cairo_line_to(cr, iMaxX2 + 2, iMaxY2 + 2);
-            cairo_line_to(cr, iMaxX2 + 2, iMinY2 - 2);
-            cairo_line_to(cr, m_cLastDownPt.x - 2, iMinY2 - 2);
-        }
+      cairo_move_to(cr, m_cLastDownPt.x - 2, iMinY2 - 2);
+      cairo_line_to(cr, m_cLastDownPt.x - 2, iMaxY2 + 2);
+      cairo_line_to(cr, iMaxX2 + 2, iMaxY2 + 2);
+      cairo_line_to(cr, iMaxX2 + 2, m_cLastDownPt.y - 2);
+      cairo_line_to(cr, iMinX2 - 2, m_cLastDownPt.y - 2);
+      cairo_line_to(cr, iMinX2 - 2, iMinY2 - 2);
     }
-    else if(m_cLastDownPt.x > iMaxX2)
+    else if(m_cLastDownPt.y > iMaxY2)
     {
-        if(m_cLastDownPt.y < iMinY2)
-        {
-            cairo_move_to(cr, m_cLastDownPt.x + 2, iMinY2 - 2);
-            cairo_line_to(cr, iMaxX2 + 2, iMinY2 - 2);
-            cairo_line_to(cr, iMaxX2 + 2, m_cLastDownPt.y - 2);
-            cairo_line_to(cr, iMinX2 - 2, m_cLastDownPt.y - 2);
-            cairo_line_to(cr, iMinX2 - 2, iMaxY2 + 2);
-            cairo_line_to(cr, m_cLastDownPt.x + 2, iMaxY2 + 2);
-        }
-        else if(m_cLastDownPt.y > iMaxY2)
-        {
-            cairo_move_to(cr, m_cLastDownPt.x + 2, iMaxY2 + 2);
-            cairo_line_to(cr, m_cLastDownPt.x + 2, iMinY2 - 2);
-            cairo_line_to(cr, iMinX2 - 2, iMinY2 - 2);
-            cairo_line_to(cr, iMinX2 - 2, m_cLastDownPt.y + 2);
-            cairo_line_to(cr, iMaxX2 + 2, m_cLastDownPt.y + 2);
-            cairo_line_to(cr, iMaxX2 + 2, iMaxY2 + 2);
-        }
-        else
-        {
-            cairo_move_to(cr, m_cLastDownPt.x + 2, iMaxY2 + 2);
-            cairo_line_to(cr, m_cLastDownPt.x + 2, iMinY2 - 2);
-            cairo_line_to(cr, iMinX2 - 2, iMinY2 - 2);
-            cairo_line_to(cr, iMinX2 - 2, iMaxY2 + 2);
-        }
+      cairo_move_to(cr, m_cLastDownPt.x - 2, iMaxY2 + 2);
+      cairo_line_to(cr, iMinX2 - 2, iMaxY2 + 2);
+      cairo_line_to(cr, iMinX2 - 2, m_cLastDownPt.y + 2);
+      cairo_line_to(cr, iMaxX2 + 2, m_cLastDownPt.y + 2);
+      cairo_line_to(cr, iMaxX2 + 2, iMinY2 - 2);
+      cairo_line_to(cr, m_cLastDownPt.x - 2, iMinY2 - 2);
     }
     else
     {
-        if(m_cLastDownPt.y < iMinY2)
-        {
-            cairo_move_to(cr, iMaxX2 + 2, m_cLastDownPt.y - 2);
-            cairo_line_to(cr, iMinX2 - 2, m_cLastDownPt.y - 2);
-            cairo_line_to(cr, iMinX2 - 2, iMaxY2 + 2);
-            cairo_line_to(cr, iMaxX2 + 2, iMaxY2 + 2);
-        }
-        else if(m_cLastDownPt.y > iMaxY2)
-        {
-            cairo_move_to(cr, iMinX2 - 2, iMinY2 - 2);
-            cairo_line_to(cr, iMinX2 - 2, m_cLastDownPt.y + 2);
-            cairo_line_to(cr, iMaxX2 + 2, m_cLastDownPt.y + 2);
-            cairo_line_to(cr, iMaxX2 + 2, iMinY2 - 2);
-        }
-        else
-        {
-            cairo_move_to(cr, iMinX2 - 2, iMinY2 - 2);
-            cairo_line_to(cr, iMinX2 - 2, iMaxY2 + 2);
-            cairo_line_to(cr, iMaxX2 + 2, iMaxY2 + 2);
-            cairo_line_to(cr, iMaxX2 + 2, iMinY2 - 2);
-        }
+      cairo_move_to(cr, m_cLastDownPt.x - 2, iMaxY2 + 2);
+      cairo_line_to(cr, iMaxX2 + 2, iMaxY2 + 2);
+      cairo_line_to(cr, iMaxX2 + 2, iMinY2 - 2);
+      cairo_line_to(cr, m_cLastDownPt.x - 2, iMinY2 - 2);
     }
-    cairo_clip(cr);
+  }
+  else if(m_cLastDownPt.x > iMaxX2)
+  {
+    if(m_cLastDownPt.y < iMinY2)
+    {
+      cairo_move_to(cr, m_cLastDownPt.x + 2, iMinY2 - 2);
+      cairo_line_to(cr, iMaxX2 + 2, iMinY2 - 2);
+      cairo_line_to(cr, iMaxX2 + 2, m_cLastDownPt.y - 2);
+      cairo_line_to(cr, iMinX2 - 2, m_cLastDownPt.y - 2);
+      cairo_line_to(cr, iMinX2 - 2, iMaxY2 + 2);
+      cairo_line_to(cr, m_cLastDownPt.x + 2, iMaxY2 + 2);
+    }
+    else if(m_cLastDownPt.y > iMaxY2)
+    {
+      cairo_move_to(cr, m_cLastDownPt.x + 2, iMaxY2 + 2);
+      cairo_line_to(cr, m_cLastDownPt.x + 2, iMinY2 - 2);
+      cairo_line_to(cr, iMinX2 - 2, iMinY2 - 2);
+      cairo_line_to(cr, iMinX2 - 2, m_cLastDownPt.y + 2);
+      cairo_line_to(cr, iMaxX2 + 2, m_cLastDownPt.y + 2);
+      cairo_line_to(cr, iMaxX2 + 2, iMaxY2 + 2);
+    }
+    else
+    {
+      cairo_move_to(cr, m_cLastDownPt.x + 2, iMaxY2 + 2);
+      cairo_line_to(cr, m_cLastDownPt.x + 2, iMinY2 - 2);
+      cairo_line_to(cr, iMinX2 - 2, iMinY2 - 2);
+      cairo_line_to(cr, iMinX2 - 2, iMaxY2 + 2);
+    }
+  }
+  else
+  {
+    if(m_cLastDownPt.y < iMinY2)
+    {
+      cairo_move_to(cr, iMaxX2 + 2, m_cLastDownPt.y - 2);
+      cairo_line_to(cr, iMinX2 - 2, m_cLastDownPt.y - 2);
+      cairo_line_to(cr, iMinX2 - 2, iMaxY2 + 2);
+      cairo_line_to(cr, iMaxX2 + 2, iMaxY2 + 2);
+    }
+    else if(m_cLastDownPt.y > iMaxY2)
+    {
+      cairo_move_to(cr, iMinX2 - 2, iMinY2 - 2);
+      cairo_line_to(cr, iMinX2 - 2, m_cLastDownPt.y + 2);
+      cairo_line_to(cr, iMaxX2 + 2, m_cLastDownPt.y + 2);
+      cairo_line_to(cr, iMaxX2 + 2, iMinY2 - 2);
+    }
+    else
+    {
+      cairo_move_to(cr, iMinX2 - 2, iMinY2 - 2);
+      cairo_line_to(cr, iMinX2 - 2, iMaxY2 + 2);
+      cairo_line_to(cr, iMaxX2 + 2, iMaxY2 + 2);
+      cairo_line_to(cr, iMaxX2 + 2, iMinY2 - 2);
+    }
+  }
+  cairo_clip(cr);
 }
 
 void CDApplication::MouseMove(GtkWidget *widget, GdkEventMotion *event, gboolean bForce)
@@ -3609,611 +3609,624 @@ void CDApplication::MouseMove(GtkWidget *widget, GdkEventMotion *event, gboolean
 
 void CDApplication::MouseWheel(GtkWidget *widget, GdkEventScroll *event)
 {
-    if(m_iButton == 0)
-    {
-        double dRatio = 1.0;
-        if(event->direction == GDK_SCROLL_UP) dRatio = exp(0.5);
-        else if(event->direction == GDK_SCROLL_DOWN)  dRatio = exp(-0.5);
+  if(m_iButton == 0)
+  {
+    double dRatio = 1.0;
+    if(event->direction == GDK_SCROLL_UP) dRatio = exp(0.5);
+    else if(event->direction == GDK_SCROLL_DOWN)  dRatio = exp(-0.5);
 
-        CDPoint cPt = {event->x, event->y};
+    CDPoint cPt = {event->x, event->y};
 
-        m_cViewOrigin.x = cPt.x + (m_cViewOrigin.x - cPt.x)*dRatio;
-        m_cViewOrigin.y = cPt.y + (m_cViewOrigin.y - cPt.y)*dRatio;
-        m_dUnitScale *= dRatio;
+    m_cViewOrigin.x = cPt.x + (m_cViewOrigin.x - cPt.x)*dRatio;
+    m_cViewOrigin.y = cPt.y + (m_cViewOrigin.y - cPt.y)*dRatio;
+    m_dUnitScale *= dRatio;
 
-        gdk_window_invalidate_rect(event->window, NULL, FALSE);
-    }
-    return;
+    gdk_window_invalidate_rect(event->window, NULL, FALSE);
+  }
+  return;
 }
 
 void CDApplication::MouseLButtonDown(GtkWidget *widget, GdkEventButton *event)
 {
-    if(m_iButton > 0) return;
+  if(m_iButton > 0) return;
 
-    m_cLastDownPt.x = event->x;
-    m_cLastDownPt.y = event->y;
-    m_cLastMovePt.x = event->x;
-    m_cLastMovePt.y = event->y;
-    m_iButton = 1;
-    return;
+  m_cLastDownPt.x = event->x;
+  m_cLastDownPt.y = event->y;
+  m_cLastMovePt.x = event->x;
+  m_cLastMovePt.y = event->y;
+  m_iButton = 1;
+  return;
 }
 
 gboolean CDApplication::GetUpdateRegion(PDPtrList pPolygons, GdkRectangle *pRect)
 {
-    int iCnt = pPolygons->GetCount();
-    if(iCnt < 1) return FALSE;
+  int iCnt = pPolygons->GetCount();
+  if(iCnt < 1) return FALSE;
 
-    PDPolygon pPoly;
-    bool bFound = false;
-    int i = 0;
-    while(!bFound && (i < iCnt))
+  PDPolygon pPoly;
+  bool bFound = false;
+  int i = 0;
+  while(!bFound && (i < iCnt))
+  {
+    pPoly = (PDPolygon)pPolygons->GetItem(i++);
+    bFound = (pPoly->iPoints > 0);
+  }
+
+  if(!bFound) return FALSE;
+
+  pRect->x = Round(m_cViewOrigin.x + m_dUnitScale*pPoly->pPoints[0].x);
+  pRect->y = Round(m_cViewOrigin.y + m_dUnitScale*pPoly->pPoints[0].y);
+  pRect->width = pRect->x;
+  pRect->height = pRect->y;
+
+  gint ix, iy;
+
+  for(int k = 1; k < pPoly->iPoints; k++)
+  {
+    ix = Round(m_cViewOrigin.x + m_dUnitScale*pPoly->pPoints[k].x);
+    iy = Round(m_cViewOrigin.y + m_dUnitScale*pPoly->pPoints[k].y);
+    if(ix < pRect->x) pRect->x = ix;
+    if(ix > pRect->width) pRect->width = ix;
+    if(iy < pRect->y) pRect->y = iy;
+    if(iy > pRect->height) pRect->height = iy;
+  }
+
+  while(i < iCnt)
+  {
+    pPoly = (PDPolygon)pPolygons->GetItem(i++);
+
+    for(int k = 0; k < pPoly->iPoints; k++)
     {
-        pPoly = (PDPolygon)pPolygons->GetItem(i++);
-        bFound = (pPoly->iPoints > 0);
+      ix = Round(m_cViewOrigin.x + m_dUnitScale*pPoly->pPoints[k].x);
+      iy = Round(m_cViewOrigin.y + m_dUnitScale*pPoly->pPoints[k].y);
+      if(ix < pRect->x) pRect->x = ix;
+      if(ix > pRect->width) pRect->width = ix;
+      if(iy < pRect->y) pRect->y = iy;
+      if(iy > pRect->height) pRect->height = iy;
     }
+  }
 
-    if(!bFound) return FALSE;
+  pRect->width -= pRect->x;
+  pRect->height -= pRect->y;
 
-    pRect->x = Round(m_cViewOrigin.x + m_dUnitScale*pPoly->pPoints[0].x);
-    pRect->y = Round(m_cViewOrigin.y + m_dUnitScale*pPoly->pPoints[0].y);
-    pRect->width = pRect->x;
-    pRect->height = pRect->y;
+  /*pRect->x -= 5;
+  pRect->y -= 5;
+  pRect->width += 10;
+  pRect->height += 10;*/
 
-    gint ix, iy;
-
-    for(int k = 1; k < pPoly->iPoints; k++)
-    {
-        ix = Round(m_cViewOrigin.x + m_dUnitScale*pPoly->pPoints[k].x);
-        iy = Round(m_cViewOrigin.y + m_dUnitScale*pPoly->pPoints[k].y);
-        if(ix < pRect->x) pRect->x = ix;
-        if(ix > pRect->width) pRect->width = ix;
-        if(iy < pRect->y) pRect->y = iy;
-        if(iy > pRect->height) pRect->height = iy;
-    }
-
-    while(i < iCnt)
-    {
-        pPoly = (PDPolygon)pPolygons->GetItem(i++);
-
-        for(int k = 0; k < pPoly->iPoints; k++)
-        {
-            ix = Round(m_cViewOrigin.x + m_dUnitScale*pPoly->pPoints[k].x);
-            iy = Round(m_cViewOrigin.y + m_dUnitScale*pPoly->pPoints[k].y);
-            if(ix < pRect->x) pRect->x = ix;
-            if(ix > pRect->width) pRect->width = ix;
-            if(iy < pRect->y) pRect->y = iy;
-            if(iy > pRect->height) pRect->height = iy;
-        }
-    }
-
-    pRect->width -= pRect->x;
-    pRect->height -= pRect->y;
-
-    /*pRect->x -= 5;
-    pRect->y -= 5;
-    pRect->width += 10;
-    pRect->height += 10;*/
-
-    return TRUE;
+  return TRUE;
 }
 
 void CDApplication::MouseLButtonUp(GtkWidget *widget, GdkEventButton *event)
 {
-    if(m_iButton != 1) return;
+  if(m_iButton != 1) return;
 
-    m_iButton = 0;
+  m_iButton = 0;
 
-    int iWidth = gdk_window_get_width(event->window);
-    int iHeight = gdk_window_get_height(event->window);
+  int iWidth = gdk_window_get_width(event->window);
+  int iHeight = gdk_window_get_height(event->window);
 
-    CDRect cdr;
-    cdr.cPt1.x = -m_cViewOrigin.x/m_dUnitScale;
-    cdr.cPt1.y = -m_cViewOrigin.y/m_dUnitScale;
-    cdr.cPt2.x = (iWidth - m_cViewOrigin.x)/m_dUnitScale;
-    cdr.cPt2.y = (iHeight - m_cViewOrigin.y)/m_dUnitScale;
+  CDRect cdr;
+  cdr.cPt1.x = -m_cViewOrigin.x/m_dUnitScale;
+  cdr.cPt1.y = -m_cViewOrigin.y/m_dUnitScale;
+  cdr.cPt2.x = (iWidth - m_cViewOrigin.x)/m_dUnitScale;
+  cdr.cPt2.y = (iHeight - m_cViewOrigin.y)/m_dUnitScale;
 
-    double dTol = (double)m_iSnapTolerance/m_dUnitScale;
-    CDPoint cDistPt;
-    gchar sBuf[128];
-    double dNorm;
-    gchar *sUnit;
+  double dTol = (double)m_iSnapTolerance/m_dUnitScale;
+  CDPoint cDistPt;
+  gchar sBuf[128];
+  double dNorm;
+  gchar *sUnit;
 
-    PDPtrList pRegions = new CDPtrList();
-    pRegions->SetDblVal(m_dUnitScale);
+  PDPtrList pRegions = new CDPtrList();
+  pRegions->SetDblVal(m_dUnitScale);
 
-    double xPos = event->x;
-    double yPos = event->y;
-    GdkRectangle cRect;
+  double xPos = event->x;
+  double yPos = event->y;
+  GdkRectangle cRect;
 
-    gboolean bUpdate = FALSE;
+  gboolean bUpdate = FALSE;
 
-    if(m_iDrawMode + m_iToolMode < 1) // selection
+  if(m_iDrawMode + m_iToolMode < 1) // selection
+  {
+    if(!(event->state & GDK_CONTROL_MASK)) m_pDrawObjects->ClearSelection(pRegions);
+
+    if(GetPtDist(&m_cLastDownPt, xPos, yPos) > 4) // select by rectangle
     {
-        if(!(event->state & GDK_CONTROL_MASK)) m_pDrawObjects->ClearSelection(pRegions);
-
-        if(GetPtDist(&m_cLastDownPt, xPos, yPos) > 4) // select by rectangle
-        {
-            CDRect cdr1;
-            cdr1.cPt1.x = (m_cLastDownPt.x - m_cViewOrigin.x)/m_dUnitScale;
-            cdr1.cPt1.y = (m_cLastDownPt.y - m_cViewOrigin.y)/m_dUnitScale;
-            cdr1.cPt2.x = (xPos - m_cViewOrigin.x)/m_dUnitScale;
-            cdr1.cPt2.y = (yPos - m_cViewOrigin.y)/m_dUnitScale;
-            m_pDrawObjects->SelectByRectangle(&cdr1, 2, pRegions);
-        }
-        else
-        {
-            if(m_pHighObject)
-                m_pHighObject->SetSelected(true, event->state & GDK_CONTROL_MASK, m_iHighDimen, pRegions);
-        }
-        
-        if(GetUpdateRegion(pRegions, &cRect))
-            gdk_window_invalidate_rect(event->window, &cRect, FALSE);
-    }
-    else if((m_iToolMode > 20) && (m_iToolMode != tolRound))
-    {
-        if(GetPtDist(&m_cLastDownPt, xPos, yPos) > 4)
-        {
-            delete pRegions;
-            return;
-        }
-
-        switch(m_iToolMode)
-        {
-        case tolKnife:
-            if(m_pDrawObjects->CutSelected(m_cLastDrawPt, dTol, &cdr, pRegions))
-            {
-                bUpdate = TRUE;
-                if(GetUpdateRegion(pRegions, &cRect))
-                    gdk_window_invalidate_rect(event->window, &cRect, FALSE);
-                SetTitle(m_pMainWnd, false);
-            }
-            break;
-        case tolExtend:
-            if(m_pDrawObjects->ExtendSelected(m_cLastDrawPt, dTol, &cdr, pRegions))
-            {
-                bUpdate = TRUE;
-                if(GetUpdateRegion(pRegions, &cRect))
-                    gdk_window_invalidate_rect(event->window, &cRect, FALSE);
-                SetTitle(m_pMainWnd, false);
-            }
-            break;
-        case tolConflict:
-            if(m_pDrawObjects->SetCrossSelected(m_cLastDrawPt, dTol, &cdr, pRegions))
-            {
-                bUpdate = TRUE;
-                if(GetUpdateRegion(pRegions, &cRect))
-                    gdk_window_invalidate_rect(event->window, &cRect, FALSE);
-                SetTitle(m_pMainWnd, false);
-            }
-            break;
-        case tolMeas:
-            if(!m_cMeasPoint1.bIsSet)
-            {
-                m_cMeasPoint1.bIsSet = true;
-                m_cMeasPoint1.cOrigin = m_cLastDrawPt;
-            }
-            else if(!m_cMeasPoint2.bIsSet)
-            {
-                m_cMeasPoint2.bIsSet = true;
-                m_cMeasPoint2.cOrigin = m_cLastDrawPt;
-                cDistPt = m_cMeasPoint2.cOrigin - m_cMeasPoint1.cOrigin;
-                if(m_bPaperUnits)
-                {
-                    cDistPt /= m_cFSR.cPaperUnit.dBaseToUnit;
-                    sUnit = m_cFSR.cPaperUnit.sAbbrev;
-                }
-                else
-                {
-                    cDistPt /= m_dDrawScale;
-                    cDistPt /= m_cFSR.cLenUnit.dBaseToUnit;
-                    sUnit = m_cFSR.cLenUnit.sAbbrev;
-                }
-                dNorm = GetNorm(cDistPt);
-                sprintf(sBuf, "dx: %.3f, dy: %.3f, dist: %.4f (%s)", fabs(cDistPt.x),
-                    fabs(cDistPt.y), dNorm, sUnit);
-                SetStatusBarMsg(1, sBuf);
-            }
-            else
-            {
-                m_cMeasPoint1.bIsSet = true;
-                m_cMeasPoint1.cOrigin = m_cLastDrawPt;
-                m_cMeasPoint2.bIsSet = false;
-                SetStatusBarMsg(1, "");
-            }
-            break;
-        }
+      CDRect cdr1;
+      cdr1.cPt1.x = (m_cLastDownPt.x - m_cViewOrigin.x)/m_dUnitScale;
+      cdr1.cPt1.y = (m_cLastDownPt.y - m_cViewOrigin.y)/m_dUnitScale;
+      cdr1.cPt2.x = (xPos - m_cViewOrigin.x)/m_dUnitScale;
+      cdr1.cPt2.y = (yPos - m_cViewOrigin.y)/m_dUnitScale;
+      m_pDrawObjects->SelectByRectangle(&cdr1, 2, pRegions);
     }
     else
     {
-        if(GetPtDist(&m_cLastDownPt, xPos, yPos) > 4)
-        {
-            delete pRegions;
-            return;
-        }
+      if(m_pHighObject)
+        m_pHighObject->SetSelected(true, event->state & GDK_CONTROL_MASK, m_iHighDimen, pRegions);
+    }
 
-        float f;
-        int i;
-        bool bdValSet = false;
-        double dVal = 0;
-        int iCop = 0;
-        PDObject pSelLine = NULL;
-        CDLine cLine;
+    if(GetUpdateRegion(pRegions, &cRect))
+      gdk_window_invalidate_rect(event->window, &cRect, FALSE);
+  }
+  else if((m_iToolMode > 20) && (m_iToolMode != tolRound))
+  {
+    if(GetPtDist(&m_cLastDownPt, xPos, yPos) > 4)
+    {
+      delete pRegions;
+      return;
+    }
 
-        if((m_iToolMode > tolCopyPar) && (m_iToolMode < tolMirror))
+    switch(m_iToolMode)
+    {
+    case tolKnife:
+      if(m_pDrawObjects->CutSelected(m_cLastDrawPt, dTol, &cdr, pRegions))
+      {
+        bUpdate = TRUE;
+        if(GetUpdateRegion(pRegions, &cRect))
+          gdk_window_invalidate_rect(event->window, &cRect, FALSE);
+        SetTitle(m_pMainWnd, false);
+      }
+      break;
+    case tolExtend:
+      if(m_pDrawObjects->ExtendSelected(m_cLastDrawPt, dTol, &cdr, pRegions))
+      {
+        bUpdate = TRUE;
+        if(GetUpdateRegion(pRegions, &cRect))
+          gdk_window_invalidate_rect(event->window, &cRect, FALSE);
+        SetTitle(m_pMainWnd, false);
+      }
+      break;
+    case tolConflict:
+      if(m_pDrawObjects->SetCrossSelected(m_cLastDrawPt, dTol, &cdr, pRegions))
+      {
+        bUpdate = TRUE;
+        if(GetUpdateRegion(pRegions, &cRect))
+          gdk_window_invalidate_rect(event->window, &cRect, FALSE);
+        SetTitle(m_pMainWnd, false);
+      }
+      break;
+    case tolMeas:
+      if(!m_cMeasPoint1.bIsSet)
+      {
+        m_cMeasPoint1.bIsSet = true;
+        m_cMeasPoint1.cOrigin = m_cLastDrawPt;
+      }
+      else if(!m_cMeasPoint2.bIsSet)
+      {
+        m_cMeasPoint2.bIsSet = true;
+        m_cMeasPoint2.cOrigin = m_cLastDrawPt;
+        cDistPt = m_cMeasPoint2.cOrigin - m_cMeasPoint1.cOrigin;
+        if(m_bPaperUnits)
         {
-            if(sscanf(gtk_entry_get_text(GTK_ENTRY(m_pStatEdt1)), "%f", &f) == 1)
-            {
-                dVal = f;
-                bdValSet = true;
-            }
-            if(sscanf(gtk_entry_get_text(GTK_ENTRY(m_pStatEdt2)), "%d", &i) == 1) iCop = i;
-        }
-
-        if(m_iToolMode == tolMove)
-        {
-            if(m_cMeasPoint1.bIsSet)
-            {
-                cLine.bIsSet = true;
-                cLine.cOrigin = m_cMeasPoint1.cOrigin;
-                cDistPt = m_cLastDrawPt - m_cMeasPoint1.cOrigin;
-                dNorm = GetNorm(cDistPt);
-                if(dNorm > g_dPrec)
-                {
-                    cLine.cDirection = cDistPt/dNorm;
-                    if(m_pDrawObjects->MoveSelected(cLine, dNorm, iCop, &cdr, true, pRegions))
-                    {
-                        bUpdate = TRUE;
-                        if(GetUpdateRegion(pRegions, &cRect))
-                            gdk_window_invalidate_rect(event->window, &cRect, FALSE);
-                        SetTitle(m_pMainWnd, false);
-                        StartNewObject(TRUE);
-                    }
-                }
-                m_iToolMode = 0;
-                m_cMeasPoint1.bIsSet = false;
-            }
-            else
-            {
-                if(bdValSet)
-                {
-                    pSelLine = m_pDrawObjects->SelectLineByPoint(m_cLastDrawPt, dTol);
-                    if(pSelLine)
-                    {
-                        cLine = pSelLine->GetLine();
-                        m_iToolMode = tolNone;
-                        if(!m_bPaperUnits) dVal *= m_dDrawScale;
-                        if(m_pDrawObjects->MoveSelected(cLine, dVal, iCop, &cdr, false, pRegions))
-                        {
-                            bUpdate = TRUE;
-                            if(GetUpdateRegion(pRegions, &cRect))
-                                gdk_window_invalidate_rect(event->window, &cRect, FALSE);
-                            SetTitle(m_pMainWnd, false);
-                            StartNewObject(TRUE);
-                        }
-                    }
-                }
-                else
-                {
-                    m_cMeasPoint1.cOrigin = m_cLastDrawPt;
-                    m_cMeasPoint1.bIsSet = true;
-                    strcpy(m_sStatus3Msg, _("Click a point to move to"));
-                    SetStatusBarMsg(3, m_sStatus3Msg);
-                }
-            }
-        }
-        else if(m_iToolMode == tolRotate)
-        {
-            if(bdValSet)
-            {
-                //if(m_cFSR.iAngUnit < 1) dVal *= M_PI/180.0;
-                dVal *= M_PI/180.0/m_cFSR.cAngUnit.dBaseToUnit;
-
-                m_iToolMode = tolNone;
-                if(m_pDrawObjects->RotateSelected(m_cLastDrawPt, -dVal, iCop, &cdr, pRegions))
-                {
-                    bUpdate = TRUE;
-                    if(GetUpdateRegion(pRegions, &cRect))
-                        gdk_window_invalidate_rect(event->window, &cRect, FALSE);
-                    SetTitle(m_pMainWnd, false);
-                    StartNewObject(TRUE);
-                }
-            }
-            else if(m_cMeasPoint2.bIsSet)
-            {
-                CDPoint cDir = m_cMeasPoint2.cOrigin - m_cMeasPoint1.cOrigin;
-                double dNorm = GetNorm(cDir);
-                if(dNorm > g_dPrec)
-                {
-                    cDir /= dNorm;
-                    CDPoint cPt1 = Rotate(m_cLastDrawPt - m_cMeasPoint1.cOrigin, cDir, false);
-                    dVal = atan2(cPt1.y, cPt1.x);
-                    m_cMeasPoint1.bIsSet = false;
-                    m_cMeasPoint2.bIsSet = false;
-                    m_iToolMode = tolNone;
-                    if(m_pDrawObjects->RotateSelected(m_cMeasPoint1.cOrigin, dVal, iCop, &cdr, pRegions))
-                    {
-                        bUpdate = TRUE;
-                        if(GetUpdateRegion(pRegions, &cRect))
-                            gdk_window_invalidate_rect(event->window, &cRect, FALSE);
-                        SetTitle(m_pMainWnd, false);
-                        StartNewObject(TRUE);
-                    }
-                }
-            }
-            else if(m_cMeasPoint1.bIsSet)
-            {
-                m_cMeasPoint2.bIsSet = true;
-                m_cMeasPoint2.cOrigin = m_cLastDrawPt;
-                strcpy(m_sStatus3Msg, _("Click a point to rotate to"));
-                SetStatusBarMsg(3, m_sStatus3Msg);
-            }
-            else
-            {
-                m_cMeasPoint1.bIsSet = true;
-                m_cMeasPoint1.cOrigin = m_cLastDrawPt;
-                strcpy(m_sStatus3Msg, _("Click a point to rotate from"));
-                SetStatusBarMsg(3, m_sStatus3Msg);
-            }
-        }
-        else if(m_iToolMode == tolMirror)
-        {
-            pSelLine = m_pDrawObjects->SelectLineByPoint(m_cLastDrawPt, dTol);
-            if(pSelLine)
-            {
-                cLine = pSelLine->GetLine();
-                m_iToolMode = tolNone;
-                if(m_pDrawObjects->MirrorSelected(cLine, &cdr, pRegions))
-                {
-                    bUpdate = TRUE;
-                    if(GetUpdateRegion(pRegions, &cRect))
-                        gdk_window_invalidate_rect(event->window, &cRect, FALSE);
-                    SetTitle(m_pMainWnd, false);
-                    StartNewObject(TRUE);
-                }
-            }
-        }
-        else if(m_iToolMode == tolDimen)
-        {
-            if(m_pDrawObjects->AddDimen(m_pSelForDimen, m_cLastDrawPt, dTol, &cdr, pRegions))
-            {
-                bUpdate = TRUE;
-                if(GetUpdateRegion(pRegions, &cRect))
-                    gdk_window_invalidate_rect(event->window, &cRect, FALSE);
-                SetTitle(m_pMainWnd, false);
-            }
+          cDistPt /= m_cFSR.cPaperUnit.dBaseToUnit;
+          sUnit = m_cFSR.cPaperUnit.sAbbrev;
         }
         else
         {
-            int iCtrl = 0;
-            if(m_iToolMode == tolCopyPar)
-            {
-                iCtrl = 2;
-                if(event->state & GDK_SHIFT_MASK) iCtrl = 3;
-            }
-            if(m_cLastDynPt.bIsSet)
-            {
-                CDInputPoint cInPt;
-                m_pActiveObject->GetPoint(0, 0, &cInPt);
-                cInPt.cPoint = m_cLastDynPt.cOrigin;
-                m_pActiveObject->SetPoint(0, 0, cInPt);
-            }
-            if(m_pActiveObject->AddPoint(m_cLastDrawPt.x, m_cLastDrawPt.y, iCtrl, true))
-            {
-                m_pActiveObject->AddRegions(pRegions, -1);
-                m_pDrawObjects->Add(m_pActiveObject);
-                SetTitle(m_pMainWnd, false);
-                m_pActiveObject = NULL;
-                m_iToolMode = tolNone;
-                m_sStatus1Base[0] = 0;
-                strcpy(m_sStatus1Msg, m_sStatus1Base);
-                SetStatusBarMsg(1, m_sStatus1Msg);
-
-                bUpdate = TRUE;
-                if(GetUpdateRegion(pRegions, &cRect))
-                    gdk_window_invalidate_rect(event->window, &cRect, FALSE);
-                StartNewObject(TRUE);
-            }
+          cDistPt /= m_dDrawScale;
+          cDistPt /= m_cFSR.cLenUnit.dBaseToUnit;
+          sUnit = m_cFSR.cLenUnit.sAbbrev;
         }
+        dNorm = GetNorm(cDistPt);
+        sprintf(sBuf, "dx: %.3f, dy: %.3f, dist: %.4f (%s)", fabs(cDistPt.x),
+        fabs(cDistPt.y), dNorm, sUnit);
+        SetStatusBarMsg(1, sBuf);
+      }
+      else
+      {
+        m_cMeasPoint1.bIsSet = true;
+        m_cMeasPoint1.cOrigin = m_cLastDrawPt;
+        m_cMeasPoint2.bIsSet = false;
+        SetStatusBarMsg(1, "");
+      }
+      break;
     }
-
-    if(bUpdate)
+  }
+  else
+  {
+    if(GetPtDist(&m_cLastDownPt, xPos, yPos) > 4)
     {
-        GtkWidget *draw = GetDrawing();
-        cairo_t *cr = gdk_cairo_create(draw->window);
-
-        if(m_pcs)
-        {
-            cairo_set_source_surface(cr, m_pcs, 0, 0);
-            cairo_mask(cr, m_pcp);
-        }
-
-        if(m_iDrawMode > modSelect) DrawCross(cr);
-        cairo_destroy(cr);
+      delete pRegions;
+      return;
     }
 
-    ClearPolygonList(pRegions);
-    delete pRegions;
+    float f;
+    int i;
+    bool bdValSet = false;
+    double dVal = 0;
+    int iCop = 0;
+    PDObject pSelLine = NULL;
+    CDLine cLine;
 
-    m_cLastDynPt.bIsSet = false;
-    return;
+    if((m_iToolMode > tolCopyPar) && (m_iToolMode < tolMirror))
+    {
+      if(sscanf(gtk_entry_get_text(GTK_ENTRY(m_pStatEdt1)), "%f", &f) == 1)
+      {
+        dVal = f;
+        bdValSet = true;
+      }
+      if(sscanf(gtk_entry_get_text(GTK_ENTRY(m_pStatEdt2)), "%d", &i) == 1) iCop = i;
+    }
+
+    if(m_iToolMode == tolMove)
+    {
+      if(m_cMeasPoint1.bIsSet)
+      {
+        cLine.bIsSet = true;
+        cLine.cOrigin = m_cMeasPoint1.cOrigin;
+        cDistPt = m_cLastDrawPt - m_cMeasPoint1.cOrigin;
+        dNorm = GetNorm(cDistPt);
+        if(dNorm > g_dPrec)
+        {
+          cLine.cDirection = cDistPt/dNorm;
+          if(m_pDrawObjects->MoveSelected(cLine, dNorm, iCop, &cdr, true, pRegions))
+          {
+            bUpdate = TRUE;
+            if(GetUpdateRegion(pRegions, &cRect))
+              gdk_window_invalidate_rect(event->window, &cRect, FALSE);
+            SetTitle(m_pMainWnd, false);
+            StartNewObject(TRUE);
+          }
+        }
+        m_iToolMode = 0;
+        m_cMeasPoint1.bIsSet = false;
+      }
+      else
+      {
+        if(bdValSet)
+        {
+          pSelLine = m_pDrawObjects->SelectLineByPoint(m_cLastDrawPt, dTol);
+          if(pSelLine)
+          {
+            cLine = pSelLine->GetLine();
+            m_iToolMode = tolNone;
+            if(!m_bPaperUnits) dVal *= m_dDrawScale;
+            if(m_pDrawObjects->MoveSelected(cLine, dVal, iCop, &cdr, false, pRegions))
+            {
+              bUpdate = TRUE;
+              if(GetUpdateRegion(pRegions, &cRect))
+                gdk_window_invalidate_rect(event->window, &cRect, FALSE);
+              SetTitle(m_pMainWnd, false);
+              StartNewObject(TRUE);
+            }
+          }
+        }
+        else
+        {
+          m_cMeasPoint1.cOrigin = m_cLastDrawPt;
+          m_cMeasPoint1.bIsSet = true;
+          strcpy(m_sStatus3Msg, _("Click a point to move to"));
+          SetStatusBarMsg(3, m_sStatus3Msg);
+        }
+      }
+    }
+    else if(m_iToolMode == tolRotate)
+    {
+      if(bdValSet)
+      {
+        //if(m_cFSR.iAngUnit < 1) dVal *= M_PI/180.0;
+        dVal *= M_PI/180.0/m_cFSR.cAngUnit.dBaseToUnit;
+
+        m_iToolMode = tolNone;
+        if(m_pDrawObjects->RotateSelected(m_cLastDrawPt, -dVal, iCop, &cdr, pRegions))
+        {
+          bUpdate = TRUE;
+          if(GetUpdateRegion(pRegions, &cRect))
+            gdk_window_invalidate_rect(event->window, &cRect, FALSE);
+          SetTitle(m_pMainWnd, false);
+          StartNewObject(TRUE);
+        }
+      }
+      else if(m_cMeasPoint2.bIsSet)
+      {
+        CDPoint cDir = m_cMeasPoint2.cOrigin - m_cMeasPoint1.cOrigin;
+        double dNorm = GetNorm(cDir);
+        if(dNorm > g_dPrec)
+        {
+          cDir /= dNorm;
+          CDPoint cPt1 = Rotate(m_cLastDrawPt - m_cMeasPoint1.cOrigin, cDir, false);
+          dVal = atan2(cPt1.y, cPt1.x);
+          m_cMeasPoint1.bIsSet = false;
+          m_cMeasPoint2.bIsSet = false;
+          m_iToolMode = tolNone;
+          if(m_pDrawObjects->RotateSelected(m_cMeasPoint1.cOrigin, dVal, iCop, &cdr, pRegions))
+          {
+            bUpdate = TRUE;
+            if(GetUpdateRegion(pRegions, &cRect))
+              gdk_window_invalidate_rect(event->window, &cRect, FALSE);
+            SetTitle(m_pMainWnd, false);
+            StartNewObject(TRUE);
+          }
+        }
+      }
+      else if(m_cMeasPoint1.bIsSet)
+      {
+        m_cMeasPoint2.bIsSet = true;
+        m_cMeasPoint2.cOrigin = m_cLastDrawPt;
+        strcpy(m_sStatus3Msg, _("Click a point to rotate to"));
+        SetStatusBarMsg(3, m_sStatus3Msg);
+      }
+      else
+      {
+        m_cMeasPoint1.bIsSet = true;
+        m_cMeasPoint1.cOrigin = m_cLastDrawPt;
+        strcpy(m_sStatus3Msg, _("Click a point to rotate from"));
+        SetStatusBarMsg(3, m_sStatus3Msg);
+      }
+    }
+    else if(m_iToolMode == tolMirror)
+    {
+      pSelLine = m_pDrawObjects->SelectLineByPoint(m_cLastDrawPt, dTol);
+      if(pSelLine)
+      {
+        cLine = pSelLine->GetLine();
+        m_iToolMode = tolNone;
+        if(m_pDrawObjects->MirrorSelected(cLine, &cdr, pRegions))
+        {
+          bUpdate = TRUE;
+          if(GetUpdateRegion(pRegions, &cRect))
+            gdk_window_invalidate_rect(event->window, &cRect, FALSE);
+          SetTitle(m_pMainWnd, false);
+          StartNewObject(TRUE);
+        }
+      }
+    }
+    else if(m_iToolMode == tolDimen)
+    {
+      if(m_pDrawObjects->AddDimen(m_pSelForDimen, m_cLastDrawPt, dTol, &cdr, pRegions))
+      {
+        bUpdate = TRUE;
+        if(GetUpdateRegion(pRegions, &cRect))
+          gdk_window_invalidate_rect(event->window, &cRect, FALSE);
+        SetTitle(m_pMainWnd, false);
+      }
+    }
+    else
+    {
+      int iCtrl = 0;
+      if(m_iToolMode == tolCopyPar)
+      {
+        iCtrl = 2;
+        if(event->state & GDK_SHIFT_MASK) iCtrl = 3;
+        if(IS_LENGTH_VAL(m_iRestrictSet)) iCtrl = 4;
+      }
+      if(m_cLastDynPt.bIsSet)
+      {
+        CDInputPoint cInPt;
+        m_pActiveObject->GetPoint(0, 0, &cInPt);
+        cInPt.cPoint = m_cLastDynPt.cOrigin;
+        m_pActiveObject->SetPoint(0, 0, cInPt);
+      }
+//cPtX.cDirection.x = 0.0;
+//if(IS_LENGTH_VAL(m_iRestrictSet))
+{
+//printf("Restricton: %d, %f\n", GetDynMode(), m_dRestrictValue);
+  //cPtX.cDirection.x = 1.0;
+  //cPtX.cDirection.y = m_dSavedDist;
+}
+//else printf("No restriction set\n");
+//      if((GetDynMode() == 2) && IS_LENGTH_VAL(m_iRestrictSet))
+//      {
+//        iCtrl = 4;
+//      }
+      if(m_pActiveObject->AddPoint(m_cLastDrawPt.x, m_cLastDrawPt.y, iCtrl, m_dRestrictValue, true))
+      {
+        m_pActiveObject->AddRegions(pRegions, -1);
+        m_pDrawObjects->Add(m_pActiveObject);
+        SetTitle(m_pMainWnd, false);
+        m_pActiveObject = NULL;
+        m_iToolMode = tolNone;
+        m_sStatus1Base[0] = 0;
+        strcpy(m_sStatus1Msg, m_sStatus1Base);
+        SetStatusBarMsg(1, m_sStatus1Msg);
+
+        bUpdate = TRUE;
+        if(GetUpdateRegion(pRegions, &cRect))
+        gdk_window_invalidate_rect(event->window, &cRect, FALSE);
+        StartNewObject(TRUE);
+      }
+    }
+  }
+
+  if(bUpdate)
+  {
+    GtkWidget *draw = GetDrawing();
+    cairo_t *cr = gdk_cairo_create(draw->window);
+
+    if(m_pcs)
+    {
+      cairo_set_source_surface(cr, m_pcs, 0, 0);
+      cairo_mask(cr, m_pcp);
+    }
+
+    if(m_iDrawMode > modSelect) DrawCross(cr);
+    cairo_destroy(cr);
+  }
+
+  ClearPolygonList(pRegions);
+  delete pRegions;
+
+  m_cLastDynPt.bIsSet = false;
+  return;
 }
 
 void CDApplication::MouseMButtonDown(GtkWidget *widget, GdkEventButton *event)
 {
-    if(m_iButton > 0) return;
+  if(m_iButton > 0) return;
 
-    m_iButton = 2;
-    m_cZoomOrig.x = event->x - m_cViewOrigin.x;
-    m_cZoomOrig.y = event->y - m_cViewOrigin.y;
-    m_cLastMovePt.x = event->x;
-    m_cLastMovePt.y = event->y;
-    m_cLastDownPt.x = event->x;
-    m_cLastDownPt.y = event->y;
+  m_iButton = 2;
+  m_cZoomOrig.x = event->x - m_cViewOrigin.x;
+  m_cZoomOrig.y = event->y - m_cViewOrigin.y;
+  m_cLastMovePt.x = event->x;
+  m_cLastMovePt.y = event->y;
+  m_cLastDownPt.x = event->x;
+  m_cLastDownPt.y = event->y;
 
-    gdk_pointer_grab(event->window, FALSE, (GdkEventMask)(GDK_POINTER_MOTION_MASK | GDK_BUTTON_RELEASE_MASK),
-        NULL, NULL, GDK_CURRENT_TIME);
+  gdk_pointer_grab(event->window, FALSE, (GdkEventMask)(GDK_POINTER_MOTION_MASK | GDK_BUTTON_RELEASE_MASK),
+    NULL, NULL, GDK_CURRENT_TIME);
 
-    m_bRenderDirect = TRUE;
-    return;
+  m_bRenderDirect = TRUE;
+  return;
 }
 
 void CDApplication::MouseMButtonUp(GtkWidget *widget, GdkEventButton *event)
 {
-    if(m_iButton == 2)
-    {
-        m_bRenderDirect = FALSE;
-        gdk_pointer_ungrab(GDK_CURRENT_TIME);
-        gdk_window_invalidate_rect(event->window, NULL, FALSE);
-    }
-    m_iButton = 0;
-    return;
+  if(m_iButton == 2)
+  {
+    m_bRenderDirect = FALSE;
+    gdk_pointer_ungrab(GDK_CURRENT_TIME);
+    gdk_window_invalidate_rect(event->window, NULL, FALSE);
+  }
+  m_iButton = 0;
+  return;
 }
 
 void CDApplication::MouseRButtonDown(GtkWidget *widget, GdkEventButton *event)
 {
-    if(m_iButton > 0) return;
+  if(m_iButton > 0) return;
 
-    m_cLastDownPt.x = event->x;
-    m_cLastDownPt.y = event->y;
-    m_cLastMovePt.x = event->x;
-    m_cLastMovePt.y = event->y;
-    m_iButton = 3;
+  m_cLastDownPt.x = event->x;
+  m_cLastDownPt.y = event->y;
+  m_cLastMovePt.x = event->x;
+  m_cLastMovePt.y = event->y;
+  m_iButton = 3;
 
-    return;
+  return;
 }
 
 void CDApplication::MouseRButtonUp(GtkWidget *widget, GdkEventButton *event)
 {
-    if(m_iButton != 3) return;
+  if(m_iButton != 3) return;
 
-    m_iButton = 0;
+  m_iButton = 0;
 
-    PDPtrList pRegions = new CDPtrList();
-    pRegions->SetDblVal(m_dUnitScale);
+  PDPtrList pRegions = new CDPtrList();
+  pRegions->SetDblVal(m_dUnitScale);
 
-    double xPos = event->x;
-    double yPos = event->y;
-    GdkRectangle cRect;
+  double xPos = event->x;
+  double yPos = event->y;
+  GdkRectangle cRect;
 
-    gboolean bUpdate = FALSE;
+  gboolean bUpdate = FALSE;
 
-    if(m_iDrawMode + m_iToolMode < 1) // selection
+  if(m_iDrawMode + m_iToolMode < 1) // selection
+  {
+    if(GetPtDist(&m_cLastDownPt, xPos, yPos) > 4) // select by rectangle
     {
-        if(GetPtDist(&m_cLastDownPt, xPos, yPos) > 4) // select by rectangle
-        {
-            if(!(event->state & GDK_CONTROL_MASK)) m_pDrawObjects->ClearSelection(pRegions);
-            CDRect cdr1;
-            cdr1.cPt1.x = (m_cLastDownPt.x - m_cViewOrigin.x)/m_dUnitScale;
-            cdr1.cPt1.y = (m_cLastDownPt.y - m_cViewOrigin.y)/m_dUnitScale;
-            cdr1.cPt2.x = (xPos - m_cViewOrigin.x)/m_dUnitScale;
-            cdr1.cPt2.y = (yPos - m_cViewOrigin.y)/m_dUnitScale;
-            m_pDrawObjects->SelectByRectangle(&cdr1, 1, pRegions);
+      if(!(event->state & GDK_CONTROL_MASK)) m_pDrawObjects->ClearSelection(pRegions);
+      CDRect cdr1;
+      cdr1.cPt1.x = (m_cLastDownPt.x - m_cViewOrigin.x)/m_dUnitScale;
+      cdr1.cPt1.y = (m_cLastDownPt.y - m_cViewOrigin.y)/m_dUnitScale;
+      cdr1.cPt2.x = (xPos - m_cViewOrigin.x)/m_dUnitScale;
+      cdr1.cPt2.y = (yPos - m_cViewOrigin.y)/m_dUnitScale;
+      m_pDrawObjects->SelectByRectangle(&cdr1, 1, pRegions);
 
-            bUpdate = TRUE;
-            if(GetUpdateRegion(pRegions, &cRect))
-                gdk_window_invalidate_rect(event->window, &cRect, FALSE);
-        }
-        else
-        {
-            if(m_pHighObject)
-            {
-                GtkMenu *pMenu;
-                if(m_pHighObject->GetSnapTo()) pMenu = GTK_MENU(m_pSnapDisableMnu);
-                else pMenu = GTK_MENU(m_pSnapEnableMnu);
-                gtk_menu_popup(pMenu, NULL, NULL, NULL, this, event->button, event->time);
-            }
-        }
-    }
-    else if(m_iToolMode > tolNone)
-    {
+      bUpdate = TRUE;
+      if(GetUpdateRegion(pRegions, &cRect))
+        gdk_window_invalidate_rect(event->window, &cRect, FALSE);
     }
     else
     {
-        if(GetPtDist(&m_cLastDownPt, xPos, yPos) > 4)
-        {
-            delete pRegions;
-            return;
-        }
-
-        if(m_cLastDynPt.bIsSet)
-        {
-            CDInputPoint cInPt;
-            m_pActiveObject->GetPoint(0, 0, &cInPt);
-            cInPt.cPoint = m_cLastDynPt.cOrigin;
-            m_pActiveObject->SetPoint(0, 0, cInPt);
-        }
-        if(m_pActiveObject->AddPoint(m_cLastDrawPt.x, m_cLastDrawPt.y, 1, true))
-        {
-            m_pActiveObject->AddRegions(pRegions, -1);
-            m_pDrawObjects->Add(m_pActiveObject);
-            SetTitle(m_pMainWnd, false);
-            m_pActiveObject = NULL;
-            m_iToolMode = tolNone;
-            m_sStatus1Base[0] = 0;
-            strcpy(m_sStatus1Msg, m_sStatus1Base);
-            SetStatusBarMsg(1, m_sStatus1Msg);
-
-            bUpdate = TRUE;
-            if(GetUpdateRegion(pRegions, &cRect))
-                gdk_window_invalidate_rect(event->window, &cRect, FALSE);
-            StartNewObject(TRUE);
-        }
+      if(m_pHighObject)
+      {
+        GtkMenu *pMenu;
+        if(m_pHighObject->GetSnapTo()) pMenu = GTK_MENU(m_pSnapDisableMnu);
+        else pMenu = GTK_MENU(m_pSnapEnableMnu);
+        gtk_menu_popup(pMenu, NULL, NULL, NULL, this, event->button, event->time);
+      }
     }
-
-    if(bUpdate)
+  }
+  else if(m_iToolMode > tolNone)
+  {
+  }
+  else
+  {
+    if(GetPtDist(&m_cLastDownPt, xPos, yPos) > 4)
     {
-        GtkWidget *draw = GetDrawing();
-        cairo_t *cr = gdk_cairo_create(draw->window);
-
-        if(m_pcs)
-        {
-            cairo_set_source_surface(cr, m_pcs, 0, 0);
-            cairo_mask(cr, m_pcp);
-        }
-
-        if(m_iDrawMode > modSelect) DrawCross(cr);
-        cairo_destroy(cr);
+      delete pRegions;
+      return;
     }
 
-    ClearPolygonList(pRegions);
-    delete pRegions;
+    if(m_cLastDynPt.bIsSet)
+    {
+      CDInputPoint cInPt;
+      m_pActiveObject->GetPoint(0, 0, &cInPt);
+      cInPt.cPoint = m_cLastDynPt.cOrigin;
+      m_pActiveObject->SetPoint(0, 0, cInPt);
+    }
+    if(m_pActiveObject->AddPoint(m_cLastDrawPt.x, m_cLastDrawPt.y, 1, 0.0, true))
+    {
+      m_pActiveObject->AddRegions(pRegions, -1);
+      m_pDrawObjects->Add(m_pActiveObject);
+      SetTitle(m_pMainWnd, false);
+      m_pActiveObject = NULL;
+      m_iToolMode = tolNone;
+      m_sStatus1Base[0] = 0;
+      strcpy(m_sStatus1Msg, m_sStatus1Base);
+      SetStatusBarMsg(1, m_sStatus1Msg);
 
-    m_cLastDynPt.bIsSet = false;
-    return;
+      bUpdate = TRUE;
+      if(GetUpdateRegion(pRegions, &cRect))
+        gdk_window_invalidate_rect(event->window, &cRect, FALSE);
+      StartNewObject(TRUE);
+    }
+  }
+
+  if(bUpdate)
+  {
+    GtkWidget *draw = GetDrawing();
+    cairo_t *cr = gdk_cairo_create(draw->window);
+
+    if(m_pcs)
+    {
+      cairo_set_source_surface(cr, m_pcs, 0, 0);
+      cairo_mask(cr, m_pcp);
+    }
+
+    if(m_iDrawMode > modSelect) DrawCross(cr);
+    cairo_destroy(cr);
+  }
+
+  ClearPolygonList(pRegions);
+  delete pRegions;
+
+  m_cLastDynPt.bIsSet = false;
+  return;
 }
 
 void CDApplication::MouseLDblClick(GtkWidget *widget, GdkEventButton *event)
 {
-    if(m_iDrawMode > modSelect)
+  if(m_iDrawMode > modSelect)
+  {
+    if(m_pActiveObject)
     {
-        if(m_pActiveObject)
-        {
-            if(m_pActiveObject->HasEnoughPoints())
-            {
-                GdkRectangle cRect;
-                PDPtrList pRegions = new CDPtrList();
-                pRegions->SetDblVal(m_dUnitScale);
+      if(m_pActiveObject->HasEnoughPoints())
+      {
+        GdkRectangle cRect;
+        PDPtrList pRegions = new CDPtrList();
+        pRegions->SetDblVal(m_dUnitScale);
 
-                m_pActiveObject->AddRegions(pRegions, -1);
-                m_pDrawObjects->Add(m_pActiveObject);
-                SetTitle(m_pMainWnd, false);
-                m_pActiveObject = NULL;
+        m_pActiveObject->AddRegions(pRegions, -1);
+        m_pDrawObjects->Add(m_pActiveObject);
+        SetTitle(m_pMainWnd, false);
+        m_pActiveObject = NULL;
 
-                if(GetUpdateRegion(pRegions, &cRect))
-                    gdk_window_invalidate_rect(event->window, &cRect, FALSE);
+        if(GetUpdateRegion(pRegions, &cRect))
+          gdk_window_invalidate_rect(event->window, &cRect, FALSE);
 
-                ClearPolygonList(pRegions);
-                delete pRegions;
-                StartNewObject(TRUE);
-            }
-        }
+        ClearPolygonList(pRegions);
+        delete pRegions;
+        StartNewObject(TRUE);
+      }
     }
-    else if(m_iDrawMode + m_iToolMode < 1)
-    {
-        EditLineStyleCmd(m_pMainWnd);
-    }
-    m_iButton = 0;
-    return;
+  }
+  else if(m_iDrawMode + m_iToolMode < 1)
+  {
+    EditLineStyleCmd(m_pMainWnd);
+  }
+  m_iButton = 0;
+  return;
 }
 
 void CDApplication::Edit1Changed(GtkEntry *entry)

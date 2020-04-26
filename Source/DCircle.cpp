@@ -78,7 +78,7 @@ bool AddCirclePoint(double x, double y, char iCtrl, PDPointList pPoints, PDLine 
 {
   int nNorm = pPoints->GetCount(0);
 
-  if((iCtrl == 2) || (iCtrl == 3))
+  if(iCtrl > 1)
   {
     CDPoint cOrig;
     double dRad;
