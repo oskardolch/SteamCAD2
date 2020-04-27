@@ -363,13 +363,32 @@ CDPoint GetElpsBoundProj(double da, double db, double dOffset, CDPoint cPt, CDPo
   CDPoint cNorm = {db*pProjs[i].x, da*pProjs[i].y};
   double dNorm = GetNorm(cNorm);
   CDPoint cProjPt = {da*pProjs[i].x + dOffset*cNorm.x/dNorm, db*pProjs[i].y + dOffset*cNorm.y/dNorm};
-  double dMin = GetDist(cPtRef, cProjPt);
-  CDPoint cRes = pProjs[i++];
-  pDists[0] = dMin;
+  pDists[0] = GetDist(cPtRef, cProjPt);
+  i++;
+  CDPoint cRes;
+  double dMin;
 
-  if(bSecond)
+  int i0 = 0, i1 = 0;
+  cNorm.x = db*pProjs[i].x;
+  cNorm.y = da*pProjs[i].y;
+  dNorm = GetNorm(cNorm);
+  cProjPt.x = da*pProjs[i].x + dOffset*cNorm.x/dNorm;
+  cProjPt.y = db*pProjs[i].y + dOffset*cNorm.y/dNorm;
+  dMin = GetDist(cPtRef, cProjPt);
+  if(dMin < pDists[0])
   {
-    int i0 = 0, i1 = 0;
+    pDists[1] = pDists[0];
+    pDists[0] = dMin;
+    i0 = i;
+  }
+  else
+  {
+    pDists[1] = dMin;
+    i1 = i;
+  }
+  i++;
+  while(i < iRoots)
+  {
     cNorm.x = db*pProjs[i].x;
     cNorm.y = da*pProjs[i].y;
     dNorm = GetNorm(cNorm);
@@ -379,72 +398,19 @@ CDPoint GetElpsBoundProj(double da, double db, double dOffset, CDPoint cPt, CDPo
     if(dMin < pDists[0])
     {
       pDists[1] = pDists[0];
-      pDists[0] = dMin;
+      dMin = pDists[0];
+      i1 = i0;
       i0 = i;
     }
-    else
+    else if(dMin < pDists[1])
     {
       pDists[1] = dMin;
       i1 = i;
     }
     i++;
-    while(i < iRoots)
-    {
-      cNorm.x = db*pProjs[i].x;
-      cNorm.y = da*pProjs[i].y;
-      dNorm = GetNorm(cNorm);
-      cProjPt.x = da*pProjs[i].x + dOffset*cNorm.x/dNorm;
-      cProjPt.y = db*pProjs[i].y + dOffset*cNorm.y/dNorm;
-      dMin = GetDist(cPtRef, cProjPt);
-      if(dMin < pDists[0])
-      {
-        pDists[1] = pDists[0];
-        dMin = pDists[0];
-        i1 = i0;
-        i0 = i;
-      }
-      else if(dMin < pDists[1])
-      {
-        pDists[1] = dMin;
-        i1 = i;
-      }
-      i++;
-    }
-    cRes = pProjs[i1];
-    /*while(i < iRoots)
-    {
-      cNorm.x = db*pProjs[i].x;
-      cNorm.y = da*pProjs[i].y;
-      dNorm = GetNorm(cNorm);
-      cProjPt.x = da*pProjs[i].x + dOffset*cNorm.x/dNorm;
-      cProjPt.y = db*pProjs[i].y + dOffset*cNorm.y/dNorm;
-      pDists[0] = GetDist(cPtRef, cProjPt);
-      if(pDists[0] > dMin)
-      {
-        dMin = pDists[0];
-        cRes = pProjs[i];
-      }
-      i++;
-    }*/
   }
-  else
-  {
-    while(i < iRoots)
-    {
-      cNorm.x = db*pProjs[i].x;
-      cNorm.y = da*pProjs[i].y;
-      dNorm = GetNorm(cNorm);
-      cProjPt.x = da*pProjs[i].x + dOffset*cNorm.x/dNorm;
-      cProjPt.y = db*pProjs[i].y + dOffset*cNorm.y/dNorm;
-      pDists[0] = GetDist(cPtRef, cProjPt);
-      if(pDists[0] < dMin)
-      {
-        dMin = pDists[0];
-        cRes = pProjs[i];
-      }
-      i++;
-    }
-  }
+  if(bSecond) cRes = pProjs[i1];
+  else cRes = pProjs[i0];
   return cRes;
 }
 
