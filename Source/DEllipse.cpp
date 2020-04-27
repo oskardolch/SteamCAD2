@@ -883,7 +883,7 @@ bool BuildEllipseCache(CDLine cTmpPt, int iMode, PDPointList pPoints, PDPointLis
       }
 
       if((iMode == 2) || (nOffs4 == 0))
-        dDist = GetElpsDistFromPt(cPt1, cPt1, iSrchMask, pCache, &cPtX, NULL);
+        dDist = GetElpsDistFromPt(cPt1, cPt1, iSrchMask, pCache, &cPtX);
 
       if(iMode == 2)
       {
@@ -894,12 +894,12 @@ bool BuildEllipseCache(CDLine cTmpPt, int iMode, PDPointList pPoints, PDPointLis
         else if(nOffs2 > 0)
         {
           cPt1 = pPoints->GetPoint(0, 2).cPoint;
-          dDistOld = GetElpsDistFromPt(cPt1, cPt1, 0, pCache, &cPtX, NULL);
+          dDistOld = GetElpsDistFromPt(cPt1, cPt1, 0, pCache, &cPtX);
         }
         else if(nOffs3 > 0)
         {
           cPt1 = pPoints->GetPoint(0, 3).cPoint;
-          dDistOld = GetElpsDistFromPt(cPt1, cPt1, 2, pCache, &cPtX, NULL);
+          dDistOld = GetElpsDistFromPt(cPt1, cPt1, 2, pCache, &cPtX);
         }
         if(cTmpPt.cDirection.x > 0.5) dDist = dDistOld + cTmpPt.cDirection.y;
       }
@@ -1338,7 +1338,7 @@ double GetElpsOffset(PDPointList pCache)
   return pCache->GetPoint(0, 2).cPoint.x;
 }
 
-double GetElpsDistFromPt(CDPoint cPt, CDPoint cRefPt, int iSrchMask, PDPointList pCache, PDLine pPtX, PDRefPoint pBounds)
+double GetElpsDistFromPt(CDPoint cPt, CDPoint cRefPt, int iSrchMask, PDPointList pCache, PDLine pPtX)
 {
   pPtX->bIsSet = false;
   pPtX->dRef = 0.0;

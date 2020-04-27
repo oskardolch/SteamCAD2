@@ -8,9 +8,8 @@ bool BuildEllipseCache(CDLine cTmpPt, int iMode, PDPointList pPoints, PDPointLis
   PDLine pLines, double *pdDist);
 int AddEllipseInterLine(CDPoint cPt1, CDPoint cPt2, double dOffset, PDPointList pCache, PDRefList pBounds);
 double GetElpsOffset(PDPointList pCache);
-double GetElpsDistFromPt(CDPoint cPt, CDPoint cRefPt, int iSrchMask, PDPointList pCache, PDLine pPtX, PDRefPoint pBounds);
-bool GetElpsRestrictPoint(CDPoint cPt, int iMode, double dRestrictValue, PDPoint pSnapPt,
-  PDPointList pCache);
+double GetElpsDistFromPt(CDPoint cPt, CDPoint cRefPt, int iSrchMask, PDPointList pCache, PDLine pPtX);
+bool GetElpsRestrictPoint(CDPoint cPt, int iMode, double dRestrictValue, PDPoint pSnapPt, PDPointList pCache);
 bool HasElpsEnoughPoints(PDPointList pPoints, int iInputLines);
 double GetElpsRadiusAtPt(CDPoint cPt, PDPointList pCache, PDLine pPtR, bool bNewPt,
   PDPointList pPoints, PDLine pLines);

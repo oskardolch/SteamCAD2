@@ -2500,7 +2500,7 @@ double CDObject::GetDistFromPt(CDPoint cPt, CDPoint cRefPt, bool bSnapCenters, P
         dRes = GetCircDistFromPt(cPt, cRefPt, bSnapCenters, m_pCachePoints, &cPtX);
         break;
     case dtEllipse:
-        dRes = GetElpsDistFromPt(cPt, cRefPt, iMask, m_pCachePoints, &cPtX, m_cBounds);
+        dRes = GetElpsDistFromPt(cPt, cRefPt, iMask, m_pCachePoints, &cPtX);
         break;
     case dtArcEllipse:
         dRes = GetArcElpsDistFromPt(cPt, cRefPt, iMask, m_pCachePoints, &cPtX, m_cBounds);
