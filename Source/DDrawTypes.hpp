@@ -151,6 +151,7 @@ public:
   bool HasEnoughPoints();
   bool GetPoint(int iIndex, char iCtrl, PDInputPoint pPoint);
   void SetPoint(int iIndex, char iCtrl, CDInputPoint cPoint);
+  double GetOffset();
   double GetDistFromPt(CDPoint cPt, CDPoint cRefPt, bool bSnapCenters, PDLine pPtX, int *piDimen);
   CDLineStyle GetLineStyle();
   void SetLineStyle(int iMask, CDLineStyle cStyle);

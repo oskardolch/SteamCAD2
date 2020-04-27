@@ -7,6 +7,7 @@ bool AddEllipsePoint(double x, double y, char iCtrl, double dRestrictVal, PDPoin
 bool BuildEllipseCache(CDLine cTmpPt, int iMode, PDPointList pPoints, PDPointList pCache,
   PDLine pLines, double *pdDist);
 int AddEllipseInterLine(CDPoint cPt1, CDPoint cPt2, double dOffset, PDPointList pCache, PDRefList pBounds);
+double GetElpsOffset(PDPointList pCache);
 double GetElpsDistFromPt(CDPoint cPt, CDPoint cRefPt, int iSrchMask, PDPointList pCache, PDLine pPtX, PDRefPoint pBounds);
 bool GetElpsRestrictPoint(CDPoint cPt, int iMode, double dRestrictValue, PDPoint pSnapPt,
   PDPointList pCache);

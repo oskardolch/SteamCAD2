@@ -2463,6 +2463,27 @@ double CDObject::GetPathDistFromPt(CDPoint cPt, CDPoint cRefPt, bool bSnapCenter
     return dMin;
 }
 
+double CDObject::GetOffset()
+{
+  switch(m_iType)
+  {
+  case dtLine:
+  case dtCircle:
+    return 0.0;
+  case dtEllipse:
+    return GetElpsOffset(m_pCachePoints);
+  case dtArcEllipse:
+  case dtHyperbola:
+  case dtParabola:
+  case dtSpline:
+  case dtEvolvent:
+  case dtPath:
+    return 0.0;
+  default:
+    return 0.0;
+  }
+}
+
 double CDObject::GetDistFromPt(CDPoint cPt, CDPoint cRefPt, bool bSnapCenters, PDLine pPtX, int *piDimen)
 {
     double dRes = -1.0;

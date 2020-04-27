@@ -3985,11 +3985,17 @@ void CDApplication::MouseLButtonUp(GtkWidget *widget, GdkEventButton *event)
     else
     {
       int iCtrl = 0;
+      double dOffset = m_dRestrictValue;
       if(m_iToolMode == tolCopyPar)
       {
         iCtrl = 2;
         if(event->state & GDK_SHIFT_MASK) iCtrl = 3;
-        if(IS_LENGTH_VAL(m_iRestrictSet)) iCtrl = 4;
+        if(IS_LENGTH_VAL(m_iRestrictSet))
+        {
+          iCtrl = 4;
+          PDObject pSelObj = m_pDrawObjects->GetSelected(0);
+          dOffset += pSelObj->GetOffset();
+        }
       }
       if(m_cLastDynPt.bIsSet)
       {
@@ -3998,19 +4004,7 @@ void CDApplication::MouseLButtonUp(GtkWidget *widget, GdkEventButton *event)
         cInPt.cPoint = m_cLastDynPt.cOrigin;
         m_pActiveObject->SetPoint(0, 0, cInPt);
       }
-//cPtX.cDirection.x = 0.0;
-//if(IS_LENGTH_VAL(m_iRestrictSet))
-{
-//printf("Restricton: %d, %f\n", GetDynMode(), m_dRestrictValue);
-  //cPtX.cDirection.x = 1.0;
-  //cPtX.cDirection.y = m_dSavedDist;
-}
-//else printf("No restriction set\n");
-//      if((GetDynMode() == 2) && IS_LENGTH_VAL(m_iRestrictSet))
-//      {
-//        iCtrl = 4;
-//      }
-      if(m_pActiveObject->AddPoint(m_cLastDrawPt.x, m_cLastDrawPt.y, iCtrl, m_dRestrictValue, true))
+      if(m_pActiveObject->AddPoint(m_cLastDrawPt.x, m_cLastDrawPt.y, iCtrl, dOffset, true))
       {
         m_pActiveObject->AddRegions(pRegions, -1);
         m_pDrawObjects->Add(m_pActiveObject);
