@@ -892,7 +892,8 @@ int CDObject::GetViewBounds(CDLine cTmpPt, int iMode, PDRect pRect, int iTemp,
       GetNativeRefPoint(dTestRef, dMid, &cProbe);
       if(DPtInDRect(cProbe, pRect))
       {
-        if(n < 3)
+        pTmpBnds->InsertPoint(0, (*pTmpBnds)[n - 1]);
+        /*if(n < 3)
         {
           pBounds->AddPoint(pDrawBnds->x);
           pBounds->AddPoint(pDrawBnds->y);
@@ -900,11 +901,11 @@ int CDObject::GetViewBounds(CDLine cTmpPt, int iMode, PDRect pRect, int iTemp,
           return 2;
         }
         pTmpBnds->SetPoint(0, (*pTmpBnds)[n - 1]);
-        n -= 2;
+        n -= 2;*/
         pTmpBnds->Truncate(n);
       }
     }
-    bool bFound = false;
+    /*bool bFound = false;
     while(!bFound && ((*pTmpBnds)[0] > (*pTmpBnds)[1]) && (n > 1))
     {
       dTestRef = ((*pTmpBnds)[0] + (*pTmpBnds)[n - 1])/2.0;
@@ -945,7 +946,7 @@ int CDObject::GetViewBounds(CDLine cTmpPt, int iMode, PDRect pRect, int iTemp,
           pTmpBnds->Remove(2*i);
         }
       }
-    }
+    }*/
   }
 
   if(IsClosedShape())

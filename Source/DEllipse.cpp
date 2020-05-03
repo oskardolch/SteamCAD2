@@ -1292,26 +1292,41 @@ void BuildEllipseWithBoundsBreaks(double da, double db, double dr, double dtStar
     if((iEnd > 8) && (dtEnd < dBnds[i] + g_dPrec)) iEnd = i;
   }
   if((iStart > 8) || (iEnd > 8)) return;
-  if(iStart == iEnd)
+  if((iStart == iEnd) && (dtStart < dtEnd))
   {
-    if(dtStart < dtEnd)
-    {
-      BuildEllipseWithBounds(da, db, dr, dtStart, dtEnd, cOrig, cMainDir, pPrimList);
-      return;
-    }
+    BuildEllipseWithBounds(da, db, dr, dtStart, dtEnd, cOrig, cMainDir, pPrimList);
+    return;
+  }
+  if((iStart - iEnd == 4) && (dtEnd < dtStart))
+  {
+    BuildEllipseWithBounds(da, db, dr, dtStart, M_PI, cOrig, cMainDir, pPrimList);
+    BuildEllipseWithBounds(da, db, dr, -M_PI, dtEnd, cOrig, cMainDir, pPrimList);
+    return;
   }
   BuildEllipseWithBounds(da, db, dr, dtStart, dBnds[iStart], cOrig, cMainDir, pPrimList);
   if(dtEnd < dtStart)
   {
-    for(int i = iStart + 1; i < 5; i++)
+    if(iEnd > 0)
     {
-      BuildEllipseWithBounds(da, db, dr, dBnds[i - 1], dBnds[i], cOrig, cMainDir, pPrimList);
+      for(int i = iStart + 1; i < 5; i++)
+      {
+        BuildEllipseWithBounds(da, db, dr, dBnds[i - 1], dBnds[i], cOrig, cMainDir, pPrimList);
+      }
+      for(int i = 1; i < iEnd; i++)
+      {
+        BuildEllipseWithBounds(da, db, dr, dBnds[i - 1], dBnds[i], cOrig, cMainDir, pPrimList);
+      }
+      BuildEllipseWithBounds(da, db, dr, dBnds[iEnd - 1], dtEnd, cOrig, cMainDir, pPrimList);
     }
-    for(int i = 1; i < iEnd; i++)
+    else
     {
-      BuildEllipseWithBounds(da, db, dr, dBnds[i - 1], dBnds[i], cOrig, cMainDir, pPrimList);
+      for(int i = iStart + 1; i < 4; i++)
+      {
+        BuildEllipseWithBounds(da, db, dr, dBnds[i - 1], dBnds[i], cOrig, cMainDir, pPrimList);
+      }
+      BuildEllipseWithBounds(da, db, dr, dBnds[3], M_PI, cOrig, cMainDir, pPrimList);
+      BuildEllipseWithBounds(da, db, dr, -M_PI, dtEnd, cOrig, cMainDir, pPrimList);
     }
-    BuildEllipseWithBounds(da, db, dr, dBnds[iEnd - 1], dtEnd, cOrig, cMainDir, pPrimList);
     return;
   }
   for(int i = iStart + 1; i < iEnd; i++)
