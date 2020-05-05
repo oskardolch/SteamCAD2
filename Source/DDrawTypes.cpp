@@ -847,6 +847,7 @@ int CDObject::GetViewBounds(CDLine cTmpPt, int iMode, PDRect pRect, int iTemp,
   PDRefList pInt2 = new CDRefList();
   int iCnt1 = GetRectangleIntersects(pRect, dMid - dExt, iBndType, &cLocBnds, pInt1);
   int iCnt2 = GetRectangleIntersects(pRect, dMid + dExt, iBndType, &cLocBnds, pInt2);
+//int iCnt2 = 1;
 
   if((iCnt1 < 1) || (iCnt2 < 1))
   {
@@ -865,6 +866,7 @@ int CDObject::GetViewBounds(CDLine cTmpPt, int iMode, PDRect pRect, int iTemp,
       }
     }
   }
+//iCnt2 = 0;
 
   if((iCnt1 < 1) && (iCnt2 < 1))
   {
@@ -875,6 +877,18 @@ int CDObject::GetViewBounds(CDLine cTmpPt, int iMode, PDRect pRect, int iTemp,
 
   PDRefList pTmpBnds = new CDRefList();
   int iRes = UnionBounds(pInt1, pInt2, cLocBnds.y - cLocBnds.x, pTmpBnds);
+/*int iRes = iCnt1/2;
+for(int i = 0; i < iCnt1; i++)
+{
+pTmpBnds->AddPoint(pInt1->GetPoint(i));
+}
+pTmpBnds->Sort(0);
+printf("%d", iCnt1);
+for(int i = 0; i < iCnt1; i++)
+{
+printf(", %f", pTmpBnds->GetPoint(i));
+}
+printf("\n");*/
   delete pInt2;
   delete pInt1;
 
@@ -954,11 +968,14 @@ int CDObject::GetViewBounds(CDLine cTmpPt, int iMode, PDRect pRect, int iTemp,
   else
     MergeCornerRefs(pTmpBnds, NULL, iRectFlag, dCornerRefs);
 
+//printf("Final: ");
   for(int i = 0; i < pTmpBnds->GetCount(); i++)
   {
     GetPointRefDist((*pTmpBnds)[i], &d1);
+//printf("%f - %f, ", (*pTmpBnds)[i], d1);
     pBounds->AddPoint(d1);
   }
+//printf("\n");
   delete pTmpBnds;
 
   return iRes;
@@ -1677,6 +1694,23 @@ void CDObject::GetNextPrimitive(PDPrimitive pPrim, double dScale, int iDimen)
   }
   m_iPrimitiveRequested = i;
   return;
+}
+
+int CDObject::GetAttractors(CDPoint cPt, double dScale, PDPoint pPoints)
+{
+  CDPoint cPts[4];
+  int iRes;
+  switch(m_iType)
+  {
+  case dtEllipse:
+    iRes = GetEllipseAttractors(cPt, m_pCachePoints, cPts);
+    break;
+  }
+  for(int i = 0; i < iRes; i++)
+  {
+    pPoints[i] = dScale*cPts[i];
+  }
+  return iRes;
 }
 
 int CDObject::GetBSplineParts()

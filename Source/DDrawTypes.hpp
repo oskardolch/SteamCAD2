@@ -138,6 +138,7 @@ public:
   int BuildPrimitives(CDLine cTmpPt, int iMode, PDRect pRect, int iTemp, PDFileAttrs pAttrs);
   void GetFirstPrimitive(PDPrimitive pPrim, double dScale, int iDimen);
   void GetNextPrimitive(PDPrimitive pPrim, double dScale, int iDimen);
+  int GetAttractors(CDPoint cPt, double dScale, PDPoint pPoints);
   int GetBSplineParts();
   // returns true if spline parts is equal to 1, and the spline is closed
   bool GetBSplines(int iParts, double dScale, int *piCtrls, double **ppdKnots, PDPoint *ppPoints);

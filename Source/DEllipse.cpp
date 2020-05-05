@@ -47,6 +47,7 @@ bool GetElpsPtProjFromStartPt(double da, double db, CDPoint cPt, PDPoint pProj)
     double du1 = pProj->x;
     double dv1 = pProj->y;
     double du2, dv2;
+    double dNorm;
 
     double df1 = dA*du1*dv1 + dB*du1 - dC*dv1;
     double df2 = Power2(du1) + Power2(dv1) - 1.0;
@@ -57,12 +58,13 @@ bool GetElpsPtProjFromStartPt(double da, double db, CDPoint cPt, PDPoint pProj)
 
     double dDet = df11*df22 - df12*df21;
     bool bFound = (fabs(df1) < g_dPrec) && (fabs(df2) < g_dPrec);
-    while(!bFound && (j < 8) && (fabs(dDet) > g_dPrec))
+    while(!bFound && (j < 16) && (fabs(dDet) > g_dPrec))
     {
         du2 = du1 - (df1*df22 - df2*df12)/dDet;
         dv2 = dv1 - (-df1*df21 + df2*df11)/dDet;
-        du1 = du2;
-        dv1 = dv2;
+        dNorm = sqrt(Power2(du2) + Power2(dv2));
+        du1 = du2/dNorm;
+        dv1 = dv2/dNorm;
 
         df1 = dA*du1*dv1 + dB*du1 - dC*dv1;
         df2 = Power2(du1) + Power2(dv1) - 1.0;
@@ -81,7 +83,7 @@ bool GetElpsPtProjFromStartPt(double da, double db, CDPoint cPt, PDPoint pProj)
     return bFound;
 }
 
-/*bool PtInList(CDPoint cPt, int iSize, PDPoint pList)
+bool PtInList(CDPoint cPt, int iSize, PDPoint pList)
 {
     int i = 0;
     bool bFound = false;
@@ -93,136 +95,7 @@ bool GetElpsPtProjFromStartPt(double da, double db, CDPoint cPt, PDPoint pProj)
 }
 
 // return cos and sin of dt
-CDPoint GetElpsPtProj(double da, double db, CDPoint cPt, CDPoint cRefPt, double dOffset, int iSrchMask, PDRefPoint pBounds)
-{
-    double d1 = Power2(da) - Power2(db);
-    double dDist2;
-    CDPoint cPt1, cPt2;
-    double dNorm, dDist, dDistMin;
-    CDPoint cProj, cProjMin;
-
-    if(fabs(d1) < g_dPrec)
-    {
-        dDist2 = GetNorm(cPt);
-        if(dDist2 > g_dPrec)
-        {
-            cProjMin = cPt/dDist2;
-            cPt1 = da*cProjMin;
-            dDistMin = GetDist(cRefPt, cPt1);
-            cProj = -1.0*cProjMin;
-            cPt1 = da*cProj;
-            dDist = GetDist(cRefPt, cPt1);
-            if(dDist < dDistMin) cProjMin = cProj;
-            return cProjMin;
-        }
-
-        dDist2 = GetNorm(cRefPt);
-        if(dDist2 > g_dPrec) return cRefPt/dDist2;
-        cProjMin.x = 6.0;
-        return cProjMin;
-    }
-
-    dNorm = sqrt(Power2(cRefPt.x/da) + Power2(cRefPt.y/db));
-    if(dNorm < g_dPrec)
-    {
-        cProjMin.x = 6.0;
-        return cProjMin;
-    }
-
-    int iSols = 0;
-    CDPoint cSols[4];
-    bool bInBounds[4];
-
-    cProj.x = 1.0;
-    cProj.y = 0.0;
-    if(GetElpsPtProjFromStartPt(da, db, cPt, &cProj)) cSols[iSols++] = cProj;
-    cProj.x = -1.0;
-    cProj.y = 0.0;
-    if(GetElpsPtProjFromStartPt(da, db, cPt, &cProj) && !PtInList(cProj, iSols, cSols)) cSols[iSols++] = cProj;
-    cProj.x = 0.0;
-    cProj.y = 1.0;
-    if(GetElpsPtProjFromStartPt(da, db, cPt, &cProj) && !PtInList(cProj, iSols, cSols)) cSols[iSols++] = cProj;
-    cProj.x = 0.0;
-    cProj.y = -1.0;
-    if(GetElpsPtProjFromStartPt(da, db, cPt, &cProj) && !PtInList(cProj, iSols, cSols)) cSols[iSols++] = cProj;
-
-    double dt;
-    if(pBounds && pBounds[0].bIsSet && pBounds[1].bIsSet)
-    {
-        for(int j = 0; j < iSols; j++)
-        {
-            dt = atan2(cSols[j].y, cSols[j].x);
-            bInBounds[j] = (RefInBounds(pBounds[0].dRef, pBounds[1].dRef, dt) > 0);
-        }
-    }
-    else
-    {
-        for(int j = 0; j < iSols; j++) bInBounds[j] = true;
-    }
-
-    cProjMin = cSols[0];
-
-    cPt1.x = da*cProjMin.x;
-    cPt1.y = db*cProjMin.y;
-    cPt2.x = db*cProjMin.x;
-    cPt2.y = da*cProjMin.y;
-    dNorm = GetNorm(cPt2);
-    dDistMin = GetDist(cRefPt - dOffset*cPt2/dNorm, cPt1);
-    bool bFirstSet = bInBounds[0];
-    bool bIsBetter;
-
-    bool bSecondSet = false;
-    CDPoint cProjSecond = cProjMin;
-    double dDistSecond = dDistMin;
-
-    int i = 1;
-    while(i < iSols)
-    {
-        cProj = cSols[i];
-        cPt1.x = da*cProj.x;
-        cPt1.y = db*cProj.y;
-        cPt2.x = db*cProj.x;
-        cPt2.y = da*cProj.y;
-        dNorm = GetNorm(cPt2);
-        dDist = GetDist(cRefPt - dOffset*cPt2/dNorm, cPt1);
-
-        bIsBetter = ((dDist < dDistMin - g_dPrec) && !(bFirstSet && !bInBounds[i])) || (!bFirstSet && bInBounds[i]);
-
-        if(bIsBetter)
-        {
-            if(bSecondSet)
-            {
-                cProjSecond = cProjMin;
-                dDistSecond = dDistMin;
-            }
-            cProjMin = cProj;
-            dDistMin = dDist;
-            bFirstSet |= bInBounds[i];
-        }
-        else if(bSecondSet)
-        {
-            if(dDist < dDistSecond)
-            {
-                cProjSecond = cProj;
-                dDistSecond = dDist;
-            }
-        }
-        else
-        {
-            cProjSecond = cProj;
-            dDistSecond = dDist;
-            bSecondSet = true;
-        }
-        i++;
-    }
-
-    if(iSrchMask & 2) return cProjSecond;
-
-    return cProjMin;
-}*/
-
-// return cos and sin of dt
-int GetElpsPtProj(double da, double db, CDPoint cPt, PDPoint pProjs, double *pdDists)
+int GetElpsPtProj(double da, double db, CDPoint cPt, PDPoint pProjs)
 {
   double da2 = Power2(da);
   double db2 = Power2(db);
@@ -230,22 +103,19 @@ int GetElpsPtProj(double da, double db, CDPoint cPt, PDPoint pProjs, double *pdD
 
   double dx2, dy2;
   CDPoint cProjPt;
+
   if(fabs(cPt.x) < g_dPrec)
   {
     pProjs[0].x = 0.0;
     pProjs[0].y = 1.0;
     pProjs[1].x = 0.0;
     pProjs[1].y = -1.0;
-    pdDists[0] = fabs(db - cPt.y);
-    pdDists[1] = fabs(db + cPt.y);
     if(fabs(cPt.y) < g_dPrec)
     {
       pProjs[2].x = 1.0;
       pProjs[2].y = 0.0;
       pProjs[3].x = -1.0;
       pProjs[3].y = 0.0;
-      pdDists[2] = da;
-      pdDists[3] = da;
       return 4;
     }
     pProjs[2].y = -cPt.y*db/(da2 - db2);
@@ -253,22 +123,20 @@ int GetElpsPtProj(double da, double db, CDPoint cPt, PDPoint pProjs, double *pdD
     if(dy2 > 1.0 - g_dPrec) return 2;
     pProjs[2].x = sqrt(1.0 - dy2);
     pProjs[3].y = pProjs[2].y;
+
     pProjs[3].x = -pProjs[2].x;
     cProjPt.x = da*pProjs[2].x;
     cProjPt.y = db*pProjs[2].y;
-    pdDists[2] = GetDist(cPt, cProjPt);
-    pdDists[3] = pdDists[3];
     return 4;
   }
 
   if(fabs(cPt.y) < g_dPrec)
   {
     pProjs[0].x = 1.0;
+
     pProjs[0].y = 0.0;
     pProjs[1].x = -1.0;
     pProjs[1].y = 0.0;
-    pdDists[0] = fabs(da - cPt.x);
-    pdDists[1] = fabs(da + cPt.x);
     pProjs[2].x = cPt.x*da/(da2 - db2);
     dx2 = Power2(pProjs[2].x);
     if(dx2 > 1.0 - g_dPrec) return 2;
@@ -277,87 +145,139 @@ int GetElpsPtProj(double da, double db, CDPoint cPt, PDPoint pProjs, double *pdD
     pProjs[3].y = -pProjs[2].y;
     cProjPt.x = da*pProjs[2].x;
     cProjPt.y = db*pProjs[2].y;
-    pdDists[2] = GetDist(cPt, cProjPt);
-    pdDists[3] = pdDists[3];
     return 4;
   }
 
-  dx2 = Power2(cPt.x);
-  dy2 = Power2(cPt.y);
-  double pdCoefs[5];
-  pdCoefs[0] = 1.0 - dx2/da2 - dy2/db2;
-  pdCoefs[1] = 2.0*(da2 + db2 - dx2 - dy2)/da/db;
-  pdCoefs[2] = da2/db2 + 4.0 + db2/da2 - dx2/db2 - dy2/da2;
-  pdCoefs[3] = 2.0*(da2 + db2)/da/db;
-  pdCoefs[4] = 1.0;
-  double pdRoots[4];
-  int iRoots = SolvePolynom(4, pdCoefs, pdRoots);
-  int iRes = 0;
-  for(int i = 0; i < iRoots; i++)
+  CDPoint cPt1, cPt2;
+  double dAngles[32];
+  double dco, dsi, dt;
+
+  double dFlipX = 1.0;
+  double dFlipY = 1.0;
+  if(cPt.x < 0.0) dFlipX = -1.0;
+  if(cPt.y < 0.0) dFlipY = -1.0;
+
+  int iRes = 2;
+  int iResActual = 0;
+
+  cProjPt.x = dFlipX*0.8;
+  cProjPt.y = dFlipY*0.6;
+  if(GetElpsPtProjFromStartPt(da, db, cPt, &cProjPt))
+    pProjs[iResActual++] = cProjPt;
+
+  cProjPt.x = -dFlipX*0.8;
+  cProjPt.y = -dFlipY*0.6;
+  if(GetElpsPtProjFromStartPt(da, db, cPt, &cProjPt) && !PtInList(cProjPt, iResActual, pProjs))
+    pProjs[iResActual++] = cProjPt;
+
+  double da1, db1, dc1;
+  da1 = cbrt(Power2(da*cPt.x));
+  db1 = cbrt(Power2(db*cPt.y));
+  dc1 = cbrt(Power2(da2 - db2));
+  double dab1 = (da1 + db1)/dc1;
+  if(dab1 < 1.0 + g_dPrec)
   {
-    da2 = da + db*pdRoots[i];
-    db2 = db + da*pdRoots[i];
-    if((fabs(da2) > g_dPrec) && (fabs(db2) > g_dPrec))
+    iRes = 3;
+    dco = cbrt(cPt.x*da/(da2 - db2));
+    dsi = cbrt(cPt.y*db/(db2 - da2));
+    if(dab1 < 1.0 - g_dPrec)
     {
-      cProjPt.x = cPt.x/da2;
-      cProjPt.y = cPt.y/db2;
-      if(GetElpsPtProjFromStartPt(da, db, cPt, &cProjPt))
-      {
-        pProjs[iRes] = cProjPt;
-        cProjPt.x = da*pProjs[iRes].x;
-        cProjPt.y = db*pProjs[iRes].y;
-        pdDists[iRes++] = GetDist(cProjPt, cPt);
-      }
+      iRes = 4;
+      cProjPt.x = dco;
+      cProjPt.y = dsi;
+      dt = GetNorm(cProjPt);
+      cProjPt /= dt;
+      dt = atan2(cProjPt.y, cProjPt.x);
+      cProjPt.x = dFlipX*cos(dt/2.0);
+      cProjPt.y = dFlipY*sin(dt/2.0);
+      if(GetElpsPtProjFromStartPt(da, db, cPt, &cProjPt) && !PtInList(cProjPt, iResActual, pProjs))
+        pProjs[iResActual++] = cProjPt;
+      cProjPt.x = dFlipX*cos(-(M_PI + dt)/2.0);
+      cProjPt.y = dFlipY*sin(-(M_PI + dt)/2.0);
+      if(GetElpsPtProjFromStartPt(da, db, cPt, &cProjPt) && !PtInList(cProjPt, iResActual, pProjs))
+        pProjs[iResActual++] = cProjPt;
     }
+    else
+    {
+      cProjPt.x = dco;
+      cProjPt.y = dsi;
+      dt = GetNorm(cProjPt);
+      cProjPt /= dt;
+      if(GetElpsPtProjFromStartPt(da, db, cPt, &cProjPt) && !PtInList(cProjPt, iResActual, pProjs))
+        pProjs[iResActual++] = cProjPt;
+    }
+  }
+
+  if(iResActual < iRes)
+  {
+    cProjPt.x = 1.0;
+    cProjPt.y = 0.0;
+    if(GetElpsPtProjFromStartPt(da, db, cPt, &cProjPt) && !PtInList(cProjPt, iResActual, pProjs))
+      pProjs[iResActual++] = cProjPt;
+  }
+  if(iResActual < iRes)
+  {
+    cProjPt.x = -1.0;
+    cProjPt.y = 0.0;
+    if(GetElpsPtProjFromStartPt(da, db, cPt, &cProjPt) && !PtInList(cProjPt, iResActual, pProjs))
+      pProjs[iResActual++] = cProjPt;
+  }
+  if(iResActual < iRes)
+  {
+    cProjPt.x = 0.0;
+    cProjPt.y = 1.0;
+    if(GetElpsPtProjFromStartPt(da, db, cPt, &cProjPt) && !PtInList(cProjPt, iResActual, pProjs))
+      pProjs[iResActual++] = cProjPt;
+  }
+  if(iResActual < iRes)
+  {
+    cProjPt.x = 0.0;
+    cProjPt.y = -1.0;
+    if(GetElpsPtProjFromStartPt(da, db, cPt, &cProjPt) && !PtInList(cProjPt, iResActual, pProjs))
+      pProjs[iResActual++] = cProjPt;
+  }
+
+  return iRes;
+}
+
+int GetEllipseAttractors(CDPoint cPt, PDPointList pCache, PDPoint pPoints)
+{
+  int iCnt = pCache->GetCount(0);
+
+  if(iCnt < 3) return 0;
+
+  CDPoint cOrig = pCache->GetPoint(0, 0).cPoint;
+  CDPoint cRad = pCache->GetPoint(1, 0).cPoint;
+  CDPoint cMainDir = pCache->GetPoint(2, 0).cPoint;
+
+  double dDist = 0.0;
+  int nOffs = pCache->GetCount(2);
+  if(nOffs > 0) dDist = pCache->GetPoint(0, 2).cPoint.x;
+
+  CDPoint cPt1 = Rotate(cPt - cOrig, cMainDir, false);
+
+  CDPoint cProjs[4];
+  int iRes = GetElpsPtProj(cRad.x, cRad.y, cPt1, cProjs);
+  CDPoint cPtNorm;
+  double dNorm;
+
+  for(int i = 0; i < iRes; i++)
+  {
+    cPtNorm.x = cRad.y*cProjs[i].x;
+    cPtNorm.y = cRad.x*cProjs[i].y;
+    dNorm = GetNorm(cPtNorm);
+    cPt1.x = cRad.x*cProjs[i].x + dDist*cPtNorm.x/dNorm;
+    cPt1.y = cRad.y*cProjs[i].y + dDist*cPtNorm.y/dNorm;
+    pPoints[i] = cOrig + Rotate(cPt1, cMainDir, true);
   }
   return iRes;
 }
 
-/*CDPoint GetElpsNearProj(double da, double db, CDPoint cPt)
-{
-  CDPoint pProjs[4];
-  double pDists[4];
-  int iRoots = GetElpsPtProj(da, db, cPt, pProjs, pDists);
-  int i = 0;
-  double dMin = pDists[i];
-  CDPoint cRes = pProjs[i++];
-  while(i < iRoots)
-  {
-    if(pDists[i] < dMin)
-    {
-      dMin = pDists[i];
-      cRes = pProjs[i];
-    }
-    i++;
-  }
-  return cRes;
-}
-
-CDPoint GetElpsFarProj(double da, double db, CDPoint cPt)
-{
-  CDPoint pProjs[4];
-  double pDists[4];
-  int iRoots = GetElpsPtProj(da, db, cPt, pProjs, pDists);
-  int i = 0;
-  double dMax = pDists[i];
-  CDPoint cRes = pProjs[i++];
-  while(i < iRoots)
-  {
-    if(pDists[i] > dMax)
-    {
-      dMax = pDists[i];
-      cRes = pProjs[i];
-    }
-    i++;
-  }
-  return cRes;
-}*/
-
 CDPoint GetElpsBoundProj(double da, double db, double dOffset, CDPoint cPt, CDPoint cPtRef, bool bSecond)
 {
   CDPoint pProjs[4];
-  double pDists[4];
-  int iRoots = GetElpsPtProj(da, db, cPt, pProjs, pDists);
+  double pDists[2];
+  int iRoots = GetElpsPtProj(da, db, cPt, pProjs);
 
   int i = 0;
   CDPoint cNorm = {db*pProjs[i].x, da*pProjs[i].y};
@@ -398,7 +318,7 @@ CDPoint GetElpsBoundProj(double da, double db, double dOffset, CDPoint cPt, CDPo
     if(dMin < pDists[0])
     {
       pDists[1] = pDists[0];
-      dMin = pDists[0];
+      pDists[0] = dMin;
       i1 = i0;
       i0 = i;
     }
@@ -412,6 +332,32 @@ CDPoint GetElpsBoundProj(double da, double db, double dOffset, CDPoint cPt, CDPo
   if(bSecond) cRes = pProjs[i1];
   else cRes = pProjs[i0];
   return cRes;
+}
+
+bool GetRefInSeg(double dtStart, double dtEnd, double dt)
+{
+  if(dtStart > dtEnd)
+  {
+    return (dt > dtStart - g_dPrec) || (dt < dtEnd - g_dPrec);
+  }
+  return (dt > dtStart - g_dPrec) && (dt < dtEnd - g_dPrec);
+}
+
+CDPoint GetElpsProjInSeg(double da, double db, double dOffset, CDPoint cPt, double dtStart, double dtEnd)
+{
+  CDPoint pProjs[4];
+  int iRoots = GetElpsPtProj(da, db, cPt, pProjs);
+
+  bool bFound = false;
+  int i = 0;
+  double dt;
+  while(!bFound && (i < iRoots))
+  {
+    dt = atan2(pProjs[i].y, pProjs[i].x);
+    bFound = GetRefInSeg(dtStart, dtEnd, dt);
+    i++;
+  }
+  return pProjs[i - 1];
 }
 
 int GetQuadrant(double dx, double dQuarterLen)
@@ -602,7 +548,7 @@ double GetElpsPureRef(double da, double db, double dOffset, double dStart, doubl
   dt = GetQuadPointAtDist(&cQuad, 0.0, dLen);
   cQuad.cPt4 = GetQuadPoint(&cQuad, dt);
 
-  CDPoint cProj = GetElpsBoundProj(da, db, dOffset, cQuad.cPt4, cQuad.cPt4, false);
+  CDPoint cProj = GetElpsProjInSeg(da, db, dOffset, cQuad.cPt4, dStart, dEnd);
   return atan2(cProj.y, cProj.x);
 }
 
@@ -935,19 +881,20 @@ bool BuildEllipseCache(CDLine cTmpPt, int iMode, PDPointList pPoints, PDPointLis
   return true;
 }
 
-bool GetElpsInterLineIter(double da, double db, double dr, CDPoint cStartPt,
-  CDPoint cLnOrg, CDPoint cLnDir, double *pdRes, double *pdlt)
+bool GetElpsInterLineIter(double da, double db, double dr, CDPoint cStartPt, CDPoint cNorm,
+  CDPoint cLnOrg, CDPoint cLnDir, double dtStart, double dtEnd, double *pdRes, double *pdlt)
 {
   CDPoint cProjDir, cProjOrg, cProj;
   double dNorm;
   CDPoint cProjPt = cStartPt;
-  GetLineProj(cProjPt, cLnOrg, cLnDir, &cStartPt);
 
   int i = 0;
-  int iInter = 1;
+  cProjDir.x = -cNorm.y;
+  cProjDir.y = cNorm.x;
+  int iInter = LineXLine(cProjPt, cProjDir, cLnOrg, cLnDir, &cStartPt);
   while((i < 16) && (iInter > 0))
   {
-    cProj = GetElpsBoundProj(da, db, dr, cStartPt, cProjPt, false);
+    cProj = GetElpsProjInSeg(da, db, dr, cStartPt, dtStart, dtEnd);
     cProjDir.x = -da*cProj.y;
     cProjDir.y = db*cProj.x;
     dNorm = GetNorm(cProjDir);
@@ -964,15 +911,6 @@ bool GetElpsInterLineIter(double da, double db, double dr, CDPoint cStartPt,
   if(fabs(cLnDir.x) > fabs(cLnDir.y)) *pdlt = (cStartPt.x - cLnOrg.x)/cLnDir.x;
   else *pdlt = (cStartPt.y - cLnOrg.y)/cLnDir.y;
   return true;
-}
-
-bool GetRefInSeg(double dtStart, double dtEnd, double dt)
-{
-  if(dtStart > dtEnd)
-  {
-    return (dt > dtStart - g_dPrec) || (dt < dtEnd - g_dPrec);
-  }
-  return (dt > dtStart - g_dPrec) && (dt < dtEnd - g_dPrec);
 }
 
 bool GetHasTangent(double dtStart, double dtEnd, double dtTangent, double *pdTangent)
@@ -1028,14 +966,15 @@ int GetElpsInterInSeg(double da, double db, double dOffset, double dtStart, doub
     cNorm.x = db*dco;
     cNorm.y = da*dsi;
     dNorm = GetNorm(cNorm);
-    cPt2.x = da*dco + dOffset*cNorm.x/dNorm;
-    cPt2.y = db*dsi + dOffset*cNorm.y/dNorm;
+    cNorm /= dNorm;
+    cPt2.x = da*dco + dOffset*cNorm.x;
+    cPt2.y = db*dsi + dOffset*cNorm.y;
     cProj2 = Rotate(cPt2 - cLnOrg, cLnDir, false);
     if(cProj2.y*cProj1.y < -g_dPrec)
     {
-      if(GetElpsInterLineIter(da, db, dOffset, cPt2, cLnOrg, cLnDir, &det, &dlt))
+      if(GetElpsInterLineIter(da, db, dOffset, cPt2, cNorm, cLnOrg, cLnDir, dtStart, dtEnd, &det, &dlt))
       {
-        if((dlt > g_dPrec) && (dlt < dLnLen - g_dPrec) && GetRefInSeg(dtStart, dtEnd, det))
+        if((dlt > g_dPrec) && (dlt < dLnLen - g_dPrec))
         {
           pBounds->AddPoint(det);
           iRes++;
@@ -1048,14 +987,15 @@ int GetElpsInterInSeg(double da, double db, double dOffset, double dtStart, doub
     cNorm.x = db*dco;
     cNorm.y = da*dsi;
     dNorm = GetNorm(cNorm);
-    cPt2.x = da*dco + dOffset*cNorm.x/dNorm;
-    cPt2.y = db*dsi + dOffset*cNorm.y/dNorm;
+    cNorm /= dNorm;
+    cPt2.x = da*dco + dOffset*cNorm.x;
+    cPt2.y = db*dsi + dOffset*cNorm.y;
     cProj2 = Rotate(cPt2 - cLnOrg, cLnDir, false);
     if(cProj2.y*cProj1.y < -g_dPrec)
     {
-      if(GetElpsInterLineIter(da, db, dOffset, cPt2, cLnOrg, cLnDir, &det, &dlt))
+      if(GetElpsInterLineIter(da, db, dOffset, cPt2, cNorm, cLnOrg, cLnDir, dtStart, dtEnd, &det, &dlt))
       {
-        if((dlt > g_dPrec) && (dlt < dLnLen - g_dPrec) && GetRefInSeg(dtStart, dtEnd, det))
+        if((dlt > g_dPrec) && (dlt < dLnLen - g_dPrec))
         {
           pBounds->AddPoint(det);
           iRes++;
@@ -1085,25 +1025,28 @@ int GetElpsInterInSeg(double da, double db, double dOffset, double dtStart, doub
 
   if(cProj1.y*cProj2.y < -g_dPrec)
   {
-    det = (dtStart + dtEnd)/2.0;
+    dsi = fabs(cProj1.y);
+    dco = fabs(cProj2.y);
+    det = (dco*dtStart + dsi*dtEnd)/(dsi + dco);
     if(dtStart > dtEnd)
     {
-      det = (dtStart - dtEnd)/2.0;
+      det = dco*dtStart/(dsi + dco);
       dlt = M_PI - det;
       if(M_PI - dtStart > dlt) det = dtStart + dlt;
-      else det = dtEnd - dlt;
+      else det = dtEnd - dsi*dtEnd/(dsi + dco);
     }
     dsi = sin(det);
     dco = cos(det);
     cNorm.x = db*dco;
     cNorm.y = da*dsi;
     dNorm = GetNorm(cNorm);
-    cPt1.x = da*dco + dOffset*cNorm.x/dNorm;
-    cPt1.y = db*dsi + dOffset*cNorm.y/dNorm;
+    cNorm /= dNorm;
+    cPt1.x = da*dco + dOffset*cNorm.x;
+    cPt1.y = db*dsi + dOffset*cNorm.y;
 
-    if(GetElpsInterLineIter(da, db, dOffset, cPt1, cLnOrg, cLnDir, &det, &dlt))
+    if(GetElpsInterLineIter(da, db, dOffset, cPt1, cNorm, cLnOrg, cLnDir, dtStart, dtEnd, &det, &dlt))
     {
-      if((dlt > g_dPrec) && (dlt < dLnLen - g_dPrec) && GetRefInSeg(dtStart, dtEnd, det))
+      if((dlt > g_dPrec) && (dlt < dLnLen - g_dPrec))
       {
         pBounds->AddPoint(det);
         return 1;
@@ -1196,19 +1139,24 @@ int AddEllipseInterLine(CDPoint cPt1, CDPoint cPt2, double dOffset, PDPointList 
     }
   }
 
-  double dt1 = atan(-cRad.y*cLnDir.x/cRad.x/cLnDir.y);
-  if(dt1 > g_dPrec) dt1 -= M_PI;
+  double pi2 = M_PI/2.0;
+  double dt1 = -pi2;
+  if(fabs(cLnDir.y) > g_dPrec)
+  {
+    dt1 = atan(-cRad.y*cLnDir.x/cRad.x/cLnDir.y);
+    if(dt1 > g_dPrec) dt1 -= M_PI;
+  }
 
   if(dBreak > g_dPrec)
     iRes += GetElpsInterInSeg(cRad.x, cRad.y, dr, M_PI - dBreak, dBreak - M_PI, dt1,
       bBreak, cLn1, cLnDir, dLnLen, pBounds);
-  if(dBreak < M_PI/2.0 - g_dPrec)
+  if(dBreak < pi2 - g_dPrec)
     iRes += GetElpsInterInSeg(cRad.x, cRad.y, dr, dBreak - M_PI, -dBreak, dt1,
       bBreak, cLn1, cLnDir, dLnLen, pBounds);
   if(dBreak > g_dPrec)
     iRes += GetElpsInterInSeg(cRad.x, cRad.y, dr, -dBreak, dBreak, dt1,
       bBreak, cLn1, cLnDir, dLnLen, pBounds);
-  if(dBreak < M_PI/2.0 - g_dPrec)
+  if(dBreak < pi2 - g_dPrec)
     iRes += GetElpsInterInSeg(cRad.x, cRad.y, dr, dBreak, M_PI - dBreak, dt1,
       bBreak, cLn1, cLnDir, dLnLen, pBounds);
 
@@ -1727,12 +1675,12 @@ void AddElpsSegment(double d1, double d2, double dExt, PDPointList pCache, PDPri
     cLengths = pCache->GetPoint(1, 4).cPoint;
   }
   if(cBreak.x < -0.5) cBreak.x = M_PI/4.0;
-//for(int i = -20; i < 20; i++)
+//for(int i = -40; i < 40; i++)
 //{
-//double dt = (double)i*M_PI/8.0;
+//double dt = (double)i*M_PI/16.0;
 //double dl = GetElpsLen(cRad.x, cRad.y, dr, cBreak.x, cLengths.x, cLengths.y, dt);
 //double ds = GetElpsRef(cRad.x, cRad.y, dr, cBreak.x, cLengths.x, cLengths.y, dl);
-//printf("%d, %f, %f, %f\n", i, dt, dl, ds);
+//printf("%d, %f, %f, %f - %f, %f\n", i, dt, dl, ds, cLengths.x, cLengths.y);
 //}
 
   double dt1 = GetElpsRef(cRad.x, cRad.y, dr, cBreak.x, cLengths.x, cLengths.y, d1);

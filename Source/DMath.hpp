@@ -22,6 +22,7 @@ double PowerN(int n, double x);
 
 int SolvePolynom(int iDeg, double *pdCoefs, double *pdRoots);
 int SolvePolynom01(int iDeg, double *pdCoefs, double *pdRoots);
+int SolvePolynomFuzzy(int iDeg, double *pdCoefs, double *pdRoots);
 
 int GetPolyDegree(int iDeg, double *pdCoefs);
 int ReducePoly(int iDeg, double *pdCoefs);

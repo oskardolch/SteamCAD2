@@ -2,6 +2,8 @@
 #include <math.h>
 #include <string.h>
 
+#include <stdio.h>
+
 double Power2(double x)
 {
 	return(x*x);
@@ -357,6 +359,57 @@ int SolvePolynom01(int iDeg, double *pdCoefs, double *pdRoots)
 			break;
 	}
 	return(CutRoots01(iRes, pdRoots));
+}
+
+int SolvePolynomFuzzy(int iDeg, double *pdCoefs, double *pdRoots)
+{
+  int iRoots = SolvePolynom(iDeg, pdCoefs, pdRoots);
+  if(iRoots == iDeg) return iRoots;
+  double pdDeriv[iDeg];
+  for(int i = 0; i < iDeg; i++) pdDeriv[i] = (i + 1)*pdCoefs[i + 1];
+  double dRoots[iDeg - 1];
+  int iDeriv = SolvePolynom(iDeg - 1, pdDeriv, dRoots);
+  int i = 0, j;
+  bool bFound;
+printf("Roots1: %d\n", iRoots);
+  while((iRoots < iDeg) && (i < iDeriv))
+  {
+printf("Poly: %d - %f\n", i, EvaluatePolynom(iDeg, pdCoefs, dRoots[i])/pdCoefs[iDeg]);
+    if(fabs(EvaluatePolynom(iDeg, pdCoefs, dRoots[i])) < fabs(pdCoefs[iDeg])*0.1)
+    {
+      j = 0;
+      bFound = false;
+      while(!bFound && (j < iRoots))
+      {
+        bFound = dRoots[i] < pdRoots[j++] - g_dPrec;
+      }
+      if(bFound)
+      {
+        if(j > 1)
+        {
+          if(dRoots[i] > pdRoots[j - 2] + g_dPrec)
+          {
+            memmove(&pdRoots[j], &pdRoots[j - 1], (iRoots - j + 1)*sizeof(double));
+            pdRoots[j - 1] = dRoots[i];
+            iRoots++;
+          }
+        }
+        else
+        {
+          memmove(&pdRoots[1], &pdRoots[0], iRoots*sizeof(double));
+          pdRoots[0] = dRoots[i];
+          iRoots++;
+        }
+      }
+      else if(dRoots[i] > pdRoots[iRoots - 1] + g_dPrec)
+      {
+        pdRoots[iRoots++] = dRoots[i];
+      }
+    }
+    i++;
+  }
+printf("Roots2: %d\n", iRoots);
+  return iRoots;
 }
 
 int MultiplyPolynoms(int iDeg1, int iDeg2, double *pCoefs1, double *pCoefs2,

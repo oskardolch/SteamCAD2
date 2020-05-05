@@ -1482,7 +1482,7 @@ void CDApplication::Paint(GtkWidget *widget, GdkEventExpose *event)
 
   cairo_t *cr2 = gdk_cairo_create(event->window);
   //cairo_set_antialias(cr, CAIRO_ANTIALIAS_FAST);
-  if(!m_pcs && bOffLine)
+  if(!m_pcs) // && bOffLine)
   {
     m_pcs = cairo_surface_create_similar_image(cairo_get_target(cr2),
       CAIRO_FORMAT_RGB24, iWidth, iHeight);
@@ -1496,10 +1496,10 @@ void CDApplication::Paint(GtkWidget *widget, GdkEventExpose *event)
   //  if(m_pcs) m_pcp = cairo_pattern_create_for_surface(m_pcs);
   //}
 
-  cairo_t *cr = cr2;
+  //cairo_t *cr = cr2;
   //if(bOffLine)
-  if(!m_bRenderDirect)
-    cr = cairo_create(m_pcs);
+  //if(!m_bRenderDirect)
+  cairo_t *cr = cairo_create(m_pcs);
 
   cairo_identity_matrix(cr);
   cairo_set_source_rgb(cr, 1.0, 1.0, 1.0);
@@ -1611,15 +1611,15 @@ cairo_stroke(cr);
     DrawObject(cr, pObj, 0, -2);
   }
 
-  if(m_pHighObject) DrawObject(cr, m_pHighObject, 2, m_iHighDimen);
-
   //if(bOffLine)
-  if(!m_bRenderDirect)
+  //if(!m_bRenderDirect)
   {
     cairo_destroy(cr);
     cairo_set_source_surface(cr2, m_pcs, 0, 0);
     cairo_paint(cr2);
   }
+
+  if(m_pHighObject) DrawObject(cr2, m_pHighObject, 2, m_iHighDimen);
 
   int iDynMode = GetDynMode();
   CDLine cPtX;
@@ -3194,417 +3194,437 @@ void CDApplication::DrawSizeRectClip(cairo_t *cr, double x, double y)
 
 void CDApplication::MouseMove(GtkWidget *widget, GdkEventMotion *event, gboolean bForce)
 {
-    // if the previous request lasted more than 0.01 seconds, skip this one
-    if(!bForce)
-    {
-        if(g_get_monotonic_time() - 1000*(gint64)event->time > 10000) return;
-    }
+  // if the previous request lasted more than 0.01 seconds, skip this one
+  if(!bForce)
+  {
+    if(g_get_monotonic_time() - 1000*(gint64)event->time > 10000) return;
+  }
 
-    int iWidth = gdk_window_get_width(event->window);
-    int iHeight = gdk_window_get_height(event->window);
+  int iWidth = gdk_window_get_width(event->window);
+  int iHeight = gdk_window_get_height(event->window);
 
-    double xPos = event->x;
-    double yPos = event->y;
+  double xPos = event->x;
+  double yPos = event->y;
 
-    cairo_t *cr = NULL;
+  cairo_t *cr = NULL;
 
-    if(m_iButton == 2)
-    {
-        m_cViewOrigin.x = (xPos - m_cZoomOrig.x);
-        m_cViewOrigin.y = (yPos - m_cZoomOrig.y);
+  if(m_iButton == 2)
+  {
+    m_cViewOrigin.x = (xPos - m_cZoomOrig.x);
+    m_cViewOrigin.y = (yPos - m_cZoomOrig.y);
 
-        int ix = xPos - m_cLastMovePt.x;
-        int iy = yPos - m_cLastMovePt.y;
-        m_cLastSnapPt.x += ix;
-        m_cLastSnapPt.y += iy;
-        gdk_window_scroll(event->window, ix, iy);
+    int ix = xPos - m_cLastMovePt.x;
+    int iy = yPos - m_cLastMovePt.y;
+    m_cLastSnapPt.x += ix;
+    m_cLastSnapPt.y += iy;
+    gdk_window_scroll(event->window, ix, iy);
 
-        m_cLastMovePt.x = xPos;
-        m_cLastMovePt.y = yPos;
-        return;
-    }
-
-    double dx = (xPos - m_cViewOrigin.x)/m_dUnitScale;
-    double dy = (yPos - m_cViewOrigin.y)/m_dUnitScale;
-
-    CDRect cdr;
-    int iDynMode = GetDynMode();
-
-    double dTol;
-
-    if(m_iDrawMode + m_iToolMode < 1)
-    {
-        if((m_iButton == 1) || (m_iButton == 3))
-        {
-            cr = gdk_cairo_create(event->window);
-            DrawSizeRectClip(cr, xPos, yPos);
-
-            if(m_pcs)
-            {
-                cairo_set_source_surface(cr, m_pcs, 0, 0);
-                cairo_paint(cr);
-            }
-
-            m_cLastMovePt.x = xPos;
-            m_cLastMovePt.y = yPos;
-
-            GdkRectangle cRect2 = {m_cLastDownPt.x, m_cLastDownPt.y, m_cLastMovePt.x - m_cLastDownPt.x, m_cLastMovePt.y - m_cLastDownPt.y};
-            /*if(cRect2.width < 0)
-            {
-                cRect2.x += cRect2.width;
-                cRect2.width *= -1;
-            }
-            if(cRect2.height < 0)
-            {
-                cRect2.y += cRect2.height;
-                cRect2.height *= -1;
-            }*/
-
-            long dwColor = SetColorAlpha(m_lSelColor, 35);
-            cairo_rectangle(cr, cRect2.x, cRect2.y, cRect2.width, cRect2.height);
-            SetLColor(cr, dwColor);
-            cairo_fill_preserve(cr);
-            SetLColor(cr, m_lSelColor);
-            cairo_stroke(cr);
-            cairo_destroy(cr);
-
-            /*GdkGC *pdc = gdk_gc_new(event->window);
-            gdk_gc_set_function(pdc, GDK_EQUIV);
-            SetGdkColor(pdc, m_lSelColor);
-
-            gdk_draw_rectangle(event->window, pdc, FALSE, cRect1.x, cRect1.y, cRect1.width, cRect1.height);
-            gdk_draw_rectangle(event->window, pdc, FALSE, cRect2.x, cRect2.y, cRect2.width, cRect2.height);
-
-            gdk_gc_destroy(pdc);*/
-        }
-        else if(m_iButton < 1)
-        {
-            CDPoint cPt = {dx, dy};
-            dTol = (double)m_iSelectTolerance/m_dUnitScale;
-
-            int iDimen;
-            PDObject pNewHigh = m_pDrawObjects->SelectByPoint(cPt, dTol, &iDimen);
-
-            if((m_pHighObject != pNewHigh) || (iDimen != m_iHighDimen))
-            {
-                cr = gdk_cairo_create(event->window);
-                
-                if(m_pHighObject) DrawObject(cr, m_pHighObject, 0, m_iHighDimen);
-                if(pNewHigh) DrawObject(cr, pNewHigh, 2, iDimen);
-                m_pHighObject = pNewHigh;
-                m_iHighDimen = iDimen;
-                cairo_destroy(cr);
-            }
-        }
-    }
-
-    gchar buf[64];
-    sprintf(buf, "%.3f, %.3f", dx/m_cFSR.cPaperUnit.dBaseToUnit, dy/m_cFSR.cPaperUnit.dBaseToUnit);
-    SetStatusBarMsg(0, buf);
-
-    if(m_iButton > 0) return;
-
-    int iCnt = 0;
-    PDObject pObj1, pObj2;
-
-    m_cLastSnapPt.x = xPos;
-    m_cLastSnapPt.y = yPos;
-
-    if(m_iDrawMode + m_iToolMode > 0)
-    {
-        cdr.cPt1.x = -m_cViewOrigin.x/m_dUnitScale;
-        cdr.cPt1.y = -m_cViewOrigin.y/m_dUnitScale;
-        cdr.cPt2.x = (iWidth - m_cViewOrigin.x)/m_dUnitScale;
-        cdr.cPt2.y = (iHeight - m_cViewOrigin.y)/m_dUnitScale;
-
-        cr = gdk_cairo_create(event->window);
-
-        cairo_set_source_surface(cr, m_pcs, 0, 0);
-        cairo_mask(cr, m_pcp);
-
-        CDLine cSnapPt;
-        bool bHasLastPoint = false;
-        CDInputPoint cLstInPt;
-        CDPoint cDir1, cDir2;
-        double dAng1;
-        bool bDoSnap = true;
-
-        if((m_iDrawMode == modLine) && m_pActiveObject)
-        {
-            bHasLastPoint = m_pActiveObject->GetPoint(0, 0, &cLstInPt);
-        }
-
-        CDLine cPtX;
-
-        if(event->state & GDK_CONTROL_MASK)
-        {
-            bDoSnap = false;
-
-            if(bHasLastPoint)
-            {
-                CDPoint cMainDir = {1.0, 0.0};
-
-                iCnt = m_pDrawObjects->GetSelectCount(2);
-                if(iCnt == 1)
-                {
-                    pObj1 = m_pDrawObjects->GetSelected(0);
-                    if(m_cLastDynPt.bIsSet)
-                        pObj1->GetDistFromPt(m_cLastDynPt.cOrigin, m_cLastDynPt.cOrigin, true, &cPtX, NULL);
-                    else pObj1->GetDistFromPt(cLstInPt.cPoint, cLstInPt.cPoint, true, &cPtX, NULL);
-                    if(cPtX.bIsSet) cMainDir = cPtX.cDirection;
-                }
-
-                if((event->state & GDK_SHIFT_MASK) && (iCnt == 1))
-                {
-                    cDir2.x = dx;
-                    cDir2.y = dy;
-                    cDir1 = pObj1->GetPointToDir(cLstInPt.cPoint, m_dSavedAngle, cDir2);
-                    m_cLastDynPt.bIsSet = true;
-                    m_cLastDynPt.cOrigin = cDir1;
-                    m_cLastDynPt.cDirection.x = 0.0;
-                    m_cLastDrawPt = cDir2;
-                    bDoSnap = true;
-                }
-                else
-                {
-                    m_cLastDynPt.bIsSet = false;
-                    cDir1.x = dx - cLstInPt.cPoint.x;
-                    cDir1.y = dy - cLstInPt.cPoint.y;
-                    cDir2 = Rotate(cDir1, cMainDir, false);
-                    dAng1 = atan2(cDir2.y, cDir2.x);
-                    dAng1 *= 180.0/M_PI/m_cFSR.cAngUnit.dBaseToUnit;
-                    double dAng2 = m_cFSR.dAngGrid*(Round((double)dAng1/m_cFSR.dAngGrid));
-                    dAng2 *= M_PI*m_cFSR.cAngUnit.dBaseToUnit/180.0;
-
-                    m_dSavedAngle = dAng2;
-
-                    CDPoint cDir3 = {cos(dAng2), sin(dAng2)};
-                    cSnapPt.cOrigin = Rotate(cDir2, cDir3, false);
-                    cSnapPt.cOrigin.y = 0.0;
-                    cDir1 = Rotate(cSnapPt.cOrigin, cDir3, true);
-                    m_cLastDrawPt = cLstInPt.cPoint + Rotate(cDir1, cMainDir, true);
-                }
-            }
-            else
-            {
-                dx = m_cFSR.dXGrid*(Round((double)dx/m_cFSR.dXGrid));
-                dy = m_cFSR.dYGrid*(Round((double)dy/m_cFSR.dYGrid));
-                m_cLastDrawPt.x = dx;
-                m_cLastDrawPt.y = dy;
-            }
-            m_cLastSnapPt.x = m_cViewOrigin.x + (int)Round(m_cLastDrawPt.x*m_dUnitScale);
-            m_cLastSnapPt.y = m_cViewOrigin.y + (int)Round(m_cLastDrawPt.y*m_dUnitScale);
-        }
-        else m_cLastDynPt.bIsSet = false;
-
-        bool bRestrict = false;
-        double dRestrictVal = m_dRestrictValue;
-        if(bDoSnap)
-        {
-            m_cLastDrawPt.x = (m_cLastSnapPt.x - m_cViewOrigin.x)/m_dUnitScale;
-            m_cLastDrawPt.y = (m_cLastSnapPt.y - m_cViewOrigin.y)/m_dUnitScale;
-            dTol = (double)m_iSnapTolerance/m_dUnitScale;
-
-            int iSnapType = 0;
-            if(m_iToolMode == tolConflict) iSnapType = 1;
-            if(m_iToolMode == tolCopyPar) iSnapType = 2;
-            if(m_pDrawObjects->GetSnapPoint(iSnapType, m_cLastDrawPt,
-                dTol, &cSnapPt, m_pActiveObject) > 0)
-            {
-                if((event->state & GDK_SHIFT_MASK) && (iCnt == 1))
-                {
-                    for(int i = 0; i < 4; i++)
-                    {
-                        cDir2 = cSnapPt.cOrigin;
-                        cDir1 = pObj1->GetPointToDir(cLstInPt.cPoint, m_dSavedAngle, cDir2);
-                        m_cLastDynPt.bIsSet = true;
-                        m_cLastDynPt.cOrigin = cDir1;
-                        m_cLastDrawPt = cDir2;
-                        m_pDrawObjects->GetSnapPoint(iSnapType, m_cLastDrawPt, dTol, &cSnapPt,
-                            m_pActiveObject);
-                    }
-                }
-
-                m_cLastDrawPt = cSnapPt.cOrigin;
-                m_cLastSnapPt.x = m_cViewOrigin.x + (int)Round(m_cLastDrawPt.x*m_dUnitScale);
-                m_cLastSnapPt.y = m_cViewOrigin.y + (int)Round(m_cLastDrawPt.y*m_dUnitScale);
-            }
-
-            if(m_pActiveObject)
-            {
-                if((m_iDrawMode == modLine) && (iDynMode != 2))
-                {
-                    bRestrict = IS_ANGLE_VAL(m_iRestrictSet);
-                    if(bRestrict)
-                    {
-                        if(m_iRestrictSet == 0) dRestrictVal /= m_cFSR.cAngUnit.dBaseToUnit;
-                        if(m_iRestrictSet != 3) dRestrictVal *= M_PI/180.0;
-                    }
-                }
-                else
-                {
-                    bRestrict = IS_LENGTH_VAL(m_iRestrictSet);
-                    if(bRestrict)
-                    {
-                        if(m_iRestrictSet == 0)
-                        {
-                            if(m_bPaperUnits)
-                                dRestrictVal *= m_cFSR.cPaperUnit.dBaseToUnit;
-                            else dRestrictVal *= m_cFSR.cLenUnit.dBaseToUnit;
-                        }
-                        if(!m_bPaperUnits) dRestrictVal *= m_dDrawScale;
-                    }
-                }
-
-                if(iDynMode == 3)
-                {
-                    iCnt = m_pDrawObjects->GetSelectCount(2);
-                    if(iCnt == 2)
-                    {
-                        pObj1 = m_pDrawObjects->GetSelected(0);
-                        pObj2 = m_pDrawObjects->GetSelected(1);
-                        m_pActiveObject->BuildRound(pObj1, pObj2, m_cLastDrawPt, bRestrict,
-                            dRestrictVal);
-                    }
-                }
-
-                bRestrict = m_pActiveObject->GetRestrictPoint(m_cLastDrawPt,
-                    iDynMode, bRestrict, dRestrictVal, &cSnapPt.cOrigin);
-            }
-
-            if(bRestrict)
-            {
-                m_cLastDrawPt = cSnapPt.cOrigin;
-                m_cLastSnapPt.x = m_cViewOrigin.x + (int)Round(m_cLastDrawPt.x*m_dUnitScale);
-                m_cLastSnapPt.y = m_cViewOrigin.y + (int)Round(m_cLastDrawPt.y*m_dUnitScale);
-            }
-        }
-
-        cPtX.cOrigin = m_cLastDrawPt;
-        if(iDynMode == 1)
-        {
-            cPtX.bIsSet = m_cLastDynPt.bIsSet;
-            cPtX.cDirection = m_cLastDynPt.cOrigin;
-        }
-        else if(iDynMode == 2)
-        {
-            cPtX.cDirection.x = 0.0;
-            if(event->state & GDK_SHIFT_MASK) cPtX.cDirection.x = -1.0;
-            if(bRestrict)
-            {
-                cPtX.cDirection.x = 1.0;
-                cPtX.cDirection.y = dRestrictVal;
-                m_dSavedDist = dRestrictVal;
-            }
-        }
-
-        if(m_pActiveObject)
-        {
-            double dVal;
-            if(!bRestrict)
-            {
-                if(m_pActiveObject->GetDynValue(m_cLastDrawPt, iDynMode, &dVal))
-                {
-                    m_dSavedDist = dVal;
-                    if((m_iDrawMode == modLine) && (iDynMode != 2))
-                    {
-                        dVal *= m_cFSR.cAngUnit.dBaseToUnit*180.0/M_PI;
-                        sprintf(m_sStatus1Msg, "%s %.2f %s", m_sStatus1Base, dVal,
-                            m_cFSR.cAngUnit.sAbbrev);
-                    }
-                    else
-                    {
-                        if(m_bPaperUnits)
-                        {
-                            dVal /= m_cFSR.cPaperUnit.dBaseToUnit;
-                            sprintf(m_sStatus1Msg, "%s %.2f %s", m_sStatus1Base, dVal,
-                                m_cFSR.cPaperUnit.sAbbrev);
-                        }
-                        else
-                        {
-                            dVal /= m_dDrawScale;
-                            dVal /= m_cFSR.cLenUnit.dBaseToUnit;
-                            sprintf(m_sStatus1Msg, "%s %.2f %s", m_sStatus1Base, dVal,
-                                m_cFSR.cLenUnit.sAbbrev);
-                        }
-                    }
-                    SetStatusBarMsg(1, m_sStatus1Msg);
-                }
-            }
-            else
-            {
-                dVal = m_dRestrictValue;
-                if((m_iDrawMode == modLine) && (iDynMode != 2))
-                {
-                    sprintf(m_sStatus1Msg, "%s %.2f %s", m_sStatus1Base, dVal,
-                        m_cFSR.cAngUnit.sAbbrev);
-                }
-                else
-                {
-                    if(m_bPaperUnits)
-                    {
-                        sprintf(m_sStatus1Msg, "%s %.2f %s", m_sStatus1Base, dVal,
-                            m_cFSR.cPaperUnit.sAbbrev);
-                    }
-                    else
-                    {
-                        sprintf(m_sStatus1Msg, "%s %.2f %s", m_sStatus1Base, dVal,
-                            m_cFSR.cLenUnit.sAbbrev);
-                    }
-                }
-                SetStatusBarMsg(1, m_sStatus1Msg);
-            }
-
-            m_pActiveObject->BuildPrimitives(cPtX, iDynMode, &cdr, 0, NULL);
-
-            DrawObject(cr, m_pActiveObject, 1, -2);
-        }
-        else if(iDynMode == 4)
-        {
-            iCnt = m_pDrawObjects->GetSelectCount(2);
-            if(iCnt == 1)
-            {
-                pObj1 = m_pDrawObjects->GetSelected(0);
-                CDFileAttrs cFAttrs;
-                FilePropsToData(&cFAttrs);
-                // we actualy don't need the drawing scale for the dimension,
-                // so we will use it to pass the view scale
-                cFAttrs.dScaleDenom = m_dUnitScale;
-
-                pObj1->BuildPrimitives(cPtX, iDynMode, &cdr, 0, &cFAttrs);
-                DrawObject(cr, pObj1, 1, -1);
-            }
-        }
-
-        DrawCross(cr);
-
-        cairo_destroy(cr);
-
-        if(m_iToolMode == tolMeas)
-        {
-            if(m_cMeasPoint1.bIsSet && !m_cMeasPoint2.bIsSet)
-            {
-                CDPoint cDistPt = m_cLastDrawPt - m_cMeasPoint1.cOrigin;
-                gchar *sUnit;
-                if(m_bPaperUnits)
-                {
-                    cDistPt /= m_cFSR.cPaperUnit.dBaseToUnit;
-                    sUnit = m_cFSR.cPaperUnit.sAbbrev;
-                }
-                else
-                {
-                    cDistPt /= m_dDrawScale;
-                    cDistPt /= m_cFSR.cLenUnit.dBaseToUnit;
-                    sUnit = m_cFSR.cLenUnit.sAbbrev;
-                }
-                double dNorm = GetNorm(cDistPt);
-                sprintf(m_sStatus1Msg, "dx: %.3f, dy: %.3f, dist: %.4f (%s)", fabs(cDistPt.x),
-                    fabs(cDistPt.y), dNorm, sUnit);
-                SetStatusBarMsg(1, m_sStatus1Msg);
-            }
-        }
-    }
+    m_cLastMovePt.x = xPos;
+    m_cLastMovePt.y = yPos;
     return;
+  }
+
+  double dx = (xPos - m_cViewOrigin.x)/m_dUnitScale;
+  double dy = (yPos - m_cViewOrigin.y)/m_dUnitScale;
+
+  CDRect cdr;
+  int iDynMode = GetDynMode();
+
+  double dTol;
+
+  if(m_iDrawMode + m_iToolMode < 1)
+  {
+    if((m_iButton == 1) || (m_iButton == 3))
+    {
+      cr = gdk_cairo_create(event->window);
+      DrawSizeRectClip(cr, xPos, yPos);
+
+      if(m_pcs)
+      {
+        cairo_set_source_surface(cr, m_pcs, 0, 0);
+        cairo_paint(cr);
+      }
+
+      m_cLastMovePt.x = xPos;
+      m_cLastMovePt.y = yPos;
+
+      GdkRectangle cRect2 = {m_cLastDownPt.x, m_cLastDownPt.y, m_cLastMovePt.x - m_cLastDownPt.x, m_cLastMovePt.y - m_cLastDownPt.y};
+      /*if(cRect2.width < 0)
+      {
+        cRect2.x += cRect2.width;
+        cRect2.width *= -1;
+      }
+      if(cRect2.height < 0)
+      {
+        cRect2.y += cRect2.height;
+        cRect2.height *= -1;
+      }*/
+
+      long dwColor = SetColorAlpha(m_lSelColor, 35);
+      cairo_rectangle(cr, cRect2.x, cRect2.y, cRect2.width, cRect2.height);
+      SetLColor(cr, dwColor);
+      cairo_fill_preserve(cr);
+      SetLColor(cr, m_lSelColor);
+      cairo_stroke(cr);
+      cairo_destroy(cr);
+
+      /*GdkGC *pdc = gdk_gc_new(event->window);
+      gdk_gc_set_function(pdc, GDK_EQUIV);
+      SetGdkColor(pdc, m_lSelColor);
+
+      gdk_draw_rectangle(event->window, pdc, FALSE, cRect1.x, cRect1.y, cRect1.width, cRect1.height);
+      gdk_draw_rectangle(event->window, pdc, FALSE, cRect2.x, cRect2.y, cRect2.width, cRect2.height);
+
+      gdk_gc_destroy(pdc);*/
+    }
+    else if(m_iButton < 1)
+    {
+      cr = gdk_cairo_create(event->window);
+      if(m_pcs)
+      {
+        cairo_set_source_surface(cr, m_pcs, 0, 0);
+        cairo_paint(cr);
+      }
+
+      CDPoint cPt = {dx, dy};
+      dTol = (double)m_iSelectTolerance/m_dUnitScale;
+
+      int iDimen;
+      PDObject pNewHigh = m_pDrawObjects->SelectByPoint(cPt, dTol, &iDimen);
+      if(pNewHigh) DrawObject(cr, pNewHigh, 2, iDimen);
+
+      if((m_pHighObject != pNewHigh) || (iDimen != m_iHighDimen))
+      {
+        m_pHighObject = pNewHigh;
+        m_iHighDimen = iDimen;
+      }
+
+      // debug code for GetObjPtProj visualization
+      /*pNewHigh = m_pDrawObjects->GetSelected(0);
+      if(pNewHigh)
+      {
+        CDPoint cAttrPts[4];
+        int iAttrs = pNewHigh->GetAttractors(cPt, m_dUnitScale, cAttrPts);
+
+        cairo_set_source_rgb(cr, 1.0, 0.0, 0.0);
+        for(int i = 0; i < iAttrs; i++)
+        {
+          cairo_arc(cr, cAttrPts[i].x + m_cViewOrigin.x, cAttrPts[i].y + m_cViewOrigin.y, 2, 0.0, 2.0*M_PI);
+          cairo_fill(cr);
+        }
+      }*/
+      // end debug
+      cairo_destroy(cr);
+    }
+  }
+
+  gchar buf[64];
+  sprintf(buf, "%.3f, %.3f", dx/m_cFSR.cPaperUnit.dBaseToUnit, dy/m_cFSR.cPaperUnit.dBaseToUnit);
+  SetStatusBarMsg(0, buf);
+
+  if(m_iButton > 0) return;
+
+  int iCnt = 0;
+  PDObject pObj1, pObj2;
+
+  m_cLastSnapPt.x = xPos;
+  m_cLastSnapPt.y = yPos;
+
+  if(m_iDrawMode + m_iToolMode > 0)
+  {
+      cdr.cPt1.x = -m_cViewOrigin.x/m_dUnitScale;
+      cdr.cPt1.y = -m_cViewOrigin.y/m_dUnitScale;
+      cdr.cPt2.x = (iWidth - m_cViewOrigin.x)/m_dUnitScale;
+      cdr.cPt2.y = (iHeight - m_cViewOrigin.y)/m_dUnitScale;
+
+      cr = gdk_cairo_create(event->window);
+
+      cairo_set_source_surface(cr, m_pcs, 0, 0);
+      cairo_mask(cr, m_pcp);
+
+      CDLine cSnapPt;
+      bool bHasLastPoint = false;
+      CDInputPoint cLstInPt;
+      CDPoint cDir1, cDir2;
+      double dAng1;
+      bool bDoSnap = true;
+
+      if((m_iDrawMode == modLine) && m_pActiveObject)
+      {
+          bHasLastPoint = m_pActiveObject->GetPoint(0, 0, &cLstInPt);
+      }
+
+      CDLine cPtX;
+
+      if(event->state & GDK_CONTROL_MASK)
+      {
+          bDoSnap = false;
+
+          if(bHasLastPoint)
+          {
+              CDPoint cMainDir = {1.0, 0.0};
+
+              iCnt = m_pDrawObjects->GetSelectCount(2);
+              if(iCnt == 1)
+              {
+                  pObj1 = m_pDrawObjects->GetSelected(0);
+                  if(m_cLastDynPt.bIsSet)
+                      pObj1->GetDistFromPt(m_cLastDynPt.cOrigin, m_cLastDynPt.cOrigin, true, &cPtX, NULL);
+                  else pObj1->GetDistFromPt(cLstInPt.cPoint, cLstInPt.cPoint, true, &cPtX, NULL);
+                  if(cPtX.bIsSet) cMainDir = cPtX.cDirection;
+              }
+
+              if((event->state & GDK_SHIFT_MASK) && (iCnt == 1))
+              {
+                  cDir2.x = dx;
+                  cDir2.y = dy;
+                  cDir1 = pObj1->GetPointToDir(cLstInPt.cPoint, m_dSavedAngle, cDir2);
+                  m_cLastDynPt.bIsSet = true;
+                  m_cLastDynPt.cOrigin = cDir1;
+                  m_cLastDynPt.cDirection.x = 0.0;
+                  m_cLastDrawPt = cDir2;
+                  bDoSnap = true;
+              }
+              else
+              {
+                  m_cLastDynPt.bIsSet = false;
+                  cDir1.x = dx - cLstInPt.cPoint.x;
+                  cDir1.y = dy - cLstInPt.cPoint.y;
+                  cDir2 = Rotate(cDir1, cMainDir, false);
+                  dAng1 = atan2(cDir2.y, cDir2.x);
+                  dAng1 *= 180.0/M_PI/m_cFSR.cAngUnit.dBaseToUnit;
+                  double dAng2 = m_cFSR.dAngGrid*(Round((double)dAng1/m_cFSR.dAngGrid));
+                  dAng2 *= M_PI*m_cFSR.cAngUnit.dBaseToUnit/180.0;
+
+                  m_dSavedAngle = dAng2;
+
+                  CDPoint cDir3 = {cos(dAng2), sin(dAng2)};
+                  cSnapPt.cOrigin = Rotate(cDir2, cDir3, false);
+                  cSnapPt.cOrigin.y = 0.0;
+                  cDir1 = Rotate(cSnapPt.cOrigin, cDir3, true);
+                  m_cLastDrawPt = cLstInPt.cPoint + Rotate(cDir1, cMainDir, true);
+              }
+          }
+          else
+          {
+              dx = m_cFSR.dXGrid*(Round((double)dx/m_cFSR.dXGrid));
+              dy = m_cFSR.dYGrid*(Round((double)dy/m_cFSR.dYGrid));
+              m_cLastDrawPt.x = dx;
+              m_cLastDrawPt.y = dy;
+          }
+          m_cLastSnapPt.x = m_cViewOrigin.x + (int)Round(m_cLastDrawPt.x*m_dUnitScale);
+          m_cLastSnapPt.y = m_cViewOrigin.y + (int)Round(m_cLastDrawPt.y*m_dUnitScale);
+      }
+      else m_cLastDynPt.bIsSet = false;
+
+      bool bRestrict = false;
+      double dRestrictVal = m_dRestrictValue;
+      if(bDoSnap)
+      {
+          m_cLastDrawPt.x = (m_cLastSnapPt.x - m_cViewOrigin.x)/m_dUnitScale;
+          m_cLastDrawPt.y = (m_cLastSnapPt.y - m_cViewOrigin.y)/m_dUnitScale;
+          dTol = (double)m_iSnapTolerance/m_dUnitScale;
+
+          int iSnapType = 0;
+          if(m_iToolMode == tolConflict) iSnapType = 1;
+          if(m_iToolMode == tolCopyPar) iSnapType = 2;
+          if(m_pDrawObjects->GetSnapPoint(iSnapType, m_cLastDrawPt,
+              dTol, &cSnapPt, m_pActiveObject) > 0)
+          {
+              if((event->state & GDK_SHIFT_MASK) && (iCnt == 1))
+              {
+                  for(int i = 0; i < 4; i++)
+                  {
+                      cDir2 = cSnapPt.cOrigin;
+                      cDir1 = pObj1->GetPointToDir(cLstInPt.cPoint, m_dSavedAngle, cDir2);
+                      m_cLastDynPt.bIsSet = true;
+                      m_cLastDynPt.cOrigin = cDir1;
+                      m_cLastDrawPt = cDir2;
+                      m_pDrawObjects->GetSnapPoint(iSnapType, m_cLastDrawPt, dTol, &cSnapPt,
+                          m_pActiveObject);
+                  }
+              }
+
+              m_cLastDrawPt = cSnapPt.cOrigin;
+              m_cLastSnapPt.x = m_cViewOrigin.x + (int)Round(m_cLastDrawPt.x*m_dUnitScale);
+              m_cLastSnapPt.y = m_cViewOrigin.y + (int)Round(m_cLastDrawPt.y*m_dUnitScale);
+          }
+
+          if(m_pActiveObject)
+          {
+              if((m_iDrawMode == modLine) && (iDynMode != 2))
+              {
+                  bRestrict = IS_ANGLE_VAL(m_iRestrictSet);
+                  if(bRestrict)
+                  {
+                      if(m_iRestrictSet == 0) dRestrictVal /= m_cFSR.cAngUnit.dBaseToUnit;
+                      if(m_iRestrictSet != 3) dRestrictVal *= M_PI/180.0;
+                  }
+              }
+              else
+              {
+                  bRestrict = IS_LENGTH_VAL(m_iRestrictSet);
+                  if(bRestrict)
+                  {
+                      if(m_iRestrictSet == 0)
+                      {
+                          if(m_bPaperUnits)
+                              dRestrictVal *= m_cFSR.cPaperUnit.dBaseToUnit;
+                          else dRestrictVal *= m_cFSR.cLenUnit.dBaseToUnit;
+                      }
+                      if(!m_bPaperUnits) dRestrictVal *= m_dDrawScale;
+                  }
+              }
+
+              if(iDynMode == 3)
+              {
+                  iCnt = m_pDrawObjects->GetSelectCount(2);
+                  if(iCnt == 2)
+                  {
+                      pObj1 = m_pDrawObjects->GetSelected(0);
+                      pObj2 = m_pDrawObjects->GetSelected(1);
+                      m_pActiveObject->BuildRound(pObj1, pObj2, m_cLastDrawPt, bRestrict,
+                          dRestrictVal);
+                  }
+              }
+
+              bRestrict = m_pActiveObject->GetRestrictPoint(m_cLastDrawPt,
+                  iDynMode, bRestrict, dRestrictVal, &cSnapPt.cOrigin);
+          }
+
+          if(bRestrict)
+          {
+              m_cLastDrawPt = cSnapPt.cOrigin;
+              m_cLastSnapPt.x = m_cViewOrigin.x + (int)Round(m_cLastDrawPt.x*m_dUnitScale);
+              m_cLastSnapPt.y = m_cViewOrigin.y + (int)Round(m_cLastDrawPt.y*m_dUnitScale);
+          }
+      }
+
+      cPtX.cOrigin = m_cLastDrawPt;
+      if(iDynMode == 1)
+      {
+          cPtX.bIsSet = m_cLastDynPt.bIsSet;
+          cPtX.cDirection = m_cLastDynPt.cOrigin;
+      }
+      else if(iDynMode == 2)
+      {
+          cPtX.cDirection.x = 0.0;
+          if(event->state & GDK_SHIFT_MASK) cPtX.cDirection.x = -1.0;
+          if(bRestrict)
+          {
+              cPtX.cDirection.x = 1.0;
+              cPtX.cDirection.y = dRestrictVal;
+              m_dSavedDist = dRestrictVal;
+          }
+      }
+
+      if(m_pActiveObject)
+      {
+          double dVal;
+          if(!bRestrict)
+          {
+              if(m_pActiveObject->GetDynValue(m_cLastDrawPt, iDynMode, &dVal))
+              {
+                  m_dSavedDist = dVal;
+                  if((m_iDrawMode == modLine) && (iDynMode != 2))
+                  {
+                      dVal *= m_cFSR.cAngUnit.dBaseToUnit*180.0/M_PI;
+                      sprintf(m_sStatus1Msg, "%s %.2f %s", m_sStatus1Base, dVal,
+                          m_cFSR.cAngUnit.sAbbrev);
+                  }
+                  else
+                  {
+                      if(m_bPaperUnits)
+                      {
+                          dVal /= m_cFSR.cPaperUnit.dBaseToUnit;
+                          sprintf(m_sStatus1Msg, "%s %.2f %s", m_sStatus1Base, dVal,
+                              m_cFSR.cPaperUnit.sAbbrev);
+                      }
+                      else
+                      {
+                          dVal /= m_dDrawScale;
+                          dVal /= m_cFSR.cLenUnit.dBaseToUnit;
+                          sprintf(m_sStatus1Msg, "%s %.2f %s", m_sStatus1Base, dVal,
+                              m_cFSR.cLenUnit.sAbbrev);
+                      }
+                  }
+                  SetStatusBarMsg(1, m_sStatus1Msg);
+              }
+          }
+          else
+          {
+              dVal = m_dRestrictValue;
+              if((m_iDrawMode == modLine) && (iDynMode != 2))
+              {
+                  sprintf(m_sStatus1Msg, "%s %.2f %s", m_sStatus1Base, dVal,
+                      m_cFSR.cAngUnit.sAbbrev);
+              }
+              else
+              {
+                  if(m_bPaperUnits)
+                  {
+                      sprintf(m_sStatus1Msg, "%s %.2f %s", m_sStatus1Base, dVal,
+                          m_cFSR.cPaperUnit.sAbbrev);
+                  }
+                  else
+                  {
+                      sprintf(m_sStatus1Msg, "%s %.2f %s", m_sStatus1Base, dVal,
+                          m_cFSR.cLenUnit.sAbbrev);
+                  }
+              }
+              SetStatusBarMsg(1, m_sStatus1Msg);
+          }
+
+          m_pActiveObject->BuildPrimitives(cPtX, iDynMode, &cdr, 0, NULL);
+
+          DrawObject(cr, m_pActiveObject, 1, -2);
+      }
+      else if(iDynMode == 4)
+      {
+          iCnt = m_pDrawObjects->GetSelectCount(2);
+          if(iCnt == 1)
+          {
+              pObj1 = m_pDrawObjects->GetSelected(0);
+              CDFileAttrs cFAttrs;
+              FilePropsToData(&cFAttrs);
+              // we actualy don't need the drawing scale for the dimension,
+              // so we will use it to pass the view scale
+              cFAttrs.dScaleDenom = m_dUnitScale;
+
+              pObj1->BuildPrimitives(cPtX, iDynMode, &cdr, 0, &cFAttrs);
+              DrawObject(cr, pObj1, 1, -1);
+          }
+      }
+
+      DrawCross(cr);
+
+      cairo_destroy(cr);
+
+      if(m_iToolMode == tolMeas)
+      {
+          if(m_cMeasPoint1.bIsSet && !m_cMeasPoint2.bIsSet)
+          {
+              CDPoint cDistPt = m_cLastDrawPt - m_cMeasPoint1.cOrigin;
+              gchar *sUnit;
+              if(m_bPaperUnits)
+              {
+                  cDistPt /= m_cFSR.cPaperUnit.dBaseToUnit;
+                  sUnit = m_cFSR.cPaperUnit.sAbbrev;
+              }
+              else
+              {
+                  cDistPt /= m_dDrawScale;
+                  cDistPt /= m_cFSR.cLenUnit.dBaseToUnit;
+                  sUnit = m_cFSR.cLenUnit.sAbbrev;
+              }
+              double dNorm = GetNorm(cDistPt);
+              sprintf(m_sStatus1Msg, "dx: %.3f, dy: %.3f, dist: %.4f (%s)", fabs(cDistPt.x),
+                  fabs(cDistPt.y), dNorm, sUnit);
+              SetStatusBarMsg(1, m_sStatus1Msg);
+          }
+      }
+  }
+  return;
 }
 
 void CDApplication::MouseWheel(GtkWidget *widget, GdkEventScroll *event)
