@@ -2086,15 +2086,15 @@ LRESULT CMainWnd::WMLButtonUp(HWND hwnd, WPARAM fwKeys, int xPos, int yPos)
     else
     {
       if(m_pHighObject)
-      m_pHighObject->SetSelected(true, fwKeys & MK_CONTROL, m_iHighDimen, pRegions);
+        m_pHighObject->SetSelected(true, fwKeys & MK_CONTROL, m_iHighDimen, pRegions);
     }
-    hRgn = GetUpdateRegion(pRegions);
-    //InvalidateRect(hwnd, &rc, TRUE);
-    if(hRgn)
-    {
-      InvalidateRgn(hwnd, hRgn, TRUE);
-      DeleteObject(hRgn);
-    }
+    //hRgn = GetUpdateRegion(pRegions);
+    InvalidateRect(hwnd, &rc, FALSE);
+    //if(hRgn)
+    //{
+    //  InvalidateRgn(hwnd, hRgn, TRUE);
+    //  DeleteObject(hRgn);
+    //}
   }
   else if((m_iToolMode > 20) && (m_iToolMode != tolRound))
   {
@@ -2122,26 +2122,26 @@ LRESULT CMainWnd::WMLButtonUp(HWND hwnd, WPARAM fwKeys, int xPos, int yPos)
     case tolExtend:
       if(m_pDrawObjects->ExtendSelected(m_cLastDrawPt, dTol, &cdr, pRegions))
       {
-        hRgn = GetUpdateRegion(pRegions);
-        //InvalidateRect(hwnd, &rc, TRUE);
-        if(hRgn)
-        {
-          InvalidateRgn(hwnd, hRgn, TRUE);
-          DeleteObject(hRgn);
-        }
+        //hRgn = GetUpdateRegion(pRegions);
+        InvalidateRect(hwnd, &rc, FALSE);
+        //if(hRgn)
+        //{
+        //  InvalidateRgn(hwnd, hRgn, TRUE);
+        //  DeleteObject(hRgn);
+        //}
         SetTitle(hwnd, false);
       }
       break;
     case tolConflict:
       if(m_pDrawObjects->SetCrossSelected(m_cLastDrawPt, dTol, &cdr, pRegions))
       {
-        hRgn = GetUpdateRegion(pRegions);
-        //InvalidateRect(hwnd, &rc, TRUE);
-        if(hRgn)
-        {
-          InvalidateRgn(hwnd, hRgn, TRUE);
-          DeleteObject(hRgn);
-        }
+        //hRgn = GetUpdateRegion(pRegions);
+        InvalidateRect(hwnd, &rc, FALSE);
+        //if(hRgn)
+        //{
+        //  InvalidateRgn(hwnd, hRgn, TRUE);
+        //  DeleteObject(hRgn);
+        //}
         SetTitle(hwnd, false);
       }
       break;
@@ -2190,10 +2190,10 @@ LRESULT CMainWnd::WMLButtonUp(HWND hwnd, WPARAM fwKeys, int xPos, int yPos)
       return 0;
     }
 
-    RECT rc;
-    GetClientRect(hwnd, &rc);
-    rc.top += m_iToolBarHeight;
-    rc.bottom -= m_iStatusHeight;
+    //RECT rc;
+    //GetClientRect(hwnd, &rc);
+    //rc.top += m_iToolBarHeight;
+    //rc.bottom -= m_iStatusHeight;
 
     wchar_t buf[64];
     float f;
@@ -2229,13 +2229,13 @@ LRESULT CMainWnd::WMLButtonUp(HWND hwnd, WPARAM fwKeys, int xPos, int yPos)
           cLine.cDirection = cDistPt/dNorm;
           if(m_pDrawObjects->MoveSelected(cLine, dNorm, iCop, &cdr, true, pRegions))
           {
-            hRgn = GetUpdateRegion(pRegions);
-            //InvalidateRect(hwnd, &rc, TRUE);
-            if(hRgn)
-            {
-              InvalidateRgn(hwnd, hRgn, TRUE);
-              DeleteObject(hRgn);
-            }
+            //hRgn = GetUpdateRegion(pRegions);
+            InvalidateRect(hwnd, &rc, FALSE);
+            //if(hRgn)
+            //{
+            //  InvalidateRgn(hwnd, hRgn, TRUE);
+            //  DeleteObject(hRgn);
+            //}
             SetTitle(hwnd, false);
             StartNewObject(hwnd);
           }
@@ -2255,13 +2255,13 @@ LRESULT CMainWnd::WMLButtonUp(HWND hwnd, WPARAM fwKeys, int xPos, int yPos)
             if(!m_bPaperUnits) dVal *= m_dDrawScale;
             if(m_pDrawObjects->MoveSelected(cLine, dVal, iCop, &cdr, false, pRegions))
             {
-              hRgn = GetUpdateRegion(pRegions);
-              //InvalidateRect(hwnd, &rc, TRUE);
-              if(hRgn)
-              {
-                InvalidateRgn(hwnd, hRgn, TRUE);
-                DeleteObject(hRgn);
-              }
+              //hRgn = GetUpdateRegion(pRegions);
+              InvalidateRect(hwnd, &rc, FALSE);
+              //if(hRgn)
+              //{
+              //  InvalidateRgn(hwnd, hRgn, TRUE);
+              //  DeleteObject(hRgn);
+              //}
               SetTitle(hwnd, false);
               StartNewObject(hwnd);
             }
@@ -2286,13 +2286,13 @@ LRESULT CMainWnd::WMLButtonUp(HWND hwnd, WPARAM fwKeys, int xPos, int yPos)
         m_iToolMode = tolNone;
         if(m_pDrawObjects->RotateSelected(m_cLastDrawPt, -dVal, iCop, &cdr, pRegions))
         {
-          hRgn = GetUpdateRegion(pRegions);
-          //InvalidateRect(hwnd, &rc, TRUE);
-          if(hRgn)
-          {
-            InvalidateRgn(hwnd, hRgn, TRUE);
-            DeleteObject(hRgn);
-          }
+          //hRgn = GetUpdateRegion(pRegions);
+          InvalidateRect(hwnd, &rc, FALSE);
+          //if(hRgn)
+          //{
+          //  InvalidateRgn(hwnd, hRgn, TRUE);
+          //  DeleteObject(hRgn);
+          //}
           SetTitle(hwnd, false);
           StartNewObject(hwnd);
         }
@@ -2311,13 +2311,13 @@ LRESULT CMainWnd::WMLButtonUp(HWND hwnd, WPARAM fwKeys, int xPos, int yPos)
           m_iToolMode = tolNone;
           if(m_pDrawObjects->RotateSelected(m_cMeasPoint1.cOrigin, dVal, iCop, &cdr, pRegions))
           {
-            hRgn = GetUpdateRegion(pRegions);
-            //InvalidateRect(hwnd, &rc, TRUE);
-            if(hRgn)
-            {
-              InvalidateRgn(hwnd, hRgn, TRUE);
-              DeleteObject(hRgn);
-            }
+            //hRgn = GetUpdateRegion(pRegions);
+            InvalidateRect(hwnd, &rc, FALSE);
+            //if(hRgn)
+            //{
+            //  InvalidateRgn(hwnd, hRgn, TRUE);
+            //  DeleteObject(hRgn);
+            //}
             SetTitle(hwnd, false);
             StartNewObject(hwnd);
           }
@@ -2347,13 +2347,13 @@ LRESULT CMainWnd::WMLButtonUp(HWND hwnd, WPARAM fwKeys, int xPos, int yPos)
         m_iToolMode = tolNone;
         if(m_pDrawObjects->MirrorSelected(cLine, &cdr, pRegions))
         {
-          hRgn = GetUpdateRegion(pRegions);
-          //InvalidateRect(hwnd, &rc, TRUE);
-          if(hRgn)
-          {
-            InvalidateRgn(hwnd, hRgn, TRUE);
-            DeleteObject(hRgn);
-          }
+          //hRgn = GetUpdateRegion(pRegions);
+          InvalidateRect(hwnd, &rc, FALSE);
+          //if(hRgn)
+          //{
+          //  InvalidateRgn(hwnd, hRgn, TRUE);
+          //  DeleteObject(hRgn);
+          //}
           SetTitle(hwnd, false);
           StartNewObject(hwnd);
         }
@@ -2363,13 +2363,13 @@ LRESULT CMainWnd::WMLButtonUp(HWND hwnd, WPARAM fwKeys, int xPos, int yPos)
     {
       if(m_pDrawObjects->AddDimen(m_pSelForDimen, m_cLastDrawPt, dTol, &cdr, pRegions))
       {
-        hRgn = GetUpdateRegion(pRegions);
-        //InvalidateRect(hwnd, &rc, TRUE);
-        if(hRgn)
-        {
-          InvalidateRgn(hwnd, hRgn, TRUE);
-          DeleteObject(hRgn);
-        }
+        //hRgn = GetUpdateRegion(pRegions);
+        InvalidateRect(hwnd, &rc, TRUE);
+        //if(hRgn)
+        //{
+        //  InvalidateRgn(hwnd, hRgn, TRUE);
+        //  DeleteObject(hRgn);
+        //}
         SetTitle(hwnd, false);
       }
     }
@@ -2406,13 +2406,13 @@ LRESULT CMainWnd::WMLButtonUp(HWND hwnd, WPARAM fwKeys, int xPos, int yPos)
         wcscpy(m_wsStatus2Msg, m_wsStatus2Base);
         SendMessage(m_hStatus, SB_SETTEXT, 1, (LPARAM)m_wsStatus2Msg);
 
-        hRgn = GetUpdateRegion(pRegions);
-        //InvalidateRect(hwnd, &rc, TRUE);
-        if(hRgn)
-        {
-          InvalidateRgn(hwnd, hRgn, TRUE);
-          DeleteObject(hRgn);
-        }
+        //hRgn = GetUpdateRegion(pRegions);
+        InvalidateRect(hwnd, &rc, FALSE);
+        //if(hRgn)
+        //{
+        //  InvalidateRgn(hwnd, hRgn, TRUE);
+        //  DeleteObject(hRgn);
+        //}
         StartNewObject(hwnd);
       }
     }
@@ -2466,13 +2466,13 @@ LRESULT CMainWnd::WMRButtonUp(HWND hwnd, WPARAM fwKeys, int xPos, int yPos)
       cdr1.cPt2.y = (yPos - m_cViewOrigin.y)/m_dUnitScale;
       m_pDrawObjects->SelectByRectangle(&cdr1, 1, pRegions);
 
-      hRgn = GetUpdateRegion(pRegions);
-      //InvalidateRect(hwnd, &rc, TRUE);
-      if(hRgn)
-      {
-        InvalidateRgn(hwnd, hRgn, TRUE);
-        DeleteObject(hRgn);
-      }
+      //hRgn = GetUpdateRegion(pRegions);
+      InvalidateRect(hwnd, &rc, FALSE);
+      //if(hRgn)
+      //{
+      //  InvalidateRgn(hwnd, hRgn, TRUE);
+      //  DeleteObject(hRgn);
+      //}
     }
     else
     {
@@ -2517,13 +2517,13 @@ LRESULT CMainWnd::WMRButtonUp(HWND hwnd, WPARAM fwKeys, int xPos, int yPos)
       wcscpy(m_wsStatus2Msg, m_wsStatus2Base);
       SendMessage(m_hStatus, SB_SETTEXT, 1, (LPARAM)m_wsStatus2Msg);
 
-      hRgn = GetUpdateRegion(pRegions);
-      //InvalidateRect(hwnd, &rc, TRUE);
-      if(hRgn)
-      {
-        InvalidateRgn(hwnd, hRgn, TRUE);
-        DeleteObject(hRgn);
-      }
+      //hRgn = GetUpdateRegion(pRegions);
+      InvalidateRect(hwnd, &rc, FALSE);
+      //if(hRgn)
+      //{
+      //  InvalidateRgn(hwnd, hRgn, TRUE);
+      //  DeleteObject(hRgn);
+      //}
 
       StartNewObject(hwnd);
     }
@@ -3317,12 +3317,12 @@ LRESULT CMainWnd::WMMouseMove(HWND hwnd, WPARAM fwKeys, int xPos, int yPos)
         if(pNewHigh) DrawObjectPlus(hwnd, &graphics, pNewHigh, 2, iDimen);
 
         hdc = GetDC(hwnd);
-        IntersectClipRect(hdc, rc.left, rc.top, rc.right, rc.bottom);
+        //IntersectClipRect(hdc, rc.left, rc.top, rc.right, rc.bottom);
 
         Graphics dstgraph(hdc);
         dstgraph.DrawImage(&bmp, 0, 0);
 
-        SelectClipRgn(hdc, NULL);
+        //SelectClipRgn(hdc, NULL);
         ReleaseDC(hwnd, NULL);
 
         m_pHighObject = pNewHigh;
@@ -3622,7 +3622,7 @@ LRESULT CMainWnd::WMMouseMove(HWND hwnd, WPARAM fwKeys, int xPos, int yPos)
     }
 
     hdc = GetDC(hwnd);
-    IntersectClipRect(hdc, rc.left, rc.top, rc.right, rc.bottom);
+    //IntersectClipRect(hdc, rc.left, rc.top, rc.right, rc.bottom);
     Graphics dstgraph(hdc);
     dstgraph.DrawImage(&bmp, 0, 0);
     ReleaseDC(hwnd, NULL);
