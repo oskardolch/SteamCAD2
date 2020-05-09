@@ -39,59 +39,42 @@ double GetElspBreakAngle(double da, double db, double dOffset, double dr1, doubl
 
 bool GetElpsPtProjFromStartPt(double da, double db, CDPoint cPt, PDPoint pProj)
 {
-    int j = 0;
-    double dA = Power2(da) - Power2(db);
-    double dB = db*cPt.y;
-    double dC = da*cPt.x;
+  double dt1, dt2 = atan2(pProj->y, pProj->x);
+  double dA = Power2(da) - Power2(db);
+  double dB = db*cPt.y;
+  double dC = da*cPt.x;
+  double f1 = dA*pProj->x*pProj->y + dB*pProj->x - dC*pProj->y;
+  double df1 = dA*cos(2.0*dt2) - dB*pProj->y - dC*pProj->x;
+  bool bFound = fabs(f1) < g_dPrec;
+  int i = 0;
+  double dco, dsi;
+  while(!bFound && (i < 16) && (fabs(df1) > g_dPrec))
+  {
+    dt1 = dt2;
+    dt2 = dt1 - f1/df1;
+    dco = cos(dt2);
+    dsi = sin(dt2);
+    f1 = dA*dco*dsi + dB*dco - dC*dsi;
+    df1 = dA*cos(2.0*dt2) - dB*dsi - dC*dco;
+    bFound = fabs(f1) < g_dPrec;
+    i++;
+  }
 
-    double du1 = pProj->x;
-    double dv1 = pProj->y;
-    double du2, dv2;
-    double dNorm;
+  pProj->x = dco;
+  pProj->y = dsi;
 
-    double df1 = dA*du1*dv1 + dB*du1 - dC*dv1;
-    double df2 = Power2(du1) + Power2(dv1) - 1.0;
-    double df11 = dA*dv1 + dB;
-    double df12 = dA*du1 - dC;
-    double df21 = 2.0*du1;
-    double df22 = 2.0*dv1;
-
-    double dDet = df11*df22 - df12*df21;
-    bool bFound = (fabs(df1) < g_dPrec) && (fabs(df2) < g_dPrec);
-    while(!bFound && (j < 16) && (fabs(dDet) > g_dPrec))
-    {
-        du2 = du1 - (df1*df22 - df2*df12)/dDet;
-        dv2 = dv1 - (-df1*df21 + df2*df11)/dDet;
-        dNorm = sqrt(Power2(du2) + Power2(dv2));
-        du1 = du2/dNorm;
-        dv1 = dv2/dNorm;
-
-        df1 = dA*du1*dv1 + dB*du1 - dC*dv1;
-        df2 = Power2(du1) + Power2(dv1) - 1.0;
-        df11 = dA*dv1 + dB;
-        df12 = dA*du1 - dC;
-        df21 = 2.0*du1;
-        df22 = 2.0*dv1;
-
-        dDet = df11*df22 - df12*df21;
-        bFound = (fabs(df1) < g_dPrec) && (fabs(df2) < g_dPrec);
-        j++;
-    }
-    pProj->x = du1;
-    pProj->y = dv1;
-
-    return bFound;
+  return bFound;
 }
 
 bool PtInList(CDPoint cPt, int iSize, PDPoint pList)
 {
-    int i = 0;
-    bool bFound = false;
-    while(!bFound && (i < iSize))
-    {
-        bFound = GetDist(cPt, pList[i++]) < g_dPrec;
-    }
-    return bFound;
+  int i = 0;
+  bool bFound = false;
+  while(!bFound && (i < iSize))
+  {
+    bFound = GetDist(cPt, pList[i++]) < g_dPrec;
+  }
+  return bFound;
 }
 
 // return cos and sin of dt

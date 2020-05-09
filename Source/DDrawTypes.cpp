@@ -919,7 +919,7 @@ printf("\n");*/
         pTmpBnds->Truncate(n);
       }
     }
-    /*bool bFound = false;
+    bool bFound = false;
     while(!bFound && ((*pTmpBnds)[0] > (*pTmpBnds)[1]) && (n > 1))
     {
       dTestRef = ((*pTmpBnds)[0] + (*pTmpBnds)[n - 1])/2.0;
@@ -960,7 +960,7 @@ printf("\n");*/
           pTmpBnds->Remove(2*i);
         }
       }
-    }*/
+    }
   }
 
   if(IsClosedShape())
