@@ -11,476 +11,592 @@
 extern HWND g_hStatus;*/
 // -----
 
-bool AddHyperPoint(double x, double y, char iCtrl, PDPointList pPoints, int iInputLines)
-{
-    if((iCtrl == 2) || (iCtrl == 3))
-    {
-        int nOffs2 = pPoints->GetCount(2);
-        int nOffs3 = pPoints->GetCount(3);
-        if(nOffs2 > 0) pPoints->SetPoint(0, 2, x, y, iCtrl);
-        else if(nOffs3 > 0) pPoints->SetPoint(0, 3, x, y, iCtrl);
-        else pPoints->AddPoint(x, y, iCtrl);
-        return true;
-    }
-
-    bool bRes = false;
-    int nNorm = pPoints->GetCount(0);
-
-    if(iInputLines == 2)
-    {
-        if((iCtrl < 1) && (nNorm < 1))
-        {
-            pPoints->AddPoint(x, y, 0);
-            nNorm++;
-        }
-        bRes = (nNorm > 0);
-    }
-    return bRes;
-}
-
 double GetHyperBreakAngle(double da, double db, double dr)
 {
-    double da2 = Power2(da);
-    double db2 = Power2(db);
-    double d1 = da2 + db2;
-    if(d1 < g_dPrec) return -1.0;
+  double da2 = Power2(da);
+  double db2 = Power2(db);
+  double d1 = da2 + db2;
+  if(d1 < g_dPrec) return -1.0;
 
-    double d2 = cbrt(da2*db2*Power2(dr));
-    double d3 = d2 - db2;
+  double d2 = cbrt(da2*db2*Power2(dr));
+  double d3 = d2 - db2;
 
-    if(d3 < -g_dPrec) return -1.0;
-    if(d3 < g_dPrec) return 0.0;
+  if(d3 < -g_dPrec) return -1.0;
+  if(d3 < g_dPrec) return 0.0;
 
-    return sqrt(d3/d1);
+  return sqrt(d3/d1);
 }
 
-bool BuildHyperCache(CDLine cTmpPt, int iMode, PDPointList pPoints, PDPointList pCache,
-    PDLine pLines, double *pdDist)
+bool AddHyperPoint(double x, double y, char iCtrl, PDPointList pPoints, int iInputLines)
 {
-    pCache->ClearAll();
-
-    int nNorm = pPoints->GetCount(0);
-
-    CDInputPoint cInPt1;
-    CDPoint cOrig, cMainDir, cPt1, cPt2, cPt3;
-    double d1, d2, d3;
-    double dr1 = -1.0, dr2 = -1.0;
-
-    if(!(pLines[0].bIsSet && pLines[1].bIsSet)) return false;
-
-    int iX = LineXLine(pLines[0].cOrigin, pLines[0].cDirection,
-        pLines[1].cOrigin, pLines[1].cDirection, &cOrig);
-    if(iX < 1) return false;
-
-    if(!(((nNorm < 1) && (iMode == 1)) || ((nNorm == 1) && (iMode != 1)))) return false;
-
-    if(iMode == 1) cPt1 = cTmpPt.cOrigin - cOrig;
-    else if(nNorm > 0)
+  if((iCtrl == 2) || (iCtrl == 3) || (iCtrl == 4))
+  {
+    CDPoint cNewPt = {x, y};
+    if(iCtrl == 4)
     {
-        cInPt1 = pPoints->GetPoint(0, 0);
-        cPt1 = cInPt1.cPoint - cOrig;
-    }
-    else return false;
-
-    cPt2 = pLines[0].cDirection + pLines[1].cDirection;
-    d2 = GetNorm(cPt2);
-    cMainDir = cPt2/d2;
-
-    cPt2 = Rotate(cPt1, cMainDir, false);
-    cPt3 = Abs(Rotate(pLines[0].cDirection, cMainDir, false));
-
-    d1 = Deter2(Abs(cPt2), cPt3);
-    if(d1 < 0)
-    {
-        d2 = cMainDir.x;
-        cMainDir.x = -cMainDir.y;
-        cMainDir.y = d2;
-
-        cPt2 = Rotate(cPt1, cMainDir, false);
-        cPt3 = Abs(Rotate(pLines[0].cDirection, cMainDir, false));
-    }
-
-    if(cPt2.x < 0)
-    {
-        cMainDir.x *= -1.0;
-        cMainDir.y *= -1.0;
-
-        cPt2 = Rotate(cPt1, cMainDir, false);
-        cPt3 = Abs(Rotate(pLines[0].cDirection, cMainDir, false));
-    }
-
-    d3 = sqrt(Power2(cPt2.x/cPt3.x) - Power2(cPt2.y/cPt3.y));
-
-    dr1 = d3*cPt3.x;
-    dr2 = d3*cPt3.y;
-
-    if((dr1 < g_dPrec) || (dr2 < g_dPrec)) return false;
-
-    pCache->AddPoint(cOrig.x, cOrig.y, 0);
-    pCache->AddPoint(dr1, dr2, 0);
-    pCache->AddPoint(cMainDir.x, cMainDir.y, 0);
-
-    double dr = Power2(dr2)/dr1;
-    pCache->AddPoint(dr1 + dr, 0.0, 3);
-
-    if((iMode == 2) && (cTmpPt.cDirection.x > 0.5))
-    {
-        dr = GetHyperBreakAngle(dr1, dr2, -cTmpPt.cDirection.y);
-        if(dr > -0.5) pCache->AddPoint(dr, 0.0, 4);
-
-        if(pdDist) *pdDist = cTmpPt.cDirection.y;
-        pCache->AddPoint(cTmpPt.cDirection.y, 0.0, 2);
-        return true;
+      cNewPt.x = dRestrictVal;
+      cNewPt.y = 0.0;
     }
 
     int nOffs2 = pPoints->GetCount(2);
     int nOffs3 = pPoints->GetCount(3);
-    if((iMode == 2) || (nOffs2 > 0) || (nOffs3 > 0))
-    {
-        int iSrchMask = 0;
-
-        if(iMode == 2)
-        {
-            cPt1 = cTmpPt.cOrigin;
-            if(cTmpPt.cDirection.x < -0.5) iSrchMask = 2;
-        }
-        else if(nOffs2) cPt1 = pPoints->GetPoint(0, 2).cPoint;
-        else
-        {
-            cPt1 = pPoints->GetPoint(0, 3).cPoint;
-            iSrchMask = 2;
-        }
-
-        CDLine cPtX;
-        double dDist = GetHyperDistFromPt(cPt1, cPt1, iSrchMask, pCache, &cPtX, NULL);
-        double dDistOld = 0.0;
-
-        dr = GetHyperBreakAngle(dr1, dr2, -dDist);
-        if(dr > -0.5) pCache->AddPoint(dr, 0.0, 4);
-
-        if(iMode == 2)
-        {
-            if(nOffs2 > 0)
-            {
-                cPt1 = pPoints->GetPoint(0, 2).cPoint;
-                dDistOld = GetHyperDistFromPt(cPt1, cPt1, 0, pCache, &cPtX, NULL);
-            }
-            else if(nOffs3 > 0)
-            {
-                cPt1 = pPoints->GetPoint(0, 3).cPoint;
-                dDistOld = GetHyperDistFromPt(cPt1, cPt1, 2, pCache, &cPtX, NULL);
-            }
-        }
-
-        *pdDist = dDist - dDistOld;
-        if(fabs(dDist) > g_dPrec) pCache->AddPoint(dDist, dDistOld, 2);
-    }
+    int nOffs4 = pPoints->GetCount(4);
+    if(nOffs2 > 0) pPoints->SetPoint(0, 2, x, y, iCtrl);
+    else if(nOffs3 > 0) pPoints->SetPoint(0, 3, x, y, iCtrl);
+    else if(nOffs4 > 0) pPoints->SetPoint(0, 4, cNewPt.x, cNewPt.y, iCtrl);
+    else pPoints->AddPoint(x, y, iCtrl);
     return true;
+  }
+
+  bool bRes = false;
+  int nNorm = pPoints->GetCount(0);
+
+  if(iInputLines == 2)
+  {
+    if((iCtrl < 1) && (nNorm < 1))
+    {
+      pPoints->AddPoint(x, y, 0);
+      nNorm++;
+    }
+    bRes = (nNorm > 0);
+  }
+  return bRes;
+}
+
+bool BuildHyperCache(CDLine cTmpPt, int iMode, PDPointList pPoints, PDPointList pCache,
+  PDLine pLines, double *pdDist)
+{
+  pCache->ClearAll();
+
+  int nNorm = pPoints->GetCount(0);
+
+  CDInputPoint cInPt1;
+  CDPoint cOrig, cMainDir, cPt1, cPt2, cPt3;
+  double d1, d2, d3;
+  double dr1 = -1.0, dr2 = -1.0;
+
+  if(!(pLines[0].bIsSet && pLines[1].bIsSet)) return false;
+
+  int iX = LineXLine(pLines[0].cOrigin, pLines[0].cDirection,
+  pLines[1].cOrigin, pLines[1].cDirection, &cOrig);
+  if(iX < 1) return false;
+
+  if(!(((nNorm < 1) && (iMode == 1)) || ((nNorm == 1) && (iMode != 1)))) return false;
+
+  if(iMode == 1) cPt1 = cTmpPt.cOrigin - cOrig;
+  else if(nNorm > 0)
+  {
+    cInPt1 = pPoints->GetPoint(0, 0);
+    cPt1 = cInPt1.cPoint - cOrig;
+  }
+  else return false;
+
+  cPt2 = pLines[0].cDirection + pLines[1].cDirection;
+  d2 = GetNorm(cPt2);
+  cMainDir = cPt2/d2;
+
+  cPt2 = Rotate(cPt1, cMainDir, false);
+  cPt3 = Abs(Rotate(pLines[0].cDirection, cMainDir, false));
+
+  d1 = Deter2(Abs(cPt2), cPt3);
+  if(d1 < 0)
+  {
+    d2 = cMainDir.x;
+    cMainDir.x = -cMainDir.y;
+    cMainDir.y = d2;
+
+    cPt2 = Rotate(cPt1, cMainDir, false);
+    cPt3 = Abs(Rotate(pLines[0].cDirection, cMainDir, false));
+  }
+
+  if(cPt2.x < 0)
+  {
+    cMainDir.x *= -1.0;
+    cMainDir.y *= -1.0;
+
+    cPt2 = Rotate(cPt1, cMainDir, false);
+    cPt3 = Abs(Rotate(pLines[0].cDirection, cMainDir, false));
+  }
+
+  d3 = sqrt(Power2(cPt2.x/cPt3.x) - Power2(cPt2.y/cPt3.y));
+
+  dr1 = d3*cPt3.x;
+  dr2 = d3*cPt3.y;
+
+  if((dr1 < g_dPrec) || (dr2 < g_dPrec)) return false;
+
+  pCache->AddPoint(cOrig.x, cOrig.y, 0);
+  pCache->AddPoint(dr1, dr2, 0);
+  pCache->AddPoint(cMainDir.x, cMainDir.y, 0);
+
+  double dr = Power2(dr2)/dr1;
+  pCache->AddPoint(dr1 + dr, 0.0, 3);
+
+  if((iMode == 2) && (cTmpPt.cDirection.x > 0.5))
+  {
+    dr = GetHyperBreakAngle(dr1, dr2, -cTmpPt.cDirection.y);
+    if(dr > -0.5) pCache->AddPoint(dr, 0.0, 4);
+
+    if(pdDist) *pdDist = cTmpPt.cDirection.y;
+    pCache->AddPoint(cTmpPt.cDirection.y, 0.0, 2);
+    return true;
+  }
+
+  int nOffs2 = pPoints->GetCount(2);
+  int nOffs3 = pPoints->GetCount(3);
+  if((iMode == 2) || (nOffs2 > 0) || (nOffs3 > 0))
+  {
+    int iSrchMask = 0;
+
+    if(iMode == 2)
+    {
+      cPt1 = cTmpPt.cOrigin;
+      if(cTmpPt.cDirection.x < -0.5) iSrchMask = 2;
+    }
+    else if(nOffs2) cPt1 = pPoints->GetPoint(0, 2).cPoint;
+    else
+    {
+      cPt1 = pPoints->GetPoint(0, 3).cPoint;
+      iSrchMask = 2;
+    }
+
+    CDLine cPtX;
+    double dDist = GetHyperDistFromPt(cPt1, cPt1, iSrchMask, pCache, &cPtX, NULL);
+    double dDistOld = 0.0;
+
+    dr = GetHyperBreakAngle(dr1, dr2, -dDist);
+    if(dr > -0.5) pCache->AddPoint(dr, 0.0, 4);
+
+    if(iMode == 2)
+    {
+      if(nOffs2 > 0)
+      {
+        cPt1 = pPoints->GetPoint(0, 2).cPoint;
+        dDistOld = GetHyperDistFromPt(cPt1, cPt1, 0, pCache, &cPtX, NULL);
+      }
+      else if(nOffs3 > 0)
+      {
+        cPt1 = pPoints->GetPoint(0, 3).cPoint;
+        dDistOld = GetHyperDistFromPt(cPt1, cPt1, 2, pCache, &cPtX, NULL);
+      }
+    }
+
+    *pdDist = dDist - dDistOld;
+    if(fabs(dDist) > g_dPrec) pCache->AddPoint(dDist, dDistOld, 2);
+  }
+  return true;
 }
 
 CDPoint GetHyperPointDir(double da, double db, double dOffset, double dx, PDPoint pDir)
 {
-    CDPoint cRes, cDir;
-    double dv = sqrt(1.0 + Power2(dx));
-    cDir.x = -db;
-    cDir.y = da*dx/dv;
-    double dNorm = GetNorm(cDir);
-    cDir /= dNorm;
-    cRes.x = da*dv;
-    cRes.y = db*dx;
-    pDir->x = -cDir.y;
-    pDir->y = cDir.x;
-    return cRes + dOffset*cDir;
+  CDPoint cRes, cDir;
+  double dv = sqrt(1.0 + Power2(dx));
+  cDir.x = -db;
+  cDir.y = da*dx/dv;
+  double dNorm = GetNorm(cDir);
+  cDir /= dNorm;
+  cRes.x = da*dv;
+  cRes.y = db*dx;
+  pDir->x = -cDir.y;
+  pDir->y = cDir.x;
+  return cRes + dOffset*cDir;
 }
 
 double GetHyperYLength(double da, double db, double dr, double dBreak, double dy)
 {
-    if(fabs(dy) < g_dPrec) return 0.0;
+  if(fabs(dy) < g_dPrec) return 0.0;
 
-    double dDir = 1.0;
-    if(dy < 0)
+  double dDir = 1.0;
+  if(dy < 0)
+  {
+    dDir = -1.0;
+    dy *= dDir;
+  }
+
+  double dRes = 0.0;
+  double dStart = 0;
+
+  CDPrimitive cQuad;
+  cQuad.cPt3.x = da - dr;
+  cQuad.cPt3.y = 0.0;
+
+  CDPoint cDir1, cDir2;
+  cDir2.x = 0.0;
+  cDir2.y = 1.0;
+
+  if((dBreak > g_dPrec) && (dy > dBreak + g_dPrec))
+  {
+    int iSteps = (int)dBreak + 1;
+    for(int i = 0; i < iSteps; i++)
     {
-        dDir = -1.0;
-        dy *= dDir;
+      cDir1 = cDir2;
+      cQuad.cPt1 = cQuad.cPt3;
+
+      dStart = (double)(i + 1.0)*dBreak/iSteps;
+      cQuad.cPt3 = GetHyperPointDir(da, db, dr, dStart, &cDir2);
+      LineXLine(cQuad.cPt1, cDir1, cQuad.cPt3, cDir2, &cQuad.cPt2);
+      dRes += GetQuadLength(&cQuad, 0.0, 1.0);
     }
+  }
 
-    double dRes = 0.0;
-    double dStart = 0;
+  double dlny = log(2.0*(dy - dStart));
+  int iSegs = (int)dlny/log(2.0) + 1;
+  if(iSegs < 1) iSegs = 1;
+  double dBase = (dy - dStart)/PowerN(iSegs - 1, 2.0);
 
-    CDPrimitive cQuad;
-    cQuad.cPt3.x = da - dr;
-    cQuad.cPt3.y = 0.0;
+  for(int i = 0; i < iSegs; i++)
+  {
+    cDir1 = cDir2;
+    cQuad.cPt1 = cQuad.cPt3;
 
-    CDPoint cDir1, cDir2;
-    cDir2.x = 0.0;
-    cDir2.y = 1.0;
+    cQuad.cPt3 = GetHyperPointDir(da, db, dr, dStart + dBase, &cDir2);
+    LineXLine(cQuad.cPt1, cDir1, cQuad.cPt3, cDir2, &cQuad.cPt2);
+    dRes += GetQuadLength(&cQuad, 0.0, 1.0);
 
-    if((dBreak > g_dPrec) && (dy > dBreak + g_dPrec))
-    {
-        int iSteps = (int)dBreak + 1;
-        for(int i = 0; i < iSteps; i++)
-        {
-            cDir1 = cDir2;
-            cQuad.cPt1 = cQuad.cPt3;
+    dBase *= 2.0;
+  }
 
-            dStart = (double)(i + 1.0)*dBreak/iSteps;
-            cQuad.cPt3 = GetHyperPointDir(da, db, dr, dStart, &cDir2);
-            LineXLine(cQuad.cPt1, cDir1, cQuad.cPt3, cDir2, &cQuad.cPt2);
-            dRes += GetQuadLength(&cQuad, 0.0, 1.0);
-        }
-    }
-
-    double dlny = log(2.0*(dy - dStart));
-    int iSegs = (int)dlny/log(2.0) + 1;
-    if(iSegs < 1) iSegs = 1;
-    double dBase = (dy - dStart)/PowerN(iSegs - 1, 2.0);
-
-    for(int i = 0; i < iSegs; i++)
-    {
-        cDir1 = cDir2;
-        cQuad.cPt1 = cQuad.cPt3;
-
-        cQuad.cPt3 = GetHyperPointDir(da, db, dr, dStart + dBase, &cDir2);
-        LineXLine(cQuad.cPt1, cDir1, cQuad.cPt3, cDir2, &cQuad.cPt2);
-        dRes += GetQuadLength(&cQuad, 0.0, 1.0);
-
-        dBase *= 2.0;
-    }
-
-    return dDir*dRes;
+  return dDir*dRes;
 }
 
 CDPoint HyperFunc(double da, double db, double dt)
 {
-    double dv = sqrt(1.0 + Power2(dt));
-    CDPoint cRes;
-    cRes.x = da*dv;
-    cRes.y = db*dt;
-    return cRes;
+  double dv = sqrt(1.0 + Power2(dt));
+  CDPoint cRes;
+  cRes.x = da*dv;
+  cRes.y = db*dt;
+  return cRes;
 }
 
 CDPoint HyperFuncDer(double da, double db, double dt)
 {
-    double dv = sqrt(1.0 + Power2(dt));
-    CDPoint cRes;
-    cRes.x = -da*dt/dv;
-    cRes.y = -db;
-    return cRes;
+  double dv = sqrt(1.0 + Power2(dt));
+  CDPoint cRes;
+  cRes.x = -da*dt/dv;
+  cRes.y = -db;
+  return cRes;
 }
 
 int AddHyperSegWithBounds(double da, double db, double dr, CDPoint cOrig, CDPoint cMainDir,
-    double dy1, double dy2, double dBreak, PDPrimObject pPrimList, PDRect pRect)
+  double dy1, double dy2, double dBreak, PDPrimObject pPrimList, PDRect pRect)
 {
-    double du1 = dy1;
-    double du2 = dy2;
+  double du1 = dy1;
+  double du2 = dy2;
 
-    if(dBreak < -0.5)
-        return AddBoundCurve(da, db, dr, HyperFunc, HyperFuncDer, du1, du2, cOrig, cMainDir,
-            pRect, pPrimList);
+  if(dBreak < -0.5)
+    return AddBoundCurve(da, db, dr, HyperFunc, HyperFuncDer, du1, du2, cOrig, cMainDir,
+      pRect, pPrimList);
 
-    int iRes = -1;
-    int k;
-    if(RefInBounds(du1, du2, -dBreak) > 2)
-    {
-        k = AddBoundCurve(da, db, dr, HyperFunc, HyperFuncDer, du1, -dBreak, cOrig, cMainDir,
-            pRect, pPrimList);
-        if(iRes < 0) iRes = k;
-        else if(iRes != k) iRes = 1;
-        du1 = -dBreak;
-    }
-    if(RefInBounds(du1, du2, dBreak) > 2)
-    {
-        k = AddBoundCurve(da, db, dr, HyperFunc, HyperFuncDer, du1, dBreak, cOrig, cMainDir,
-            pRect, pPrimList);
-        if(iRes < 0) iRes = k;
-        else if(iRes != k) iRes = 1;
-        du1 = dBreak;
-    }
-    k = AddBoundCurve(da, db, dr, HyperFunc, HyperFuncDer, du1, du2, cOrig, cMainDir,
-        pRect, pPrimList);
+  int iRes = -1;
+  int k;
+  if(RefInBounds(du1, du2, -dBreak) > 2)
+  {
+    k = AddBoundCurve(da, db, dr, HyperFunc, HyperFuncDer, du1, -dBreak, cOrig, cMainDir,
+    pRect, pPrimList);
     if(iRes < 0) iRes = k;
     else if(iRes != k) iRes = 1;
+    du1 = -dBreak;
+  }
+  if(RefInBounds(du1, du2, dBreak) > 2)
+  {
+    k = AddBoundCurve(da, db, dr, HyperFunc, HyperFuncDer, du1, dBreak, cOrig, cMainDir,
+    pRect, pPrimList);
+    if(iRes < 0) iRes = k;
+    else if(iRes != k) iRes = 1;
+    du1 = dBreak;
+  }
+  k = AddBoundCurve(da, db, dr, HyperFunc, HyperFuncDer, du1, du2, cOrig, cMainDir,
+  pRect, pPrimList);
+  if(iRes < 0) iRes = k;
+  else if(iRes != k) iRes = 1;
 
-    return iRes;
+  return iRes;
 }
 
 int AddHyperSegQuadsWithBounds(double da, double db, double dr, CDPoint cOrig, CDPoint cMainDir,
-    double dy1, double dy2, double dBreak, PDPrimObject pPrimList, PDRect pRect)
+  double dy1, double dy2, double dBreak, PDPrimObject pPrimList, PDRect pRect)
 {
-    double du1 = dy1;
-    double du2 = dy2;
+  double du1 = dy1;
+  double du2 = dy2;
 
-    if(dBreak < -0.5)
-        return AddBoundQuadCurve(da, db, dr, HyperFunc, HyperFuncDer, du1, du2, cOrig, cMainDir,
-            pRect, pPrimList);
+  if(dBreak < -0.5)
+    return AddBoundQuadCurve(da, db, dr, HyperFunc, HyperFuncDer, du1, du2, cOrig, cMainDir,
+      pRect, pPrimList);
 
-    int iRes = -1;
-    int k;
-    if(RefInBounds(du1, du2, -dBreak) > 2)
-    {
-        k = AddBoundQuadCurve(da, db, dr, HyperFunc, HyperFuncDer, du1, -dBreak, cOrig, cMainDir,
-            pRect, pPrimList);
-        if(iRes < 0) iRes = k;
-        else if(iRes != k) iRes = 1;
-        du1 = -dBreak;
-    }
-    if(RefInBounds(du1, du2, dBreak) > 2)
-    {
-        k = AddBoundQuadCurve(da, db, dr, HyperFunc, HyperFuncDer, du1, dBreak, cOrig, cMainDir,
-            pRect, pPrimList);
-        if(iRes < 0) iRes = k;
-        else if(iRes != k) iRes = 1;
-        du1 = dBreak;
-    }
-    k = AddBoundQuadCurve(da, db, dr, HyperFunc, HyperFuncDer, du1, du2, cOrig, cMainDir,
-        pRect, pPrimList);
+  int iRes = -1;
+  int k;
+  if(RefInBounds(du1, du2, -dBreak) > 2)
+  {
+    k = AddBoundQuadCurve(da, db, dr, HyperFunc, HyperFuncDer, du1, -dBreak, cOrig, cMainDir,
+    pRect, pPrimList);
     if(iRes < 0) iRes = k;
     else if(iRes != k) iRes = 1;
+    du1 = -dBreak;
+  }
+  if(RefInBounds(du1, du2, dBreak) > 2)
+  {
+    k = AddBoundQuadCurve(da, db, dr, HyperFunc, HyperFuncDer, du1, dBreak, cOrig, cMainDir,
+    pRect, pPrimList);
+    if(iRes < 0) iRes = k;
+    else if(iRes != k) iRes = 1;
+    du1 = dBreak;
+  }
+  k = AddBoundQuadCurve(da, db, dr, HyperFunc, HyperFuncDer, du1, du2, cOrig, cMainDir,
+  pRect, pPrimList);
+  if(iRes < 0) iRes = k;
+  else if(iRes != k) iRes = 1;
 
-    return iRes;
+  return iRes;
 }
 
 double HypProjFn(double da, double db, double dx, double dy, double du)
 {
-    double dv = sqrt(1.0 + Power2(du));
-    return du*dv*(Power2(da) + Power2(db)) - da*dx*du - db*dy*dv;
+  double dv = sqrt(1.0 + Power2(du));
+  return du*dv*(Power2(da) + Power2(db)) - da*dx*du - db*dy*dv;
 }
 
 double HypProjFnDer(double da, double db, double dx, double dy, double du)
 {
-    double dv = sqrt(1.0 + Power2(du));
-    double da1 = Power2(da) + Power2(db);
-    return da1*(dv + Power2(du)/dv) - da*dx - db*dy*du/dv;
+  double dv = sqrt(1.0 + Power2(du));
+  double da1 = Power2(da) + Power2(db);
+  return da1*(dv + Power2(du)/dv) - da*dx - db*dy*du/dv;
 }
 
 double GetHyperPtProjFromU(double da, double db, double dStart, CDPoint cPt)
 {
-    int j = 0;
-    double du1 = dStart;
-    double df = HypProjFn(da, db, cPt.x, cPt.y, du1);
-    double df2 = HypProjFnDer(da, db, cPt.x, cPt.y, du1);
-    if(fabs(df2) < g_dPrec) return 0.0;
+  int j = 0;
+  double du1 = dStart;
+  double df = HypProjFn(da, db, cPt.x, cPt.y, du1);
+  double df2 = HypProjFnDer(da, db, cPt.x, cPt.y, du1);
+  if(fabs(df2) < g_dPrec) return 0.0;
 
-    double du2 = du1 - df/df2;
+  double du2 = du1 - df/df2;
 
-    while((j < 8) && (fabs(df) > g_dRootPrec))
-    {
-        j++;
-        du1 = du2;
-        df = HypProjFn(da, db, cPt.x, cPt.y, du1);
-        df2 = HypProjFnDer(da, db, cPt.x, cPt.y, du1);
-        if(fabs(df2) > g_dPrec) du2 -= df/df2;
-        else j = 8;
-    }
-    return du2;
+  while((j < 16) && (fabs(df) > g_dRootPrec))
+  {
+    j++;
+    du1 = du2;
+    df = HypProjFn(da, db, cPt.x, cPt.y, du1);
+    df2 = HypProjFnDer(da, db, cPt.x, cPt.y, du1);
+    if(fabs(df2) > g_dPrec) du2 -= df/df2;
+    else j = 16;
+  }
+  return du2;
 }
 
-double GetHyperPtProj(double da, double db, CDPoint cPt, CDPoint cRefPt, double dOffset, int iSrchMask, PDRefPoint pBounds)
+/*double GetHyperPtProj(double da, double db, CDPoint cPt, CDPoint cRefPt, double dOffset, int iSrchMask, PDRefPoint pBounds)
 {
-    double dPoly[5];
-    double d1 = Power2(da) + Power2(db);
-    dPoly[4] = Power2(d1);
-    dPoly[0] = Power2(db*cPt.y);
-    dPoly[1] = -2.0*db*cPt.y*d1;
-    dPoly[2] = dPoly[4] + dPoly[0] - Power2(da*cPt.x);
-    dPoly[3] = dPoly[1];
+  double dPoly[5];
+  double d1 = Power2(da) + Power2(db);
+  dPoly[4] = Power2(d1);
+  dPoly[0] = Power2(db*cPt.y);
+  dPoly[1] = -2.0*db*cPt.y*d1;
+  dPoly[2] = dPoly[4] + dPoly[0] - Power2(da*cPt.x);
+  dPoly[3] = dPoly[1];
 
-    double dRoots[4];
-    int iRoots = SolvePolynom(4, dPoly, dRoots);
-    if(iRoots < 1)
-    {
-        return GetHyperPtProjFromU(da, db, 0.0, cPt);
-    }
+  double dRoots[4];
+  int iRoots = SolvePolynom(4, dPoly, dRoots);
+  if(iRoots < 1)
+  {
+    return GetHyperPtProjFromU(da, db, 0.0, cPt);
+  }
 
+  for(int j = 0; j < iRoots; j++)
+  {
+    dRoots[j] = GetHyperPtProjFromU(da, db, dRoots[j], cPt);
+  }
+
+  bool bInBounds[4];
+  if(pBounds)
+  {
     for(int j = 0; j < iRoots; j++)
     {
-        dRoots[j] = GetHyperPtProjFromU(da, db, dRoots[j], cPt);
+      bInBounds[j] = (RefInOpenBounds(pBounds, dRoots[j]) > 0);
     }
+  }
+  else
+  {
+    for(int j = 0; j < iRoots; j++) bInBounds[j] = true;
+  }
 
-    bool bInBounds[4];
-    if(pBounds)
+  CDPoint cPt1, cPt2;
+  double du = dRoots[0];
+  double dc = sqrt(1.0 + Power2(du));
+  cPt1.x = da*dc;
+  cPt1.y = db*du;
+  cPt2.x = -db;
+  cPt2.y = da*du/dc;
+  double dNorm = GetNorm(cPt2);
+  double dXMin = GetDist(cRefPt, cPt1 + dOffset*cPt2/dNorm);
+  double dXSec = dXMin;
+  double duSec = du;
+  bool bFirstSet = bInBounds[0];
+  bool bIsBetter;
+  bool bSecSet = false;
+
+  for(int i = 1; i < iRoots; i++)
+  {
+    cPt1 = GetHyperPointDir(da, db, dOffset, dRoots[i], &cPt2);
+    d1 = GetDist(cRefPt, cPt1);
+
+    bIsBetter = ((d1 < dXMin - g_dPrec) && !(bFirstSet && !bInBounds[i])) || (!bFirstSet && bInBounds[i]);
+
+    if(bIsBetter)
     {
-        for(int j = 0; j < iRoots; j++)
-        {
-            bInBounds[j] = (RefInOpenBounds(pBounds, dRoots[j]) > 0);
-        }
+      if(bSecSet)
+      {
+        duSec = du;
+        dXSec = dXMin;
+      }
+      dXMin = d1;
+      du = dRoots[i];
+      bFirstSet |= bInBounds[i];
+    }
+    else if(bSecSet)
+    {
+      if(d1 < dXSec)
+      {
+        dXSec = d1;
+        duSec = dRoots[i];
+      }
     }
     else
     {
-        for(int j = 0; j < iRoots; j++) bInBounds[j] = true;
+      dXSec = d1;
+      duSec = dRoots[i];
+      bSecSet = true;
     }
+  }
 
-    CDPoint cPt1, cPt2;
-    double du = dRoots[0];
-    double dc = sqrt(1.0 + Power2(du));
-    cPt1.x = da*dc;
-    cPt1.y = db*du;
-    cPt2.x = -db;
-    cPt2.y = da*du/dc;
-    double dNorm = GetNorm(cPt2);
-    double dXMin = GetDist(cRefPt, cPt1 + dOffset*cPt2/dNorm);
-    double dXSec = dXMin;
-    double duSec = du;
-    bool bFirstSet = bInBounds[0];
-    bool bIsBetter;
-    bool bSecSet = false;
+  if(iSrchMask & 2) return duSec;
+  return du;
+}*/
 
-    for(int i = 1; i < iRoots; i++)
+bool PtInList(double du, int iSize, double *pdList)
+{
+  int i = 0;
+  bool bFound = false;
+  while(!bFound && (i < iSize))
+  {
+    bFound = fabs(pdList[i++] - du) < g_dPrec;
+  }
+  return bFound;
+}
+
+int GetHyperPtProj(double da, double db, CDPoint cPt, double *pdRoots)
+{
+  double dPoly[5];
+  double d1 = Power2(da) + Power2(db);
+  dPoly[4] = Power2(d1);
+  dPoly[0] = Power2(db*cPt.y);
+  dPoly[1] = -2.0*db*cPt.y*d1;
+  dPoly[2] = dPoly[4] + dPoly[0] - Power2(da*cPt.x);
+  dPoly[3] = dPoly[1];
+
+  double dRoots[4];
+  int iRoots = SolvePolynom(4, dPoly, dRoots);
+  if(iRoots < 1)
+  {
+    pdRoots[0] = GetHyperPtProjFromU(da, db, 0.0, cPt);
+    return 1;
+  }
+
+  int iRes = 0;
+  double du;
+  for(int j = 0; j < iRoots; j++)
+  {
+    du = GetHyperPtProjFromU(da, db, dRoots[j], cPt);
+    if(!PtInList(du, iRes, pdRoots)) pdRoots[iRes++] = du;
+  }
+  return iRoots;
+}
+
+double GetHyperBoundProj(double da, double db, double dOffset, CDPoint cPt, CDPoint cPtRef, bool bSecond)
+{
+  double pProjs[4];
+  double pDists[2];
+  int iRoots = GetHyperPtProj(da, db, cPt, pProjs);
+
+  int i = 0;
+
+  CDPoint cNorm, cProjPt;
+  double du = pProjs[i];
+  double dc = sqrt(1.0 + Power2(du));
+  cProjPt.x = da*dc;
+  cProjPt.y = db*du;
+  cNorm.x = -db;
+  cNorm.y = da*du/dc;
+  double dNorm = GetNorm(cNorm);
+  pDists[0] = GetDist(cRefPt, cProjPt + dOffset*cNorm/dNorm);
+  i++;
+
+  int i0 = 0, i1 = 0;
+  du = pProjs[i];
+  dc = sqrt(1.0 + Power2(du));
+  cProjPt.x = da*dc;
+  cProjPt.y = db*du;
+  cNorm.x = -db;
+  cNorm.y = da*du/dc;
+  dNorm = GetNorm(cNorm);
+  double dMin = GetDist(cRefPt, cProjPt + dOffset*cNorm/dNorm);
+  if(dMin < pDists[0])
+  {
+    pDists[1] = pDists[0];
+    pDists[0] = dMin;
+    i0 = i;
+  }
+  else
+  {
+    pDists[1] = dMin;
+    i1 = i;
+  }
+  i++;
+  while(i < iRoots)
+  {
+    du = pProjs[i];
+    dc = sqrt(1.0 + Power2(du));
+    cProjPt.x = da*dc;
+    cProjPt.y = db*du;
+    cNorm.x = -db;
+    cNorm.y = da*du/dc;
+    dNorm = GetNorm(cNorm);
+    dMin = GetDist(cRefPt, cProjPt + dOffset*cNorm/dNorm);
+    if(dMin < pDists[0])
     {
-        cPt1 = GetHyperPointDir(da, db, dOffset, dRoots[i], &cPt2);
-        d1 = GetDist(cRefPt, cPt1);
-
-        bIsBetter = ((d1 < dXMin - g_dPrec) && !(bFirstSet && !bInBounds[i])) || (!bFirstSet && bInBounds[i]);
-
-        if(bIsBetter)
-        {
-            if(bSecSet)
-            {
-                duSec = du;
-                dXSec = dXMin;
-            }
-            dXMin = d1;
-            du = dRoots[i];
-            bFirstSet |= bInBounds[i];
-        }
-        else if(bSecSet)
-        {
-            if(d1 < dXSec)
-            {
-                dXSec = d1;
-                duSec = dRoots[i];
-            }
-        }
-        else
-        {
-            dXSec = d1;
-            duSec = dRoots[i];
-            bSecSet = true;
-        }
+      pDists[1] = pDists[0];
+      pDists[0] = dMin;
+      i1 = i0;
+      i0 = i;
     }
-
-    if(iSrchMask & 2) return duSec;
-    return du;
+    else if(dMin < pDists[1])
+    {
+      pDists[1] = dMin;
+      i1 = i;
+    }
+    i++;
+  }
+  if(bSecond) return pProjs[i1];
+  return pProjs[i0];
 }
 
 bool GetHyperLineXFromU(double da, double db, double dOffset, double dStart, CDPoint cLnOrg, CDPoint cLnDir, double *pdX)
 {
-    CDPoint cPt1, cPt2, cPtX;
-    double du = dStart;
+  CDPoint cPt1, cPt2, cPtX;
+  double du = dStart;
+  cPt1 = GetHyperPointDir(da, db, dOffset, du, &cPt2);
+  int ix = LineXLine(cPt1, cPt2, cLnOrg, cLnDir, &cPtX);
+  int i = 0;
+  bool bFound = GetDist(cPt1, cPtX) < g_dPrec;
+  while(!bFound && (ix > 0) && (i < 8))
+  {
+    du = GetHyperPtProj(da, db, cPtX, cPtX, dOffset, 0, NULL);
     cPt1 = GetHyperPointDir(da, db, dOffset, du, &cPt2);
-    int ix = LineXLine(cPt1, cPt2, cLnOrg, cLnDir, &cPtX);
-    int i = 0;
-    bool bFound = GetDist(cPt1, cPtX) < g_dPrec;
-    while(!bFound && (ix > 0) && (i < 8))
-    {
-        du = GetHyperPtProj(da, db, cPtX, cPtX, dOffset, 0, NULL);
-        cPt1 = GetHyperPointDir(da, db, dOffset, du, &cPt2);
-        ix = LineXLine(cPt1, cPt2, cLnOrg, cLnDir, &cPtX);
-        i++;
-        bFound = GetDist(cPt1, cPtX) < g_dPrec;
-    }
-    if(bFound) *pdX = du;
-    return bFound;
+    ix = LineXLine(cPt1, cPt2, cLnOrg, cLnDir, &cPtX);
+    i++;
+    bFound = GetDist(cPt1, cPtX) < g_dPrec;
+  }
+  if(bFound) *pdX = du;
+  return bFound;
 }
 
 bool GetHyperQuadApp(double da, double db, double dOffset, double dt1, double dt2, PDPoint pQuad)
