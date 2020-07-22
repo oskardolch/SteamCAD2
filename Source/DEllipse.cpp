@@ -326,7 +326,7 @@ bool GetRefInSeg(double dtStart, double dtEnd, double dt)
   return (dt > dtStart - g_dPrec) && (dt < dtEnd - g_dPrec);
 }
 
-CDPoint GetElpsProjInSeg(double da, double db, double dOffset, CDPoint cPt, double dtStart, double dtEnd)
+CDPoint GetElpsProjInSeg(double da, double db, CDPoint cPt, double dtStart, double dtEnd)
 {
   CDPoint pProjs[4];
   int iRoots = GetElpsPtProj(da, db, cPt, pProjs);
@@ -531,7 +531,7 @@ double GetElpsPureRef(double da, double db, double dOffset, double dStart, doubl
   dt = GetQuadPointAtDist(&cQuad, 0.0, dLen);
   cQuad.cPt4 = GetQuadPoint(&cQuad, dt);
 
-  CDPoint cProj = GetElpsProjInSeg(da, db, dOffset, cQuad.cPt4, dStart, dEnd);
+  CDPoint cProj = GetElpsProjInSeg(da, db, cQuad.cPt4, dStart, dEnd);
   return atan2(cProj.y, cProj.x);
 }
 
@@ -817,9 +817,7 @@ bool BuildEllipseCache(CDLine cTmpPt, int iMode, PDPointList pPoints, PDPointLis
       if(iMode == 2)
       {
         if(nOffs4 > 0)
-        {
           dDistOld = pPoints->GetPoint(0, 4).cPoint.x;
-        }
         else if(nOffs2 > 0)
         {
           cPt1 = pPoints->GetPoint(0, 2).cPoint;
@@ -877,7 +875,7 @@ bool GetElpsInterLineIter(double da, double db, double dr, CDPoint cStartPt, CDP
   int iInter = LineXLine(cProjPt, cProjDir, cLnOrg, cLnDir, &cStartPt);
   while((i < 16) && (iInter > 0))
   {
-    cProj = GetElpsProjInSeg(da, db, dr, cStartPt, dtStart, dtEnd);
+    cProj = GetElpsProjInSeg(da, db, cStartPt, dtStart, dtEnd);
     cProjDir.x = -da*cProj.y;
     cProjDir.y = db*cProj.x;
     dNorm = GetNorm(cProjDir);

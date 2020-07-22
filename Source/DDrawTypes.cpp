@@ -140,7 +140,7 @@ bool CDObject::AddPoint(double x, double y, char iCtrl, double dRestrictVal, boo
     bRes = AddArcElpsPoint(x, y, iCtrl, m_pInputPoints, iInputLines);
     break;
   case dtHyperbola:
-    bRes = AddHyperPoint(x, y, iCtrl, m_pInputPoints, iInputLines);
+    bRes = AddHyperPoint(x, y, iCtrl, dRestrictVal, m_pInputPoints, iInputLines);
     break;
   case dtParabola:
     bRes = AddParabPoint(x, y, iCtrl, m_pInputPoints, iInputLines);
@@ -322,6 +322,9 @@ void CDObject::AddCurveSegment(CDPrimitive cAddMode, PDPrimObject pPrimitive, PD
         break;
       case dtEllipse:
         AddElpsSegment(pBnds[j].x, pBnds[j].y, dExt, m_pCachePoints, pPrimitive);
+        break;
+      case dtHyperbola:
+        AddHyperSegment(pBnds[j].x, pBnds[j].y, dExt, m_pCachePoints, pPrimitive);
         break;
       default:
         break;
@@ -696,6 +699,9 @@ int CDObject::AddLineIntersects(CDPoint cPt1, CDPoint cPt2, double dOffset, PDRe
     break;
   case dtEllipse:
     iRes = AddEllipseInterLine(cPt1, cPt2, dOffset, m_pCachePoints, pBounds);
+    break;
+  case dtHyperbola:
+    iRes = AddHyperInterLine(cPt1, cPt2, dOffset, m_pCachePoints, pBounds);
     break;
   }
   return iRes;
@@ -2541,7 +2547,7 @@ double CDObject::GetDistFromPt(CDPoint cPt, CDPoint cRefPt, bool bSnapCenters, P
         dRes = GetArcElpsDistFromPt(cPt, cRefPt, iMask, m_pCachePoints, &cPtX, m_cBounds);
         break;
     case dtHyperbola:
-        dRes = GetHyperDistFromPt(cPt, cRefPt, iMask, m_pCachePoints, &cPtX, m_cBounds);
+        dRes = GetHyperDistFromPt(cPt, cRefPt, iMask, m_pCachePoints, &cPtX); //, m_cBounds);
         break;
     case dtParabola:
         dRes = GetParabDistFromPt(cPt, cRefPt, iMask, m_pCachePoints, &cPtX, m_cBounds);

@@ -15,7 +15,7 @@ CDPoint GetQuadDir(PDPrimitive pQuad, double dt);
 CDPoint GetQuadNormal(PDPrimitive pQuad, double dt);
 double GetQuadLength(PDPrimitive pQuad, double t1, double t2);
 double GetQuadPointAtDist(PDPrimitive pQuad, double t1, double dDist);
-// returns 3 if it is inside, 2 if it coinidents with da2, 1 if it coincidents with da1, 0 otherwise
+// returns 3 if it is inside, 2 if it coincidents with da2, 1 if it coincidents with da1, 0 otherwise
 int RefInBounds(double da1, double da2, double dRef);
 int RefInOpenBounds(PDRefPoint pBounds, double dRef);
 int MergeBounds(double da1, double da2, double db1, double db2, bool bFullCycle, double *pdBnds);
