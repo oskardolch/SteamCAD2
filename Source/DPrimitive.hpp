@@ -20,14 +20,19 @@ int RefInBounds(double da1, double da2, double dRef);
 int RefInOpenBounds(PDRefPoint pBounds, double dRef);
 int MergeBounds(double da1, double da2, double db1, double db2, bool bFullCycle, double *pdBnds);
 int AddBoundCurve(double da, double db, double dr, CurveFunc pFunc, CurveFunc pFuncDer,
-    double dt1, double dt2, CDPoint cOrig, CDPoint cMainDir, PDRect pRect,
-    PDPrimObject pPrimList);
+  double dt1, double dt2, CDPoint cOrig, CDPoint cMainDir, PDRect pRect,
+  PDPrimObject pPrimList);
 int AddBoundQuadCurve(double da, double db, double dr, CurveFunc pFunc, CurveFunc pFuncDer,
-    double dt1, double dt2, CDPoint cOrig, CDPoint cMainDir, PDRect pRect,
-    PDPrimObject pPrimList);
+  double dt1, double dt2, CDPoint cOrig, CDPoint cMainDir, PDRect pRect,
+  PDPrimObject pPrimList);
+
+// iSampleStrategy - 0 = constant, 1 = progressive
 CDPoint GetCurveRefAtDist(double da, double db, double dr, double dBreak, double dDist,
-    CurveFunc pFunc, CurveFunc pFuncDer, PDRefPoint pBounds);
+  CurveFunc pFunc, CurveFunc pFuncDer, double dInterval, int iSampleStrategy);
+double GetCurveDistAtRef(double da, double db, double dr, double dBreak, double dRef,
+  CurveFunc pFunc, CurveFunc pFuncDer, double dInterval, int iSampleStrategy);
+
 CDPoint GetPrimRegion(CDPrimitive cPrim, double dLineWidth, double dScale,
-    PDPoint pPoints1, PDPoint pPoints2);
+  PDPoint pPoints1, PDPoint pPoints2);
 
 #endif

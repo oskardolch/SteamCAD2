@@ -131,8 +131,6 @@ int GetElpsPtProj(double da, double db, CDPoint cPt, PDPoint pProjs)
     return 4;
   }
 
-  CDPoint cPt1, cPt2;
-  double dAngles[32];
   double dco, dsi, dt;
 
   double dFlipX = 1.0;
@@ -424,7 +422,7 @@ double GetElpsPureLen(double da, double db, double dOffset, double dStart, doubl
   CDPoint cpQuad[3] = {cQuad.cPt1, cQuad.cPt2, cQuad.cPt3};
   double dts[2];
   int iX = QuadXLine(cpQuad, cDirStart, cDirEnd/dNorm, &cQuad.cPt4, dts);
-  dRes += GetQuadLength(&cQuad, 0.0, dts[0]);
+  if(iX > 0) dRes += GetQuadLength(&cQuad, 0.0, dts[0]);
 
   return dRes;
 }
@@ -865,7 +863,7 @@ bool BuildEllipseCache(CDLine cTmpPt, int iMode, PDPointList pPoints, PDPointLis
 bool GetElpsInterLineIter(double da, double db, double dr, CDPoint cStartPt, CDPoint cNorm,
   CDPoint cLnOrg, CDPoint cLnDir, double dtStart, double dtEnd, double *pdRes, double *pdlt)
 {
-  CDPoint cProjDir, cProjOrg, cProj;
+  CDPoint cProjDir, cProj; //, cProjOrg
   double dNorm;
   CDPoint cProjPt = cStartPt;
 
@@ -1047,7 +1045,7 @@ int AddEllipseInterLine(CDPoint cPt1, CDPoint cPt2, double dOffset, PDPointList 
   cOrig = pCache->GetPoint(0, 0).cPoint;
   cRad = pCache->GetPoint(1, 0).cPoint;
 
-  CDPrimitive cPrim;
+  //CDPrimitive cPrim;
   int iRes = 0;
 
   if(iCnt < 3)
@@ -1292,9 +1290,9 @@ void BuildEllipseQuadsWithBounds(double da, double db, double dr, double dtStart
   cTmpPrim.cPt3.x = da*dco + dr*cDirEnd.y/dNorm;
   cTmpPrim.cPt3.y = db*dsi - dr*cDirEnd.x/dNorm;
 
-  int iRes1 = 2;
-  int iRes2 = 0;
-  int k;
+  //int iRes1 = 2;
+  //int iRes2 = 0;
+  //int k;
 
   for(int i = 0; i < iParts; i++)
   {
@@ -1679,8 +1677,8 @@ void AddElpsExtPrim(PDRect pRect, PDPointList pCache, PDPrimObject pPrimList)
 
   CDPoint cOrig, cRad, cMainDir;
 
-  CDPrimitive cPrim;
-  int iRes = 0;
+  //CDPrimitive cPrim;
+  //int iRes = 0;
 
   cOrig = pCache->GetPoint(0, 0).cPoint;
   cRad = pCache->GetPoint(1, 0).cPoint;

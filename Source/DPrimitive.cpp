@@ -1159,7 +1159,7 @@ double GetQuadLength(PDPrimitive pQuad, double t1, double t2)
 		double v1 = (dx1*t1 + dx12)/dA;
 		double v2 = (dx1*t2 + dx12)/dA;
 		dRes = (LenInt(v2) - LenInt(v1))*dDet/2.0/dx1/sqrt(dx1);
-        if(dRes < g_dPrec) dRes = 0.0;
+    if(dRes < g_dPrec) dRes = 0.0;
 	}
 	else
 	{
@@ -1171,7 +1171,7 @@ double GetQuadLength(PDPrimitive pQuad, double t1, double t2)
 		{
 			dx2 = sqrt(dx1);
 			dRes = (t2 - t1)*(dx2*(t2 + t1)/2.0 + dx12/dx2);
-            if(dRes < g_dPrec) dRes = 0.0;
+      if(dRes < g_dPrec) dRes = 0.0;
 		}
 	}
 
@@ -1689,6 +1689,186 @@ int AddBoundQuadCurve(double da, double db, double dr, CurveFunc pFunc, CurveFun
     return iRes;
 }
 
+int AddCurveSegment(double da, double db, double dr, double dBreak, CurveFunc pFunc, CurveFunc pFuncDer,
+  double dt1, double dt2, double dInterval, int iSampleStrategy, PDPrimObject pPrimList)
+{
+  if(dBreak > g_dPrec)
+  {
+    if(dt1 < -dBreak)
+    {
+    }
+  }
+
+  double dBase, dStart;
+
+  bool bBothSides = false;
+  double dDir = 1.0;
+
+  if(dt1 > g_dPrec)
+  {
+    dBase = dt1;
+    dStart = dt1;
+  }
+  else if(dt2 < -g_dPrec)
+  {
+    dBase = dt2;
+    dStart = dt2;
+    dDir = -1.0;
+  }
+  else if(dt1 > -g_dPrec)
+  {
+    if(dt2 < g_dPrec) return 0;
+    dBase = 1.0;
+    dStart = 0.0;
+  }
+  else if(dt2 < g_dPrec)
+  {
+    if(dt1 > -g_dPrec) return 0;
+    dBase = -1.0;
+    dStart = 0.0;
+    dDir = -1.0;
+  }
+  else
+  {
+    bBothSides = true;
+    dBase = -1.0;
+    dStart = 0.0;
+    dDir = -1.0;
+  }
+
+  CDPoint cHypPts[5];
+  double du, dv, dNorm;
+  CDPoint cDir1, cDir2;
+  int iFinished = 0;
+  CDPrimitive cPrim, cTmpPrim;
+
+  int iRes = -1;
+  int k;
+
+  while(iFinished < 1)
+  {
+    if(dDir > 0)
+    {
+      if(dStart + dBase > dt2 - g_dPrec)
+      {
+        dBase = dt2 - dStart;
+        if(dBase < g_dPrec) iFinished = 2;
+        else iFinished = 1;
+      }
+    }
+    else
+    {
+      if(dStart + dBase < dt1 + g_dPrec)
+      {
+        dBase = dt1 - dStart;
+        if(dBase > g_dPrec) iFinished = 2;
+        else iFinished = 1;
+      }
+    }
+
+    if(iFinished < 2)
+    {
+      for(int j = 0; j < 5; j++)
+      {
+        dv = sqrt(j/4.0);
+        du = dStart + dBase*dv;
+
+        cHypPts[j] = pFunc(da, db, du);
+        cDir1 = pFuncDer(da, db, du);
+        dNorm = GetNorm(cDir1);
+
+        cHypPts[j].x += dr*cDir1.y/dNorm;
+        cHypPts[j].y -= dr*cDir1.x/dNorm;
+      }
+
+      cDir2 = cDir1;
+      cDir1 = pFuncDer(da, db, dStart);
+
+      if(ApproxLineSeg(5, cHypPts, &cDir1, &cDir2, &cTmpPrim) > -0.5)
+      {
+        cPrim.iType = 5;
+        cPrim.cPt1 = cOrig + Rotate(cTmpPrim.cPt1, cMainDir, true);
+        cPrim.cPt2 = cOrig + Rotate(cTmpPrim.cPt2, cMainDir, true);
+        cPrim.cPt3 = cOrig + Rotate(cTmpPrim.cPt3, cMainDir, true);
+        cPrim.cPt4 = cOrig + Rotate(cTmpPrim.cPt4, cMainDir, true);
+      }
+      else
+      {
+        cPrim.iType = 1;
+        cPrim.cPt1 = cOrig + Rotate(cHypPts[0], cMainDir, true);
+        cPrim.cPt2 = cOrig + Rotate(cHypPts[4], cMainDir, true);
+      }
+
+      k = CropPrimitive(cPrim, pRect, pPrimList);
+      if(iRes < 0) iRes = k;
+      else if(iRes != k) iRes = 1;
+
+      dStart += dBase;
+      dBase *= 2.0;
+    }
+  }
+
+  if(!bBothSides) return iRes;
+
+  dBase = 1.0;
+  dStart = 0.0;
+  iFinished = 0;
+
+  while(iFinished < 1)
+  {
+    if(dStart + dBase > dt2 - g_dPrec)
+    {
+      dBase = dt2 - dStart;
+      if(dBase < g_dPrec) iFinished = 2;
+      else iFinished = 1;
+    }
+
+    if(iFinished < 2)
+    {
+      for(int j = 0; j < 5; j++)
+      {
+        dv = sqrt(j/4.0);
+        du = dStart + dBase*dv;
+
+        cHypPts[j] = pFunc(da, db, du);
+        cDir1 = pFuncDer(da, db, du);
+        dNorm = GetNorm(cDir1);
+
+        cHypPts[j].x += dr*cDir1.y/dNorm;
+        cHypPts[j].y -= dr*cDir1.x/dNorm;
+      }
+
+      cDir2 = cDir1;
+      cDir1 = pFuncDer(da, db, dStart);
+
+      if(ApproxLineSeg(5, cHypPts, &cDir1, &cDir2, &cTmpPrim) > -0.5)
+      {
+        cPrim.iType = 5;
+        cPrim.cPt1 = cOrig + Rotate(cTmpPrim.cPt1, cMainDir, true);
+        cPrim.cPt2 = cOrig + Rotate(cTmpPrim.cPt2, cMainDir, true);
+        cPrim.cPt3 = cOrig + Rotate(cTmpPrim.cPt3, cMainDir, true);
+        cPrim.cPt4 = cOrig + Rotate(cTmpPrim.cPt4, cMainDir, true);
+      }
+      else
+      {
+        cPrim.iType = 1;
+        cPrim.cPt1 = cOrig + Rotate(cHypPts[0], cMainDir, true);
+        cPrim.cPt2 = cOrig + Rotate(cHypPts[4], cMainDir, true);
+      }
+
+      k = CropPrimitive(cPrim, pRect, pPrimList);
+      if(iRes < 0) iRes = k;
+      else if(iRes != k) iRes = 1;
+
+      dStart += dBase;
+      dBase *= 2.0;
+    }
+  }
+  return iRes;
+}
+
+
+/*
 CDPoint GetCurveRefAtDist(double da, double db, double dr, double dBreak, double dDist,
     CurveFunc pFunc, CurveFunc pFuncDer, PDRefPoint pBounds)
 {
@@ -1778,6 +1958,163 @@ CDPoint GetCurveRefAtDist(double da, double db, double dr, double dBreak, double
     if(pBounds[0].dRef < dt0 - dr0) pBounds[0].dRef = dt0 - dr0;
     return GetQuadPoint(&cQuad, dt1);
 }
+*/
+
+CDPoint GetCurveRefAtDist(double da, double db, double dr, double dBreak, double dDist,
+  CurveFunc pFunc, CurveFunc pFuncDer, double dInterval, int iSampleStrategy)
+{
+  double dBase = dInterval;
+
+  CDPrimitive cQuad;
+  cQuad.cPt3 = pFunc(da, db, 0.0);
+
+  CDPoint cDir1, cDir2;
+  cDir2 = pFuncDer(da, db, 0.0);
+  double d1 = GetNorm(cDir2);
+
+  cQuad.cPt3.x += dr*cDir2.y/d1;
+  cQuad.cPt3.y -= dr*cDir2.x/d1;
+
+  bool bFound = false;
+  double dt = 0.0;
+
+  if(dBreak > g_dPrec)
+  {
+    int i = 0;
+    int iSteps = (int)(dBreak/dBase) + 1;
+
+    while(!bFound && (i < iSteps))
+    {
+      cDir1 = cDir2;
+      cQuad.cPt1 = cQuad.cPt3;
+
+      dt = (double)(1.0 + i++)*dBreak/iSteps;
+      cDir2 = pFuncDer(da, db, dt);
+      d1 = GetNorm(cDir2);
+
+      cQuad.cPt3 = pFunc(da, db, dt);
+      cQuad.cPt3.x += dr*cDir2.y/d1;
+      cQuad.cPt3.y -= dr*cDir2.x/d1;
+
+      LineXLine(cQuad.cPt1, cDir1, cQuad.cPt3, cDir2, &cQuad.cPt2);
+      d1 = GetQuadLength(&cQuad, 0.0, 1.0);
+
+      if(d1 < dDist) dDist -= d1;
+      else bFound = true;
+    }
+    dBase += dt;
+  }
+
+  while(!bFound)
+  {
+    cDir1 = cDir2;
+    cQuad.cPt1 = cQuad.cPt3;
+
+    cDir2 = pFuncDer(da, db, dBase);
+    d1 = GetNorm(cDir2);
+
+    cQuad.cPt3 = pFunc(da, db, dBase);
+    cQuad.cPt3.x += dr*cDir2.y/d1;
+    cQuad.cPt3.y -= dr*cDir2.x/d1;
+
+    LineXLine(cQuad.cPt1, cDir1, cQuad.cPt3, cDir2, &cQuad.cPt2);
+    d1 = GetQuadLength(&cQuad, 0.0, 1.0);
+
+    if(d1 < dDist) dDist -= d1;
+    else bFound = true;
+
+    dt = dBase;
+    if(iSampleStrategy > 0) dBase *= 2.0;
+    else dBase += dInterval;
+  }
+
+  dt = GetQuadPointAtDist(&cQuad, 0.0, dDist);
+  return GetQuadPoint(&cQuad, dt);
+}
+
+double GetCurveDistAtRef(double da, double db, double dr, double dBreak, double dRef,
+  CurveFunc pFunc, CurveFunc pFuncDer, double dInterval, int iSampleStrategy)
+{
+  double dBase = dInterval;
+  double dRes = 0.0;
+
+  CDPrimitive cQuad;
+  cQuad.cPt3 = pFunc(da, db, 0.0);
+
+  CDPoint cDir1, cDir2;
+  cDir2 = pFuncDer(da, db, 0.0);
+  double d1 = GetNorm(cDir2);
+
+  cQuad.cPt3.x += dr*cDir2.y/d1;
+  cQuad.cPt3.y -= dr*cDir2.x/d1;
+
+  bool bFound = false;
+  double dt = 0.0;
+
+  if(dBreak > g_dPrec)
+  {
+    int i = 0;
+    int iSteps = (int)(dBreak/dBase) + 1;
+
+    while(!bFound && (i < iSteps))
+    {
+      cDir1 = cDir2;
+      cQuad.cPt1 = cQuad.cPt3;
+
+      dt = (double)(1.0 + i++)*dBreak/iSteps;
+      cDir2 = pFuncDer(da, db, dt);
+      d1 = GetNorm(cDir2);
+
+      cQuad.cPt3 = pFunc(da, db, dt);
+      cQuad.cPt3.x += dr*cDir2.y/d1;
+      cQuad.cPt3.y -= dr*cDir2.x/d1;
+
+      LineXLine(cQuad.cPt1, cDir1, cQuad.cPt3, cDir2, &cQuad.cPt2);
+
+      if(dt < dRef) dRes += GetQuadLength(&cQuad, 0.0, 1.0);
+      else bFound = true;
+    }
+    dBase += dt;
+  }
+
+  while(!bFound)
+  {
+    cDir1 = cDir2;
+    cQuad.cPt1 = cQuad.cPt3;
+
+    cDir2 = pFuncDer(da, db, dBase);
+    d1 = GetNorm(cDir2);
+
+    cQuad.cPt3 = pFunc(da, db, dBase);
+    cQuad.cPt3.x += dr*cDir2.y/d1;
+    cQuad.cPt3.y -= dr*cDir2.x/d1;
+
+    LineXLine(cQuad.cPt1, cDir1, cQuad.cPt3, cDir2, &cQuad.cPt2);
+
+    if(dt < dRef) dRes += GetQuadLength(&cQuad, 0.0, 1.0);
+    else bFound = true;
+
+    dt = dBase;
+    if(iSampleStrategy > 0) dBase *= 2.0;
+    else dBase += dInterval;
+  }
+
+  cDir1 = pFunc(da, db, dRef);
+  cDir2 = pFuncDer(da, db, dRef);
+  d1 = GetNorm(cDir2);
+  CDPoint cLnDir = {cDir2.y/d1, -cDir2.x/d1};
+  CDPoint pPtX[2], ptQuad[3];
+  double pdt[2];
+
+  ptQuad[0] = cQuad.cPt1;
+  ptQuad[1] = cQuad.cPt2;
+  ptQuad[2] = cQuad.cPt3;
+  int iInt = QuadXLine(ptQuad, cDir1, cLnDir, pPtX, pdt);
+  if(iInt > 0) dRes += GetQuadLength(&cQuad, 0.0, pdt[0]);
+
+  return dRes;
+}
+
 
 CDPoint GetLineRegion(CDPrimitive cPrim, double dLineWidth, PDPoint pPoints)
 {

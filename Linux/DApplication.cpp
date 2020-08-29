@@ -1225,7 +1225,7 @@ void CDApplication::DrawDimText(cairo_t *cr, PDPrimitive pPrim, PDObject pObj, l
 
 void CDApplication::DrawPrimitive(cairo_t *cr, PDPrimitive pPrim)
 {
-  double dr, da1, da2;
+  double dr; //, da1, da2;
 
   CDPoint cStartPt, cEndPt;
 
@@ -1478,7 +1478,7 @@ void CDApplication::Paint(GtkWidget *widget, GdkEventExpose *event)
 
   gboolean bNotWholeWindow = (event->area.x > 0) || (event->area.y > 0) ||
     (event->area.width < iWidth) || (event->area.height < iHeight);
-  gboolean bOffLine = !(m_bRenderDirect || bNotWholeWindow);
+  //gboolean bOffLine = !(m_bRenderDirect || bNotWholeWindow);
 
   cairo_t *cr2 = gdk_cairo_create(event->window);
   //cairo_set_antialias(cr, CAIRO_ANTIALIAS_FAST);

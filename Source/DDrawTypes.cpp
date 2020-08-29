@@ -151,6 +151,8 @@ bool CDObject::AddPoint(double x, double y, char iCtrl, double dRestrictVal, boo
   case dtEvolvent:
     bRes = AddEvolvPoint(x, y, iCtrl, m_pInputPoints, iInputLines);
     break;
+  case dtLogSpiral:
+  case dtArchSpiral:
   case dtPath:
   case dtBorderPath:
   case dtBorder:
@@ -700,8 +702,21 @@ int CDObject::AddLineIntersects(CDPoint cPt1, CDPoint cPt2, double dOffset, PDRe
   case dtEllipse:
     iRes = AddEllipseInterLine(cPt1, cPt2, dOffset, m_pCachePoints, pBounds);
     break;
+  case dtArcEllipse:
+    break;
   case dtHyperbola:
     iRes = AddHyperInterLine(cPt1, cPt2, dOffset, m_pCachePoints, pBounds);
+    break;
+  case dtParabola:
+  case dtSpline:
+  case dtEvolvent:
+  case dtLogSpiral:
+  case dtArchSpiral:
+  case dtPath:
+  case dtBorderPath:
+  case dtBorder:
+  case dtArea:
+  case dtGroup:
     break;
   }
   return iRes;
@@ -998,6 +1013,19 @@ void CDObject::AddExtraPrimitives(PDRect pRect, PDPrimObject pPrimList)
     break;
   case dtEllipse:
     AddElpsExtPrim(pRect, m_pCachePoints, pPrimList);
+    break;
+  case dtArcEllipse:
+  case dtHyperbola:
+  case dtParabola:
+  case dtSpline:
+  case dtEvolvent:
+  case dtLogSpiral:
+  case dtArchSpiral:
+  case dtPath:
+  case dtBorderPath:
+  case dtBorder:
+  case dtArea:
+  case dtGroup:
     break;
   }
 }
@@ -1710,6 +1738,11 @@ int CDObject::GetAttractors(CDPoint cPt, double dScale, PDPoint pPoints)
   {
   case dtEllipse:
     iRes = GetEllipseAttractors(cPt, m_pCachePoints, cPts);
+    break;
+  case dtHyperbola:
+    iRes = GetHyperAttractors(cPt, m_pCachePoints, cPts);
+    break;
+  default:
     break;
   }
   for(int i = 0; i < iRes; i++)
@@ -2558,9 +2591,17 @@ double CDObject::GetDistFromPt(CDPoint cPt, CDPoint cRefPt, bool bSnapCenters, P
     case dtEvolvent:
         dRes = GetEvolvDistFromPt(cPt, cRefPt, m_pCachePoints, &cPtX);
         break;
+    case dtLogSpiral:
+    case dtArchSpiral:
+      break;
     case dtPath:
         dRes = GetPathDistFromPt(cPt, cRefPt, iMask, &cPtX);
         break;
+    case dtBorderPath:
+    case dtBorder:
+    case dtArea:
+    case dtGroup:
+      break;
     }
 
     if(piDimen)
