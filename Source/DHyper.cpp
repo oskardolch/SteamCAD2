@@ -30,14 +30,17 @@ double GetHyperBreakAngle(double da, double db, double dr)
 double HypProjFn(double da, double db, double dx, double dy, double du)
 {
   double dv = sqrt(1.0 + Power2(du));
-  return du*dv*(Power2(da) + Power2(db)) - da*dx*du - db*dy*dv;
+//  return du*dv*(Power2(da) + Power2(db)) - da*dx*du - db*dy*dv;
+  return du*(Power2(da) + Power2(db)) - da*dx*du/dv - db*dy;
 }
 
 double HypProjFnDer(double da, double db, double dx, double dy, double du)
 {
-  double dv = sqrt(1.0 + Power2(du));
-  double da1 = Power2(da) + Power2(db);
-  return da1*(dv + Power2(du)/dv) - da*dx - db*dy*du/dv;
+  double da1 = 1.0 + Power2(du);
+  double dv = sqrt(da1);
+//  double da1 = Power2(da) + Power2(db);
+//  return da1*(dv + Power2(du)/dv) - da*dx - db*dy*du/dv;
+  return Power2(da) + Power2(db) - da*dx/da1/dv;
 }
 
 double GetHyperPtProjFromU(double da, double db, double dStart, CDPoint cPt)
@@ -48,18 +51,21 @@ double GetHyperPtProjFromU(double da, double db, double dStart, CDPoint cPt)
   double df2 = HypProjFnDer(da, db, cPt.x, cPt.y, du1);
   if(fabs(df2) < g_dPrec) return 0.0;
 
-  double du2 = du1 - df/df2;
+//  double du2 = du1 - df/df2;
+  du1 -= df/df2;
+printf("Dobry 6: %f, %f, %f, %f\n", dStart, du1, cPt.x, cPt.y);
 
   while((j < 16) && (fabs(df) > g_dRootPrec))
   {
+printf("Dobry 7: %d, %f, %f, %f\n", j, df, df2, du1);
     j++;
-    du1 = du2;
+//    du1 = du2;
     df = HypProjFn(da, db, cPt.x, cPt.y, du1);
     df2 = HypProjFnDer(da, db, cPt.x, cPt.y, du1);
-    if(fabs(df2) > g_dPrec) du2 -= df/df2;
+    if(fabs(df2) > g_dPrec) du1 -= df/df2;
     else j = 16;
   }
-  return du2;
+  return du1;
 }
 
 bool PtInList(double du, int iSize, double *pdList)
@@ -88,6 +94,7 @@ int GetHyperPtProj(double da, double db, CDPoint cPt, double *pdRoots)
   if(iRoots < 1)
   {
     pdRoots[0] = GetHyperPtProjFromU(da, db, 0.0, cPt);
+printf("Dobry 4: %f\n", pdRoots[0]);
     return 1;
   }
 
@@ -96,9 +103,13 @@ int GetHyperPtProj(double da, double db, CDPoint cPt, double *pdRoots)
   for(int j = 0; j < iRoots; j++)
   {
     du = GetHyperPtProjFromU(da, db, dRoots[j], cPt);
-    if(!PtInList(du, iRes, pdRoots)) pdRoots[iRes++] = du;
+    if(!PtInList(du, iRes, pdRoots))
+{
+printf("Dobry 5: %d, %f\n", iRes, du);
+      pdRoots[iRes++] = du;
+}
   }
-  return iRoots;
+  return iRes;
 }
 
 int GetHyperAttractors(CDPoint cPt, PDPointList pCache, PDPoint pPoints)
@@ -1214,6 +1225,7 @@ double GetHyperPointAtDist(double da, double db, double dr, double dBreak, doubl
 {
   CDPoint cPt1 = GetCurveRefAtDist(da, db, dr, dBreak, fabs(dDist), HyperFunc, HyperFuncDer, 0.5, 1);
   double dRes = GetHyperBoundProj(da, db, dr, cPt1, cPt1, false);
+printf("Dobry 3: %f - %f, %f\n", dRes, cPt1.x, cPt1.y);
   if(dDist < 0.0) dRes *= -1.0;
   return dRes;
 }
@@ -1239,11 +1251,13 @@ void AddHyperSegment(double d1, double d2, double dExt, PDPointList pCache, PDPr
 
   double dy1 = GetHyperPointAtDist(cRad.x, cRad.y, dr, dBreak, d1);
   double dy2 = GetHyperPointAtDist(cRad.x, cRad.y, dr, dBreak, d2);
+printf("Dobry 1 - %f, %f - %f, %f\n", d1, d2, dy1, dy2);
 
   PDPrimObject pTmpPrim = new CDPrimObject();
-  AddCurveSegment(cRad.x, cRad.y, dr, dBreak, HyperFunc, HyperFuncDer, dy1, dy2, 0.5, 1, pTmpPrim);
+  int iRes = AddCurveSegment(cRad.x, cRad.y, dr, dBreak, HyperFunc, HyperFuncDer, dy1, dy2, 0.5, 1, pTmpPrim);
   RotatePrimitives(pTmpPrim, pPrimList, cOrig, cNorm);
   delete pTmpPrim;
+printf("Dobry 2 - %d\n", iRes);
 }
 
 bool GetHyperRefPoint(double dRef, PDPointList pCache, PDPoint pPt)
@@ -1450,7 +1464,7 @@ int AddHyperInterLine(CDPoint cPt1, CDPoint cPt2, double dOffset, PDPointList pC
     if(dc < g_dPrec) bTangent = false;
     else
     {
-      dTangent = cRad.y*cDir.x/sqrt(dc);
+      dTangent = cRad.y*fabs(cDir.x)/sqrt(dc);
       if(cDir.x*cDir.y < -g_dPrec) dTangent *= -1.0;
     }
   }

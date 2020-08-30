@@ -2215,7 +2215,7 @@ int AddCurveInterLineFromPt(double da, double db, double dr, CurveFunc pFunc, Cu
   int iRes = 0;
   double dx = dIterStart;
 
-  CDPoint cPt2, cPt1 = pFunc(da, db, dx);
+  CDPoint cPt1 = pFunc(da, db, dx);
   CDPoint cDir1 = pFuncDer(da, db, dx);
   double d1 = GetNorm(cDir1);
   cDir1 /= d1;
@@ -2228,20 +2228,20 @@ int AddCurveInterLineFromPt(double da, double db, double dr, CurveFunc pFunc, Cu
 
   while((i < 8) && (LineXLine(cPt1, cDir1, cLnStart, cLnDir, &cPtX) > 0) && (dDist > g_dPrec))
   {
-    cPt2 = cLnStart + cPtX.y*cLnDir;
-    dx = pFuncProj(da, db, dr, cPt2, cStart, cEnd);
+    dx = pFuncProj(da, db, dr, cPtX, cStart, cEnd);
     cPt1 = pFunc(da, db, dx);
     cDir1 = pFuncDer(da, db, dx);
-    dDist = GetNorm(cDir1);
+    d1 = GetNorm(cDir1);
     cDir1 /= d1;
     cPt1.x += dr*cDir1.y;
     cPt1.y -= dr*cDir1.x;
 
-    dDist = GetDist(cPt1, cPt2);
+    dDist = GetDist(cPt1, cPtX);
 
     i++;
   }
-  if((dDist < g_dPrec) && (cPtX.y > -g_dPrec) && (cPtX.y < dLnLen - g_dPrec))
+  cPt1 = Rotate(cPtX - cLnStart, cLnDir, false);
+  if((dDist < g_dPrec) && (cPt1.x > -g_dPrec) && (cPt1.x < dLnLen - g_dPrec))
   {
     if(GetRefInUboundSeg(dx, cStart, cEnd))
     {
