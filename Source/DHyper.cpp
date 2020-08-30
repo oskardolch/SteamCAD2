@@ -1075,7 +1075,7 @@ int BuildHyperPrimitives(CDLine cTmpPt, int iMode, PDRect pRect, PDPointList pPo
     return iRes1;
 }*/
 
-double GetHyperDistFromPt(CDPoint cPt, CDPoint cRefPt, int iSrchMask, PDPointList pCache, PDLine pPtX, PDRefPoint pBounds)
+double GetHyperDistFromPt(CDPoint cPt, CDPoint cRefPt, int iSrchMask, PDPointList pCache, PDLine pPtX) //, PDRefPoint pBounds)
 {
   pPtX->bIsSet = false;
 
@@ -1218,7 +1218,7 @@ double GetHyperPointAtDist(double da, double db, double dr, double dBreak, doubl
   return dRes;
 }
 
-void AddHyperSegment(double d1, double d2, double dExt, PDPointList pCache, PDPrimObject pPrimList) //, PDRect pRect)
+void AddHyperSegment(double d1, double d2, double dExt, PDPointList pCache, PDPrimObject pPrimList)
 {
   int iCnt = pCache->GetCount(0);
 
@@ -1240,7 +1240,9 @@ void AddHyperSegment(double d1, double d2, double dExt, PDPointList pCache, PDPr
   double dy1 = GetHyperPointAtDist(cRad.x, cRad.y, dr, dBreak, d1);
   double dy2 = GetHyperPointAtDist(cRad.x, cRad.y, dr, dBreak, d2);
 
-  //AddHyperSegWithBounds(cRad.x, cRad.y, dr, cOrig, cNorm, dy1, dy2, dBreak, pPrimList);
+  PDPrimObject pTmpPrim = new CDPrimObject();
+  AddCurveSegment(cRad.x, cRad.y, dr, dBreak, HyperFunc, HyperFuncDer, dy1, dy2, 0.5, 1, pTmpPrim);
+  RotatePrimitives(pTmpPrim, pPrimList, cOrig, cNorm);
 }
 
 bool GetHyperRefPoint(double dRef, PDPointList pCache, PDPoint pPt)

@@ -1820,7 +1820,7 @@ int SplitCurveParts(double dt1, double dt2, double dBreak, double *pdParts)
     {
       if(dt1 < g_dPrec) pdParts[iRes++] = 0.0;
       else pdParts[iRes++] = dt1;
-      dParts[iRes++] = dt2;
+      pdParts[iRes++] = dt2;
     }
   }
   return iRes;
@@ -1831,7 +1831,7 @@ CDPrimitive GetBezierSimpleSeg(double da, double db, double dr, CurveFunc pFunc,
 {
   CDPrimitive cPrim, cTmpPrim;
   CDPoint cDir1, cDir2, cCurvePts[5];
-  double du, dv;
+  double du, dv, dNorm;
   du = dtStart;
   dv = dtBase/4.0;
 
@@ -1848,13 +1848,13 @@ CDPrimitive GetBezierSimpleSeg(double da, double db, double dr, CurveFunc pFunc,
   }
 
   cDir2 = cDir1;
-  cDir1 = pFuncDer(da, db, dStart);
+  cDir1 = pFuncDer(da, db, dtStart);
 
   if(ApproxLineSeg(5, cCurvePts, &cDir1, &cDir2, &cTmpPrim) > -0.5) return cTmpPrim;
 
   cPrim.iType = 1;
-  cPrim.cPt1 = cHypPts[0];
-  cPrim.cPt2 = cHypPts[4];
+  cPrim.cPt1 = cCurvePts[0];
+  cPrim.cPt2 = cCurvePts[4];
   return cPrim;
 }
 
@@ -1863,11 +1863,11 @@ CDPrimitive GetBezierProgSeg(double da, double db, double dr, CurveFunc pFunc, C
 {
   CDPrimitive cPrim, cTmpPrim;
   CDPoint cDir1, cDir2, cCurvePts[5];
-  double du, dv;
+  double du, dv, dNorm;
 
   for(int j = 0; j < 5; j++)
   {
-    dv = sqrt(j/4.0);
+    dv = sqrt((double)j/4.0);
     du = dtStart + dtBase*dv;
 
     cCurvePts[j] = pFunc(da, db, du);
@@ -1879,13 +1879,13 @@ CDPrimitive GetBezierProgSeg(double da, double db, double dr, CurveFunc pFunc, C
   }
 
   cDir2 = cDir1;
-  cDir1 = pFuncDer(da, db, dStart);
+  cDir1 = pFuncDer(da, db, dtStart);
 
   if(ApproxLineSeg(5, cCurvePts, &cDir1, &cDir2, &cTmpPrim) > -0.5) return cTmpPrim;
 
   cPrim.iType = 1;
-  cPrim.cPt1 = cHypPts[0];
-  cPrim.cPt2 = cHypPts[4];
+  cPrim.cPt1 = cCurvePts[0];
+  cPrim.cPt2 = cCurvePts[4];
   return cPrim;
 }
 
@@ -1897,6 +1897,21 @@ int AddCurvePart(double da, double db, double dr, CurveFunc pFunc, CurveFunc pFu
 
   if(iSampleStrategy > 0)
   {
+    double dLog = (1.0 + dt2/dInterval)/(1.0 + dt1/dInterval);
+    double dScale = 2.0;
+    iRes = 1 + (int)log(dLog)/log(2.0);
+    dStep = (dt2 - dt1)/(exp((double)iRes*log(2.0)) - 1.0);
+    if(dt1 < g_dPrec)
+    {
+      dScale = 0.5;
+      dStep *= exp((double)(iRes - 1)*log(2.0));
+    }
+    for(int i = 0; i < iRes; i++) 
+    {
+      pPrimList->AddPrimitive(GetBezierSimpleSeg(da, db, dr, pFunc, pFuncDer,  dStart, dStep));
+      dStart += dStep;
+      dStep *= dScale;
+    }
   }
   else
   {
@@ -1921,178 +1936,10 @@ int AddCurveSegment(double da, double db, double dr, double dBreak, CurveFunc pF
   for(int i = 0; i < iNumParts - 1; i++)
     iRes += AddCurvePart(da, db, dr, pFunc, pFuncDer, dt1, dt2, dInterval, iSampleStrategy, pPrimList);
   return iRes;
-
-  double dBase, dStart;
-
-  bool bBothSides = false;
-  double dDir = 1.0;
-
-  if(dt1 > g_dPrec)
-  {
-    dBase = dt1;
-    dStart = dt1;
-  }
-  else if(dt2 < -g_dPrec)
-  {
-    dBase = dt2;
-    dStart = dt2;
-    dDir = -1.0;
-  }
-  else if(dt1 > -g_dPrec)
-  {
-    if(dt2 < g_dPrec) return 0;
-    dBase = 1.0;
-    dStart = 0.0;
-  }
-  else if(dt2 < g_dPrec)
-  {
-    if(dt1 > -g_dPrec) return 0;
-    dBase = -1.0;
-    dStart = 0.0;
-    dDir = -1.0;
-  }
-  else
-  {
-    bBothSides = true;
-    dBase = -1.0;
-    dStart = 0.0;
-    dDir = -1.0;
-  }
-
-  CDPoint cHypPts[5];
-  double du, dv, dNorm;
-  CDPoint cDir1, cDir2;
-  int iFinished = 0;
-  CDPrimitive cPrim, cTmpPrim;
-
-  int iRes = -1;
-  int k;
-
-  while(iFinished < 1)
-  {
-    if(dDir > 0)
-    {
-      if(dStart + dBase > dt2 - g_dPrec)
-      {
-        dBase = dt2 - dStart;
-        if(dBase < g_dPrec) iFinished = 2;
-        else iFinished = 1;
-      }
-    }
-    else
-    {
-      if(dStart + dBase < dt1 + g_dPrec)
-      {
-        dBase = dt1 - dStart;
-        if(dBase > g_dPrec) iFinished = 2;
-        else iFinished = 1;
-      }
-    }
-
-    if(iFinished < 2)
-    {
-      for(int j = 0; j < 5; j++)
-      {
-        dv = sqrt(j/4.0);
-        du = dStart + dBase*dv;
-
-        cHypPts[j] = pFunc(da, db, du);
-        cDir1 = pFuncDer(da, db, du);
-        dNorm = GetNorm(cDir1);
-
-        cHypPts[j].x += dr*cDir1.y/dNorm;
-        cHypPts[j].y -= dr*cDir1.x/dNorm;
-      }
-
-      cDir2 = cDir1;
-      cDir1 = pFuncDer(da, db, dStart);
-
-      if(ApproxLineSeg(5, cHypPts, &cDir1, &cDir2, &cTmpPrim) > -0.5)
-      {
-        cPrim.iType = 5;
-        cPrim.cPt1 = cOrig + Rotate(cTmpPrim.cPt1, cMainDir, true);
-        cPrim.cPt2 = cOrig + Rotate(cTmpPrim.cPt2, cMainDir, true);
-        cPrim.cPt3 = cOrig + Rotate(cTmpPrim.cPt3, cMainDir, true);
-        cPrim.cPt4 = cOrig + Rotate(cTmpPrim.cPt4, cMainDir, true);
-      }
-      else
-      {
-        cPrim.iType = 1;
-        cPrim.cPt1 = cOrig + Rotate(cHypPts[0], cMainDir, true);
-        cPrim.cPt2 = cOrig + Rotate(cHypPts[4], cMainDir, true);
-      }
-
-      k = CropPrimitive(cPrim, pRect, pPrimList);
-      if(iRes < 0) iRes = k;
-      else if(iRes != k) iRes = 1;
-
-      dStart += dBase;
-      dBase *= 2.0;
-    }
-  }
-
-  if(!bBothSides) return iRes;
-
-  dBase = 1.0;
-  dStart = 0.0;
-  iFinished = 0;
-
-  while(iFinished < 1)
-  {
-    if(dStart + dBase > dt2 - g_dPrec)
-    {
-      dBase = dt2 - dStart;
-      if(dBase < g_dPrec) iFinished = 2;
-      else iFinished = 1;
-    }
-
-    if(iFinished < 2)
-    {
-      for(int j = 0; j < 5; j++)
-      {
-        dv = sqrt(j/4.0);
-        du = dStart + dBase*dv;
-
-        cHypPts[j] = pFunc(da, db, du);
-        cDir1 = pFuncDer(da, db, du);
-        dNorm = GetNorm(cDir1);
-
-        cHypPts[j].x += dr*cDir1.y/dNorm;
-        cHypPts[j].y -= dr*cDir1.x/dNorm;
-      }
-
-      cDir2 = cDir1;
-      cDir1 = pFuncDer(da, db, dStart);
-
-      if(ApproxLineSeg(5, cHypPts, &cDir1, &cDir2, &cTmpPrim) > -0.5)
-      {
-        cPrim.iType = 5;
-        cPrim.cPt1 = cOrig + Rotate(cTmpPrim.cPt1, cMainDir, true);
-        cPrim.cPt2 = cOrig + Rotate(cTmpPrim.cPt2, cMainDir, true);
-        cPrim.cPt3 = cOrig + Rotate(cTmpPrim.cPt3, cMainDir, true);
-        cPrim.cPt4 = cOrig + Rotate(cTmpPrim.cPt4, cMainDir, true);
-      }
-      else
-      {
-        cPrim.iType = 1;
-        cPrim.cPt1 = cOrig + Rotate(cHypPts[0], cMainDir, true);
-        cPrim.cPt2 = cOrig + Rotate(cHypPts[4], cMainDir, true);
-      }
-
-      k = CropPrimitive(cPrim, pRect, pPrimList);
-      if(iRes < 0) iRes = k;
-      else if(iRes != k) iRes = 1;
-
-      dStart += dBase;
-      dBase *= 2.0;
-    }
-  }
-  return iRes;
 }
 
 
-/*
-CDPoint GetCurveRefAtDist(double da, double db, double dr, double dBreak, double dDist,
+CDPoint GetCurveRefAtDistOld(double da, double db, double dr, double dBreak, double dDist,
     CurveFunc pFunc, CurveFunc pFuncDer, PDRefPoint pBounds)
 {
     pBounds[0].bIsSet = true;
@@ -2181,7 +2028,7 @@ CDPoint GetCurveRefAtDist(double da, double db, double dr, double dBreak, double
     if(pBounds[0].dRef < dt0 - dr0) pBounds[0].dRef = dt0 - dr0;
     return GetQuadPoint(&cQuad, dt1);
 }
-*/
+
 
 CDPoint GetCurveRefAtDist(double da, double db, double dr, double dBreak, double dDist,
   CurveFunc pFunc, CurveFunc pFuncDer, double dInterval, int iSampleStrategy)
@@ -2338,6 +2185,23 @@ double GetCurveDistAtRef(double da, double db, double dr, double dBreak, double 
   return dRes;
 }
 
+void RotatePrimitives(PDPrimObject pSrcList, PDPrimObject pDestList, CDPoint cOrig, CDPoint cMainDir)
+{
+  CDPrimitive cSrc, cDest;
+  for(int i = 0; i < pSrcList->GetCount(); i++)
+  {
+    cSrc = pSrcList->GetPrimitive(i);
+    cDest.iType = cSrc.iType;
+    if(cSrc.iType > 0)
+    {
+      cDest.cPt1 = cOrig + Rotate(cSrc.cPt1, cMainDir, true);
+      cDest.cPt2 = cOrig + Rotate(cSrc.cPt2, cMainDir, true);
+    }
+    if(cSrc.iType > 3) cDest.cPt3 = cOrig + Rotate(cSrc.cPt3, cMainDir, true);
+    if(cSrc.iType > 4) cDest.cPt4 = cOrig + Rotate(cSrc.cPt4, cMainDir, true);
+    pDestList->AddPrimitive(cDest);
+  }
+}
 
 CDPoint GetLineRegion(CDPrimitive cPrim, double dLineWidth, PDPoint pPoints)
 {

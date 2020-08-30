@@ -26,11 +26,18 @@ int AddBoundQuadCurve(double da, double db, double dr, CurveFunc pFunc, CurveFun
   double dt1, double dt2, CDPoint cOrig, CDPoint cMainDir, PDRect pRect,
   PDPrimObject pPrimList);
 
+CDPoint GetCurveRefAtDistOld(double da, double db, double dr, double dBreak, double dDist,
+    CurveFunc pFunc, CurveFunc pFuncDer, PDRefPoint pBounds);
+
 // iSampleStrategy - 0 = constant, 1 = progressive
 CDPoint GetCurveRefAtDist(double da, double db, double dr, double dBreak, double dDist,
   CurveFunc pFunc, CurveFunc pFuncDer, double dInterval, int iSampleStrategy);
 double GetCurveDistAtRef(double da, double db, double dr, double dBreak, double dRef,
   CurveFunc pFunc, CurveFunc pFuncDer, double dInterval, int iSampleStrategy);
+int AddCurveSegment(double da, double db, double dr, double dBreak, CurveFunc pFunc, CurveFunc pFuncDer,
+  double dt1, double dt2, double dInterval, int iSampleStrategy, PDPrimObject pPrimList);
+
+void RotatePrimitives(PDPrimObject pSrcList, PDPrimObject pDestList, CDPoint cOrig, CDPoint cMainDir);
 
 CDPoint GetPrimRegion(CDPrimitive cPrim, double dLineWidth, double dScale,
   PDPoint pPoints1, PDPoint pPoints2);

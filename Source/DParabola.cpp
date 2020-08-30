@@ -987,7 +987,7 @@ bool GetParabPointRefDist(double dRef, PDPointList pCache, double *pdDist)
 double GetParabPointAtDist(double da, double dr, double dBreak, double dDist)
 {
     CDRefPoint cBnds[2];
-    CDPoint cPt1 = GetCurveRefAtDist(da, 1.0, dr, dBreak, fabs(dDist), ParabFunc, ParabFuncDer, cBnds);
+    CDPoint cPt1 = GetCurveRefAtDistOld(da, 1.0, dr, dBreak, fabs(dDist), ParabFunc, ParabFuncDer, cBnds);
     if(dDist < 0.0)
     {
         cPt1.x *= -1.0;
