@@ -1689,15 +1689,238 @@ int AddBoundQuadCurve(double da, double db, double dr, CurveFunc pFunc, CurveFun
     return iRes;
 }
 
+int SplitCurveParts(double dt1, double dt2, double dBreak, double *pdParts)
+{
+  int iRes = 0;
+
+  if(dBreak > g_dPrec)
+  {
+    if(dt1 < -dBreak - g_dPrec)
+    {
+      pdParts[iRes++] = dt1;
+      if(dt2 < -dBreak - g_dPrec) pdParts[iRes++] = dt2;
+      else if(dt2 < -dBreak + g_dPrec) pdParts[iRes++] = -dBreak;
+      else if(dt2 < -g_dPrec)
+      {
+        pdParts[iRes++] = -dBreak;
+        pdParts[iRes++] = dt2;
+      }
+      else if(dt2 < g_dPrec)
+      {
+        pdParts[iRes++] = -dBreak;
+        pdParts[iRes++] = 0.0;
+      }
+      else if(dt2 < dBreak - g_dPrec)
+      {
+        pdParts[iRes++] = -dBreak;
+        pdParts[iRes++] = 0.0;
+        pdParts[iRes++] = dt2;
+      }
+      else if(dt2 < dBreak + g_dPrec)
+      {
+        pdParts[iRes++] = -dBreak;
+        pdParts[iRes++] = 0.0;
+        pdParts[iRes++] = dBreak;
+      }
+      else
+      {
+        pdParts[iRes++] = -dBreak;
+        pdParts[iRes++] = 0.0;
+        pdParts[iRes++] = dBreak;
+        pdParts[iRes++] = dt2;
+      }
+    }
+    else if(dt1 < -dBreak + g_dPrec)
+    {
+      pdParts[iRes++] = -dBreak;
+      if(dt2 < -g_dPrec) pdParts[iRes++] = dt2;
+      else if(dt2 < g_dPrec) pdParts[iRes++] = 0.0;
+      else if(dt2 < dBreak - g_dPrec)
+      {
+        pdParts[iRes++] = 0.0;
+        pdParts[iRes++] = dt2;
+      }
+      else if(dt2 < dBreak + g_dPrec)
+      {
+        pdParts[iRes++] = 0.0;
+        pdParts[iRes++] = dBreak;
+      }
+      else
+      {
+        pdParts[iRes++] = 0.0;
+        pdParts[iRes++] = dBreak;
+        pdParts[iRes++] = dt2;
+      }
+    }
+    else if(dt1 < -g_dPrec)
+    {
+      pdParts[iRes++] = dt1;
+      if(dt2 < -g_dPrec) pdParts[iRes++] = dt2;
+      else if(dt2 < g_dPrec) pdParts[iRes++] = 0.0;
+      else if(dt2 < dBreak - g_dPrec)
+      {
+        pdParts[iRes++] = 0.0;
+        pdParts[iRes++] = dt2;
+      }
+      else if(dt2 < dBreak + g_dPrec)
+      {
+        pdParts[iRes++] = 0.0;
+        pdParts[iRes++] = dBreak;
+      }
+      else
+      {
+        pdParts[iRes++] = 0.0;
+        pdParts[iRes++] = dBreak;
+        pdParts[iRes++] = dt2;
+      }
+    }
+    else if(dt1 < g_dPrec)
+    {
+      pdParts[iRes++] = 0.0;
+      if(dt2 < dBreak - g_dPrec) pdParts[iRes++] = dt2;
+      else if(dt2 < dBreak + g_dPrec) pdParts[iRes++] = dBreak;
+      else
+      {
+        pdParts[iRes++] = dBreak;
+        pdParts[iRes++] = dt2;
+      }
+    }
+    else if(dt1 < dBreak - g_dPrec)
+    {
+      pdParts[iRes++] = dt1;
+      if(dt2 < dBreak - g_dPrec) pdParts[iRes++] = dt2;
+      else if(dt2 < dBreak + g_dPrec) pdParts[iRes++] = dBreak;
+      else
+      {
+        pdParts[iRes++] = dBreak;
+        pdParts[iRes++] = dt2;
+      }
+    }
+    else
+    {
+      if(dt1 < dBreak + g_dPrec) pdParts[iRes++] = dBreak;
+      else pdParts[iRes++] = dt1;
+      pdParts[iRes++] = dt2;
+    }
+  }
+  else
+  {
+    if(dt1 < -g_dPrec)
+    {
+      pdParts[iRes++] = dt1;
+      if(dt2 < -g_dPrec) pdParts[iRes++] = dt2;
+      else if(dt2 < g_dPrec) pdParts[iRes++] = 0.0;
+      else
+      {
+        pdParts[iRes++] = 0.0;
+        pdParts[iRes++] = dt2;
+      }
+    }
+    else
+    {
+      if(dt1 < g_dPrec) pdParts[iRes++] = 0.0;
+      else pdParts[iRes++] = dt1;
+      dParts[iRes++] = dt2;
+    }
+  }
+  return iRes;
+}
+
+CDPrimitive GetBezierSimpleSeg(double da, double db, double dr, CurveFunc pFunc, CurveFunc pFuncDer,
+  double dtStart, double dtBase)
+{
+  CDPrimitive cPrim, cTmpPrim;
+  CDPoint cDir1, cDir2, cCurvePts[5];
+  double du, dv;
+  du = dtStart;
+  dv = dtBase/4.0;
+
+  for(int j = 0; j < 5; j++)
+  {
+    cCurvePts[j] = pFunc(da, db, du);
+    cDir1 = pFuncDer(da, db, du);
+    dNorm = GetNorm(cDir1);
+
+    cCurvePts[j].x += dr*cDir1.y/dNorm;
+    cCurvePts[j].y -= dr*cDir1.x/dNorm;
+
+    du += dv;
+  }
+
+  cDir2 = cDir1;
+  cDir1 = pFuncDer(da, db, dStart);
+
+  if(ApproxLineSeg(5, cCurvePts, &cDir1, &cDir2, &cTmpPrim) > -0.5) return cTmpPrim;
+
+  cPrim.iType = 1;
+  cPrim.cPt1 = cHypPts[0];
+  cPrim.cPt2 = cHypPts[4];
+  return cPrim;
+}
+
+CDPrimitive GetBezierProgSeg(double da, double db, double dr, CurveFunc pFunc, CurveFunc pFuncDer,
+  double dtStart, double dtBase)
+{
+  CDPrimitive cPrim, cTmpPrim;
+  CDPoint cDir1, cDir2, cCurvePts[5];
+  double du, dv;
+
+  for(int j = 0; j < 5; j++)
+  {
+    dv = sqrt(j/4.0);
+    du = dtStart + dtBase*dv;
+
+    cCurvePts[j] = pFunc(da, db, du);
+    cDir1 = pFuncDer(da, db, du);
+    dNorm = GetNorm(cDir1);
+
+    cCurvePts[j].x += dr*cDir1.y/dNorm;
+    cCurvePts[j].y -= dr*cDir1.x/dNorm;
+  }
+
+  cDir2 = cDir1;
+  cDir1 = pFuncDer(da, db, dStart);
+
+  if(ApproxLineSeg(5, cCurvePts, &cDir1, &cDir2, &cTmpPrim) > -0.5) return cTmpPrim;
+
+  cPrim.iType = 1;
+  cPrim.cPt1 = cHypPts[0];
+  cPrim.cPt2 = cHypPts[4];
+  return cPrim;
+}
+
+int AddCurvePart(double da, double db, double dr, CurveFunc pFunc, CurveFunc pFuncDer,
+  double dt1, double dt2, double dInterval, int iSampleStrategy, PDPrimObject pPrimList)
+{
+  int iRes = 0;
+  double dStart = dt1, dStep = 0.0;
+
+  if(iSampleStrategy > 0)
+  {
+  }
+  else
+  {
+    iRes = (int)(dt2 - dt1)/dInterval + 1;
+    dStep = (dt2 - dt1)/iRes;
+    for(int i = 0; i < iRes; i++) 
+    {
+      pPrimList->AddPrimitive(GetBezierSimpleSeg(da, db, dr, pFunc, pFuncDer,  dStart, dStep));
+      dStart += dStep;
+    }
+  }
+
+  return iRes;
+}
+
 int AddCurveSegment(double da, double db, double dr, double dBreak, CurveFunc pFunc, CurveFunc pFuncDer,
   double dt1, double dt2, double dInterval, int iSampleStrategy, PDPrimObject pPrimList)
 {
-  if(dBreak > g_dPrec)
-  {
-    if(dt1 < -dBreak)
-    {
-    }
-  }
+  double dParts[5];
+  int iNumParts = SplitCurveParts(dt1, dt2, dBreak, dParts);
+  int iRes = 0;
+  for(int i = 0; i < iNumParts - 1; i++)
+    iRes += AddCurvePart(da, db, dr, pFunc, pFuncDer, dt1, dt2, dInterval, iSampleStrategy, pPrimList);
+  return iRes;
 
   double dBase, dStart;
 
