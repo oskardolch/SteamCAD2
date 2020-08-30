@@ -2203,6 +2203,114 @@ void RotatePrimitives(PDPrimObject pSrcList, PDPrimObject pDestList, CDPoint cOr
   }
 }
 
+bool GetRefInUboundSeg(double dRef, CDPoint cStart, CDPoint cEnd)
+{
+  return ((cStart.x < 0.5) || (dRef > cStart.y - g_dPrec)) && ((cEnd.x < 0.5) || (dRef < cEnd.y - g_dPrec));
+}
+
+int AddCurveInterLineFromPt(double da, double db, double dr, CurveFunc pFunc, CurveFunc pFuncDer,
+  PtProjFunc pFuncProj, CDPoint cStart, CDPoint cEnd, double dIterStart,
+  CDPoint cLnStart, CDPoint cLnDir, double dLnLen, PDRefList pIntersects)
+{
+  int iRes = 0;
+  double dx = dIterStart;
+
+  CDPoint cPt2, cPt1 = pFunc(da, db, dx);
+  CDPoint cDir1 = pFuncDer(da, db, dx);
+  double d1 = GetNorm(cDir1);
+  cDir1 /= d1;
+  cPt1.x += dr*cDir1.y;
+  cPt1.y -= dr*cDir1.x;
+
+  double dDist = 10;
+  int i = 0;
+  CDPoint cPtX;
+
+  while((i < 8) && (LineXLine(cPt1, cDir1, cLnStart, cLnDir, &cPtX) > 0) && (dDist > g_dPrec))
+  {
+    cPt2 = cLnStart + cPtX.y*cLnDir;
+    dx = pFuncProj(da, db, dr, cPt2, cStart, cEnd);
+    cPt1 = pFunc(da, db, dx);
+    cDir1 = pFuncDer(da, db, dx);
+    dDist = GetNorm(cDir1);
+    cDir1 /= d1;
+    cPt1.x += dr*cDir1.y;
+    cPt1.y -= dr*cDir1.x;
+
+    dDist = GetDist(cPt1, cPt2);
+
+    i++;
+  }
+  if((dDist < g_dPrec) && (cPtX.y > -g_dPrec) && (cPtX.y < dLnLen - g_dPrec))
+  {
+    if(GetRefInUboundSeg(dx, cStart, cEnd))
+    {
+      iRes = 1;
+      pIntersects->AddPoint(dx);
+    }
+  }
+  return iRes;
+}
+
+int AddCurveInterLine(double da, double db, double dr, CurveFunc pFunc, CurveFunc pFuncDer,
+  PtProjFunc pFuncProj, CDPoint cTangent, CDPoint cStart, CDPoint cEnd,
+  CDPoint cLn1, CDPoint cLn2, PDRefList pIntersects)
+{
+  int iRes = 0;
+
+  CDPoint cDir2 = cLn2 - cLn1;
+  double dx, dLnLen = GetNorm(cDir2);
+  if(dLnLen < g_dPrec) return 0;
+  cDir2 /= dLnLen;
+
+  if(cTangent.x > 0.5)
+  {
+    if(GetRefInUboundSeg(cTangent.y, cStart, cEnd)) // possible 2 intersections
+    {
+      CDPoint cPt1 = pFunc(da, db, cTangent.y);
+      CDPoint cDir1 = pFuncDer(da, db, cTangent.y);
+      double d1 = GetNorm(cDir1);
+      cDir1 /= d1;
+      cPt1.x += dr*cDir1.y;
+      cPt1.y -= dr*cDir1.x;
+      CDPoint cPtX;
+
+      if(LineXLine(cPt1, cDir1, cLn1, cDir2, &cPtX) > 0)
+      {
+        if(fabs(cPtX.x) < g_dPrec)
+        {
+          // the line is touching the curve, this point is not of interrest
+          return 0;
+        }
+      }
+      dx = cTangent.y - 10.0;
+      if(cStart.x > 0.5) dx = cStart.y;
+      iRes += AddCurveInterLineFromPt(da, db, dr, pFunc, pFuncDer, pFuncProj, cStart, cEnd, dx,
+        cLn1, cDir2, dLnLen, pIntersects);
+      dx = cTangent.y + 10.0;
+      if(cEnd.x) dx = cEnd.y;
+      iRes += AddCurveInterLineFromPt(da, db, dr, pFunc, pFuncDer, pFuncProj, cStart, cEnd, dx,
+        cLn1, cDir2, dLnLen, pIntersects);
+    }
+    else // 1 intersection max
+    {
+      if(cStart.x > 0.5) dx = cStart.y;
+      else dx = cEnd.y;
+      iRes += AddCurveInterLineFromPt(da, db, dr, pFunc, pFuncDer, pFuncProj, cStart, cEnd, dx,
+        cLn1, cDir2, dLnLen, pIntersects);
+    }
+  }
+  else // 1 intersection max
+  {
+    dx = 0.0;
+    if(cStart.x > 0.5) dx = cStart.y;
+    else if(cEnd.x > 0.5) dx = cEnd.y;
+    iRes += AddCurveInterLineFromPt(da, db, dr, pFunc, pFuncDer, pFuncProj, cStart, cEnd, dx,
+      cLn1, cDir2, dLnLen, pIntersects);
+  }
+  return iRes;
+}
+
 CDPoint GetLineRegion(CDPrimitive cPrim, double dLineWidth, PDPoint pPoints)
 {
   CDPoint cRes = {0, 0};

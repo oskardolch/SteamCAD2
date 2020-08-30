@@ -4,6 +4,7 @@
 #include "DDataTypes.hpp"
 
 typedef CDPoint (CurveFunc)(double da, double db, double dt);
+typedef double (PtProjFunc)(double da, double db, double dOffset, CDPoint cPt, CDPoint cStart, CDPoint cEnd);
 
 int CmpAngle(CDPoint cPt1, CDPoint cPt2);
 int CropPrimitive(CDPrimitive cPrim, PDRect pRect, PDPrimObject pPrimList);
@@ -29,6 +30,9 @@ int AddBoundQuadCurve(double da, double db, double dr, CurveFunc pFunc, CurveFun
 CDPoint GetCurveRefAtDistOld(double da, double db, double dr, double dBreak, double dDist,
     CurveFunc pFunc, CurveFunc pFuncDer, PDRefPoint pBounds);
 
+// cStart, cEnd - x = 0 .. not set, x = 1 .. set, y is the reference
+bool GetRefInUboundSeg(double dRef, CDPoint cStart, CDPoint cEnd);
+
 // iSampleStrategy - 0 = constant, 1 = progressive
 CDPoint GetCurveRefAtDist(double da, double db, double dr, double dBreak, double dDist,
   CurveFunc pFunc, CurveFunc pFuncDer, double dInterval, int iSampleStrategy);
@@ -36,6 +40,9 @@ double GetCurveDistAtRef(double da, double db, double dr, double dBreak, double 
   CurveFunc pFunc, CurveFunc pFuncDer, double dInterval, int iSampleStrategy);
 int AddCurveSegment(double da, double db, double dr, double dBreak, CurveFunc pFunc, CurveFunc pFuncDer,
   double dt1, double dt2, double dInterval, int iSampleStrategy, PDPrimObject pPrimList);
+int AddCurveInterLine(double da, double db, double dr, CurveFunc pFunc, CurveFunc pFuncDer,
+  PtProjFunc pFuncProj, CDPoint cTangent, CDPoint cStart, CDPoint cEnd,
+  CDPoint cLn1, CDPoint cLn2, PDRefList pIntersects);
 
 void RotatePrimitives(PDPrimObject pSrcList, PDPrimObject pDestList, CDPoint cOrig, CDPoint cMainDir);
 

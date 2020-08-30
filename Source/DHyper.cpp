@@ -1243,6 +1243,7 @@ void AddHyperSegment(double d1, double d2, double dExt, PDPointList pCache, PDPr
   PDPrimObject pTmpPrim = new CDPrimObject();
   AddCurveSegment(cRad.x, cRad.y, dr, dBreak, HyperFunc, HyperFuncDer, dy1, dy2, 0.5, 1, pTmpPrim);
   RotatePrimitives(pTmpPrim, pPrimList, cOrig, cNorm);
+  delete pTmpPrim;
 }
 
 bool GetHyperRefPoint(double dRef, PDPointList pCache, PDPoint pPt)
@@ -1353,6 +1354,130 @@ bool GetHyperReference(double dDist, PDPointList pCache, double *pdRef)
 
   *pdRef = GetHyperPointAtDist(cRad.x, cRad.y, dr, dBreak, dDist);
   return true;
+}
+
+double HyperPtProjFunc(double da, double db, double dOffset, CDPoint cPt, CDPoint cStart, CDPoint cEnd)
+{
+  double pProjs[4];
+  int iRoots = GetHyperPtProj(da, db, cPt, pProjs);
+
+  double pDists[4];
+  bool pValid[4];
+
+  CDPoint cNorm, cProjPt;
+  double du, dc, dNorm;
+
+  for(int i = 0; i < iRoots; i++)
+  {
+    du = pProjs[i];
+    pValid[i] = GetRefInUboundSeg(du, cStart, cEnd);
+    dc = sqrt(1.0 + Power2(du));
+    cProjPt.x = da*dc;
+    cProjPt.y = db*du;
+    cNorm.x = -db;
+    cNorm.y = da*du/dc;
+    dNorm = GetNorm(cNorm);
+    pDists[i] = GetDist(cPt, cProjPt + dOffset*cNorm/dNorm);
+  }
+
+  bool bFound = false;
+  int iMin;
+  double dMin;
+  int i = 0;
+  while(!bFound && (i < iRoots))
+  {
+    bFound = pValid[i++];
+  }
+  if(bFound)
+  {
+    iMin = i - 1;
+    dMin = pDists[iMin];
+    while(i < iRoots)
+    {
+      if(pValid[i] && (pDists[i] < dMin))
+      {
+        iMin = i;
+        dMin = pDists[i];
+      }
+      i++;
+    }
+    return pProjs[iMin];
+  }
+
+  // if we could not find the point inside the interval, return the nearest one
+  iMin = 0;
+  dMin = pDists[0];
+  i = 1;
+  while(i < iRoots)
+  {
+    if(pDists[i] < dMin)
+    {
+      iMin = i;
+      dMin = pDists[i];
+    }
+    i++;
+  }
+  return pProjs[iMin];
+}
+
+int AddHyperInterLine(CDPoint cPt1, CDPoint cPt2, double dOffset, PDPointList pCache, PDRefList pBounds)
+{
+  int iCnt = pCache->GetCount(0);
+
+  if(iCnt < 3) return false;
+
+  CDPoint cOrig = pCache->GetPoint(0, 0).cPoint;
+  CDPoint cRad = pCache->GetPoint(1, 0).cPoint;
+  CDPoint cNorm = pCache->GetPoint(2, 0).cPoint;
+
+  double dr = dOffset;
+  int nOffs = pCache->GetCount(2);
+  if(nOffs > 0) dr += pCache->GetPoint(0, 2).cPoint.x;
+
+  double dBreak = -1.0;
+  if(pCache->GetCount(4) > 0) dBreak = pCache->GetPoint(0, 4).cPoint.x;
+
+  CDPoint cLn1, cLn2;
+  cLn1 = Rotate(cPt1 - cOrig, cNorm, false);
+  cLn2 = Rotate(cPt2 - cOrig, cNorm, false);
+  CDPoint cDir = cLn2 - cLn1;
+
+  bool bTangent = true;
+  double dTangent = 0.0;
+  if(fabs(cDir.x) > g_dPrec)
+  {
+    double dc = Power2(cRad.x*cDir.y) - Power2(cRad.y*cDir.x);
+    if(dc < g_dPrec) bTangent = false;
+    else
+    {
+      dTangent = cRad.y*cDir.x/sqrt(dc);
+      if(cDir.x*cDir.y < -g_dPrec) dTangent *= -1.0;
+    }
+  }
+
+  int iRes = 0;
+  if(dBreak < -g_dPrec)
+  {
+    iRes = AddCurveInterLine(cRad.x, cRad.y, dr, HyperFunc, HyperFuncDer, HyperPtProjFunc,
+      {bTangent ? 1.0 : 0.0, dTangent}, {0.0, 0.0}, {0.0, 0.0}, cLn1, cLn2, pBounds);
+  }
+  else if(dBreak < g_dPrec)
+  {
+    iRes = AddCurveInterLine(cRad.x, cRad.y, dr, HyperFunc, HyperFuncDer, HyperPtProjFunc,
+      {bTangent ? 1.0 : 0.0, dTangent}, {0.0, 0.0}, {1.0, 0.0}, cLn1, cLn2, pBounds);
+    iRes += AddCurveInterLine(cRad.x, cRad.y, dr, HyperFunc, HyperFuncDer, HyperPtProjFunc,
+      {bTangent ? 1.0 : 0.0, dTangent}, {1.0, 0.0}, {0.0, 0.0}, cLn1, cLn2, pBounds);
+  }
+  else
+  {
+    iRes = AddCurveInterLine(cRad.x, cRad.y, dr, HyperFunc, HyperFuncDer, HyperPtProjFunc,
+      {bTangent ? 1.0 : 0.0, dTangent}, {0.0, 0.0}, {1.0, -dBreak}, cLn1, cLn2, pBounds);
+    iRes += AddCurveInterLine(cRad.x, cRad.y, dr, HyperFunc, HyperFuncDer, HyperPtProjFunc,
+      {bTangent ? 1.0 : 0.0, dTangent}, {1.0, -dBreak}, {1.0, dBreak}, cLn1, cLn2, pBounds);
+    iRes += AddCurveInterLine(cRad.x, cRad.y, dr, HyperFunc, HyperFuncDer, HyperPtProjFunc,
+      {bTangent ? 1.0 : 0.0, dTangent}, {1.0, dBreak}, {0.0, 0.0}, cLn1, cLn2, pBounds);
+  }
+  return iRes;
 }
 
 int GetHyperNumParts(PDPointList pCache, PDRefPoint pBounds)
