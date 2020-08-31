@@ -422,65 +422,6 @@ CDPoint GetHyperPointDir(double da, double db, double dOffset, double dx, PDPoin
   return cRes + dOffset*cDir;
 }
 
-/*double GetHyperProjInSeg(double da, double db, CDPoint cPt, double dtStart, double dtEnd, int iBndMask)
-{
-  double pProjs[4];
-  int iRoots = GetHyperPtProj(da, db, cPt, pProjs);
-
-  bool bFound = false;
-  int i = 0;
-  double dt;
-  if(iBndMask & 3)
-  {
-    while(!bFound && (i < iRoots))
-    {
-      dt = pProjs[i];
-      bFound = (dt > dtStart - g_dPrec) && (dt < dtEnd - g_dPrec);
-      i++;
-    }
-  }
-  else if(iBndMask & 1)
-  {
-    while(!bFound && (i < iRoots))
-    {
-      dt = pProjs[i];
-      bFound = (dt > dtStart - g_dPrec);
-      i++;
-    }
-  }
-  else // if(iBndMask & 2)
-  {
-    while(!bFound && (i < iRoots))
-    {
-      dt = pProjs[i];
-      bFound = (dt < dtEnd - g_dPrec);
-      i++;
-    }
-  }
-  return pProjs[i - 1];
-}
-
-bool GetHyperLineXFromU(double da, double db, double dOffset, double dStart,
-  double dBnd1, double dBnd2, int iBndMask, CDPoint cLnOrg, CDPoint cLnDir, double *pdX)
-{
-  CDPoint cPt1, cPt2, cPtX;
-  double du = dStart;
-  cPt1 = GetHyperPointDir(da, db, dOffset, du, &cPt2);
-  int ix = LineXLine(cPt1, cPt2, cLnOrg, cLnDir, &cPtX);
-  int i = 0;
-  bool bFound = GetDist(cPt1, cPtX) < g_dPrec;
-  while(!bFound && (ix > 0) && (i < 8))
-  {
-    du = GetHyperProjInSeg(da, db, cPtX, dBnd1, dBnd2, iBndMask);
-    cPt1 = GetHyperPointDir(da, db, dOffset, du, &cPt2);
-    ix = LineXLine(cPt1, cPt2, cLnOrg, cLnDir, &cPtX);
-    i++;
-    bFound = GetDist(cPt1, cPtX) < g_dPrec;
-  }
-  if(bFound) *pdX = du;
-  return bFound;
-}*/
-
 double GetHyperDistFromPt(CDPoint cPt, CDPoint cRefPt, int iSrchMask, PDPointList pCache, PDLine pPtX) //, PDRefPoint pBounds)
 {
   pPtX->bIsSet = false;
