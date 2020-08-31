@@ -10,14 +10,10 @@ int AddHyperInterLine(CDPoint cPt1, CDPoint cPt2, double dOffset, PDPointList pC
 double GetHyperOffset(PDPointList pCache);
 double GetHyperDistFromPt(CDPoint cPt, CDPoint cRefPt, int iSrchMask, PDPointList pCache, PDLine pPtX);
 int GetHyperAttractors(CDPoint cPt, PDPointList pCache, PDPoint pPoints);
-//int BuildHyperPrimitives(CDLine cTmpPt, int iMode, PDRect pRect, PDPointList pPoints,
-//  PDPointList pCache, PDPrimObject pPrimList, PDLine pLines, PDRefPoint pBounds, double dOffset,
-//  double *pdDist, PDPoint pDrawBnds, bool bQuadsOnly = false);
-//double GetHyperDistFromPt(CDPoint cPt, CDPoint cRefPt, int iSrchMask, PDPointList pCache, PDLine pPtX, PDRefPoint pBounds);
 bool HasHyperEnoughPoints(PDPointList pPoints, int iInputLines);
 double GetHyperRadiusAtPt(CDPoint cPt, PDPointList pCache, PDLine pPtR, bool bNewPt);
 bool GetHyperPointRefDist(double dRef, PDPointList pCache, double *pdDist);
-void AddHyperSegment(double d1, double d2, double dExt, PDPointList pCache, PDPrimObject pPrimList); //, PDRect pRect);
+void AddHyperSegment(double d1, double d2, double dExt, PDPointList pCache, PDPrimObject pPrimList);
 bool GetHyperRefPoint(double dRef, PDPointList pCache, PDPoint pPt);
 bool GetHyperRestrictPoint(CDPoint cPt, int iMode, double dRestrictValue, PDPoint pSnapPt,
     PDPointList pCache);

@@ -1733,7 +1733,7 @@ void CDObject::GetNextPrimitive(PDPrimitive pPrim, double dScale, int iDimen)
 int CDObject::GetAttractors(CDPoint cPt, double dScale, PDPoint pPoints)
 {
   CDPoint cPts[4];
-  int iRes;
+  int iRes = 0;
   switch(m_iType)
   {
   case dtEllipse:
