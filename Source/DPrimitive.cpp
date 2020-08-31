@@ -1897,11 +1897,13 @@ int AddCurvePart(double da, double db, double dr, CurveFunc pFunc, CurveFunc pFu
 
   if(iSampleStrategy > 0)
   {
-    double dLog = (1.0 + dt2/dInterval)/(1.0 + dt1/dInterval);
+    double dLog = 0.0;
+    if(dt1 < -g_dPrec) dLog = (1.0 - dt1/dInterval)/(1.0 - dt2/dInterval);
+    else dLog = (1.0 + dt2/dInterval)/(1.0 + dt1/dInterval);
     double dScale = 2.0;
     iRes = 1 + (int)log(dLog)/log(2.0);
     dStep = (dt2 - dt1)/(exp((double)iRes*log(2.0)) - 1.0);
-    if(dt1 < g_dPrec)
+    if(dt1 < -g_dPrec)
     {
       dScale = 0.5;
       dStep *= exp((double)(iRes - 1)*log(2.0));
@@ -1934,7 +1936,7 @@ int AddCurveSegment(double da, double db, double dr, double dBreak, CurveFunc pF
   int iNumParts = SplitCurveParts(dt1, dt2, dBreak, dParts);
   int iRes = 0;
   for(int i = 0; i < iNumParts - 1; i++)
-    iRes += AddCurvePart(da, db, dr, pFunc, pFuncDer, dt1, dt2, dInterval, iSampleStrategy, pPrimList);
+    iRes += AddCurvePart(da, db, dr, pFunc, pFuncDer, dParts[i], dParts[i + 1], dInterval, iSampleStrategy, pPrimList);
   return iRes;
 }
 
@@ -2161,10 +2163,10 @@ double GetCurveDistAtRef(double da, double db, double dr, double dBreak, double 
 
     LineXLine(cQuad.cPt1, cDir1, cQuad.cPt3, cDir2, &cQuad.cPt2);
 
+    dt = dBase;
     if(dt < dRef) dRes += GetQuadLength(&cQuad, 0.0, 1.0);
     else bFound = true;
 
-    dt = dBase;
     if(iSampleStrategy > 0) dBase *= 2.0;
     else dBase += dInterval;
   }
