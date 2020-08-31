@@ -3300,7 +3300,7 @@ void CDApplication::MouseMove(GtkWidget *widget, GdkEventMotion *event, gboolean
       }
 
       // debug code for GetObjPtProj visualization
-      /*pNewHigh = m_pDrawObjects->GetSelected(0);
+      pNewHigh = m_pDrawObjects->GetSelected(0);
       if(pNewHigh)
       {
         CDPoint cAttrPts[4];
@@ -3312,7 +3312,7 @@ void CDApplication::MouseMove(GtkWidget *widget, GdkEventMotion *event, gboolean
           cairo_arc(cr, cAttrPts[i].x + m_cViewOrigin.x, cAttrPts[i].y + m_cViewOrigin.y, 2, 0.0, 2.0*M_PI);
           cairo_fill(cr);
         }
-      }*/
+      }
       // end debug
       cairo_destroy(cr);
     }

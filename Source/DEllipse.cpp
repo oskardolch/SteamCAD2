@@ -324,21 +324,65 @@ bool GetRefInSeg(double dtStart, double dtEnd, double dt)
   return (dt > dtStart - g_dPrec) && (dt < dtEnd - g_dPrec);
 }
 
-CDPoint GetElpsProjInSeg(double da, double db, CDPoint cPt, double dtStart, double dtEnd)
+CDPoint GetElpsProjInSeg(double da, double db, double dr, CDPoint cPt, double dtStart, double dtEnd)
 {
   CDPoint pProjs[4];
   int iRoots = GetElpsPtProj(da, db, cPt, pProjs);
 
-  bool bFound = false;
-  int i = 0;
+  bool bValid[4];
+  double dDist[4];
+  CDPoint cPtProj;
   double dt;
-  while(!bFound && (i < iRoots))
+
+  for(int i = 0; i < iRoots; i++)
   {
     dt = atan2(pProjs[i].y, pProjs[i].x);
-    bFound = GetRefInSeg(dtStart, dtEnd, dt);
-    i++;
+    bValid[i] = GetRefInSeg(dtStart, dtEnd, dt);
+    cPtProj.x = da*pProjs[i].x + dr*pProjs[i].y;
+    cPtProj.y = db*pProjs[i].y - dr*pProjs[i].x;
+    dDist[i] = GetDist(cPtProj, cPt);
   }
-  return pProjs[i - 1];
+
+  int iMin = 0;
+  double dMin = 0.0;
+  bool bFound = false;
+  int i = 0;
+  while(!bFound && (i < iRoots))
+  {
+    bFound = bValid[i++];
+  }
+  if(bFound)
+  {
+    iMin = i - 1;
+    dMin = dDist[iMin];
+    while(i < iRoots)
+    {
+      if(bValid[i])
+      {
+        if(dDist[i] < dMin)
+        {
+          iMin = i;
+          dMin = dDist[i];
+        }
+      }
+      i++;
+    }
+  }
+  if(!bFound)
+  {
+    dMin = dDist[0];
+    i = 1;
+    while(i < iRoots)
+    {
+      if(dDist[i] < dMin)
+      {
+        iMin = i;
+        dMin = dDist[i];
+      }
+      i++;
+    }
+  }
+  return pProjs[iMin];
 }
 
 int GetQuadrant(double dx, double dQuarterLen)
@@ -529,7 +573,7 @@ double GetElpsPureRef(double da, double db, double dOffset, double dStart, doubl
   dt = GetQuadPointAtDist(&cQuad, 0.0, dLen);
   cQuad.cPt4 = GetQuadPoint(&cQuad, dt);
 
-  CDPoint cProj = GetElpsProjInSeg(da, db, cQuad.cPt4, dStart, dEnd);
+  CDPoint cProj = GetElpsProjInSeg(da, db, dOffset, cQuad.cPt4, dStart, dEnd);
   return atan2(cProj.y, cProj.x);
 }
 
@@ -873,7 +917,7 @@ bool GetElpsInterLineIter(double da, double db, double dr, CDPoint cStartPt, CDP
   int iInter = LineXLine(cProjPt, cProjDir, cLnOrg, cLnDir, &cStartPt);
   while((i < 16) && (iInter > 0))
   {
-    cProj = GetElpsProjInSeg(da, db, cStartPt, dtStart, dtEnd);
+    cProj = GetElpsProjInSeg(da, db, dr, cStartPt, dtStart, dtEnd);
     cProjDir.x = -da*cProj.y;
     cProjDir.y = db*cProj.x;
     dNorm = GetNorm(cProjDir);

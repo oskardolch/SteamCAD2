@@ -58,7 +58,7 @@ double HypProjFnDer(double da, double db, double dx, double dy, double du)
   return Power2(da) + Power2(db) - da*dx/da1/dv;
 }
 
-double GetHyperPtProjFromU(double da, double db, double dStart, CDPoint cPt)
+bool GetHyperPtProjFromU(double da, double db, double dStart, CDPoint cPt, double *pdRes)
 {
   int j = 0;
   double du1 = dStart;
@@ -76,7 +76,8 @@ double GetHyperPtProjFromU(double da, double db, double dStart, CDPoint cPt)
     if(fabs(df2) > g_dPrec) du1 -= df/df2;
     else j = 16;
   }
-  return du1;
+  *pdRes = du1;
+  return fabs(df) < g_dRootPrec;
 }
 
 bool PtInList(double du, int iSize, double *pdList)
@@ -106,16 +107,18 @@ int GetHyperPtProj(double da, double db, CDPoint cPt, double *pdRoots)
   int iRoots = SolvePolynom(4, dPoly, dRoots);
   if(iRoots < 1)
   {
-    pdRoots[0] = GetHyperPtProjFromU(da, db, 0.0, cPt);
-    return 1;
+    if(GetHyperPtProjFromU(da, db, 0.0, cPt, pdRoots)) return 1;
+    return 0;
   }
 
   int iRes = 0;
   double du;
   for(int j = 0; j < iRoots; j++)
   {
-    du = GetHyperPtProjFromU(da, db, dRoots[j], cPt);
-    if(!PtInList(du, iRes, pdRoots)) pdRoots[iRes++] = du;
+    if(GetHyperPtProjFromU(da, db, dRoots[j], cPt, &du))
+    {
+      if(!PtInList(du, iRes, pdRoots)) pdRoots[iRes++] = du;
+    }
   }
   return iRes;
 }
@@ -240,10 +243,10 @@ bool AddHyperPoint(double x, double y, char iCtrl, double dRestrictVal, PDPointL
     int nOffs2 = pPoints->GetCount(2);
     int nOffs3 = pPoints->GetCount(3);
     int nOffs4 = pPoints->GetCount(4);
-    if(nOffs2 > 0) pPoints->SetPoint(0, 2, x, y, iCtrl);
-    else if(nOffs3 > 0) pPoints->SetPoint(0, 3, x, y, iCtrl);
+    if(nOffs2 > 0) pPoints->SetPoint(0, 2, cNewPt.x, cNewPt.y, iCtrl);
+    else if(nOffs3 > 0) pPoints->SetPoint(0, 3, cNewPt.x, cNewPt.y, iCtrl);
     else if(nOffs4 > 0) pPoints->SetPoint(0, 4, cNewPt.x, cNewPt.y, iCtrl);
-    else pPoints->AddPoint(x, y, iCtrl);
+    else pPoints->AddPoint(cNewPt.x, cNewPt.y, iCtrl);
     return true;
   }
 
@@ -419,7 +422,7 @@ CDPoint GetHyperPointDir(double da, double db, double dOffset, double dx, PDPoin
   return cRes + dOffset*cDir;
 }
 
-double GetHyperProjInSeg(double da, double db, CDPoint cPt, double dtStart, double dtEnd, int iBndMask)
+/*double GetHyperProjInSeg(double da, double db, CDPoint cPt, double dtStart, double dtEnd, int iBndMask)
 {
   double pProjs[4];
   int iRoots = GetHyperPtProj(da, db, cPt, pProjs);
@@ -476,7 +479,7 @@ bool GetHyperLineXFromU(double da, double db, double dOffset, double dStart,
   }
   if(bFound) *pdX = du;
   return bFound;
-}
+}*/
 
 double GetHyperDistFromPt(CDPoint cPt, CDPoint cRefPt, int iSrchMask, PDPointList pCache, PDLine pPtX) //, PDRefPoint pBounds)
 {
