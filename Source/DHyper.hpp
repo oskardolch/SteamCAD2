@@ -16,7 +16,7 @@ bool GetHyperPointRefDist(double dRef, PDPointList pCache, double *pdDist);
 void AddHyperSegment(double d1, double d2, double dExt, PDPointList pCache, PDPrimObject pPrimList);
 bool GetHyperRefPoint(double dRef, PDPointList pCache, PDPoint pPt);
 bool GetHyperRestrictPoint(CDPoint cPt, int iMode, double dRestrictValue, PDPoint pSnapPt,
-    PDPointList pCache);
+  PDPointList pCache);
 bool GetHyperRefDir(double dRef, PDPointList pCache, PDPoint pPt);
 bool GetHyperReference(double dDist, PDPointList pCache, double *pdRef);
 int GetHyperNumParts(PDPointList pCache, PDRefPoint pBounds);
