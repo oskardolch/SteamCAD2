@@ -292,7 +292,7 @@ for(int i = 0; i < 16; i++)
   if(!(pLines[0].bIsSet && pLines[1].bIsSet)) return false;
 
   int iX = LineXLine(pLines[0].cOrigin, pLines[0].cDirection,
-  pLines[1].cOrigin, pLines[1].cDirection, &cOrig);
+    pLines[1].cOrigin, pLines[1].cDirection, &cOrig);
   if(iX < 1) return false;
 
   if(!(((nNorm < 1) && (iMode == 1)) || ((nNorm == 1) && (iMode != 1)))) return false;
@@ -346,15 +346,15 @@ for(int i = 0; i < 16; i++)
   double dr = Power2(dr2)/dr1;
   pCache->AddPoint(dr1 + dr, 0.0, 3);
 
-  if((iMode == 2) && (cTmpPt.cDirection.x > 0.5))
-  {
-    dr = GetHyperBreakAngle(dr1, dr2, -cTmpPt.cDirection.y);
-    if(dr > -0.5) pCache->AddPoint(dr, 0.0, 4);
-
-    if(pdDist) *pdDist = cTmpPt.cDirection.y;
-    pCache->AddPoint(cTmpPt.cDirection.y, 0.0, 2);
-    return true;
-  }
+  //if((iMode == 2) && (cTmpPt.cDirection.x > 0.5))
+  //{
+  //  dr = GetHyperBreakAngle(dr1, dr2, -cTmpPt.cDirection.y);
+  //  if(dr > -0.5) pCache->AddPoint(dr, 0.0, 4);
+  //
+  //  if(pdDist) *pdDist = cTmpPt.cDirection.y;
+  //  pCache->AddPoint(cTmpPt.cDirection.y, 0.0, 2);
+  //  return true;
+  //}
 
   int nOffs2 = pPoints->GetCount(2);
   int nOffs3 = pPoints->GetCount(3);
@@ -395,10 +395,11 @@ for(int i = 0; i < 16; i++)
         cPt1 = pPoints->GetPoint(0, 3).cPoint;
         dDistOld = GetHyperDistFromPt(cPt1, cPt1, 2, pCache, &cPtX);
       }
+      if(cTmpPt.cDirection.x > 0.5) dDist = dDistOld + cTmpPt.cDirection.y;
     }
     else if(nOffs4 > 0) dDist = pPoints->GetPoint(0, 4).cPoint.x;
 
-    *pdDist = dDist - dDistOld;
+    if(pdDist) *pdDist = dDist - dDistOld;
     if((fabs(dDist) > g_dPrec) || (fabs(dDistOld) > g_dPrec)) pCache->AddPoint(dDist, dDistOld, 2);
 
     dr = GetHyperBreakAngle(dr1, dr2, -dDist);
@@ -641,7 +642,7 @@ bool GetHyperRestrictPoint(CDPoint cPt, int iMode, double dRestrictValue, PDPoin
   double dRad = dDist + dRestrictValue;
 
   CDPoint cPt1 = Rotate(cPt - cOrig, cMainDir, false);
-  double dy = GetHyperBoundProj(cRad.x, cRad.y, dDist, cPt1, cPt1, false);
+  double dy = GetHyperBoundProj(cRad.x, cRad.y, dRad, cPt1, cPt1, false);
 
   double dv = sqrt(1.0 + Power2(dy));
 
@@ -656,6 +657,13 @@ bool GetHyperRestrictPoint(CDPoint cPt, int iMode, double dRestrictValue, PDPoin
   cPt2.y = cRad.y*dy + dRad*cDir.x/dNorm;
   *pSnapPt = cOrig + Rotate(cPt2, cMainDir, true);
   return true;
+}
+
+double GetHyperOffset(PDPointList pCache)
+{
+  int nOffs = pCache->GetCount(2);
+  if(nOffs < 1) return 0.0;
+  return pCache->GetPoint(0, 2).cPoint.x;
 }
 
 bool GetHyperRefDir(double dRef, PDPointList pCache, PDPoint pPt)

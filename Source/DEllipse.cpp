@@ -874,7 +874,6 @@ bool BuildEllipseCache(CDLine cTmpPt, int iMode, PDPointList pPoints, PDPointLis
       }
       else if(nOffs4 > 0) dDist = pPoints->GetPoint(0, 4).cPoint.x;
 
-
       if(pdDist) *pdDist = dDist - dDistOld;
       if((fabs(dDist) > g_dPrec) || (fabs(dDistOld) > g_dPrec)) pCache->AddPoint(dDist, dDistOld, 2);
 

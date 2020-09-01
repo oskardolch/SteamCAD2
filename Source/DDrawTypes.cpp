@@ -2547,7 +2547,9 @@ double CDObject::GetOffset()
   case dtEllipse:
     return GetElpsOffset(m_pCachePoints);
   case dtArcEllipse:
+    return 0.0;
   case dtHyperbola:
+    return GetHyperOffset(m_pCachePoints);
   case dtParabola:
   case dtSpline:
   case dtEvolvent:
