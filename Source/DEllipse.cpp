@@ -1661,12 +1661,14 @@ bool GetElpsPointRefDist(double dRef, PDPointList pCache, double *pdDist)
 //    cLength = pCache->GetPoint(1, 4).cPoint;
   }
 //  if(cBreak.x < -0.5) cBreak.x = M_PI/4.0;
+  if(cBreak.x > -0.5) cBreak.y = M_PI - cBreak.x;
+  else cBreak.y = -1.0;
 
 //  *pdDist = GetElpsLen(cRad.x, cRad.y, dDist, cBreak.x, cLength.x, cLength.y, dRef);
-  *pdDist = GetCurveDistAtRef(cRad.x, cRad.y, dDist, cBreak.x, fabs(dRef),
+  *pdDist = GetCurveDistAtRef(cRad.x, cRad.y, dDist, cBreak, fabs(dRef),
     ElpsFunc, ElpsFuncDer, M_PI/4.0, 0);
   if(dRef < 0.0) *pdDist *= -1.0;
-printf("%f, %f\n", dRef, *pdDist);
+//printf("%f, %f\n", dRef, *pdDist);
   return true;
 }
 
@@ -1715,6 +1717,8 @@ void AddElpsSegment(double d1, double d2, double dExt, PDPointList pCache, PDPri
 //    cLengths = pCache->GetPoint(1, 4).cPoint;
   }
 //  if(cBreak.x < -0.5) cBreak.x = M_PI/4.0;
+  if(cBreak.x > -0.5) cBreak.y = M_PI - cBreak.x;
+  else cBreak.y = -1.0;
 
 //for(int i = -40; i < 40; i++)
 //{
@@ -1727,25 +1731,38 @@ void AddElpsSegment(double d1, double d2, double dExt, PDPointList pCache, PDPri
   //double dt1 = GetElpsRef(cRad.x, cRad.y, dr, cBreak.x, cLengths.x, cLengths.y, d1);
   //double dt2 = GetElpsRef(cRad.x, cRad.y, dr, cBreak.x, cLengths.x, cLengths.y, d2);
 
-  CDPoint cPt = GetCurveRefAtDist(cRad.x, cRad.y, dr, cBreak.x, fabs(d1),
+  CDPoint cPt = GetCurveRefAtDist(cRad.x, cRad.y, dr, cBreak, fabs(d1),
     ElpsFunc, ElpsFuncDer, M_PI/4.0, 0);
   CDPoint cPt2 = GetElpsBoundProj(cRad.x, cRad.y, dr, cPt, cPt, false);
   double dt1 = atan2(cPt2.y, cPt2.x);
   if(d1 < 0.0) dt1 *= -1.0;
-  cPt = GetCurveRefAtDist(cRad.x, cRad.y, dr, cBreak.x, fabs(d2),
+  cPt = GetCurveRefAtDist(cRad.x, cRad.y, dr, cBreak, fabs(d2),
     ElpsFunc, ElpsFuncDer, M_PI/4.0, 0);
   cPt2 = GetElpsBoundProj(cRad.x, cRad.y, dr, cPt, cPt, false);
   double dt2 = atan2(cPt2.y, cPt2.x);
   if(d2 < 0.0) dt2 *= -1.0;
 
-printf("%f, %f - %f, %f\n", d1, d2, dt1, dt2);
+//printf("%f, %f - %f, %f\n", d1, d2, dt1, dt2);
 
   PDPrimObject pTmpPrim = new CDPrimObject();
-  AddCurveSegment(cRad.x, cRad.y, dr, cBreak.x, ElpsFunc, ElpsFuncDer,
-    dt1, dt2, M_PI/4.0, 0, pTmpPrim);
+  if(dt1 > dt2)
+  {
+    AddCurveSegment(cRad.x, cRad.y, dr, cBreak, ElpsFunc, ElpsFuncDer,
+      dt1, M_PI, M_PI/4.0, 0, pTmpPrim);
+    RotatePrimitives(pTmpPrim, pPrimList, cOrig, cMainDir);
+    pTmpPrim->Clear();
+    AddCurveSegment(cRad.x, cRad.y, dr, cBreak, ElpsFunc, ElpsFuncDer,
+      -M_PI, dt2, M_PI/4.0, 0, pTmpPrim);
+    RotatePrimitives(pTmpPrim, pPrimList, cOrig, cMainDir);
+  }
+  else
+  {
+    AddCurveSegment(cRad.x, cRad.y, dr, cBreak, ElpsFunc, ElpsFuncDer,
+      dt1, dt2, M_PI/4.0, 0, pTmpPrim);
+    RotatePrimitives(pTmpPrim, pPrimList, cOrig, cMainDir);
+  }
   //BuildEllipseWithBoundsBreaks(cRad.x, cRad.y, dr, dt1, dt2,
   //  cOrig, cMainDir, cBreak.x, pPrimList);
-  RotatePrimitives(pTmpPrim, pPrimList, cOrig, cMainDir);
   delete pTmpPrim;
 }
 
@@ -1896,9 +1913,11 @@ bool GetElpsReference(double dDist, PDPointList pCache, double *pdRef)
 //    cLengths = pCache->GetPoint(1, 4).cPoint;
   }
 //  if(cBreak.x < -0.5) cBreak.x = M_PI/4.0;
+  if(cBreak.x > -0.5) cBreak.y = M_PI - cBreak.x;
+  else cBreak.y = -1.0;
 
 //  *pdRef = GetElpsRef(cRad.x, cRad.y, dr, cBreak.x, cLengths.x, cLengths.y, dDist);
-  CDPoint cPt = GetCurveRefAtDist(cRad.x, cRad.y, dr, cBreak.x, fabs(dDist),
+  CDPoint cPt = GetCurveRefAtDist(cRad.x, cRad.y, dr, cBreak, fabs(dDist),
     ElpsFunc, ElpsFuncDer, M_PI/4.0, 0);
   CDPoint cPt2 = GetElpsBoundProj(cRad.x, cRad.y, dr, cPt, cPt, false);
   *pdRef = atan2(cPt2.y, cPt2.x);

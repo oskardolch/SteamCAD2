@@ -3,6 +3,7 @@
 #include <math.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <cstring>
 
 // for debugging purpose only
 /*#include <windows.h>
@@ -1689,11 +1690,51 @@ int AddBoundQuadCurve(double da, double db, double dr, CurveFunc pFunc, CurveFun
     return iRes;
 }
 
-int SplitCurveParts(double dt1, double dt2, double dBreak, double *pdParts)
+int SplitCurveParts(double dt1, double dt2, CDPoint cBreak, double *pdParts)
 {
   int iRes = 0;
+  pdParts[iRes++] = dt1;
+  pdParts[iRes++] = dt2;
+  if((dt1 < -g_dPrec) && (dt2 > g_dPrec))
+  {
+    pdParts[1] = 0.0;
+    pdParts[iRes++] = dt2;
+  }
+  int iDown = 1;
+  int iUp = 1;
+  if(cBreak.y > g_dPrec)
+  {
+    if((dt1 < -cBreak.y - g_dPrec) && (dt2 > -cBreak.y + g_dPrec))
+    {
+      memmove(&pdParts[2], &pdParts[1], (iRes - 1)*sizeof(double));
+      pdParts[1] = -cBreak.y;
+      iDown++;
+      iRes++;
+    }
+    if((dt1 < cBreak.y - g_dPrec) && (dt2 > cBreak.y + g_dPrec))
+    {
+      pdParts[iRes - 1] = cBreak.y;
+      pdParts[iRes++] = dt2;
+      iUp++;
+    }
+  }
+  if(cBreak.x > g_dPrec)
+  {
+    if((dt1 < -cBreak.x - g_dPrec) && (dt2 > -cBreak.x + g_dPrec))
+    {
+      memmove(&pdParts[iDown + 1], &pdParts[iDown], (iRes - iDown)*sizeof(double));
+      pdParts[iDown] = -cBreak.x;
+      iRes++;
+    }
+    if((dt1 < cBreak.x - g_dPrec) && (dt2 > cBreak.x + g_dPrec))
+    {
+      memmove(&pdParts[iRes - iUp + 1], &pdParts[iRes - iUp], iUp*sizeof(double));
+      pdParts[iRes - iUp] = cBreak.x;
+      iRes++;
+    }
+  }
 
-  if(dBreak > g_dPrec)
+/*  if(dBreak > g_dPrec)
   {
     if(dt1 < -dBreak - g_dPrec)
     {
@@ -1822,7 +1863,7 @@ int SplitCurveParts(double dt1, double dt2, double dBreak, double *pdParts)
       else pdParts[iRes++] = dt1;
       pdParts[iRes++] = dt2;
     }
-  }
+  }*/
   return iRes;
 }
 
@@ -1929,11 +1970,11 @@ int AddCurvePart(double da, double db, double dr, CurveFunc pFunc, CurveFunc pFu
   return iRes;
 }
 
-int AddCurveSegment(double da, double db, double dr, double dBreak, CurveFunc pFunc, CurveFunc pFuncDer,
+int AddCurveSegment(double da, double db, double dr, CDPoint cBreak, CurveFunc pFunc, CurveFunc pFuncDer,
   double dt1, double dt2, double dInterval, int iSampleStrategy, PDPrimObject pPrimList)
 {
-  double dParts[5];
-  int iNumParts = SplitCurveParts(dt1, dt2, dBreak, dParts);
+  double dParts[7];
+  int iNumParts = SplitCurveParts(dt1, dt2, cBreak, dParts);
   int iRes = 0;
   for(int i = 0; i < iNumParts - 1; i++)
     iRes += AddCurvePart(da, db, dr, pFunc, pFuncDer, dParts[i], dParts[i + 1], dInterval, iSampleStrategy, pPrimList);
@@ -2032,7 +2073,7 @@ CDPoint GetCurveRefAtDistOld(double da, double db, double dr, double dBreak, dou
 }
 
 
-CDPoint GetCurveRefAtDist(double da, double db, double dr, double dBreak, double dDist,
+CDPoint GetCurveRefAtDist(double da, double db, double dr, CDPoint cBreak, double dDist,
   CurveFunc pFunc, CurveFunc pFuncDer, double dInterval, int iSampleStrategy)
 {
   double dBase = dInterval;
@@ -2050,17 +2091,44 @@ CDPoint GetCurveRefAtDist(double da, double db, double dr, double dBreak, double
   bool bFound = false;
   double dt = 0.0;
 
-  if(dBreak > g_dPrec)
+  if(cBreak.x > g_dPrec)
   {
     int i = 0;
-    int iSteps = (int)(dBreak/dBase) + 1;
+    int iSteps = (int)(cBreak.x/dBase) + 1;
 
     while(!bFound && (i < iSteps))
     {
       cDir1 = cDir2;
       cQuad.cPt1 = cQuad.cPt3;
 
-      dt = (double)(1.0 + i++)*dBreak/iSteps;
+      dt = (double)(1.0 + i++)*cBreak.x/iSteps;
+      cDir2 = pFuncDer(da, db, dt);
+      d1 = GetNorm(cDir2);
+
+      cQuad.cPt3 = pFunc(da, db, dt);
+      cQuad.cPt3.x += dr*cDir2.y/d1;
+      cQuad.cPt3.y -= dr*cDir2.x/d1;
+
+      LineXLine(cQuad.cPt1, cDir1, cQuad.cPt3, cDir2, &cQuad.cPt2);
+      d1 = GetQuadLength(&cQuad, 0.0, 1.0);
+
+      if(d1 < dDist) dDist -= d1;
+      else bFound = true;
+    }
+    dBase += dt;
+  }
+
+  if(cBreak.y > g_dPrec)
+  {
+    int i = 0;
+    int iSteps = (int)((cBreak.y - cBreak.x)/dBase) + 1;
+
+    while(!bFound && (i < iSteps))
+    {
+      cDir1 = cDir2;
+      cQuad.cPt1 = cQuad.cPt3;
+
+      dt = (double)(1.0 + i++)*(cBreak.y - cBreak.x)/iSteps;
       cDir2 = pFuncDer(da, db, dt);
       d1 = GetNorm(cDir2);
 
@@ -2104,7 +2172,7 @@ CDPoint GetCurveRefAtDist(double da, double db, double dr, double dBreak, double
   return GetQuadPoint(&cQuad, dt);
 }
 
-double GetCurveDistAtRef(double da, double db, double dr, double dBreak, double dRef,
+double GetCurveDistAtRef(double da, double db, double dr, CDPoint cBreak, double dRef,
   CurveFunc pFunc, CurveFunc pFuncDer, double dInterval, int iSampleStrategy)
 {
   double dBase = dInterval;
@@ -2123,17 +2191,43 @@ double GetCurveDistAtRef(double da, double db, double dr, double dBreak, double 
   bool bFound = false;
   double dt = 0.0;
 
-  if(dBreak > g_dPrec)
+  if(cBreak.x > g_dPrec)
   {
     int i = 0;
-    int iSteps = (int)(dBreak/dBase) + 1;
+    int iSteps = (int)(cBreak.x/dBase) + 1;
 
     while(!bFound && (i < iSteps))
     {
       cDir1 = cDir2;
       cQuad.cPt1 = cQuad.cPt3;
 
-      dt = (double)(1.0 + i++)*dBreak/iSteps;
+      dt = (double)(1.0 + i++)*cBreak.x/iSteps;
+      cDir2 = pFuncDer(da, db, dt);
+      d1 = GetNorm(cDir2);
+
+      cQuad.cPt3 = pFunc(da, db, dt);
+      cQuad.cPt3.x += dr*cDir2.y/d1;
+      cQuad.cPt3.y -= dr*cDir2.x/d1;
+
+      LineXLine(cQuad.cPt1, cDir1, cQuad.cPt3, cDir2, &cQuad.cPt2);
+
+      if(dt < dRef) dRes += GetQuadLength(&cQuad, 0.0, 1.0);
+      else bFound = true;
+    }
+    dBase += dt;
+  }
+
+  if(cBreak.y > g_dPrec)
+  {
+    int i = 0;
+    int iSteps = (int)((cBreak.y - cBreak.x)/dBase) + 1;
+
+    while(!bFound && (i < iSteps))
+    {
+      cDir1 = cDir2;
+      cQuad.cPt1 = cQuad.cPt3;
+
+      dt = (double)(1.0 + i++)*(cBreak.y - cBreak.x)/iSteps;
       cDir2 = pFuncDer(da, db, dt);
       d1 = GetNorm(cDir2);
 
