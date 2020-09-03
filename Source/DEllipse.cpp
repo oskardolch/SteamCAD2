@@ -1223,12 +1223,6 @@ int AddEllipseInterLine(CDPoint cPt1, CDPoint cPt2, double dOffset, PDPointList 
   if(dBreak > g_dPrec)
     iRes += AddCurveInterLine(cRad.x, cRad.y, dr, ElpsFunc, ElpsFuncDer,
       ElpsProjFunc, {1.0, dt1}, {1.0, M_PI - dBreak}, {1.0, M_PI}, cLn1, cLn2, pBounds);
-printf("%d: - %f - ", iRes, dBreak);
-for(int i = 0; i < iRes; i++)
-{
-  printf("%f, ", pBounds->GetPoint(i));
-}
-printf("\n");
 
   return iRes;
 }

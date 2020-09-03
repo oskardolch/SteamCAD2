@@ -2325,25 +2325,30 @@ int AddCurveInterLine(double da, double db, double dr, CurveFunc pFunc, CurveFun
       iRes += AddCurveInterLineFromPt(da, db, dr, pFunc, pFuncDer, pFuncProj, cStart, cEnd, dx,
         cLn1, cDir2, dLnLen, pIntersects);
       dx = cTangent.y + 10.0;
-      if(cEnd.x) dx = cEnd.y;
+      if(cEnd.x > 0.5) dx = cEnd.y;
       iRes += AddCurveInterLineFromPt(da, db, dr, pFunc, pFuncDer, pFuncProj, cStart, cEnd, dx,
         cLn1, cDir2, dLnLen, pIntersects);
     }
     else // 1 intersection max
     {
-      if(cStart.x > 0.5) dx = cStart.y;
-      else dx = cEnd.y;
-      iRes += AddCurveInterLineFromPt(da, db, dr, pFunc, pFuncDer, pFuncProj, cStart, cEnd, dx,
-        cLn1, cDir2, dLnLen, pIntersects);
+      if(cStart.x > 0.5)
+        iRes += AddCurveInterLineFromPt(da, db, dr, pFunc, pFuncDer, pFuncProj, cStart, cEnd,
+          cStart.y, cLn1, cDir2, dLnLen, pIntersects);
+      if(cEnd.x > 0.5)
+        iRes += AddCurveInterLineFromPt(da, db, dr, pFunc, pFuncDer, pFuncProj, cStart, cEnd,
+          cEnd.y, cLn1, cDir2, dLnLen, pIntersects);
     }
   }
   else // 1 intersection max
   {
-    dx = 0.0;
-    if(cStart.x > 0.5) dx = cStart.y;
-    else if(cEnd.x > 0.5) dx = cEnd.y;
-    iRes += AddCurveInterLineFromPt(da, db, dr, pFunc, pFuncDer, pFuncProj, cStart, cEnd, dx,
+    iRes += AddCurveInterLineFromPt(da, db, dr, pFunc, pFuncDer, pFuncProj, cStart, cEnd, 0.0,
       cLn1, cDir2, dLnLen, pIntersects);
+    if(cStart.x > 0.5)
+      iRes += AddCurveInterLineFromPt(da, db, dr, pFunc, pFuncDer, pFuncProj, cStart, cEnd,
+        cStart.y, cLn1, cDir2, dLnLen, pIntersects);
+    if(cEnd.x > 0.5)
+      iRes += AddCurveInterLineFromPt(da, db, dr, pFunc, pFuncDer, pFuncProj, cStart, cEnd,
+        cEnd.y, cLn1, cDir2, dLnLen, pIntersects);
   }
   return iRes;
 }
