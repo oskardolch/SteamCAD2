@@ -35,9 +35,9 @@ bool GetRefInUboundSeg(double dRef, CDPoint cStart, CDPoint cEnd);
 
 // iSampleStrategy - 0 = constant, 1 = progressive
 CDPoint GetCurveRefAtDist(double da, double db, double dr, CDPoint cBreak, double dDist,
-  CurveFunc pFunc, CurveFunc pFuncDer, double dInterval, int iSampleStrategy);
+  CurveFunc pFunc, CurveFunc pFuncDer, double dInterval, int iSampleStrategy, CDPoint cMaxRef);
 double GetCurveDistAtRef(double da, double db, double dr, CDPoint cBreak, double dRef,
-  CurveFunc pFunc, CurveFunc pFuncDer, double dInterval, int iSampleStrategy);
+  CurveFunc pFunc, CurveFunc pFuncDer, double dInterval, int iSampleStrategy, CDPoint cMaxRef);
 int AddCurveSegment(double da, double db, double dr, CDPoint cBreak, CurveFunc pFunc, CurveFunc pFuncDer,
   double dt1, double dt2, double dInterval, int iSampleStrategy, PDPrimObject pPrimList);
 int AddCurveInterLine(double da, double db, double dr, CurveFunc pFunc, CurveFunc pFuncDer,

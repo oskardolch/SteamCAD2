@@ -553,14 +553,16 @@ bool GetHyperPointRefDist(double dRef, PDPointList pCache, double *pdDist)
   double dBreak = -1.0;
   if(pCache->GetCount(4) > 0) dBreak = pCache->GetPoint(0, 4).cPoint.x;
 
-  *pdDist = GetCurveDistAtRef(cRad.x, cRad.y, dr, {dBreak, -1.0}, fabs(dRef), HyperFunc, HyperFuncDer, 0.5, 1);
+  *pdDist = GetCurveDistAtRef(cRad.x, cRad.y, dr, {dBreak, -1.0}, fabs(dRef),
+    HyperFunc, HyperFuncDer, 0.5, 1, {0.0, 0.0});
   if(dRef < 0.0) *pdDist *= -1.0;
   return true;
 }
 
 double GetHyperPointAtDist(double da, double db, double dr, double dBreak, double dDist)
 {
-  CDPoint cPt1 = GetCurveRefAtDist(da, db, dr, {dBreak, -1.0}, fabs(dDist), HyperFunc, HyperFuncDer, 0.5, 1);
+  CDPoint cPt1 = GetCurveRefAtDist(da, db, dr, {dBreak, -1.0}, fabs(dDist),
+    HyperFunc, HyperFuncDer, 0.5, 1, {0.0, 0.0});
   double dRes = GetHyperBoundProj(da, db, dr, cPt1, cPt1, false);
   if(dDist < 0.0) dRes *= -1.0;
   return dRes;
