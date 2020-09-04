@@ -80,17 +80,6 @@ bool GetHyperPtProjFromU(double da, double db, double dStart, CDPoint cPt, doubl
   return fabs(df) < g_dRootPrec;
 }
 
-bool PtInList(double du, int iSize, double *pdList)
-{
-  int i = 0;
-  bool bFound = false;
-  while(!bFound && (i < iSize))
-  {
-    bFound = fabs(pdList[i++] - du) < g_dPrec;
-  }
-  return bFound;
-}
-
 int GetHyperPtProj(double da, double db, CDPoint cPt, double *pdRoots)
 {
   double dPoly[5];
@@ -117,7 +106,7 @@ int GetHyperPtProj(double da, double db, CDPoint cPt, double *pdRoots)
   {
     if(GetHyperPtProjFromU(da, db, dRoots[j], cPt, &du))
     {
-      if(!PtInList(du, iRes, pdRoots)) pdRoots[iRes++] = du;
+      if(!PtInDblList(du, iRes, pdRoots)) pdRoots[iRes++] = du;
     }
   }
   return iRes;
@@ -166,6 +155,7 @@ double GetHyperBoundProj(double da, double db, double dOffset, CDPoint cPt, CDPo
   double pProjs[4];
   double pDists[2];
   int iRoots = GetHyperPtProj(da, db, cPt, pProjs);
+  if(iRoots < 2) return pProjs[0];
 
   int i = 0;
 

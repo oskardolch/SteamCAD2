@@ -27,9 +27,7 @@ int AddBoundQuadCurve(double da, double db, double dr, CurveFunc pFunc, CurveFun
   double dt1, double dt2, CDPoint cOrig, CDPoint cMainDir, PDRect pRect,
   PDPrimObject pPrimList);
 
-CDPoint GetCurveRefAtDistOld(double da, double db, double dr, double dBreak, double dDist,
-    CurveFunc pFunc, CurveFunc pFuncDer, PDRefPoint pBounds);
-
+bool PtInDblList(double du, int iSize, double *pdList);
 // cStart, cEnd - x = 0 .. not set, x = 1 .. set, y is the reference
 bool GetRefInUboundSeg(double dRef, CDPoint cStart, CDPoint cEnd);
 

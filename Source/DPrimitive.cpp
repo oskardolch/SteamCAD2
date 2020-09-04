@@ -1850,98 +1850,6 @@ int AddCurveSegment(double da, double db, double dr, CDPoint cBreak, CurveFunc p
   return iRes;
 }
 
-
-CDPoint GetCurveRefAtDistOld(double da, double db, double dr, double dBreak, double dDist,
-    CurveFunc pFunc, CurveFunc pFuncDer, PDRefPoint pBounds)
-{
-    pBounds[0].bIsSet = true;
-    pBounds[1].bIsSet = true;
-
-    double dBase = 0.5;
-
-    CDPrimitive cQuad;
-    cQuad.cPt3 = pFunc(da, db, 0.0);
-
-    CDPoint cDir1, cDir2;
-    cDir2 = pFuncDer(da, db, 0.0);
-    double d1 = GetNorm(cDir2);
-
-    cQuad.cPt3.x += dr*cDir2.y/d1;
-    cQuad.cPt3.y -= dr*cDir2.x/d1;
-
-    bool bFound = false;
-    double dt = 0.0;
-
-    if(dBreak > g_dPrec)
-    {
-        int i = 0;
-        int iSteps = (int)dBreak + 1;
-
-        while(!bFound && (i < iSteps))
-        {
-            cDir1 = cDir2;
-            cQuad.cPt1 = cQuad.cPt3;
-
-            dt = (double)(1.0 + i)*dBreak/iSteps;
-            cDir2 = pFuncDer(da, db, dt);
-            d1 = GetNorm(cDir2);
-
-            cQuad.cPt3 = pFunc(da, db, dt);
-            cQuad.cPt3.x += dr*cDir2.y/d1;
-            cQuad.cPt3.y -= dr*cDir2.x/d1;
-
-            LineXLine(cQuad.cPt1, cDir1, cQuad.cPt3, cDir2, &cQuad.cPt2);
-            d1 = GetQuadLength(&cQuad, 0.0, 1.0);
-
-            if(d1 < dDist) dDist -= d1;
-            else
-            {
-                bFound = true;
-                pBounds[0].dRef = (double)i*dBreak/iSteps;
-                pBounds[1].dRef = dt;
-            }
-            i++;
-        }
-        dBase += dt;
-    }
-
-    while(!bFound)
-    {
-        cDir1 = cDir2;
-        cQuad.cPt1 = cQuad.cPt3;
-
-        cDir2 = pFuncDer(da, db, dBase);
-        d1 = GetNorm(cDir2);
-
-        cQuad.cPt3 = pFunc(da, db, dBase);
-        cQuad.cPt3.x += dr*cDir2.y/d1;
-        cQuad.cPt3.y -= dr*cDir2.x/d1;
-
-        LineXLine(cQuad.cPt1, cDir1, cQuad.cPt3, cDir2, &cQuad.cPt2);
-        d1 = GetQuadLength(&cQuad, 0.0, 1.0);
-
-        if(d1 < dDist) dDist -= d1;
-        else
-        {
-            bFound = true;
-            pBounds[0].dRef = dt;
-            pBounds[1].dRef = dBase;
-        }
-
-        dt = dBase;
-        dBase *= 2.0;
-    }
-
-    double dt1 = GetQuadPointAtDist(&cQuad, 0.0, dDist);
-    double dt2 = pBounds[1].dRef - pBounds[0].dRef;
-    double dt0 = pBounds[0].dRef + dt1*dt2;
-    double dr0 = dt2/10.0;
-    if(dt0 + dr0 < pBounds[1].dRef) pBounds[1].dRef = dt0 + dr0;
-    if(pBounds[0].dRef < dt0 - dr0) pBounds[0].dRef = dt0 - dr0;
-    return GetQuadPoint(&cQuad, dt1);
-}
-
-
 CDPoint GetCurveRefAtDist(double da, double db, double dr, CDPoint cBreak, double dDist,
   CurveFunc pFunc, CurveFunc pFuncDer, double dInterval, int iSampleStrategy, CDPoint cMaxRef)
 {
@@ -2235,6 +2143,17 @@ void RotatePrimitives(PDPrimObject pSrcList, PDPrimObject pDestList, CDPoint cOr
     if(cSrc.iType > 4) cDest.cPt4 = cOrig + Rotate(cSrc.cPt4, cMainDir, true);
     pDestList->AddPrimitive(cDest);
   }
+}
+
+bool PtInDblList(double du, int iSize, double *pdList)
+{
+  int i = 0;
+  bool bFound = false;
+  while(!bFound && (i < iSize))
+  {
+    bFound = fabs(pdList[i++] - du) < g_dPrec;
+  }
+  return bFound;
 }
 
 bool GetRefInUboundSeg(double dRef, CDPoint cStart, CDPoint cEnd)

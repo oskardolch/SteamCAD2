@@ -143,7 +143,7 @@ bool CDObject::AddPoint(double x, double y, char iCtrl, double dRestrictVal, boo
     bRes = AddHyperPoint(x, y, iCtrl, dRestrictVal, m_pInputPoints, iInputLines);
     break;
   case dtParabola:
-    bRes = AddParabPoint(x, y, iCtrl, m_pInputPoints, iInputLines);
+    bRes = AddParabPoint(x, y, iCtrl, dRestrictVal, m_pInputPoints, iInputLines);
     break;
   case dtSpline:
     bRes = AddSplinePoint(x, y, iCtrl, m_pInputPoints);
@@ -327,6 +327,9 @@ void CDObject::AddCurveSegment(CDPrimitive cAddMode, PDPrimObject pPrimitive, PD
         break;
       case dtHyperbola:
         AddHyperSegment(pBnds[j].x, pBnds[j].y, dExt, m_pCachePoints, pPrimitive);
+        break;
+      case dtParabola:
+        AddParabSegment(pBnds[j].x, pBnds[j].y, dExt, m_pCachePoints, pPrimitive);
         break;
       default:
         break;
@@ -708,6 +711,8 @@ int CDObject::AddLineIntersects(CDPoint cPt1, CDPoint cPt2, double dOffset, PDRe
     iRes = AddHyperInterLine(cPt1, cPt2, dOffset, m_pCachePoints, pBounds);
     break;
   case dtParabola:
+    iRes = AddParabInterLine(cPt1, cPt2, dOffset, m_pCachePoints, pBounds);
+    break;
   case dtSpline:
   case dtEvolvent:
   case dtLogSpiral:
@@ -1742,6 +1747,9 @@ int CDObject::GetAttractors(CDPoint cPt, double dScale, PDPoint pPoints)
   case dtHyperbola:
     iRes = GetHyperAttractors(cPt, m_pCachePoints, cPts);
     break;
+  case dtParabola:
+    iRes = GetParabAttractors(cPt, m_pCachePoints, cPts);
+    break;
   default:
     break;
   }
@@ -2551,6 +2559,7 @@ double CDObject::GetOffset()
   case dtHyperbola:
     return GetHyperOffset(m_pCachePoints);
   case dtParabola:
+    return GetParabOffset(m_pCachePoints);
   case dtSpline:
   case dtEvolvent:
   case dtPath:
@@ -2585,7 +2594,7 @@ double CDObject::GetDistFromPt(CDPoint cPt, CDPoint cRefPt, bool bSnapCenters, P
         dRes = GetHyperDistFromPt(cPt, cRefPt, iMask, m_pCachePoints, &cPtX); //, m_cBounds);
         break;
     case dtParabola:
-        dRes = GetParabDistFromPt(cPt, cRefPt, iMask, m_pCachePoints, &cPtX, m_cBounds);
+        dRes = GetParabDistFromPt(cPt, cRefPt, iMask, m_pCachePoints, &cPtX); //, m_cBounds);
         break;
     case dtSpline:
         dRes = GetSplineDistFromPt(cPt, cRefPt, m_pCachePoints, &cPtX);
