@@ -2209,9 +2209,9 @@ bool CDObject::GetNativeRefPoint(double dRef, double dOffset, PDPoint pPt)
     case dtArcEllipse:
         return GetArcElpsRefPoint(dRef, m_pCachePoints, pPt);
     case dtHyperbola:
-        return GetHyperRefPoint(dRef, m_pCachePoints, pPt);
+        return GetHyperRefPoint(dRef, dOffset, m_pCachePoints, pPt);
     case dtParabola:
-        return GetParabRefPoint(dRef, m_pCachePoints, pPt);
+        return GetParabRefPoint(dRef, dOffset, m_pCachePoints, pPt);
     case dtSpline:
         return GetSplineRefPoint(dRef, m_pCachePoints, pPt);
     case dtEvolvent:

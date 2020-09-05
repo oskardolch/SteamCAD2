@@ -1768,7 +1768,7 @@ CDPrimitive GetBezierSimpleSeg(double da, double db, double dr, CurveFunc pFunc,
   return cPrim;
 }
 
-CDPrimitive GetBezierProgSeg(double da, double db, double dr, CurveFunc pFunc, CurveFunc pFuncDer,
+/*CDPrimitive GetBezierProgSeg(double da, double db, double dr, CurveFunc pFunc, CurveFunc pFuncDer,
   double dtStart, double dtBase)
 {
   CDPrimitive cPrim, cTmpPrim;
@@ -1797,7 +1797,7 @@ CDPrimitive GetBezierProgSeg(double da, double db, double dr, CurveFunc pFunc, C
   cPrim.cPt1 = cCurvePts[0];
   cPrim.cPt2 = cCurvePts[4];
   return cPrim;
-}
+}*/
 
 int AddCurvePart(double da, double db, double dr, CurveFunc pFunc, CurveFunc pFuncDer,
   double dt1, double dt2, double dInterval, int iSampleStrategy, PDPrimObject pPrimList)
@@ -1820,7 +1820,7 @@ int AddCurvePart(double da, double db, double dr, CurveFunc pFunc, CurveFunc pFu
     }
     for(int i = 0; i < iRes; i++) 
     {
-      pPrimList->AddPrimitive(GetBezierSimpleSeg(da, db, dr, pFunc, pFuncDer,  dStart, dStep));
+      pPrimList->AddPrimitive(GetBezierSimpleSeg(da, db, dr, pFunc, pFuncDer, dStart, dStep));
       dStart += dStep;
       dStep *= dScale;
     }

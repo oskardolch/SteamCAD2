@@ -570,9 +570,9 @@ void AddHyperSegment(double d1, double d2, double dExt, PDPointList pCache, PDPr
   cRad = pCache->GetPoint(1, 0).cPoint;
   cNorm = pCache->GetPoint(2, 0).cPoint;
 
-  double dr = 0.0;
+  double dr = dExt;
   int nOffs = pCache->GetCount(2);
-  if(nOffs > 0) dr = pCache->GetPoint(0, 2).cPoint.x;
+  if(nOffs > 0) dr += pCache->GetPoint(0, 2).cPoint.x;
 
   double dBreak = -1.0;
   if(pCache->GetCount(4) > 0) dBreak = pCache->GetPoint(0, 4).cPoint.x;
@@ -586,7 +586,7 @@ void AddHyperSegment(double d1, double d2, double dExt, PDPointList pCache, PDPr
   delete pTmpPrim;
 }
 
-bool GetHyperRefPoint(double dRef, PDPointList pCache, PDPoint pPt)
+bool GetHyperRefPoint(double dRef, double dExt, PDPointList pCache, PDPoint pPt)
 {
   int iCnt = pCache->GetCount(0);
 
@@ -598,9 +598,9 @@ bool GetHyperRefPoint(double dRef, PDPointList pCache, PDPoint pPt)
   cRad = pCache->GetPoint(1, 0).cPoint;
   cNorm = pCache->GetPoint(2, 0).cPoint;
 
-  double dr = 0.0;
+  double dr = dExt;
   int nOffs = pCache->GetCount(2);
-  if(nOffs > 0) dr = pCache->GetPoint(0, 2).cPoint.x;
+  if(nOffs > 0) dr += pCache->GetPoint(0, 2).cPoint.x;
 
   double dv = sqrt(1.0 + Power2(dRef));
   CDPoint cDir;

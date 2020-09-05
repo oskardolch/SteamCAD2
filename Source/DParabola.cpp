@@ -523,7 +523,7 @@ void AddParabSegment(double d1, double d2, double dExt, PDPointList pCache, PDPr
   delete pTmpPrim;
 }
 
-bool GetParabRefPoint(double dRef, PDPointList pCache, PDPoint pPt)
+bool GetParabRefPoint(double dRef, double dExt, PDPointList pCache, PDPoint pPt)
 {
   int iCnt = pCache->GetCount(0);
   if(iCnt < 3) return false;
@@ -534,9 +534,9 @@ bool GetParabRefPoint(double dRef, PDPointList pCache, PDPoint pPt)
   cRad = pCache->GetPoint(1, 0).cPoint;
   cNorm = pCache->GetPoint(2, 0).cPoint;
 
-  double dr = 0.0;
+  double dr = dExt;
   int nOffs = pCache->GetCount(2);
-  if(nOffs > 0) dr = pCache->GetPoint(0, 2).cPoint.x;
+  if(nOffs > 0) dr += pCache->GetPoint(0, 2).cPoint.x;
 
   CDPoint cDir;
   cDir.x = 2.0*cRad.x*dRef;
