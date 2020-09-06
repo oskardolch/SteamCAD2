@@ -685,7 +685,6 @@ int AddEllipseInterLine(CDPoint cPt1, CDPoint cPt2, double dOffset, PDPointList 
   cOrig = pCache->GetPoint(0, 0).cPoint;
   cRad = pCache->GetPoint(1, 0).cPoint;
 
-  //CDPrimitive cPrim;
   int iRes = 0;
 
   if(iCnt < 3)
@@ -703,36 +702,6 @@ int AddEllipseInterLine(CDPoint cPt1, CDPoint cPt2, double dOffset, PDPointList 
   }
 
   cMainDir = pCache->GetPoint(2, 0).cPoint;
-
-/*  if(pCache->GetCount(3) > 0)
-  {
-      CDPrimitive cPrimPt;
-      CDPoint cPt2 = pCache->GetPoint(0, 3).cPoint;
-      CDPoint cCenter;
-      cCenter.x = cRad.x - cPt2.x;
-      cCenter.y = 0.0;
-
-      cPrimPt.iType = 7;
-      cPrimPt.cPt1.x = 1;
-      cPrimPt.cPt1.y = 1;
-      cPrimPt.cPt2 = cOrig + Rotate(cCenter, cMainDir, true);
-      cCenter.x *= -1.0;
-      cPrimPt.cPt3 = cOrig + Rotate(cCenter, cMainDir, true);
-      cPrimPt.cPt4 = 0;
-      CropPrimitive(cPrimPt, pRect, pPrimList);
-
-      cCenter.x = 0.0;
-      cCenter.y = cPt2.y - cRad.y;
-
-      cPrimPt.iType = 7;
-      cPrimPt.cPt1.x = 1;
-      cPrimPt.cPt1.y = 1;
-      cPrimPt.cPt2 = cOrig + Rotate(cCenter, cMainDir, true);
-      cCenter.y *= -1.0;
-      cPrimPt.cPt3 = cOrig + Rotate(cCenter, cMainDir, true);
-      cPrimPt.cPt4 = 0;
-      CropPrimitive(cPrimPt, pRect, pPrimList);
-  }*/
 
   CDPoint cLn1 = Rotate(cPt1 - cOrig, cMainDir, false);
   CDPoint cLn2 = Rotate(cPt2 - cOrig, cMainDir, false);
@@ -1119,9 +1088,6 @@ void AddElpsExtPrim(PDRect pRect, PDPointList pCache, PDPrimObject pPrimList)
   if(iCnt < 3) return;
 
   CDPoint cOrig, cRad, cMainDir;
-
-  //CDPrimitive cPrim;
-  //int iRes = 0;
 
   cOrig = pCache->GetPoint(0, 0).cPoint;
   cRad = pCache->GetPoint(1, 0).cPoint;

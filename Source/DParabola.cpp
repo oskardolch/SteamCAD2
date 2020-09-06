@@ -227,7 +227,7 @@ bool GetParabPtProjFromU(double da, double dStart, CDPoint cPt, double *pdRes)
   return fabs(df) < g_dRootPrec;
 }
 
-int GetParabPtProj(double da, CDPoint cPt, double *pdRoots) //, PDRefPoint pBounds)
+int GetParabPtProj(double da, CDPoint cPt, double *pdRoots)
 {
   double dPoly[4];
   dPoly[0] = -cPt.x;
@@ -362,7 +362,7 @@ double GetParabBoundProj(double da, double dOffset, CDPoint cPt, CDPoint cRefPt,
   return pProjs[i0];
 }
 
-double GetParabDistFromPt(CDPoint cPt, CDPoint cRefPt, int iSrchMask, PDPointList pCache, PDLine pPtX) //, PDRefPoint pBounds)
+double GetParabDistFromPt(CDPoint cPt, CDPoint cRefPt, int iSrchMask, PDPointList pCache, PDLine pPtX)
 {
   pPtX->bIsSet = false;
 
@@ -483,7 +483,6 @@ bool GetParabPointRefDist(double dRef, PDPointList pCache, double *pdDist)
   *pdDist = GetCurveDistAtRef(cRad.x, 0.0, dr, {dBreak, -1.0}, fabs(dRef),
     ParabFunc, ParabFuncDer, 0.5, 1, {0.0, 0.0});
   if(dRef < 0.0) *pdDist *= -1.0;
-  //*pdDist = GetParabXLen(cRad.x, dr, dBreak, dRef);
   return true;
 }
 
@@ -496,7 +495,7 @@ double GetParabPointAtDist(double da, double dr, double dBreak, double dDist)
   return dRes;
 }
 
-void AddParabSegment(double d1, double d2, double dExt, PDPointList pCache, PDPrimObject pPrimList) //, PDRect pRect)
+void AddParabSegment(double d1, double d2, double dExt, PDPointList pCache, PDPrimObject pPrimList)
 {
   int iCnt = pCache->GetCount(0);
   if(iCnt < 3) return;

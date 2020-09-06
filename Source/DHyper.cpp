@@ -258,18 +258,6 @@ bool AddHyperPoint(double x, double y, char iCtrl, double dRestrictVal, PDPointL
 bool BuildHyperCache(CDLine cTmpPt, int iMode, PDPointList pPoints, PDPointList pCache,
   PDLine pLines, double *pdDist)
 {
-/*double dref1, dref2;
-double ddist1;
-CDPoint cPt8;
-for(int i = 0; i < 16; i++)
-{
-  dref1 = 64.0*i/16.0;
-  ddist1 = GetCurveDistAtRef(1.0, 2.0, 10.0, -1.0, dref1, HyperFunc, HyperFuncDer, 0.5, 1);
-  cPt8 = GetCurveRefAtDist(1.0, 2.0, 10.0, -1.0, ddist1, HyperFunc, HyperFuncDer, 0.5, 1);
-  dref2 = GetHyperBoundProj(1.0, 2.0, 10.0, cPt8, cPt8, false);
-  printf("%d - %f, %f, %f\n", i, dref1, ddist1, dref2);
-}*/
-
   pCache->ClearAll();
 
   int nNorm = pPoints->GetCount(0);
@@ -413,7 +401,7 @@ CDPoint GetHyperPointDir(double da, double db, double dOffset, double dx, PDPoin
   return cRes + dOffset*cDir;
 }
 
-double GetHyperDistFromPt(CDPoint cPt, CDPoint cRefPt, int iSrchMask, PDPointList pCache, PDLine pPtX) //, PDRefPoint pBounds)
+double GetHyperDistFromPt(CDPoint cPt, CDPoint cRefPt, int iSrchMask, PDPointList pCache, PDLine pPtX)
 {
   pPtX->bIsSet = false;
 
