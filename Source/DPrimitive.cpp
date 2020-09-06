@@ -1829,7 +1829,7 @@ int AddCurvePart(double da, double db, double dr, CurveFunc pFunc, CurveFunc pFu
   {
     iRes = (int)(dt2 - dt1)/dInterval + 1;
     dStep = (dt2 - dt1)/iRes;
-    for(int i = 0; i < iRes; i++) 
+    for(int i = 0; i < iRes; i++)
     {
       pPrimList->AddPrimitive(GetBezierSimpleSeg(da, db, dr, pFunc, pFuncDer,  dStart, dStep));
       dStart += dStep;

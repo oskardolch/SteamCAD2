@@ -1069,7 +1069,7 @@ void AddElpsSegment(double d1, double d2, double dExt, PDPointList pCache, PDPri
   }
 
   CDPoint cMainDir = pCache->GetPoint(2, 0).cPoint;
-  double dr = dExt;
+  double dr = 0.0;
   int nOffs = pCache->GetCount(2);
   if(nOffs > 0) dr = pCache->GetPoint(0, 2).cPoint.x;
 
@@ -1089,6 +1089,8 @@ void AddElpsSegment(double d1, double d2, double dExt, PDPointList pCache, PDPri
   cPt2 = GetElpsBoundProj(cRad.x, cRad.y, dr, cPt, cPt, false);
   double dt2 = atan2(cPt2.y, cPt2.x);
   if(d2 < 0.0) dt2 *= -1.0;
+
+  dr += dExt;
 
   PDPrimObject pTmpPrim = new CDPrimObject();
   if(dt1 > dt2)
@@ -1174,7 +1176,7 @@ bool GetElpsRefPoint(double dRef, double dExt, PDPointList pCache, PDPoint pPt)
 
   double dr = dExt;
   int nOffs = pCache->GetCount(2);
-  if(nOffs > 0) dr = pCache->GetPoint(0, 2).cPoint.x;
+  if(nOffs > 0) dr += pCache->GetPoint(0, 2).cPoint.x;
 
   double dco = cos(dRef);
   double dsi = sin(dRef);

@@ -570,15 +570,17 @@ void AddHyperSegment(double d1, double d2, double dExt, PDPointList pCache, PDPr
   cRad = pCache->GetPoint(1, 0).cPoint;
   cNorm = pCache->GetPoint(2, 0).cPoint;
 
-  double dr = dExt;
+  double dr = 0.0;
   int nOffs = pCache->GetCount(2);
-  if(nOffs > 0) dr += pCache->GetPoint(0, 2).cPoint.x;
+  if(nOffs > 0) dr = pCache->GetPoint(0, 2).cPoint.x;
 
   double dBreak = -1.0;
   if(pCache->GetCount(4) > 0) dBreak = pCache->GetPoint(0, 4).cPoint.x;
 
   double dy1 = GetHyperPointAtDist(cRad.x, cRad.y, dr, dBreak, d1);
   double dy2 = GetHyperPointAtDist(cRad.x, cRad.y, dr, dBreak, d2);
+
+  dr += dExt;
 
   PDPrimObject pTmpPrim = new CDPrimObject();
   AddCurveSegment(cRad.x, cRad.y, dr, {dBreak, -1.0}, HyperFunc, HyperFuncDer, dy1, dy2, 0.5, 1, pTmpPrim);

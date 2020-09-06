@@ -507,16 +507,18 @@ void AddParabSegment(double d1, double d2, double dExt, PDPointList pCache, PDPr
   cRad = pCache->GetPoint(1, 0).cPoint;
   cNorm = pCache->GetPoint(2, 0).cPoint;
 
-  double dr = dExt;
+  double dr = 0.0;
   int nOffs = pCache->GetCount(2);
-  if(nOffs > 0) dr += pCache->GetPoint(0, 2).cPoint.x;
+  if(nOffs > 0) dr = pCache->GetPoint(0, 2).cPoint.x;
 
   double dBreak = -1.0;
   if(pCache->GetCount(4) > 0) dBreak = pCache->GetPoint(0, 4).cPoint.x;
 
   double dx1 = GetParabPointAtDist(cRad.x, dr, dBreak, d1);
   double dx2 = GetParabPointAtDist(cRad.x, dr, dBreak, d2);
-  //AddParabSegWithBounds(cRad.x, dr, cOrig, cNorm, dx1, dx2, dBreak, pPrimList, pRect);
+
+  dr += dExt;
+
   PDPrimObject pTmpPrim = new CDPrimObject();
   AddCurveSegment(cRad.x, 0.0, dr, {dBreak, -1.0}, ParabFunc, ParabFuncDer, dx1, dx2, 0.5, 1, pTmpPrim);
   RotatePrimitives(pTmpPrim, pPrimList, cOrig, cNorm);
