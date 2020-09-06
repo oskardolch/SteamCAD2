@@ -1333,7 +1333,7 @@ int AddSplineSegmentQuadsWithBounds(double dT1, double dT2, PDPointList pCache,
   return iRes;
 }
 
-int BuildSplinePrimitives(CDLine cTmpPt, int iMode, PDRect pRect, PDPointList pPoints,
+/*int BuildSplinePrimitives(CDLine cTmpPt, int iMode, PDRect pRect, PDPointList pPoints,
   PDPointList pCache, PDPrimObject pPrimList, PDRefPoint pBounds, double dOffset,
   double *pdDist, PDPoint pDrawBnds, bool bQuadsOnly)
 {
@@ -1441,7 +1441,7 @@ int BuildSplinePrimitives(CDLine cTmpPt, int iMode, PDRect pRect, PDPointList pP
     return AddSplineSegmentQuadsWithBounds(dt1, dt2, pCache, pPrimList, pRect);
 
   return AddSplineSegmentWithBounds(dt1, dt2, pCache, pPrimList, pRect);
-}
+}*/
 
 double GetQuadAtRef(double dRef, bool bClosed, PDPrimitive pQuad, PDPointList pCache)
 {
