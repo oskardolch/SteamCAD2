@@ -1037,7 +1037,7 @@ double GetQuadBufPointAtDist(CDPrimitive cQuad, double dr, double t1, double dDi
   return dt;
 }
 
-int AddSplineSegmentWithBounds(double dT1, double dT2, PDPointList pCache,
+/*int AddSplineSegmentWithBounds(double dT1, double dT2, PDPointList pCache,
   PDPrimObject pPrimList, PDRect pRect)
 {
   int iCnt = pCache->GetCount(0);
@@ -1333,7 +1333,7 @@ int AddSplineSegmentQuadsWithBounds(double dT1, double dT2, PDPointList pCache,
   return iRes;
 }
 
-/*int BuildSplinePrimitives(CDLine cTmpPt, int iMode, PDRect pRect, PDPointList pPoints,
+int BuildSplinePrimitives(CDLine cTmpPt, int iMode, PDRect pRect, PDPointList pPoints,
   PDPointList pCache, PDPrimObject pPrimList, PDRefPoint pBounds, double dOffset,
   double *pdDist, PDPoint pDrawBnds, bool bQuadsOnly)
 {
@@ -1765,7 +1765,7 @@ bool GetSplinePointRefDist(double dRef, PDPointList pCache, double *pdDist)
   return false;
 }
 
-double GetSplineRefAtDist(double dDist, PDPointList pCache)
+double GetSplineRefAtDist(double dDist, double dExt, PDPointList pCache)
 {
   int iCnt = pCache->GetCount(0);
   if(iCnt < 2) return -1.0;
@@ -1775,9 +1775,9 @@ double GetSplineRefAtDist(double dDist, PDPointList pCache)
   int nCtrl = pCache->GetCount(1);
   bool bClosed = (nCtrl > 0);
 
-  double dr = 0.0;
+  double dr = dExt;
   int nOffs = pCache->GetCount(2);
-  if(nOffs > 0) dr = pCache->GetPoint(0, 2).cPoint.x;
+  if(nOffs > 0) dr += pCache->GetPoint(0, 2).cPoint.x;
 
   CDPoint bPt1, bPt2, bPt3;
 
@@ -1865,16 +1865,16 @@ double GetSplineRefAtDist(double dDist, PDPointList pCache)
   return (double)(iQuads + 1.0);
 }
 
-void AddSplineSegment(double d1, double d2, PDPointList pCache, PDPrimObject pPrimList, PDRect pRect)
+void AddSplineSegment(double d1, double d2, double dExt, PDPointList pCache, PDPrimObject pPrimList)//, PDRect pRect)
 {
-  double dt1 = GetSplineRefAtDist(d1, pCache);
-  double dt2 = GetSplineRefAtDist(d2, pCache);
+  double dt1 = GetSplineRefAtDist(d1, 0.0, pCache);
+  double dt2 = GetSplineRefAtDist(d2, 0.0, pCache);
   if((dt1 < -0.5) || (dt2 < -0.5)) return;
 
   AddSplineSegmentWithBounds(dt1, dt2, pCache, pPrimList, pRect);
 }
 
-bool GetSplineRefPoint(double dRef, PDPointList pCache, PDPoint pPt)
+bool GetSplineRefPoint(double dRef, double dExt, PDPointList pCache, PDPoint pPt)
 {
   int iCnt = pCache->GetCount(0);
   if(iCnt < 2) return false;
@@ -1882,9 +1882,9 @@ bool GetSplineRefPoint(double dRef, PDPointList pCache, PDPoint pPt)
   int nCtrl = pCache->GetCount(1);
   bool bClosed = (nCtrl > 0);
 
-  double dr = 0.0;
+  double dr = dExt;
   int nOffs = pCache->GetCount(2);
-  if(nOffs > 0) dr = pCache->GetPoint(0, 2).cPoint.x;
+  if(nOffs > 0) dr += pCache->GetPoint(0, 2).cPoint.x;
 
   CDPoint bPt1, bPt2;
 
