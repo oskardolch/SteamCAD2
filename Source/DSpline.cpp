@@ -1561,6 +1561,12 @@ double GetSplineDistFromPt(CDPoint cPt, CDPoint cRefPt, PDPointList pCache, PDLi
   return d2;
 }
 
+int GetSplineAttractors(CDPoint cPt, PDPointList pCache, PDPoint pPoints)
+{
+  int iRes = 0;
+  return iRes;
+}
+
 bool HasSplineEnoughPoints(PDPointList pPoints)
 {
   int nNorm = pPoints->GetCount(0);
