@@ -146,7 +146,7 @@ bool CDObject::AddPoint(double x, double y, char iCtrl, double dRestrictVal, boo
     bRes = AddParabPoint(x, y, iCtrl, dRestrictVal, m_pInputPoints, iInputLines);
     break;
   case dtSpline:
-    bRes = AddSplinePoint(x, y, iCtrl, m_pInputPoints);
+    bRes = AddSplinePoint(x, y, iCtrl, dRestrictVal, m_pInputPoints);
     break;
   case dtEvolvent:
     bRes = AddEvolvPoint(x, y, iCtrl, m_pInputPoints, iInputLines);
@@ -1735,8 +1735,11 @@ void CDObject::GetNextPrimitive(PDPrimitive pPrim, double dScale, int iDimen)
   return;
 }
 
-int CDObject::GetAttractors(CDPoint cPt, double dScale, PDPoint pPoints)
+int CDObject::GetAttractors(CDPoint cPt, double dScale, PDPointList pPoints)
 {
+  if(m_iType == dtSpline)
+    return GetSplineAttractors(cPt, m_pCachePoints, dScale, pPoints);
+
   CDPoint cPts[4];
   int iRes = 0;
   switch(m_iType)
@@ -1755,7 +1758,7 @@ int CDObject::GetAttractors(CDPoint cPt, double dScale, PDPoint pPoints)
   }
   for(int i = 0; i < iRes; i++)
   {
-    pPoints[i] = dScale*cPts[i];
+    pPoints->AddPoint(dScale*cPts[i].x, dScale*cPts[i].y, 0);
   }
   return iRes;
 }
@@ -2597,7 +2600,7 @@ double CDObject::GetDistFromPt(CDPoint cPt, CDPoint cRefPt, bool bSnapCenters, P
         dRes = GetParabDistFromPt(cPt, cRefPt, iMask, m_pCachePoints, &cPtX); //, m_cBounds);
         break;
     case dtSpline:
-        dRes = GetSplineDistFromPt(cPt, cRefPt, m_pCachePoints, &cPtX);
+        dRes = GetSplineDistFromPt(cPt, cRefPt, iMask, m_pCachePoints, &cPtX);
         break;
     case dtEvolvent:
         dRes = GetEvolvDistFromPt(cPt, cRefPt, m_pCachePoints, &cPtX);

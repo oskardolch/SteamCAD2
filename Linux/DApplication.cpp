@@ -3303,15 +3303,18 @@ void CDApplication::MouseMove(GtkWidget *widget, GdkEventMotion *event, gboolean
       pNewHigh = m_pDrawObjects->GetSelected(0);
       if(pNewHigh)
       {
-        CDPoint cAttrPts[4];
-        int iAttrs = pNewHigh->GetAttractors(cPt, m_dUnitScale, cAttrPts);
+        PDPointList pAttrPts = new CDPointList();
+        int iAttrs = pNewHigh->GetAttractors(cPt, m_dUnitScale, pAttrPts);
 
         cairo_set_source_rgb(cr, 1.0, 0.0, 0.0);
+        CDInputPoint cAttrPt;
         for(int i = 0; i < iAttrs; i++)
         {
-          cairo_arc(cr, cAttrPts[i].x + m_cViewOrigin.x, cAttrPts[i].y + m_cViewOrigin.y, 2, 0.0, 2.0*M_PI);
+          cAttrPt = pAttrPts->GetPoint(i, 0);
+          cairo_arc(cr, cAttrPt.cPoint.x + m_cViewOrigin.x, cAttrPt.cPoint.y + m_cViewOrigin.y, 2, 0.0, 2.0*M_PI);
           cairo_fill(cr);
         }
+        delete pAttrPts;
       }
       // end debug
       cairo_destroy(cr);

@@ -3,15 +3,15 @@
 
 #include "DDataTypes.hpp"
 
-bool AddSplinePoint(double x, double y, char iCtrl, PDPointList pPoints);
+bool AddSplinePoint(double x, double y, char iCtrl, double dRestrictVal, PDPointList pPoints);
 bool BuildSplineCache(CDLine cTmpPt, int iMode, PDPointList pPoints, PDPointList pCache,
   double *pdDist);
 //int BuildSplinePrimitives(CDLine cTmpPt, int iMode, PDRect pRect, PDPointList pPoints,
 //  PDPointList pCache, PDPrimObject pPrimList, PDRefPoint pBounds, double dOffset,
 //  double *pdDist, PDPoint pDrawBnds, bool bQuadsOnly = false);
 double GetSplineOffset(PDPointList pCache);
-double GetSplineDistFromPt(CDPoint cPt, CDPoint cRefPt, PDPointList pCache, PDLine pPtX);
-int GetSplineAttractors(CDPoint cPt, PDPointList pCache, PDPoint pPoints);
+double GetSplineDistFromPt(CDPoint cPt, CDPoint cRefPt, int iSrchMask, PDPointList pCache, PDLine pPtX);
+int GetSplineAttractors(CDPoint cPt, PDPointList pCache, double dScale, PDPointList pPoints);
 bool HasSplineEnoughPoints(PDPointList pPoints);
 double GetSplineRadiusAtPt(CDLine cPtX, PDPointList pCache, PDLine pPtR, bool bNewPt);
 bool GetSplinePointRefDist(double dRef, PDPointList pCache, double *pdDist);
