@@ -714,6 +714,8 @@ int CDObject::AddLineIntersects(CDPoint cPt1, CDPoint cPt2, double dOffset, PDRe
     iRes = AddParabInterLine(cPt1, cPt2, dOffset, m_pCachePoints, pBounds);
     break;
   case dtSpline:
+    iRes = AddSplineInterLine(cPt1, cPt2, dOffset, m_pCachePoints, pBounds);
+    break;
   case dtEvolvent:
   case dtLogSpiral:
   case dtArchSpiral:
