@@ -1501,7 +1501,7 @@ bool GetSplineReference(double dDist, PDPointList pCache, double *pdRef)
   return true;
 }
 
-int AddQuadBufInterLine(CDPoint cPt1, CDPoint cPt2, double dOffset, CDPrimitive cQuad, PDRefList pBounds)
+int AddQuadBufInterLine(CDPoint cPt1, CDPoint cPt2, double dOffset, CDPrimitive cQuad, bool bIncludeLast, double *pdBounds)
 {
   int iRes = 0;
   if(cQuad.iType == 1)
@@ -1516,8 +1516,8 @@ int AddQuadBufInterLine(CDPoint cPt1, CDPoint cPt2, double dOffset, CDPrimitive 
     iRes = SegXSeg(cPt1, cPt2, cPt21, cPt22, &cRes);
     if(iRes > 0)
     {
-      if(cRes.y > 1.0 - g_dPrec) return 0;
-      pBounds->AddPoint(cRes.y);
+      if((cRes.y > 1.0 - g_dPrec) && !bIncludeLast) return 0;
+      pdBounds[0] = cRes.y;
     }
     return iRes;
   }
@@ -1529,6 +1529,9 @@ int AddSplineInterLine(CDPoint cPt1, CDPoint cPt2, double dOffset, PDPointList p
   int iCnt = pCache->GetCount(0);
   if(iCnt < 2) return 0;
 
+  int nCtrl = pCache->GetCount(1);
+  bool bClosed = (nCtrl > 0);
+
   int iRes = 0;
 
   double dr = dOffset;
@@ -1537,10 +1540,14 @@ int AddSplineInterLine(CDPoint cPt1, CDPoint cPt2, double dOffset, PDPointList p
 
   int iSegs = GetSplineNumSegments(pCache);
   CDPrimitive cQuad;
+  double dRoots[4];
+  int iRoots;
   for(int i = 0; i < iSegs; i++)
   {
     cQuad = GetSplineNthSegment(i, pCache);
-    iRes += AddQuadBufInterLine(cPt1, cPt2, dr, cQuad, pBounds);
+    iRoots = AddQuadBufInterLine(cPt1, cPt2, dr, cQuad, !bClosed && (i == iSegs - 1), dRoots);
+    for(int j = 0; j < iRoots; j++) pBounds->AddPoint((double)i + dRoots[j]);
+    iRes += iRoots;
   }
 
   return iRes;
