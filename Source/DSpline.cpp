@@ -1236,6 +1236,8 @@ bool HasSplineEnoughPoints(PDPointList pPoints)
 
 double GetSplineRefAtDist(double dDist, double dExt, PDPointList pCache)
 {
+  if(dDist < g_dPrec) return 0.0;
+
   double dr = dExt;
   int nOffs = pCache->GetCount(2);
   if(nOffs > 0) dr += pCache->GetPoint(0, 2).cPoint.y;
@@ -1255,7 +1257,7 @@ double GetSplineRefAtDist(double dDist, double dExt, PDPointList pCache)
 
   if(!bFound)
   {
-    if(dLen < dDist + g_dPrec) return (double)i;
+    if(dDist < g_dPrec) return (double)i;
     return -1.0;
   }
 
@@ -1264,6 +1266,8 @@ double GetSplineRefAtDist(double dDist, double dExt, PDPointList pCache)
 
 double GetSplineDistAtRef(double dRef, double dExt, PDPointList pCache)
 {
+  if(dRef < g_dPrec) return 0.0;
+
   double dr = dExt;
   int nOffs = pCache->GetCount(2);
   if(nOffs > 0) dr += pCache->GetPoint(0, 2).cPoint.y;
@@ -1404,6 +1408,7 @@ void AddSplineSegment(double d1, double d2, double dExt, PDPointList pCache, PDP
 {
   double dt1 = GetSplineRefAtDist(d1, dExt, pCache);
   double dt2 = GetSplineRefAtDist(d2, dExt, pCache);
+printf("Dobry - %f, %f - %f, %f\n", d1, d2, dt1, dt2);
   if((dt1 < -0.5) || (dt2 < -0.5)) return;
 
   double dr = dExt;
@@ -1501,6 +1506,76 @@ bool GetSplineReference(double dDist, PDPointList pCache, double *pdRef)
   return true;
 }
 
+CDPoint QuadFunc(void *pvData, double dt)
+{
+  return GetQuadPoint((PDPrimitive)pvData, dt);
+}
+
+CDPoint QuadFuncDer(void *pvData, double dt)
+{
+  return GetQuadDir((PDPrimitive)pvData, dt);
+}
+
+double QuadProjFunc(void *pvData, double dOffset, CDPoint cPt, CDPoint cStart, CDPoint cEnd)
+{
+  CDPrimitive cQuad = *(PDPrimitive)pvData;
+  double pProjs[4];
+  int iRoots = GetQuadPtProj(cPt, cQuad, pProjs);
+  double pDists[4];
+  bool pValid[4];
+
+  CDPoint cNorm, cProjPt;
+  double du;
+
+  for(int i = 0; i < iRoots; i++)
+  {
+    du = pProjs[i];
+    pValid[i] = GetRefInUboundSeg(du, cStart, cEnd);
+    cProjPt = GetQuadPoint(&cQuad, du);
+    cNorm = GetQuadNormal(&cQuad, du);
+    pDists[i] = GetDist(cPt, cProjPt + dOffset*cNorm);
+  }
+
+  bool bFound = false;
+  int iMin;
+  double dMin;
+  int i = 0;
+  while(!bFound && (i < iRoots))
+  {
+    bFound = pValid[i++];
+  }
+  if(bFound)
+  {
+    iMin = i - 1;
+    dMin = pDists[iMin];
+    while(i < iRoots)
+    {
+      if(pValid[i] && (pDists[i] < dMin))
+      {
+        iMin = i;
+        dMin = pDists[i];
+      }
+      i++;
+    }
+    return pProjs[iMin];
+  }
+
+  // if we could not find the point inside the interval, return the nearest one
+  iMin = 0;
+  dMin = pDists[0];
+  i = 1;
+  while(i < iRoots)
+  {
+    if(pDists[i] < dMin)
+    {
+      iMin = i;
+      dMin = pDists[i];
+    }
+    i++;
+  }
+  return pProjs[iMin];
+}
+
 int AddQuadBufInterLine(CDPoint cPt1, CDPoint cPt2, double dOffset, CDPrimitive cQuad, bool bIncludeLast, double *pdBounds)
 {
   int iRes = 0;
@@ -1525,7 +1600,11 @@ int AddQuadBufInterLine(CDPoint cPt1, CDPoint cPt2, double dOffset, CDPrimitive 
   if(fabs(dOffset) < g_dPrec)
   {
     CDPoint cPts[2];
-    iRes = QuadXSeg(&cQuad, cPt1, cPt2, cPts, pdBounds);
+    CDPoint cPtQuad[3];
+    cPtQuad[0] = cQuad.cPt1;
+    cPtQuad[1] = cQuad.cPt2;
+    cPtQuad[2] = cQuad.cPt3;
+    iRes = QuadXSeg(cPtQuad, cPt1, cPt2, cPts, pdBounds);
     if(iRes > 0)
     {
       if((pdBounds[iRes - 1] > 1.0 - g_dPrec) && !bIncludeLast) return iRes - 1;
@@ -1533,71 +1612,42 @@ int AddQuadBufInterLine(CDPoint cPt1, CDPoint cPt2, double dOffset, CDPrimitive 
     return iRes;
   }
 
+  CDPoint cDir = cPt2 - cPt1;
+
+  double dTangent = -1.0;
+  CDPoint cTan;
+  if(Solve2x2Matrix(cQuad.cPt3 - 2.0*cQuad.cPt2 + cQuad.cPt1, -1.0*cDir, cQuad.cPt1 + cQuad.cPt2, &cTan)) dTangent = cTan.x;
+
+  PDRefList pIntersects = new CDRefList();
+
   double dBreaks[2];
   int iBreaks = GetQuadBreaks(cQuad, dOffset, 0.0, 1.0, dBreaks);
   double dt = 0.0;
   if(iBreaks > 0)
-    iRes += AddCurveInterLine(&cQuad, dOffset, QuadFunc, QuadFuncDer,
-      PtProjFunc pFuncProj, CDPoint cTangent, CDPoint cStart, CDPoint cEnd,
-      CDPoint cLn1, CDPoint cLn2, PDRefList pIntersects);
-
-
-  int iDivs[3];
-  double dSteps[3];
-  int nDivs = GetQuadSpans(cQuad, dOffset, 0.0, 1.0, iDivs, dSteps);
-
-  double dt = t1;
-  double d1;
-
-  CDPoint cDir2 = GetQuadDir(&cQuad, dt);
-  CDPoint cDir1;
-
-  CDPrimitive cQuad1;
-  cQuad1.cPt3 = GetQuadBufPoint(cQuad, dr, dt);
-
-  bool bFound = false;
-  int i;
-  int j = 0;
-
-  while(!bFound && (j < nDivs))
   {
-    i = 0;
-    while(!bFound && (i < iDivs[j]))
-    {
-      dt += dSteps[j];
-
-      cDir1 = cDir2;
-      cQuad1.cPt1 = cQuad1.cPt3;
-
-      cDir2 = GetQuadDir(&cQuad, dt);
-      cQuad1.cPt3 = GetQuadBufPoint(cQuad, dr, dt);
-
-      LineXLine(cQuad1.cPt1, cDir1, cQuad1.cPt3, cDir2, &cQuad1.cPt2);
-      d1 = GetQuadLength(&cQuad1, 0.0, 1.0);
-      if(d1 < dDist - g_dPrec) dDist -= d1;
-      else bFound = true;
-      i++;
-    }
-    j++;
+    iRes += AddCurveInterLine(&cQuad, dOffset, QuadFunc, QuadFuncDer,
+      QuadProjFunc, {1.0, dTangent}, {1.0, dt}, {1.0, dBreaks[0]},
+      cPt1, cPt2, pIntersects);
+    dt = dBreaks[0];
   }
+  if(iBreaks > 1)
+  {
+    iRes += AddCurveInterLine(&cQuad, dOffset, QuadFunc, QuadFuncDer,
+      QuadProjFunc, {1.0, dTangent}, {1.0, dt}, {1.0, dBreaks[1]},
+      cPt1, cPt2, pIntersects);
+    dt = dBreaks[1];
+  }
+  iRes += AddCurveInterLine(&cQuad, dOffset, QuadFunc, QuadFuncDer,
+    QuadProjFunc, {1.0, dTangent}, {1.0, dt}, {1.0, 1.0},
+    cPt1, cPt2, pIntersects);
 
-  if(!bFound) return 1.0;
+  for(int i = 0; i < iRes; i++)
+  {
+    pdBounds[i] = pIntersects->GetPoint(i);
+  }
+  delete pIntersects;
 
-  if(dDist < g_dPrec) return 0.0;
-
-  double dt0 = dt;
-
-  dt = GetQuadPointAtDist(&cQuad1, 0.0, dDist);
-  if(dt > 1.0 - g_dPrec) return 1.0;
-
-  dt0 -= (1.0 - dt)*dSteps[j - 1];
-  CDPoint cPt1 = GetQuadPoint(&cQuad1, dt);
-
-  if(!GetQuadBoundProj(cPt1, cPt1, dr, cQuad, &dt)) dt = dt0;
-  return dt;
-
-
-  return 0;
+  return iRes;
 }
 
 int AddSplineInterLine(CDPoint cPt1, CDPoint cPt2, double dOffset, PDPointList pCache, PDRefList pBounds)

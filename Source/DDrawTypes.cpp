@@ -331,6 +331,9 @@ void CDObject::AddCurveSegment(CDPrimitive cAddMode, PDPrimObject pPrimitive, PD
       case dtParabola:
         AddParabSegment(pBnds[j].x, pBnds[j].y, dExt, m_pCachePoints, pPrimitive);
         break;
+      case dtSpline:
+        AddSplineSegment(pBnds[j].x, pBnds[j].y, dExt, m_pCachePoints, pPrimitive);
+        break;
       default:
         break;
       }
@@ -2015,7 +2018,7 @@ bool CDObject::GetRefBounds(PDPoint pPoint)
     return false;
   case dtSpline:
     pPoint->x = 0.0;
-    pPoint->y = m_pCachePoints->GetCount(0);
+    pPoint->y = (double)GetSplineNumSegments(m_pCachePoints);
     return true;
   case dtEvolvent:
   case dtLogSpiral:
