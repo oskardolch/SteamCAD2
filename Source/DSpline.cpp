@@ -1521,6 +1521,82 @@ int AddQuadBufInterLine(CDPoint cPt1, CDPoint cPt2, double dOffset, CDPrimitive 
     }
     return iRes;
   }
+
+  if(fabs(dOffset) < g_dPrec)
+  {
+    CDPoint cPts[2];
+    iRes = QuadXSeg(&cQuad, cPt1, cPt2, cPts, pdBounds);
+    if(iRes > 0)
+    {
+      if((pdBounds[iRes - 1] > 1.0 - g_dPrec) && !bIncludeLast) return iRes - 1;
+    }
+    return iRes;
+  }
+
+  double dBreaks[2];
+  int iBreaks = GetQuadBreaks(cQuad, dOffset, 0.0, 1.0, dBreaks);
+  double dt = 0.0;
+  if(iBreaks > 0)
+    iRes += AddCurveInterLine(&cQuad, dOffset, QuadFunc, QuadFuncDer,
+      PtProjFunc pFuncProj, CDPoint cTangent, CDPoint cStart, CDPoint cEnd,
+      CDPoint cLn1, CDPoint cLn2, PDRefList pIntersects);
+
+
+  int iDivs[3];
+  double dSteps[3];
+  int nDivs = GetQuadSpans(cQuad, dOffset, 0.0, 1.0, iDivs, dSteps);
+
+  double dt = t1;
+  double d1;
+
+  CDPoint cDir2 = GetQuadDir(&cQuad, dt);
+  CDPoint cDir1;
+
+  CDPrimitive cQuad1;
+  cQuad1.cPt3 = GetQuadBufPoint(cQuad, dr, dt);
+
+  bool bFound = false;
+  int i;
+  int j = 0;
+
+  while(!bFound && (j < nDivs))
+  {
+    i = 0;
+    while(!bFound && (i < iDivs[j]))
+    {
+      dt += dSteps[j];
+
+      cDir1 = cDir2;
+      cQuad1.cPt1 = cQuad1.cPt3;
+
+      cDir2 = GetQuadDir(&cQuad, dt);
+      cQuad1.cPt3 = GetQuadBufPoint(cQuad, dr, dt);
+
+      LineXLine(cQuad1.cPt1, cDir1, cQuad1.cPt3, cDir2, &cQuad1.cPt2);
+      d1 = GetQuadLength(&cQuad1, 0.0, 1.0);
+      if(d1 < dDist - g_dPrec) dDist -= d1;
+      else bFound = true;
+      i++;
+    }
+    j++;
+  }
+
+  if(!bFound) return 1.0;
+
+  if(dDist < g_dPrec) return 0.0;
+
+  double dt0 = dt;
+
+  dt = GetQuadPointAtDist(&cQuad1, 0.0, dDist);
+  if(dt > 1.0 - g_dPrec) return 1.0;
+
+  dt0 -= (1.0 - dt)*dSteps[j - 1];
+  CDPoint cPt1 = GetQuadPoint(&cQuad1, dt);
+
+  if(!GetQuadBoundProj(cPt1, cPt1, dr, cQuad, &dt)) dt = dt0;
+  return dt;
+
+
   return 0;
 }
 

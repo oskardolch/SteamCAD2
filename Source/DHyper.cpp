@@ -27,21 +27,23 @@ double GetHyperBreakAngle(double da, double db, double dr)
   return sqrt(d3/d1);
 }
 
-CDPoint HyperFunc(double da, double db, double dt)
+CDPoint HyperFunc(void *pvData, double dt)
 {
+  PDPoint pPt = (PDPoint)pvData;
   double dv = sqrt(1.0 + Power2(dt));
   CDPoint cRes;
-  cRes.x = da*dv;
-  cRes.y = db*dt;
+  cRes.x = pPt->x*dv;
+  cRes.y = pPt->y*dt;
   return cRes;
 }
 
-CDPoint HyperFuncDer(double da, double db, double dt)
+CDPoint HyperFuncDer(void *pvData, double dt)
 {
+  PDPoint pPt = (PDPoint)pvData;
   double dv = sqrt(1.0 + Power2(dt));
   CDPoint cRes;
-  cRes.x = -da*dt/dv;
-  cRes.y = -db;
+  cRes.x = -pPt->x*dt/dv;
+  cRes.y = -pPt->y;
   return cRes;
 }
 
@@ -531,7 +533,7 @@ bool GetHyperPointRefDist(double dRef, PDPointList pCache, double *pdDist)
   double dBreak = -1.0;
   if(pCache->GetCount(4) > 0) dBreak = pCache->GetPoint(0, 4).cPoint.x;
 
-  *pdDist = GetCurveDistAtRef(cRad.x, cRad.y, dr, {dBreak, -1.0}, fabs(dRef),
+  *pdDist = GetCurveDistAtRef(&cRad, dr, {dBreak, -1.0}, fabs(dRef),
     HyperFunc, HyperFuncDer, 0.5, 1, {0.0, 0.0});
   if(dRef < 0.0) *pdDist *= -1.0;
   return true;
@@ -539,7 +541,8 @@ bool GetHyperPointRefDist(double dRef, PDPointList pCache, double *pdDist)
 
 double GetHyperPointAtDist(double da, double db, double dr, double dBreak, double dDist)
 {
-  CDPoint cPt1 = GetCurveRefAtDist(da, db, dr, {dBreak, -1.0}, fabs(dDist),
+  CDPoint cRad = {da, db};
+  CDPoint cPt1 = GetCurveRefAtDist(&cRad, dr, {dBreak, -1.0}, fabs(dDist),
     HyperFunc, HyperFuncDer, 0.5, 1, {0.0, 0.0});
   double dRes = GetHyperBoundProj(da, db, dr, cPt1, cPt1, false);
   if(dDist < 0.0) dRes *= -1.0;
@@ -571,7 +574,7 @@ void AddHyperSegment(double d1, double d2, double dExt, PDPointList pCache, PDPr
   dr += dExt;
 
   PDPrimObject pTmpPrim = new CDPrimObject();
-  AddCurveSegment(cRad.x, cRad.y, dr, {dBreak, -1.0}, HyperFunc, HyperFuncDer, dy1, dy2, 0.5, 1, pTmpPrim);
+  AddCurveSegment(&cRad, dr, {dBreak, -1.0}, HyperFunc, HyperFuncDer, dy1, dy2, 0.5, 1, pTmpPrim);
   RotatePrimitives(pTmpPrim, pPrimList, cOrig, cNorm);
   delete pTmpPrim;
 }
@@ -693,10 +696,11 @@ bool GetHyperReference(double dDist, PDPointList pCache, double *pdRef)
   return true;
 }
 
-double HyperPtProjFunc(double da, double db, double dOffset, CDPoint cPt, CDPoint cStart, CDPoint cEnd)
+double HyperPtProjFunc(void *pvData, double dOffset, CDPoint cPt, CDPoint cStart, CDPoint cEnd)
 {
+  PDPoint pPt = (PDPoint)pvData;
   double pProjs[4];
-  int iRoots = GetHyperPtProj(da, db, cPt, pProjs);
+  int iRoots = GetHyperPtProj(pPt->x, pPt->y, cPt, pProjs);
 
   double pDists[4];
   bool pValid[4];
@@ -709,10 +713,10 @@ double HyperPtProjFunc(double da, double db, double dOffset, CDPoint cPt, CDPoin
     du = pProjs[i];
     pValid[i] = GetRefInUboundSeg(du, cStart, cEnd);
     dc = sqrt(1.0 + Power2(du));
-    cProjPt.x = da*dc;
-    cProjPt.y = db*du;
-    cNorm.x = -db;
-    cNorm.y = da*du/dc;
+    cProjPt.x = pPt->x*dc;
+    cProjPt.y = pPt->y*du;
+    cNorm.x = -pPt->y;
+    cNorm.y = pPt->x*du/dc;
     dNorm = GetNorm(cNorm);
     pDists[i] = GetDist(cPt, cProjPt + dOffset*cNorm/dNorm);
   }
@@ -795,23 +799,23 @@ int AddHyperInterLine(CDPoint cPt1, CDPoint cPt2, double dOffset, PDPointList pC
   int iRes = 0;
   if(dBreak < -g_dPrec)
   {
-    iRes = AddCurveInterLine(cRad.x, cRad.y, dr, HyperFunc, HyperFuncDer, HyperPtProjFunc,
+    iRes = AddCurveInterLine(&cRad, dr, HyperFunc, HyperFuncDer, HyperPtProjFunc,
       {bTangent ? 1.0 : 0.0, dTangent}, {0.0, 0.0}, {0.0, 0.0}, cLn1, cLn2, pBounds);
   }
   else if(dBreak < g_dPrec)
   {
-    iRes = AddCurveInterLine(cRad.x, cRad.y, dr, HyperFunc, HyperFuncDer, HyperPtProjFunc,
+    iRes = AddCurveInterLine(&cRad, dr, HyperFunc, HyperFuncDer, HyperPtProjFunc,
       {bTangent ? 1.0 : 0.0, dTangent}, {0.0, 0.0}, {1.0, 0.0}, cLn1, cLn2, pBounds);
-    iRes += AddCurveInterLine(cRad.x, cRad.y, dr, HyperFunc, HyperFuncDer, HyperPtProjFunc,
+    iRes += AddCurveInterLine(&cRad, dr, HyperFunc, HyperFuncDer, HyperPtProjFunc,
       {bTangent ? 1.0 : 0.0, dTangent}, {1.0, 0.0}, {0.0, 0.0}, cLn1, cLn2, pBounds);
   }
   else
   {
-    iRes = AddCurveInterLine(cRad.x, cRad.y, dr, HyperFunc, HyperFuncDer, HyperPtProjFunc,
+    iRes = AddCurveInterLine(&cRad, dr, HyperFunc, HyperFuncDer, HyperPtProjFunc,
       {bTangent ? 1.0 : 0.0, dTangent}, {0.0, 0.0}, {1.0, -dBreak}, cLn1, cLn2, pBounds);
-    iRes += AddCurveInterLine(cRad.x, cRad.y, dr, HyperFunc, HyperFuncDer, HyperPtProjFunc,
+    iRes += AddCurveInterLine(&cRad, dr, HyperFunc, HyperFuncDer, HyperPtProjFunc,
       {bTangent ? 1.0 : 0.0, dTangent}, {1.0, -dBreak}, {1.0, dBreak}, cLn1, cLn2, pBounds);
-    iRes += AddCurveInterLine(cRad.x, cRad.y, dr, HyperFunc, HyperFuncDer, HyperPtProjFunc,
+    iRes += AddCurveInterLine(&cRad, dr, HyperFunc, HyperFuncDer, HyperPtProjFunc,
       {bTangent ? 1.0 : 0.0, dTangent}, {1.0, dBreak}, {0.0, 0.0}, cLn1, cLn2, pBounds);
   }
   return iRes;

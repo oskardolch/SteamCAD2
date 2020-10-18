@@ -184,13 +184,15 @@ CDPoint GetParabPointDir(double da, double dOffset, double dx, PDPoint pDir)
   return cRes + dOffset*cDir;
 }
 
-CDPoint ParabFunc(double da, double db, double dt)
+CDPoint ParabFunc(void *pvData, double dt)
 {
+  double da = *(double*)pvData;
   return {dt, da*Power2(dt)};
 }
 
-CDPoint ParabFuncDer(double da, double db, double dt)
+CDPoint ParabFuncDer(void *pvData, double dt)
 {
+  double da = *(double*)pvData;
   return {1.0, 2.0*da*dt};
 }
 
@@ -480,7 +482,7 @@ bool GetParabPointRefDist(double dRef, PDPointList pCache, double *pdDist)
   double dBreak = -1.0;
   if(pCache->GetCount(4) > 0) dBreak = pCache->GetPoint(0, 4).cPoint.x;
 
-  *pdDist = GetCurveDistAtRef(cRad.x, 0.0, dr, {dBreak, -1.0}, fabs(dRef),
+  *pdDist = GetCurveDistAtRef(&cRad.x, dr, {dBreak, -1.0}, fabs(dRef),
     ParabFunc, ParabFuncDer, 0.5, 1, {0.0, 0.0});
   if(dRef < 0.0) *pdDist *= -1.0;
   return true;
@@ -488,7 +490,7 @@ bool GetParabPointRefDist(double dRef, PDPointList pCache, double *pdDist)
 
 double GetParabPointAtDist(double da, double dr, double dBreak, double dDist)
 {
-  CDPoint cPt1 = GetCurveRefAtDist(da, 0.0, dr, {dBreak, -1.0}, fabs(dDist),
+  CDPoint cPt1 = GetCurveRefAtDist(&da, dr, {dBreak, -1.0}, fabs(dDist),
     ParabFunc, ParabFuncDer, 0.5, 1, {0.0, 0.0});
   double dRes = GetParabBoundProj(da, dr, cPt1, cPt1, false);
   if(dDist < 0.0) dRes *= -1.0;
@@ -519,7 +521,7 @@ void AddParabSegment(double d1, double d2, double dExt, PDPointList pCache, PDPr
   dr += dExt;
 
   PDPrimObject pTmpPrim = new CDPrimObject();
-  AddCurveSegment(cRad.x, 0.0, dr, {dBreak, -1.0}, ParabFunc, ParabFuncDer, dx1, dx2, 0.5, 1, pTmpPrim);
+  AddCurveSegment(&cRad.x, dr, {dBreak, -1.0}, ParabFunc, ParabFuncDer, dx1, dx2, 0.5, 1, pTmpPrim);
   RotatePrimitives(pTmpPrim, pPrimList, cOrig, cNorm);
   delete pTmpPrim;
 }
@@ -633,8 +635,9 @@ bool GetParabReference(double dDist, PDPointList pCache, double *pdRef)
   return true;
 }
 
-double ParabPtProjFunc(double da, double db, double dOffset, CDPoint cPt, CDPoint cStart, CDPoint cEnd)
+double ParabPtProjFunc(void *pvData, double dOffset, CDPoint cPt, CDPoint cStart, CDPoint cEnd)
 {
+  double da = *(double*)pvData;
   double pProjs[4];
   int iRoots = GetParabPtProj(da, cPt, pProjs);
 
@@ -725,23 +728,23 @@ int AddParabInterLine(CDPoint cPt1, CDPoint cPt2, double dOffset, PDPointList pC
   int iRes = 0;
   if(dBreak < -g_dPrec)
   {
-    iRes = AddCurveInterLine(cRad.x, 0.0, dr, ParabFunc, ParabFuncDer, ParabPtProjFunc,
+    iRes = AddCurveInterLine(&cRad.x, dr, ParabFunc, ParabFuncDer, ParabPtProjFunc,
       {1.0, dTangent}, {0.0, 0.0}, {0.0, 0.0}, cLn1, cLn2, pBounds);
   }
   else if(dBreak < g_dPrec)
   {
-    iRes = AddCurveInterLine(cRad.x, 0.0, dr, ParabFunc, ParabFuncDer, ParabPtProjFunc,
+    iRes = AddCurveInterLine(&cRad.x, dr, ParabFunc, ParabFuncDer, ParabPtProjFunc,
       {1.0, dTangent}, {0.0, 0.0}, {1.0, 0.0}, cLn1, cLn2, pBounds);
-    iRes += AddCurveInterLine(cRad.x, 0.0, dr, ParabFunc, ParabFuncDer, ParabPtProjFunc,
+    iRes += AddCurveInterLine(&cRad.x, dr, ParabFunc, ParabFuncDer, ParabPtProjFunc,
       {1.0, dTangent}, {1.0, 0.0}, {0.0, 0.0}, cLn1, cLn2, pBounds);
   }
   else
   {
-    iRes = AddCurveInterLine(cRad.x, 0.0, dr, ParabFunc, ParabFuncDer, ParabPtProjFunc,
+    iRes = AddCurveInterLine(&cRad.x, dr, ParabFunc, ParabFuncDer, ParabPtProjFunc,
       {1.0, dTangent}, {0.0, 0.0}, {1.0, -dBreak}, cLn1, cLn2, pBounds);
-    iRes += AddCurveInterLine(cRad.x, 0.0, dr, ParabFunc, ParabFuncDer, ParabPtProjFunc,
+    iRes += AddCurveInterLine(&cRad.x, dr, ParabFunc, ParabFuncDer, ParabPtProjFunc,
       {1.0, dTangent}, {1.0, -dBreak}, {1.0, dBreak}, cLn1, cLn2, pBounds);
-    iRes += AddCurveInterLine(cRad.x, 0.0, dr, ParabFunc, ParabFuncDer, ParabPtProjFunc,
+    iRes += AddCurveInterLine(&cRad.x, dr, ParabFunc, ParabFuncDer, ParabPtProjFunc,
       {1.0, dTangent}, {1.0, dBreak}, {0.0, 0.0}, cLn1, cLn2, pBounds);
   }
   return iRes;

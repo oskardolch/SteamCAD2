@@ -1367,329 +1367,6 @@ int MergeBounds(double da1, double da2, double db1, double db2, bool bFullCycle,
     return 1;
 }
 
-int AddBoundCurve(double da, double db, double dr, CurveFunc pFunc, CurveFunc pFuncDer,
-    double dt1, double dt2, CDPoint cOrig, CDPoint cMainDir, PDRect pRect,
-    PDPrimObject pPrimList)
-{
-    double dBase, dStart;
-
-    bool bBothSides = false;
-    double dDir = 1.0;
-
-    if(dt1 > g_dPrec)
-    {
-        dBase = dt1;
-        dStart = dt1;
-    }
-    else if(dt2 < -g_dPrec)
-    {
-        dBase = dt2;
-        dStart = dt2;
-        dDir = -1.0;
-    }
-    else if(dt1 > -g_dPrec)
-    {
-        if(dt2 < g_dPrec) return 0;
-        dBase = 1.0;
-        dStart = 0.0;
-    }
-    else if(dt2 < g_dPrec)
-    {
-        if(dt1 > -g_dPrec) return 0;
-        dBase = -1.0;
-        dStart = 0.0;
-        dDir = -1.0;
-    }
-    else
-    {
-        bBothSides = true;
-        dBase = -1.0;
-        dStart = 0.0;
-        dDir = -1.0;
-    }
-
-    CDPoint cHypPts[5];
-    double du, dv, dNorm;
-    CDPoint cDir1, cDir2;
-    int iFinished = 0;
-    CDPrimitive cPrim, cTmpPrim;
-
-    int iRes = -1;
-    int k;
-
-    while(iFinished < 1)
-    {
-        if(dDir > 0)
-        {
-            if(dStart + dBase > dt2 - g_dPrec)
-            {
-                dBase = dt2 - dStart;
-                if(dBase < g_dPrec) iFinished = 2;
-                else iFinished = 1;
-            }
-        }
-        else
-        {
-            if(dStart + dBase < dt1 + g_dPrec)
-            {
-                dBase = dt1 - dStart;
-                if(dBase > g_dPrec) iFinished = 2;
-                else iFinished = 1;
-            }
-        }
-
-        if(iFinished < 2)
-        {
-            for(int j = 0; j < 5; j++)
-            {
-                dv = sqrt(j/4.0);
-                du = dStart + dBase*dv;
-
-                cHypPts[j] = pFunc(da, db, du);
-                cDir1 = pFuncDer(da, db, du);
-                dNorm = GetNorm(cDir1);
-
-                cHypPts[j].x += dr*cDir1.y/dNorm;
-                cHypPts[j].y -= dr*cDir1.x/dNorm;
-            }
-
-            cDir2 = cDir1;
-            cDir1 = pFuncDer(da, db, dStart);
-
-            if(ApproxLineSeg(5, cHypPts, &cDir1, &cDir2, &cTmpPrim) > -0.5)
-            {
-                cPrim.iType = 5;
-                cPrim.cPt1 = cOrig + Rotate(cTmpPrim.cPt1, cMainDir, true);
-                cPrim.cPt2 = cOrig + Rotate(cTmpPrim.cPt2, cMainDir, true);
-                cPrim.cPt3 = cOrig + Rotate(cTmpPrim.cPt3, cMainDir, true);
-                cPrim.cPt4 = cOrig + Rotate(cTmpPrim.cPt4, cMainDir, true);
-            }
-            else
-            {
-                cPrim.iType = 1;
-                cPrim.cPt1 = cOrig + Rotate(cHypPts[0], cMainDir, true);
-                cPrim.cPt2 = cOrig + Rotate(cHypPts[4], cMainDir, true);
-            }
-
-            k = CropPrimitive(cPrim, pRect, pPrimList);
-            if(iRes < 0) iRes = k;
-            else if(iRes != k) iRes = 1;
-
-            dStart += dBase;
-            dBase *= 2.0;
-        }
-    }
-
-    if(!bBothSides) return iRes;
-
-    dBase = 1.0;
-    dStart = 0.0;
-    iFinished = 0;
-
-    while(iFinished < 1)
-    {
-        if(dStart + dBase > dt2 - g_dPrec)
-        {
-            dBase = dt2 - dStart;
-            if(dBase < g_dPrec) iFinished = 2;
-            else iFinished = 1;
-        }
-
-        if(iFinished < 2)
-        {
-            for(int j = 0; j < 5; j++)
-            {
-                dv = sqrt(j/4.0);
-                du = dStart + dBase*dv;
-
-                cHypPts[j] = pFunc(da, db, du);
-                cDir1 = pFuncDer(da, db, du);
-                dNorm = GetNorm(cDir1);
-
-                cHypPts[j].x += dr*cDir1.y/dNorm;
-                cHypPts[j].y -= dr*cDir1.x/dNorm;
-            }
-
-            cDir2 = cDir1;
-            cDir1 = pFuncDer(da, db, dStart);
-
-            if(ApproxLineSeg(5, cHypPts, &cDir1, &cDir2, &cTmpPrim) > -0.5)
-            {
-                cPrim.iType = 5;
-                cPrim.cPt1 = cOrig + Rotate(cTmpPrim.cPt1, cMainDir, true);
-                cPrim.cPt2 = cOrig + Rotate(cTmpPrim.cPt2, cMainDir, true);
-                cPrim.cPt3 = cOrig + Rotate(cTmpPrim.cPt3, cMainDir, true);
-                cPrim.cPt4 = cOrig + Rotate(cTmpPrim.cPt4, cMainDir, true);
-            }
-            else
-            {
-                cPrim.iType = 1;
-                cPrim.cPt1 = cOrig + Rotate(cHypPts[0], cMainDir, true);
-                cPrim.cPt2 = cOrig + Rotate(cHypPts[4], cMainDir, true);
-            }
-
-            k = CropPrimitive(cPrim, pRect, pPrimList);
-            if(iRes < 0) iRes = k;
-            else if(iRes != k) iRes = 1;
-
-            dStart += dBase;
-            dBase *= 2.0;
-        }
-    }
-    return iRes;
-}
-
-int AddBoundQuadCurve(double da, double db, double dr, CurveFunc pFunc, CurveFunc pFuncDer,
-    double dt1, double dt2, CDPoint cOrig, CDPoint cMainDir, PDRect pRect,
-    PDPrimObject pPrimList)
-{
-    double dBase, dStart;
-
-    bool bBothSides = false;
-    double dDir = 1.0;
-
-    if(dt1 > g_dPrec)
-    {
-        dBase = dt1;
-        dStart = dt1;
-    }
-    else if(dt2 < -g_dPrec)
-    {
-        dBase = dt2;
-        dStart = dt2;
-        dDir = -1.0;
-    }
-    else if(dt1 > -g_dPrec)
-    {
-        if(dt2 < g_dPrec) return 0;
-        dBase = 1.0;
-        dStart = 0.0;
-    }
-    else if(dt2 < g_dPrec)
-    {
-        if(dt1 > -g_dPrec) return 0;
-        dBase = -1.0;
-        dStart = 0.0;
-        dDir = -1.0;
-    }
-    else
-    {
-        bBothSides = true;
-        dBase = -1.0;
-        dStart = 0.0;
-        dDir = -1.0;
-    }
-
-    double du, dNorm;
-    CDPoint cDir1, cDir2;
-    int iFinished = 0;
-    CDPrimitive cPrim, cTmpPrim;
-
-    int iRes = -1;
-    int k;
-
-    while(iFinished < 1)
-    {
-        if(dDir > 0)
-        {
-            if(dStart + dBase > dt2 - g_dPrec)
-            {
-                dBase = dt2 - dStart;
-                if(dBase < g_dPrec) iFinished = 2;
-                else iFinished = 1;
-            }
-        }
-        else
-        {
-            if(dStart + dBase < dt1 + g_dPrec)
-            {
-                dBase = dt1 - dStart;
-                if(dBase > g_dPrec) iFinished = 2;
-                else iFinished = 1;
-            }
-        }
-
-        if(iFinished < 2)
-        {
-            du = dStart;
-            cDir1 = pFuncDer(da, db, du);
-            dNorm = GetNorm(cDir1);
-            cTmpPrim.cPt1 = pFunc(da, db, du);
-            cTmpPrim.cPt1.x += dr*cDir1.y/dNorm;
-            cTmpPrim.cPt1.y -= dr*cDir1.x/dNorm;
-
-            du = dStart + dBase;
-            cDir2 = pFuncDer(da, db, du);
-            dNorm = GetNorm(cDir2);
-            cTmpPrim.cPt3 = pFunc(da, db, du);
-            cTmpPrim.cPt3.x += dr*cDir2.y/dNorm;
-            cTmpPrim.cPt3.y -= dr*cDir2.x/dNorm;
-
-            LineXLine(cTmpPrim.cPt1, cDir1, cTmpPrim.cPt3, cDir2, &cTmpPrim.cPt2);
-
-            cPrim.iType = 4;
-            cPrim.cPt1 = cOrig + Rotate(cTmpPrim.cPt1, cMainDir, true);
-            cPrim.cPt2 = cOrig + Rotate(cTmpPrim.cPt2, cMainDir, true);
-            cPrim.cPt3 = cOrig + Rotate(cTmpPrim.cPt3, cMainDir, true);
-
-            k = CropPrimitive(cPrim, pRect, pPrimList);
-            if(iRes < 0) iRes = k;
-            else if(iRes != k) iRes = 1;
-
-            dStart += dBase;
-            dBase *= 2.0;
-        }
-    }
-
-    if(!bBothSides) return iRes;
-
-    dBase = 1.0;
-    dStart = 0.0;
-    iFinished = 0;
-
-    while(iFinished < 1)
-    {
-        if(dStart + dBase > dt2 - g_dPrec)
-        {
-            dBase = dt2 - dStart;
-            if(dBase < g_dPrec) iFinished = 2;
-            else iFinished = 1;
-        }
-
-        if(iFinished < 2)
-        {
-            du = dStart;
-            cDir1 = pFuncDer(da, db, du);
-            dNorm = GetNorm(cDir1);
-            cTmpPrim.cPt1 = pFunc(da, db, du);
-            cTmpPrim.cPt1.x += dr*cDir1.y/dNorm;
-            cTmpPrim.cPt1.y -= dr*cDir1.x/dNorm;
-
-            du = dStart + dBase;
-            cDir2 = pFuncDer(da, db, du);
-            dNorm = GetNorm(cDir2);
-            cTmpPrim.cPt3 = pFunc(da, db, du);
-            cTmpPrim.cPt3.x += dr*cDir2.y/dNorm;
-            cTmpPrim.cPt3.y -= dr*cDir2.x/dNorm;
-
-            LineXLine(cTmpPrim.cPt1, cDir1, cTmpPrim.cPt3, cDir2, &cTmpPrim.cPt2);
-
-            cPrim.iType = 4;
-            cPrim.cPt1 = cOrig + Rotate(cTmpPrim.cPt1, cMainDir, true);
-            cPrim.cPt2 = cOrig + Rotate(cTmpPrim.cPt2, cMainDir, true);
-            cPrim.cPt3 = cOrig + Rotate(cTmpPrim.cPt3, cMainDir, true);
-
-            k = CropPrimitive(cPrim, pRect, pPrimList);
-            if(iRes < 0) iRes = k;
-            else if(iRes != k) iRes = 1;
-
-            dStart += dBase;
-            dBase *= 2.0;
-        }
-    }
-    return iRes;
-}
-
 int SplitCurveParts(double dt1, double dt2, CDPoint cBreak, double *pdParts)
 {
   int iRes = 0;
@@ -1736,7 +1413,7 @@ int SplitCurveParts(double dt1, double dt2, CDPoint cBreak, double *pdParts)
   return iRes;
 }
 
-CDPrimitive GetBezierSimpleSeg(double da, double db, double dr, CurveFunc pFunc, CurveFunc pFuncDer,
+CDPrimitive GetBezierSimpleSeg(void *pvData, double dr, CurveFunc pFunc, CurveFunc pFuncDer,
   double dtStart, double dtBase)
 {
   CDPrimitive cPrim, cTmpPrim;
@@ -1747,8 +1424,8 @@ CDPrimitive GetBezierSimpleSeg(double da, double db, double dr, CurveFunc pFunc,
 
   for(int j = 0; j < 5; j++)
   {
-    cCurvePts[j] = pFunc(da, db, du);
-    cDir1 = pFuncDer(da, db, du);
+    cCurvePts[j] = pFunc(pvData, du);
+    cDir1 = pFuncDer(pvData, du);
     dNorm = GetNorm(cDir1);
 
     cCurvePts[j].x += dr*cDir1.y/dNorm;
@@ -1758,7 +1435,7 @@ CDPrimitive GetBezierSimpleSeg(double da, double db, double dr, CurveFunc pFunc,
   }
 
   cDir2 = cDir1;
-  cDir1 = pFuncDer(da, db, dtStart);
+  cDir1 = pFuncDer(pvData, dtStart);
 
   if(ApproxLineSeg(5, cCurvePts, &cDir1, &cDir2, &cTmpPrim) > -0.5) return cTmpPrim;
 
@@ -1799,7 +1476,7 @@ CDPrimitive GetBezierSimpleSeg(double da, double db, double dr, CurveFunc pFunc,
   return cPrim;
 }*/
 
-int AddCurvePart(double da, double db, double dr, CurveFunc pFunc, CurveFunc pFuncDer,
+int AddCurvePart(void *pvData, double dr, CurveFunc pFunc, CurveFunc pFuncDer,
   double dt1, double dt2, double dInterval, int iSampleStrategy, PDPrimObject pPrimList)
 {
   int iRes = 0;
@@ -1820,7 +1497,7 @@ int AddCurvePart(double da, double db, double dr, CurveFunc pFunc, CurveFunc pFu
     }
     for(int i = 0; i < iRes; i++) 
     {
-      pPrimList->AddPrimitive(GetBezierSimpleSeg(da, db, dr, pFunc, pFuncDer, dStart, dStep));
+      pPrimList->AddPrimitive(GetBezierSimpleSeg(pvData, dr, pFunc, pFuncDer, dStart, dStep));
       dStart += dStep;
       dStep *= dScale;
     }
@@ -1831,7 +1508,7 @@ int AddCurvePart(double da, double db, double dr, CurveFunc pFunc, CurveFunc pFu
     dStep = (dt2 - dt1)/iRes;
     for(int i = 0; i < iRes; i++)
     {
-      pPrimList->AddPrimitive(GetBezierSimpleSeg(da, db, dr, pFunc, pFuncDer,  dStart, dStep));
+      pPrimList->AddPrimitive(GetBezierSimpleSeg(pvData, dr, pFunc, pFuncDer,  dStart, dStep));
       dStart += dStep;
     }
   }
@@ -1839,27 +1516,27 @@ int AddCurvePart(double da, double db, double dr, CurveFunc pFunc, CurveFunc pFu
   return iRes;
 }
 
-int AddCurveSegment(double da, double db, double dr, CDPoint cBreak, CurveFunc pFunc, CurveFunc pFuncDer,
+int AddCurveSegment(void *pvData, double dr, CDPoint cBreak, CurveFunc pFunc, CurveFunc pFuncDer,
   double dt1, double dt2, double dInterval, int iSampleStrategy, PDPrimObject pPrimList)
 {
   double dParts[7];
   int iNumParts = SplitCurveParts(dt1, dt2, cBreak, dParts);
   int iRes = 0;
   for(int i = 0; i < iNumParts - 1; i++)
-    iRes += AddCurvePart(da, db, dr, pFunc, pFuncDer, dParts[i], dParts[i + 1], dInterval, iSampleStrategy, pPrimList);
+    iRes += AddCurvePart(pvData, dr, pFunc, pFuncDer, dParts[i], dParts[i + 1], dInterval, iSampleStrategy, pPrimList);
   return iRes;
 }
 
-CDPoint GetCurveRefAtDist(double da, double db, double dr, CDPoint cBreak, double dDist,
+CDPoint GetCurveRefAtDist(void *pvData, double dr, CDPoint cBreak, double dDist,
   CurveFunc pFunc, CurveFunc pFuncDer, double dInterval, int iSampleStrategy, CDPoint cMaxRef)
 {
   double dBase = dInterval;
 
   CDPrimitive cQuad;
-  cQuad.cPt3 = pFunc(da, db, 0.0);
+  cQuad.cPt3 = pFunc(pvData, 0.0);
 
   CDPoint cDir1, cDir2;
-  cDir2 = pFuncDer(da, db, 0.0);
+  cDir2 = pFuncDer(pvData, 0.0);
   double d1 = GetNorm(cDir2);
 
   cQuad.cPt3.x += dr*cDir2.y/d1;
@@ -1879,10 +1556,10 @@ CDPoint GetCurveRefAtDist(double da, double db, double dr, CDPoint cBreak, doubl
       cQuad.cPt1 = cQuad.cPt3;
 
       dt = (double)(1.0 + i++)*cBreak.x/iSteps;
-      cDir2 = pFuncDer(da, db, dt);
+      cDir2 = pFuncDer(pvData, dt);
       d1 = GetNorm(cDir2);
 
-      cQuad.cPt3 = pFunc(da, db, dt);
+      cQuad.cPt3 = pFunc(pvData, dt);
       cQuad.cPt3.x += dr*cDir2.y/d1;
       cQuad.cPt3.y -= dr*cDir2.x/d1;
 
@@ -1907,10 +1584,10 @@ CDPoint GetCurveRefAtDist(double da, double db, double dr, CDPoint cBreak, doubl
       cQuad.cPt1 = cQuad.cPt3;
 
       dt = cBreak.x + (double)(1.0 + i++)*(cBreak.y - cBreak.x)/iSteps;
-      cDir2 = pFuncDer(da, db, dt);
+      cDir2 = pFuncDer(pvData, dt);
       d1 = GetNorm(cDir2);
 
-      cQuad.cPt3 = pFunc(da, db, dt);
+      cQuad.cPt3 = pFunc(pvData, dt);
       cQuad.cPt3.x += dr*cDir2.y/d1;
       cQuad.cPt3.y -= dr*cDir2.x/d1;
 
@@ -1938,10 +1615,10 @@ CDPoint GetCurveRefAtDist(double da, double db, double dr, CDPoint cBreak, doubl
       cQuad.cPt1 = cQuad.cPt3;
 
       dt = dBase + (double)(1.0 + i++)*dSpan/iSteps;
-      cDir2 = pFuncDer(da, db, dt);
+      cDir2 = pFuncDer(pvData, dt);
       d1 = GetNorm(cDir2);
 
-      cQuad.cPt3 = pFunc(da, db, dt);
+      cQuad.cPt3 = pFunc(pvData, dt);
       cQuad.cPt3.x += dr*cDir2.y/d1;
       cQuad.cPt3.y -= dr*cDir2.x/d1;
 
@@ -1959,10 +1636,10 @@ CDPoint GetCurveRefAtDist(double da, double db, double dr, CDPoint cBreak, doubl
       cDir1 = cDir2;
       cQuad.cPt1 = cQuad.cPt3;
 
-      cDir2 = pFuncDer(da, db, dBase);
+      cDir2 = pFuncDer(pvData, dBase);
       d1 = GetNorm(cDir2);
 
-      cQuad.cPt3 = pFunc(da, db, dBase);
+      cQuad.cPt3 = pFunc(pvData, dBase);
       cQuad.cPt3.x += dr*cDir2.y/d1;
       cQuad.cPt3.y -= dr*cDir2.x/d1;
 
@@ -1983,17 +1660,17 @@ CDPoint GetCurveRefAtDist(double da, double db, double dr, CDPoint cBreak, doubl
   return GetQuadPoint(&cQuad, dt);
 }
 
-double GetCurveDistAtRef(double da, double db, double dr, CDPoint cBreak, double dRef,
+double GetCurveDistAtRef(void *pvData, double dr, CDPoint cBreak, double dRef,
   CurveFunc pFunc, CurveFunc pFuncDer, double dInterval, int iSampleStrategy, CDPoint cMaxRef)
 {
   double dBase = dInterval;
   double dRes = 0.0;
 
   CDPrimitive cQuad;
-  cQuad.cPt3 = pFunc(da, db, 0.0);
+  cQuad.cPt3 = pFunc(pvData, 0.0);
 
   CDPoint cDir1, cDir2;
-  cDir2 = pFuncDer(da, db, 0.0);
+  cDir2 = pFuncDer(pvData, 0.0);
   double d1 = GetNorm(cDir2);
 
   cQuad.cPt3.x += dr*cDir2.y/d1;
@@ -2013,10 +1690,10 @@ double GetCurveDistAtRef(double da, double db, double dr, CDPoint cBreak, double
       cQuad.cPt1 = cQuad.cPt3;
 
       dt = (double)(1.0 + i++)*cBreak.x/iSteps;
-      cDir2 = pFuncDer(da, db, dt);
+      cDir2 = pFuncDer(pvData, dt);
       d1 = GetNorm(cDir2);
 
-      cQuad.cPt3 = pFunc(da, db, dt);
+      cQuad.cPt3 = pFunc(pvData, dt);
       cQuad.cPt3.x += dr*cDir2.y/d1;
       cQuad.cPt3.y -= dr*cDir2.x/d1;
 
@@ -2040,10 +1717,10 @@ double GetCurveDistAtRef(double da, double db, double dr, CDPoint cBreak, double
       cQuad.cPt1 = cQuad.cPt3;
 
       dt = cBreak.x + (double)(1.0 + i++)*(cBreak.y - cBreak.x)/iSteps;
-      cDir2 = pFuncDer(da, db, dt);
+      cDir2 = pFuncDer(pvData, dt);
       d1 = GetNorm(cDir2);
 
-      cQuad.cPt3 = pFunc(da, db, dt);
+      cQuad.cPt3 = pFunc(pvData, dt);
       cQuad.cPt3.x += dr*cDir2.y/d1;
       cQuad.cPt3.y -= dr*cDir2.x/d1;
 
@@ -2070,10 +1747,10 @@ double GetCurveDistAtRef(double da, double db, double dr, CDPoint cBreak, double
       cQuad.cPt1 = cQuad.cPt3;
 
       dt = dBase + (double)(1.0 + i++)*dSpan/iSteps;
-      cDir2 = pFuncDer(da, db, dt);
+      cDir2 = pFuncDer(pvData, dt);
       d1 = GetNorm(cDir2);
 
-      cQuad.cPt3 = pFunc(da, db, dt);
+      cQuad.cPt3 = pFunc(pvData, dt);
       cQuad.cPt3.x += dr*cDir2.y/d1;
       cQuad.cPt3.y -= dr*cDir2.x/d1;
 
@@ -2090,10 +1767,10 @@ double GetCurveDistAtRef(double da, double db, double dr, CDPoint cBreak, double
       cDir1 = cDir2;
       cQuad.cPt1 = cQuad.cPt3;
 
-      cDir2 = pFuncDer(da, db, dBase);
+      cDir2 = pFuncDer(pvData, dBase);
       d1 = GetNorm(cDir2);
 
-      cQuad.cPt3 = pFunc(da, db, dBase);
+      cQuad.cPt3 = pFunc(pvData, dBase);
       cQuad.cPt3.x += dr*cDir2.y/d1;
       cQuad.cPt3.y -= dr*cDir2.x/d1;
 
@@ -2110,8 +1787,8 @@ double GetCurveDistAtRef(double da, double db, double dr, CDPoint cBreak, double
 
   if(dt > dRef + g_dPrec)
   {
-    cDir1 = pFunc(da, db, dRef);
-    cDir2 = pFuncDer(da, db, dRef);
+    cDir1 = pFunc(pvData, dRef);
+    cDir2 = pFuncDer(pvData, dRef);
     d1 = GetNorm(cDir2);
     CDPoint cLnDir = {cDir2.y/d1, -cDir2.x/d1};
     CDPoint pPtX[2], ptQuad[3];
@@ -2161,15 +1838,15 @@ bool GetRefInUboundSeg(double dRef, CDPoint cStart, CDPoint cEnd)
   return ((cStart.x < 0.5) || (dRef > cStart.y - g_dPrec)) && ((cEnd.x < 0.5) || (dRef < cEnd.y - g_dPrec));
 }
 
-int AddCurveInterLineFromPt(double da, double db, double dr, CurveFunc pFunc, CurveFunc pFuncDer,
+int AddCurveInterLineFromPt(void *pvData, double dr, CurveFunc pFunc, CurveFunc pFuncDer,
   PtProjFunc pFuncProj, CDPoint cStart, CDPoint cEnd, double dIterStart,
   CDPoint cLnStart, CDPoint cLnDir, double dLnLen, PDRefList pIntersects)
 {
   int iRes = 0;
   double dx = dIterStart;
 
-  CDPoint cPt1 = pFunc(da, db, dx);
-  CDPoint cDir1 = pFuncDer(da, db, dx);
+  CDPoint cPt1 = pFunc(pvData, dx);
+  CDPoint cDir1 = pFuncDer(pvData, dx);
   double d1 = GetNorm(cDir1);
   cDir1 /= d1;
   cPt1.x += dr*cDir1.y;
@@ -2181,9 +1858,9 @@ int AddCurveInterLineFromPt(double da, double db, double dr, CurveFunc pFunc, Cu
 
   while((i < 8) && (LineXLine(cPt1, cDir1, cLnStart, cLnDir, &cPtX) > 0) && (dDist > g_dPrec))
   {
-    dx = pFuncProj(da, db, dr, cPtX, cStart, cEnd);
-    cPt1 = pFunc(da, db, dx);
-    cDir1 = pFuncDer(da, db, dx);
+    dx = pFuncProj(pvData, dr, cPtX, cStart, cEnd);
+    cPt1 = pFunc(pvData, dx);
+    cDir1 = pFuncDer(pvData, dx);
     d1 = GetNorm(cDir1);
     cDir1 /= d1;
     cPt1.x += dr*cDir1.y;
@@ -2208,7 +1885,7 @@ int AddCurveInterLineFromPt(double da, double db, double dr, CurveFunc pFunc, Cu
   return iRes;
 }
 
-int AddCurveInterLine(double da, double db, double dr, CurveFunc pFunc, CurveFunc pFuncDer,
+int AddCurveInterLine(void *pvData, double dr, CurveFunc pFunc, CurveFunc pFuncDer,
   PtProjFunc pFuncProj, CDPoint cTangent, CDPoint cStart, CDPoint cEnd,
   CDPoint cLn1, CDPoint cLn2, PDRefList pIntersects)
 {
@@ -2223,8 +1900,8 @@ int AddCurveInterLine(double da, double db, double dr, CurveFunc pFunc, CurveFun
   {
     if(GetRefInUboundSeg(cTangent.y, cStart, cEnd)) // possible 2 intersections
     {
-      CDPoint cPt1 = pFunc(da, db, cTangent.y);
-      CDPoint cDir1 = pFuncDer(da, db, cTangent.y);
+      CDPoint cPt1 = pFunc(pvData, cTangent.y);
+      CDPoint cDir1 = pFuncDer(pvData, cTangent.y);
       double d1 = GetNorm(cDir1);
       cDir1 /= d1;
       cPt1.x += dr*cDir1.y;
@@ -2241,32 +1918,32 @@ int AddCurveInterLine(double da, double db, double dr, CurveFunc pFunc, CurveFun
       }
       dx = cTangent.y - 10.0;
       if(cStart.x > 0.5) dx = cStart.y;
-      iRes += AddCurveInterLineFromPt(da, db, dr, pFunc, pFuncDer, pFuncProj, cStart, cEnd, dx,
+      iRes += AddCurveInterLineFromPt(pvData, dr, pFunc, pFuncDer, pFuncProj, cStart, cEnd, dx,
         cLn1, cDir2, dLnLen, pIntersects);
       dx = cTangent.y + 10.0;
       if(cEnd.x > 0.5) dx = cEnd.y;
-      iRes += AddCurveInterLineFromPt(da, db, dr, pFunc, pFuncDer, pFuncProj, cStart, cEnd, dx,
+      iRes += AddCurveInterLineFromPt(pvData, dr, pFunc, pFuncDer, pFuncProj, cStart, cEnd, dx,
         cLn1, cDir2, dLnLen, pIntersects);
     }
     else // 1 intersection max
     {
       if(cStart.x > 0.5)
-        iRes += AddCurveInterLineFromPt(da, db, dr, pFunc, pFuncDer, pFuncProj, cStart, cEnd,
+        iRes += AddCurveInterLineFromPt(pvData, dr, pFunc, pFuncDer, pFuncProj, cStart, cEnd,
           cStart.y, cLn1, cDir2, dLnLen, pIntersects);
       if(cEnd.x > 0.5)
-        iRes += AddCurveInterLineFromPt(da, db, dr, pFunc, pFuncDer, pFuncProj, cStart, cEnd,
+        iRes += AddCurveInterLineFromPt(pvData, dr, pFunc, pFuncDer, pFuncProj, cStart, cEnd,
           cEnd.y, cLn1, cDir2, dLnLen, pIntersects);
     }
   }
   else // 1 intersection max
   {
-    iRes += AddCurveInterLineFromPt(da, db, dr, pFunc, pFuncDer, pFuncProj, cStart, cEnd, 0.0,
+    iRes += AddCurveInterLineFromPt(pvData, dr, pFunc, pFuncDer, pFuncProj, cStart, cEnd, 0.0,
       cLn1, cDir2, dLnLen, pIntersects);
     if(cStart.x > 0.5)
-      iRes += AddCurveInterLineFromPt(da, db, dr, pFunc, pFuncDer, pFuncProj, cStart, cEnd,
+      iRes += AddCurveInterLineFromPt(pvData, dr, pFunc, pFuncDer, pFuncProj, cStart, cEnd,
         cStart.y, cLn1, cDir2, dLnLen, pIntersects);
     if(cEnd.x > 0.5)
-      iRes += AddCurveInterLineFromPt(da, db, dr, pFunc, pFuncDer, pFuncProj, cStart, cEnd,
+      iRes += AddCurveInterLineFromPt(pvData, dr, pFunc, pFuncDer, pFuncProj, cStart, cEnd,
         cEnd.y, cLn1, cDir2, dLnLen, pIntersects);
   }
   return iRes;
