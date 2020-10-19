@@ -837,7 +837,6 @@ int CDObject::GetViewBounds(CDLine cTmpPt, int iMode, PDRect pRect, int iTemp,
     GetPointRefDist(cLocBnds.x, &pDrawBnds->x);
     if(iBndType > 1) GetPointRefDist(cLocBnds.y, &pDrawBnds->y);
   }
-printf("%f, %f - %f, %f\n", cLocBnds.x, cLocBnds.y, pDrawBnds->x, pDrawBnds->y);
 
   if(iRectFlag == 15)
   {

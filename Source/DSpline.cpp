@@ -1083,6 +1083,14 @@ double GetSplineBoundProj(PDPointList pCache, CDPoint cPt, CDPoint cRefPt, bool 
 
 double GetQuadBufProjAtDist(CDPrimitive cQuad, double dr, double t1, double dDist)
 {
+  if(cQuad.iType == 1)
+  {
+    CDPoint cDir = cQuad.cPt2 - cQuad.cPt1;
+    double dNorm = GetNorm(cDir);
+    if(dNorm < g_dPrec) return t1;
+    return t1 + dDist/dNorm;
+  }
+
   if(fabs(dr) < g_dPrec) return GetQuadPointAtDist(&cQuad, t1, dDist);
 
   int iDivs[3];
@@ -1272,7 +1280,7 @@ double GetSplineRefAtDist(double dDist, double dExt, PDPointList pCache)
   {
     cQuad = GetSplineNthSegment(i++, pCache);
     dLen = GetQuadBufLength(cQuad, dr, 0.0, 1.0);
-    bFound = dLen < dDist - g_dPrec;
+    bFound = dDist < dLen - g_dPrec;
     if(!bFound) dDist -= dLen;
   }
 
@@ -1429,7 +1437,7 @@ void AddSplineSegment(double d1, double d2, double dExt, PDPointList pCache, PDP
 {
   double dt1 = GetSplineRefAtDist(d1, dExt, pCache);
   double dt2 = GetSplineRefAtDist(d2, dExt, pCache);
-//printf("Dobry - %f, %f - %f, %f\n", d1, d2, dt1, dt2);
+printf("Dobry - %f, %f - %f, %f\n", d1, d2, dt1, dt2);
   if((dt1 < -0.5) || (dt2 < -0.5)) return;
 
   double dr = dExt;
