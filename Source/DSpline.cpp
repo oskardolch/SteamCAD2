@@ -214,48 +214,50 @@ double AddOffset(CDLine cTmpPt, int iMode, PDPointList pPoints, PDPointList pCac
   int nOffs3 = pPoints->GetCount(3);
   int nOffs4 = pPoints->GetCount(4);
 
-  CDLine cPtX;
-  int iSrchMask = 0;
-  double dDist = 0.0;
-  double dDistOld = 0.0;
-  CDPoint cPt1;
-
-  if(iMode == 2)
+  if((iMode == 2) || (nOffs2 > 0) || (nOffs3 > 0) || (nOffs4 > 0))
   {
-    cPt1 = cTmpPt.cOrigin;
-    if(cTmpPt.cDirection.x < -0.5) iSrchMask = 2;
-  }
-  else if(nOffs2 > 0) cPt1 = pPoints->GetPoint(0, 2).cPoint;
-  else
-  {
-    cPt1 = pPoints->GetPoint(0, 3).cPoint;
-    iSrchMask = 2;
-  }
+    CDLine cPtX;
+    CDPoint cPt1;
+    int iSrchMask = 0;
+    double dDist = 0.0;
+    double dDistOld = 0.0;
 
-  if((iMode == 2) || (nOffs4 == 0))
-    dDist = GetSplineDistFromPt(cPt1, cPt1, iSrchMask, pCache, &cPtX);
-
-  if(iMode == 2)
-  {
-    if(nOffs4 > 0)
-      dDistOld = pPoints->GetPoint(0, 4).cPoint.x;
-    else if(nOffs2 > 0)
+    if(iMode == 2)
     {
-      cPt1 = pPoints->GetPoint(0, 2).cPoint;
-      dDistOld = GetSplineDistFromPt(cPt1, cPt1, 0, pCache, &cPtX);
+      cPt1 = cTmpPt.cOrigin;
+      if(cTmpPt.cDirection.x < -0.5) iSrchMask = 2;
     }
-    else if(nOffs3 > 0)
+    else if(nOffs2 > 0) cPt1 = pPoints->GetPoint(0, 2).cPoint;
+    else
     {
       cPt1 = pPoints->GetPoint(0, 3).cPoint;
-      dDistOld = GetSplineDistFromPt(cPt1, cPt1, 2, pCache, &cPtX);
+      iSrchMask = 2;
     }
-    if(cTmpPt.cDirection.x > 0.5) dDist = dDistOld + cTmpPt.cDirection.y;
+
+    if((iMode == 2) || (nOffs4 == 0))
+      dDist = GetSplineDistFromPt(cPt1, cPt1, iSrchMask, pCache, &cPtX);
+
+    if(iMode == 2)
+    {
+      if(nOffs4 > 0)
+        dDistOld = pPoints->GetPoint(0, 4).cPoint.x;
+      else if(nOffs2 > 0)
+      {
+        cPt1 = pPoints->GetPoint(0, 2).cPoint;
+        dDistOld = GetSplineDistFromPt(cPt1, cPt1, 0, pCache, &cPtX);
+      }
+      else if(nOffs3 > 0)
+      {
+        cPt1 = pPoints->GetPoint(0, 3).cPoint;
+        dDistOld = GetSplineDistFromPt(cPt1, cPt1, 2, pCache, &cPtX);
+      }
+      if(cTmpPt.cDirection.x > 0.5) dDist = dDistOld + cTmpPt.cDirection.y;
+    }
+    else if(nOffs4 > 0) dDist = pPoints->GetPoint(0, 4).cPoint.x;
+
+    dRes = dDist - dDistOld;
+    if((fabs(dDist) > g_dPrec) || (fabs(dDistOld) > g_dPrec)) pCache->AddPoint(dDist, dDistOld, 2);
   }
-  else if(nOffs4 > 0) dDist = pPoints->GetPoint(0, 4).cPoint.x;
-
-  dRes = dDist - dDistOld;
-  if((fabs(dDist) > g_dPrec) || (fabs(dDistOld) > g_dPrec)) pCache->AddPoint(dDist, dDistOld, 2);
-
   return dRes;
 }
 
@@ -514,8 +516,16 @@ bool BuildSplineCache(CDLine cTmpPt, int iMode, PDPointList pPoints, PDPointList
   free(dy);
   free(dx);
 
-  *pdDist = AddOffset(cTmpPt, iMode, pPoints, pCache);
+  double dNewDist = AddOffset(cTmpPt, iMode, pPoints, pCache);
+  if(pdDist) *pdDist = dNewDist;
   return true;
+}
+
+double GetSplineOffset(PDPointList pCache)
+{
+  int nOffs = pCache->GetCount(2);
+  if(nOffs < 1) return 0.0;
+  return pCache->GetPoint(0, 2).cPoint.x;
 }
 
 CDPrimitive SubQuad(double dt1, double dt2, CDPrimitive cQuad)
@@ -639,8 +649,7 @@ double GetQuadBufLength(CDPrimitive cQuad, double dr, double dt1, double dt2)
   if(cQuad.iType == 1)
   {
     double dLen = GetDist(cQuad.cPt1, cQuad.cPt2);
-    if(dLen < g_dPrec) return 0.0;
-    return (dt2 - dt1)/dLen;
+    return (dt2 - dt1)*dLen;
   }
 
   if(fabs(dr) < g_dPrec) return GetQuadLength(&cQuad, dt1, dt2);
@@ -683,12 +692,15 @@ void AddQuadBufPrimitive(CDPrimitive cQuad, double dr, double dt1, double dt2, P
 
   if(cQuad.iType == 1)
   {
-    double dLen = GetDist(cQuad.cPt1, cQuad.cPt2);
+    CDPoint cDir = cQuad.cPt2 - cQuad.cPt1;
+    double dLen = GetNorm(cDir);
     if(dLen < g_dPrec) return;
 
+    cDir = GetNormal(cDir/dLen);
+
     cPrim.iType = 1;
-    cPrim.cPt1 = (1.0 - dt1)*cQuad.cPt1 + dt1*cQuad.cPt2;
-    cPrim.cPt2 = (1.0 - dt2)*cQuad.cPt1 + dt2*cQuad.cPt2;
+    cPrim.cPt1 = (1.0 - dt1)*cQuad.cPt1 + dt1*cQuad.cPt2 + dr*cDir;
+    cPrim.cPt2 = (1.0 - dt2)*cQuad.cPt1 + dt2*cQuad.cPt2 + dr*cDir;
     pPrimList->AddPrimitive(cPrim);
     return;
   }
@@ -768,12 +780,21 @@ double Bound01(double dx, bool *pbIn01)
 
 int GetQuadPtProj(CDPoint cPt, CDPrimitive cQuad, double *pdProj)
 {
+  bool bIn01;
+  CDLine cPtX;
+
+  if(cQuad.iType == 1)
+  {
+    GetPtDistFromLineSeg(cPt, cQuad.cPt1, cQuad.cPt2, &cPtX);
+    *pdProj = Bound01(cPtX.dRef, &bIn01);
+    if(bIn01) return 1;
+    return 0;
+  }
+
   CDPoint cDir1 = cQuad.cPt2 - cQuad.cPt1;
   CDPoint cDir2 = cQuad.cPt3 - cQuad.cPt2;
   double d1 = GetNorm(cDir1);
   double d2 = GetNorm(cDir2);
-  bool bIn01;
-  CDLine cPtX;
 
   if(d1 < g_dPrec)
   {
@@ -1408,7 +1429,7 @@ void AddSplineSegment(double d1, double d2, double dExt, PDPointList pCache, PDP
 {
   double dt1 = GetSplineRefAtDist(d1, dExt, pCache);
   double dt2 = GetSplineRefAtDist(d2, dExt, pCache);
-printf("Dobry - %f, %f - %f, %f\n", d1, d2, dt1, dt2);
+//printf("Dobry - %f, %f - %f, %f\n", d1, d2, dt1, dt2);
   if((dt1 < -0.5) || (dt2 < -0.5)) return;
 
   double dr = dExt;
@@ -1588,7 +1609,7 @@ int AddQuadBufInterLine(CDPoint cPt1, CDPoint cPt2, double dOffset, CDPrimitive 
     cDir = GetNormal(cDir/dNorm);
     cPt21 = cQuad.cPt1 + dOffset*cDir;
     cPt22 = cQuad.cPt2 + dOffset*cDir;
-    iRes = SegXSeg(cPt1, cPt2, cPt21, cPt22, &cRes);
+    iRes = SegXSegParams(cPt1, cPt2, cPt21, cPt22, &cRes);
     if(iRes > 0)
     {
       if((cRes.y > 1.0 - g_dPrec) && !bIncludeLast) return 0;

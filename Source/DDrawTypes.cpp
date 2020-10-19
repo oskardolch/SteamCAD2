@@ -837,6 +837,7 @@ int CDObject::GetViewBounds(CDLine cTmpPt, int iMode, PDRect pRect, int iTemp,
     GetPointRefDist(cLocBnds.x, &pDrawBnds->x);
     if(iBndType > 1) GetPointRefDist(cLocBnds.y, &pDrawBnds->y);
   }
+printf("%f, %f - %f, %f\n", cLocBnds.x, cLocBnds.y, pDrawBnds->x, pDrawBnds->y);
 
   if(iRectFlag == 15)
   {
@@ -2569,6 +2570,7 @@ double CDObject::GetOffset()
   case dtParabola:
     return GetParabOffset(m_pCachePoints);
   case dtSpline:
+    return GetSplineOffset(m_pCachePoints);
   case dtEvolvent:
   case dtPath:
     return 0.0;
@@ -2711,27 +2713,27 @@ double CDObject::GetDistFromPt(CDPoint cPt, CDPoint cRefPt, bool bSnapCenters, P
 
 CDLineStyle CDObject::GetLineStyle()
 {
-    return m_cLineStyle;
+  return m_cLineStyle;
 }
 
 void CDObject::SetLineStyle(int iMask, CDLineStyle cStyle)
 {
-    //m_cLineStyle = cStyle;
-    if(iMask & 1) m_cLineStyle.dWidth = cStyle.dWidth;
-    if(iMask & 2) m_cLineStyle.dPercent = cStyle.dPercent;
-    if(iMask & 4)
-    {
-        int n = cStyle.iSegments;
-        if(n > 6) n = 6;
-        m_cLineStyle.iSegments = n;
-        for(int i = 0; i < n; i++) m_cLineStyle.dPattern[i] = cStyle.dPattern[i];
-    }
-    if(iMask & 8) m_cLineStyle.cCapType = cStyle.cCapType;
-    if(iMask & 16) m_cLineStyle.cJoinType = cStyle.cJoinType;
-    if(iMask & 32)
-    {
-        for(int i = 0; i < 4; i++) m_cLineStyle.cColor[i] = cStyle.cColor[i];
-    }
+  //m_cLineStyle = cStyle;
+  if(iMask & 1) m_cLineStyle.dWidth = cStyle.dWidth;
+  if(iMask & 2) m_cLineStyle.dPercent = cStyle.dPercent;
+  if(iMask & 4)
+  {
+    int n = cStyle.iSegments;
+    if(n > 6) n = 6;
+    m_cLineStyle.iSegments = n;
+    for(int i = 0; i < n; i++) m_cLineStyle.dPattern[i] = cStyle.dPattern[i];
+  }
+  if(iMask & 8) m_cLineStyle.cCapType = cStyle.cCapType;
+  if(iMask & 16) m_cLineStyle.cJoinType = cStyle.cJoinType;
+  if(iMask & 32)
+  {
+    for(int i = 0; i < 4; i++) m_cLineStyle.cColor[i] = cStyle.cColor[i];
+  }
 }
 
 bool CDObject::GetRestrictPoint(CDPoint cPt, int iMode, bool bRestrictSet, double dRestrictValue,
@@ -2767,46 +2769,46 @@ bool CDObject::GetRestrictPoint(CDPoint cPt, int iMode, bool bRestrictSet, doubl
 
 CDObject* CDObject::Copy()
 {
-    PDObject pRes = new CDObject(m_iType, m_cLineStyle.dWidth);
-    pRes->SetInputLine(0, m_cLines[0]);
-    pRes->SetInputLine(1, m_cLines[1]);
-    CDInputPoint cInPt;
+  PDObject pRes = new CDObject(m_iType, m_cLineStyle.dWidth);
+  pRes->SetInputLine(0, m_cLines[0]);
+  pRes->SetInputLine(1, m_cLines[1]);
+  CDInputPoint cInPt;
 
-    for(int i = 0; i < m_pInputPoints->GetCount(-1); i++)
-    {
-        cInPt = m_pInputPoints->GetPoint(i, -1);
-        pRes->AddPoint(cInPt.cPoint.x, cInPt.cPoint.y, cInPt.iCtrl, cInPt.cPoint.x, false);
-    }
-    pRes->SetBound(0, m_cBounds[0]);
-    pRes->SetBound(1, m_cBounds[1]);
-    pRes->SetLineStyle(63, m_cLineStyle);
+  for(int i = 0; i < m_pInputPoints->GetCount(-1); i++)
+  {
+    cInPt = m_pInputPoints->GetPoint(i, -1);
+    pRes->AddPoint(cInPt.cPoint.x, cInPt.cPoint.y, cInPt.iCtrl, cInPt.cPoint.x, false);
+  }
+  pRes->SetBound(0, m_cBounds[0]);
+  pRes->SetBound(1, m_cBounds[1]);
+  pRes->SetLineStyle(63, m_cLineStyle);
 
-    double dRef;
-    for(int i = 0; i < m_pCrossPoints->GetCount(); i++)
-    {
-        dRef = m_pCrossPoints->GetPoint(i);
-        pRes->AddCrossPoint(dRef);
-    }
+  double dRef;
+  for(int i = 0; i < m_pCrossPoints->GetCount(); i++)
+  {
+    dRef = m_pCrossPoints->GetPoint(i);
+    pRes->AddCrossPoint(dRef);
+  }
 
-    return pRes;
+  return pRes;
 }
 
 bool CDObject::IsClosedPath()
 {
-    int n = m_pSubObjects->GetCount();
-    if(n < 1) return false;
-    PDPathSeg pSeg = (PDPathSeg)m_pSubObjects->GetItem(0);
-    if(n < 2) return pSeg->pSegment->IsClosedShape();
+  int n = m_pSubObjects->GetCount();
+  if(n < 1) return false;
+  PDPathSeg pSeg = (PDPathSeg)m_pSubObjects->GetItem(0);
+  if(n < 2) return pSeg->pSegment->IsClosedShape();
 
-    CDPoint cPt1, cPt2;
-    if(pSeg->bReverse) pSeg->pSegment->GetEndPoint(&cPt1);
-    else pSeg->pSegment->GetStartPoint(&cPt1);
+  CDPoint cPt1, cPt2;
+  if(pSeg->bReverse) pSeg->pSegment->GetEndPoint(&cPt1);
+  else pSeg->pSegment->GetStartPoint(&cPt1);
 
-    pSeg = (PDPathSeg)m_pSubObjects->GetItem(n - 1);
-    if(pSeg->bReverse) pSeg->pSegment->GetStartPoint(&cPt2);
-    else pSeg->pSegment->GetEndPoint(&cPt2);
+  pSeg = (PDPathSeg)m_pSubObjects->GetItem(n - 1);
+  if(pSeg->bReverse) pSeg->pSegment->GetStartPoint(&cPt2);
+  else pSeg->pSegment->GetEndPoint(&cPt2);
 
-    return GetDist(cPt1, cPt2) < g_dPrec;
+  return GetDist(cPt1, cPt2) < g_dPrec;
 }
 
 bool CDObject::IsClosedShape()
@@ -2839,7 +2841,7 @@ int CDObject::GetBoundType()
     return 2;
   case dtSpline:
     if(m_pInputPoints->GetCount(1) < 1) return 3;
-    return 3;
+    return 2;
   case dtEvolvent:
   case dtLogSpiral:
   case dtArchSpiral:
@@ -2855,55 +2857,55 @@ int CDObject::GetBoundType()
 
 int CDObject::IsClosed()
 {
-    switch(m_iType)
+  switch(m_iType)
+  {
+  case dtCircle:
+  case dtEllipse:
+  case dtArcEllipse:
+    if(m_cBounds[0].bIsSet)
     {
-    case dtCircle:
-    case dtEllipse:
-    case dtArcEllipse:
-        if(m_cBounds[0].bIsSet)
-        {
-            if(m_cBounds[1].bIsSet) return 0;
-            return 1;
-        }
-        return 2;
-    case dtSpline:
-        if(m_pInputPoints->GetCount(1) < 1) return 0;
-        if(m_cBounds[0].bIsSet)
-        {
-            if(m_cBounds[1].bIsSet) return 0;
-            return 1;
-        }
-        return 2;
-    case dtPath:
-        if(IsClosedPath())
-        {
-            if(m_cBounds[0].bIsSet) return 1;
-            return 2;
-        }
-        return 0;
-    default:
-        if(m_iType < dtPath) return 0;
-        return 2;
+      if(m_cBounds[1].bIsSet) return 0;
+      return 1;
     }
+    return 2;
+  case dtSpline:
+    if(m_pInputPoints->GetCount(1) < 1) return 0;
+    if(m_cBounds[0].bIsSet)
+    {
+      if(m_cBounds[1].bIsSet) return 0;
+      return 1;
+    }
+    return 2;
+  case dtPath:
+    if(IsClosedPath())
+    {
+      if(m_cBounds[0].bIsSet) return 1;
+      return 2;
+    }
+    return 0;
+  default:
+    if(m_iType < dtPath) return 0;
+    return 2;
+  }
 }
 
 void CDObject::SetBound(int iIndex, CDLine cBound)
 {
-    m_cBounds[iIndex].bIsSet = cBound.bIsSet;
-    m_cBounds[iIndex].dRef = cBound.dRef;
-    if(IsClosedShape() && !m_cBounds[0].bIsSet && m_cBounds[1].bIsSet)
-    {
-        m_cBounds[0] = m_cBounds[1];
-        m_cBounds[1].bIsSet = false;
-    }
+  m_cBounds[iIndex].bIsSet = cBound.bIsSet;
+  m_cBounds[iIndex].dRef = cBound.dRef;
+  if(IsClosedShape() && !m_cBounds[0].bIsSet && m_cBounds[1].bIsSet)
+  {
+    m_cBounds[0] = m_cBounds[1];
+    m_cBounds[1].bIsSet = false;
+  }
 
-    int n = m_pCrossPoints->GetCount();
-    double dRef;
-    while(n > 0)
-    {
-        dRef = m_pCrossPoints->GetPoint(--n);
-        if(!IsValidRef(dRef)) m_pCrossPoints->Remove(n);
-    }
+  int n = m_pCrossPoints->GetCount();
+  double dRef;
+  while(n > 0)
+  {
+    dRef = m_pCrossPoints->GetPoint(--n);
+    if(!IsValidRef(dRef)) m_pCrossPoints->Remove(n);
+  }
 }
 
 void CDObject::SetBound(int iIndex, CDRefPoint cBound)

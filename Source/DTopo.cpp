@@ -211,7 +211,7 @@ int SolveBiQuadratics(PDPoint ppCoefs, bool b01, PDPoint ppRes)
     return iSol;
 }
 
-int SegXSeg(CDPoint cPt11, CDPoint cPt12, CDPoint cPt21, CDPoint cPt22, PDPoint pRes)
+int SegXSegParams(CDPoint cPt11, CDPoint cPt12, CDPoint cPt21, CDPoint cPt22, PDPoint pRes)
 {
     CDPoint cCoefs[3];
     cCoefs[0] = cPt11 - cPt21;
@@ -222,11 +222,21 @@ int SegXSeg(CDPoint cPt11, CDPoint cPt12, CDPoint cPt21, CDPoint cPt22, PDPoint 
     int iRes = SolveBiLinear(cCoefs, &cRes);
     if(iRes < 1) return 0;
     if(cRes.x < -g_dPrec) return 0;
-    if(cRes.x > g_dPrec) return 0;
+    if(cRes.x > 1.0 + g_dPrec) return 0;
     if(cRes.y < -g_dPrec) return 0;
-    if(cRes.y > g_dPrec) return 0;
+    if(cRes.y > 1.0 + g_dPrec) return 0;
 
-    *pRes = cPt11 + cRes.x*cCoefs[1];
+    *pRes = cRes;
+    return 1;
+}
+
+int SegXSeg(CDPoint cPt11, CDPoint cPt12, CDPoint cPt21, CDPoint cPt22, PDPoint pRes)
+{
+    CDPoint cRes;
+    int iRes = SegXSegParams(cPt11, cPt12, cPt21, cPt22, &cRes);
+    if(iRes < 1) return 0;
+
+    *pRes = cPt11 + cRes.x*(cPt12 - cPt11);
     return 1;
 }
 
@@ -241,7 +251,7 @@ int LineXSeg(CDPoint cLnOrg, CDPoint cLnDir, CDPoint cPt1, CDPoint cPt2, PDPoint
     int iRes = SolveBiLinear(cCoefs, &cRes);
     if(iRes < 1) return 0;
     if(cRes.y < -g_dPrec) return 0;
-    if(cRes.y > g_dPrec) return 0;
+    if(cRes.y > 1.0 + g_dPrec) return 0;
 
     *pRes = cLnOrg + cRes.x*cLnDir;
     return 1;
