@@ -749,7 +749,7 @@ int CDObject::GetRectangleIntersects(PDRect pRect, double dOffset, int iBndMode,
   cPt2.y = pRect->cPt1.y;
   iTot += AddLineIntersects(cPt1, cPt2, dOffset, pBounds);
 
-  if(iTot > 1)
+  if(iTot > 0)
   {
     pBounds->Sort(0);
     if(iBndMode > 0)
@@ -768,11 +768,19 @@ int CDObject::GetRectangleIntersects(PDRect pRect, double dOffset, int iBndMode,
       else
       {
         GetNativeRefPoint(pRefBnds->x, dOffset, &cProbe);
-        if(!DPtInDRect(cProbe, pRect)) pBounds->InsertPoint(0, pRefBnds->x);
+        if(DPtInDRect(cProbe, pRect))
+        {
+          pBounds->InsertPoint(0, pRefBnds->x);
+          iTot++;
+        }
         if(iBndMode > 2)
         {
           GetNativeRefPoint(pRefBnds->y, dOffset, &cProbe);
-          if(!DPtInDRect(cProbe, pRect)) pBounds->AddPoint(pRefBnds->y);
+          if(DPtInDRect(cProbe, pRect))
+          {
+            pBounds->AddPoint(pRefBnds->y);
+            iTot++;
+          }
         }
       }
     }

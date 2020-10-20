@@ -531,20 +531,14 @@ double GetSplineOffset(PDPointList pCache)
 CDPrimitive SubQuad(double dt1, double dt2, CDPrimitive cQuad)
 {
   double dt = dt2 - dt1;
-
-  CDPoint cp11 = cQuad.cPt1;
-  CDPoint cp12 = 2.0*(cQuad.cPt2 - cQuad.cPt1);
-  CDPoint cp13 = cQuad.cPt3 - 2.0*cQuad.cPt2 + cQuad.cPt1;
-
-  CDPoint cp21 = cp11 + dt1*cp12 + Power2(dt1)*cp13;
-  CDPoint cp22 = dt*(cp12 + 2.0*dt1*cp13);
-  CDPoint cp23 = Power2(dt)*cp13;
+  CDPoint cPt1 = cQuad.cPt3 - 2.0*cQuad.cPt2 + cQuad.cPt1;
+  CDPoint cPt2 = cQuad.cPt2 - cQuad.cPt1;
 
   CDPrimitive cRes;
   cRes.iType = 4;
-  cRes.cPt1 = cp21;
-  cRes.cPt2 = cQuad.cPt1 + cp22/2.0;
-  cRes.cPt3 = cp23 + 2.0*cQuad.cPt2 - cQuad.cPt1;
+  cRes.cPt1 = Power2(dt1)*cPt1 + 2.0*dt1*(cQuad.cPt2 - cQuad.cPt1) + cQuad.cPt1;
+  cRes.cPt2 = dt*(dt1*cPt1 + cPt2) + cRes.cPt1;
+  cRes.cPt3 = Power2(dt)*cPt1 + 2.0*cRes.cPt2 - cRes.cPt1;
   return cRes;
 }
 
@@ -1437,7 +1431,7 @@ void AddSplineSegment(double d1, double d2, double dExt, PDPointList pCache, PDP
 {
   double dt1 = GetSplineRefAtDist(d1, dExt, pCache);
   double dt2 = GetSplineRefAtDist(d2, dExt, pCache);
-printf("Dobry - %f, %f - %f, %f\n", d1, d2, dt1, dt2);
+//printf("Dobry - %f, %f - %f, %f\n", d1, d2, dt1, dt2);
   if((dt1 < -0.5) || (dt2 < -0.5)) return;
 
   double dr = dExt;
@@ -1447,6 +1441,7 @@ printf("Dobry - %f, %f - %f, %f\n", d1, d2, dt1, dt2);
   double dStart, dEnd;
   int i1 = GetRefIndex(dt1, &dStart);
   int i2 = GetRefIndex(dt2, &dEnd);
+//printf("Dobry - %d, %d - %f, %f\n", i1, i2, dStart, dEnd);
 
   CDPrimitive cQuad = GetSplineNthSegment(i1, pCache);
   if(i1 == i2)
