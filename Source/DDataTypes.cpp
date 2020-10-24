@@ -33,23 +33,6 @@ CDPoint Abs(CDPoint cp)
   return cRes;
 }
 
-// cNorm.x = cos(phi), cNorm.y = sin(phi), where phi is the rotation angle
-CDPoint Rotate(CDPoint cp, CDPoint cNorm, bool bInverse)
-{
-  CDPoint cRes;
-  if(bInverse)
-  {
-    cRes.x = cp.x*cNorm.x - cp.y*cNorm.y;
-    cRes.y = cp.y*cNorm.x + cp.x*cNorm.y;
-  }
-  else
-  {
-    cRes.x = cp.x*cNorm.x + cp.y*cNorm.y;
-    cRes.y = cp.y*cNorm.x - cp.x*cNorm.y;
-  }
-  return cRes;
-}
-
 CDPoint Mirror(CDPoint cp, CDLine cLine)
 {
   CDPoint cp1 = Rotate(cp - cLine.cOrigin, cLine.cDirection, false);

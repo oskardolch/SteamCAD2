@@ -99,6 +99,23 @@ CDPoint GetNormal(CDPoint cPt1)
     return cRes;
 }
 
+// cNorm.x = cos(phi), cNorm.y = sin(phi), where phi is the rotation angle
+CDPoint Rotate(CDPoint cp, CDPoint cNorm, bool bInverse)
+{
+  CDPoint cRes;
+  if(bInverse)
+  {
+    cRes.x = cp.x*cNorm.x - cp.y*cNorm.y;
+    cRes.y = cp.y*cNorm.x + cp.x*cNorm.y;
+  }
+  else
+  {
+    cRes.x = cp.x*cNorm.x + cp.y*cNorm.y;
+    cRes.y = cp.y*cNorm.x - cp.x*cNorm.y;
+  }
+  return cRes;
+}
+
 
 int MultPolySubt(int iDeg11, int iDeg12, int iDeg21, int iDeg22,
     double *pdCoef11, double *pdCoef12, double *pdCoef21, double *pdCoef22,
@@ -255,6 +272,38 @@ int LineXSeg(CDPoint cLnOrg, CDPoint cLnDir, CDPoint cPt1, CDPoint cPt2, PDPoint
 
     *pRes = cLnOrg + cRes.x*cLnDir;
     return 1;
+}
+
+int CircXSegParams(CDPoint cOrig, double dRad, CDPoint cPt1, CDPoint cPt2, PDPoint pRes)
+{
+  double dLen = GetDist(cPt1, cPt2);
+  CDPoint cNorm = (cPt2 - cPt1)/dLen;
+  double dAlpha = atan2(cNorm.y, cNorm.x) - M_PI/2.0;
+  CDPoint cOrigRot = Rotate(cOrig - cPt1, cNorm, false);
+  if(fabs(cOrigRot.y) > dRad - g_dPrec) return 0;
+
+  int iRes = 0;
+  double ds, dt = acos(cOrigRot.y/dRad);
+  double dsi = dRad*sin(dt);
+  double dx = cOrigRot.x - dsi;
+  if((dx > g_dPrec) && (dx < dLen - g_dPrec))
+  {
+    iRes++;
+    ds = dAlpha - dt;
+    if(ds < -M_PI) ds += 2*M_PI;
+    if(ds > M_PI) ds -= 2*M_PI;
+    pRes->x = ds;
+  }
+  dx = cOrigRot.x + dsi;
+  if((dx > g_dPrec) && (dx < dLen - g_dPrec))
+  {
+    iRes++;
+    ds = dAlpha + dt;
+    if(ds < -M_PI) ds += 2*M_PI;
+    if(ds > M_PI) ds -= 2*M_PI;
+    pRes->y = ds;
+  }
+  return iRes;
 }
 
 int LineXLine(CDPoint cPt1, CDPoint cDir1, CDPoint cPt2, CDPoint cDir2, PDPoint pRes)

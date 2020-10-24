@@ -196,33 +196,10 @@ int AddCircleInterLine(CDPoint cPt1, CDPoint cPt2, double dOffset, PDPointList p
   if(nOffs > 0) cRad.x += pCache->GetPoint(0, 2).cPoint.x;
 
   double dr = fabs(cRad.x) + dOffset;
-  double dLen = GetDist(cPt1, cPt2);
-  CDPoint cNorm = (cPt2 - cPt1)/dLen;
-  double dAlpha = atan2(cNorm.y, cNorm.x) - M_PI/2.0;
-  CDPoint cOrigRot = Rotate(cOrig - cPt1, cNorm, false);
-  if(fabs(cOrigRot.y) > dr - g_dPrec) return 0;
-
-  int iRes = 0;
-  double ds, dt = acos(cOrigRot.y/dr);
-  double dsi = dr*sin(dt);
-  double dx = cOrigRot.x - dsi;
-  if((dx > g_dPrec) && (dx < dLen - g_dPrec))
-  {
-    iRes++;
-    ds = dAlpha - dt;
-    if(ds < -M_PI) ds += 2*M_PI;
-    if(ds > M_PI) ds -= 2*M_PI;
-    pBounds->AddPoint(ds);
-  }
-  dx = cOrigRot.x + dsi;
-  if((dx > g_dPrec) && (dx < dLen - g_dPrec))
-  {
-    iRes++;
-    ds = dAlpha + dt;
-    if(ds < -M_PI) ds += 2*M_PI;
-    if(ds > M_PI) ds -= 2*M_PI;
-    pBounds->AddPoint(ds);
-  }
+  CDPoint cRes;
+  int iRes = CircXSegParams(cOrig, dr, cPt1, cPt2, &cRes);
+  if(iRes > 0) pBounds->AddPoint(cRes.x);
+  if(iRes > 1) pBounds->AddPoint(cRes.y);
   return iRes;
 }
 

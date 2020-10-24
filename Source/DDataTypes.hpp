@@ -259,7 +259,6 @@ public:
 double Round(double x);
 CDPoint Round(CDPoint cp);
 CDPoint Abs(CDPoint cp);
-CDPoint Rotate(CDPoint cp, CDPoint cNorm, bool bInverse);
 CDPoint Mirror(CDPoint cp, CDLine cLine);
 double Deter2(CDPoint cp1, CDPoint cp2);
 CDPoint MatProd(CDPoint cMat1, CDPoint cMat2, CDPoint cb);

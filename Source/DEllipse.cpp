@@ -19,6 +19,8 @@ extern HWND g_hStatus;*/
 double GetElspBreakAngle(double da, double db, double dOffset, double dr1, double dr2)
 {
   double dRes = -1.0;
+  if(fabs(db - da) < g_dPrec) return dRes;
+
   if((dOffset > dr1 - g_dPrec) && (dOffset < dr2 + g_dPrec))
   {
     if(dOffset < dr1 + g_dPrec) dRes = 0.0;
@@ -96,6 +98,15 @@ bool PtInList(CDPoint cPt, int iSize, PDPoint pList)
 // return cos and sin of dt
 int GetElpsPtProj(double da, double db, CDPoint cPt, PDPoint pProjs)
 {
+  if(fabs(db - da) < g_dPrec)
+  {
+    double dNorm = GetNorm(cPt);
+    if(dNorm < g_dPrec) return 0;
+    pProjs[0] = cPt/dNorm;
+    pProjs[1] = -1.0*pProjs[0];
+    return 2;
+  }
+
   double da2 = Power2(da);
   double db2 = Power2(db);
   if(da2 - db2 < g_dPrec) return 0;
@@ -704,6 +715,19 @@ int AddEllipseInterLine(CDPoint cPt1, CDPoint cPt2, double dOffset, PDPointList 
     return iRes;
   }
 
+  double dr = dOffset;
+  int nOffs = pCache->GetCount(2);
+  if(nOffs > 0) dr += pCache->GetPoint(0, 2).cPoint.x;
+
+  if(fabs(cRad.x - cRad.y) < g_dPrec)
+  {
+    CDPoint cRes;
+    int iRes = CircXSegParams(cOrig, cRad.x + dr, cPt1, cPt2, &cRes);
+    if(iRes > 0) pBounds->AddPoint(cRes.x);
+    if(iRes > 1) pBounds->AddPoint(cRes.y);
+    return iRes;
+  }
+
   cMainDir = pCache->GetPoint(2, 0).cPoint;
 
   CDPoint cLn1 = Rotate(cPt1 - cOrig, cMainDir, false);
@@ -712,10 +736,6 @@ int AddEllipseInterLine(CDPoint cPt1, CDPoint cPt2, double dOffset, PDPointList 
   double dLnLen = GetNorm(cLnDir);
   if(dLnLen < g_dPrec) return 0;
   cLnDir /= dLnLen;
-
-  double dr = dOffset;
-  int nOffs = pCache->GetCount(2);
-  if(nOffs > 0) dr += pCache->GetPoint(0, 2).cPoint.x;
 
   int iBreaks = pCache->GetCount(4);
   double dBreak = M_PI/4.0;
@@ -1040,10 +1060,32 @@ void AddElpsSegment(double d1, double d2, double dExt, PDPointList pCache, PDPri
     return;
   }
 
-  CDPoint cMainDir = pCache->GetPoint(2, 0).cPoint;
   double dr = 0.0;
   int nOffs = pCache->GetCount(2);
   if(nOffs > 0) dr = pCache->GetPoint(0, 2).cPoint.x;
+
+  if(fabs(cRad.y - cRad.x) < g_dPrec)
+  {
+    double dRad = cRad.x + dr;
+    if(fabs(dRad) < g_dPrec) return;
+
+    double dAng1, dAng2;
+    dAng1 = d1/dRad;
+    dAng2 = d2/dRad;
+
+    CDPrimitive cPrim;
+    cPrim.iType = 2;
+    cPrim.cPt1 = cOrig;
+    cPrim.cPt2.x = dRad;
+    cPrim.cPt2.y = 0.0;
+    cPrim.cPt3.x = dAng1;
+    cPrim.cPt3.y = dAng2;
+    cPrim.cPt4 = 0;
+    pPrimList->AddPrimitive(cPrim);
+    return;
+  }
+
+  CDPoint cMainDir = pCache->GetPoint(2, 0).cPoint;
 
   int iBreaks = pCache->GetCount(4);
   CDPoint cBreak = {-1.0, 0.0};
