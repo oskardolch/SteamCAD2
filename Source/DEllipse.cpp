@@ -753,27 +753,30 @@ int AddEllipseInterLine(CDPoint cPt1, CDPoint cPt2, double dOffset, PDPointList 
     if(dt1 > g_dPrec) dt1 -= M_PI;
   }
 
+  double dRefs[8];
   if(dBreak > g_dPrec)
     iRes += AddCurveInterLine(&cRad, dr, ElpsFunc, ElpsFuncDer,
-      ElpsProjFunc, {1.0, dt1}, {1.0, -M_PI}, {1.0, dBreak - M_PI}, cLn1, cLn2, pBounds);
+      ElpsProjFunc, {1.0, dt1}, {1.0, -M_PI}, {1.0, dBreak - M_PI}, cLn1, cLn2, &dRefs[iRes]);
   if(dBreak < pi2 - g_dPrec)
     iRes += AddCurveInterLine(&cRad, dr, ElpsFunc, ElpsFuncDer,
-      ElpsProjFunc, {1.0, dt1}, {1.0, dBreak - M_PI}, {1.0, -dBreak}, cLn1, cLn2, pBounds);
+      ElpsProjFunc, {1.0, dt1}, {1.0, dBreak - M_PI}, {1.0, -dBreak}, cLn1, cLn2, &dRefs[iRes]);
   if(dBreak > g_dPrec)
   {
     iRes += AddCurveInterLine(&cRad, dr, ElpsFunc, ElpsFuncDer,
-      ElpsProjFunc, {1.0, dt1}, {1.0, -dBreak}, {1.0, 0.0}, cLn1, cLn2, pBounds);
+      ElpsProjFunc, {1.0, dt1}, {1.0, -dBreak}, {1.0, 0.0}, cLn1, cLn2, &dRefs[iRes]);
     dt1 += M_PI;
     iRes += AddCurveInterLine(&cRad, dr, ElpsFunc, ElpsFuncDer,
-      ElpsProjFunc, {1.0, dt1}, {1.0, 0.0}, {1.0, dBreak}, cLn1, cLn2, pBounds);
+      ElpsProjFunc, {1.0, dt1}, {1.0, 0.0}, {1.0, dBreak}, cLn1, cLn2, &dRefs[iRes]);
   }
   else dt1 += M_PI;
   if(dBreak < pi2 - g_dPrec)
     iRes += AddCurveInterLine(&cRad, dr, ElpsFunc, ElpsFuncDer,
-      ElpsProjFunc, {1.0, dt1}, {1.0, dBreak}, {1.0, M_PI - dBreak}, cLn1, cLn2, pBounds);
+      ElpsProjFunc, {1.0, dt1}, {1.0, dBreak}, {1.0, M_PI - dBreak}, cLn1, cLn2, &dRefs[iRes]);
   if(dBreak > g_dPrec)
     iRes += AddCurveInterLine(&cRad, dr, ElpsFunc, ElpsFuncDer,
-      ElpsProjFunc, {1.0, dt1}, {1.0, M_PI - dBreak}, {1.0, M_PI}, cLn1, cLn2, pBounds);
+      ElpsProjFunc, {1.0, dt1}, {1.0, M_PI - dBreak}, {1.0, M_PI}, cLn1, cLn2, &dRefs[iRes]);
+
+  for(int i = 0; i < iRes; i++) pBounds->AddPoint(dRefs[i]);
 
   return iRes;
 }

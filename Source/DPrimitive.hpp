@@ -32,9 +32,10 @@ double GetCurveDistAtRef(void *pvData, double dr, CDPoint cBreak, double dRef,
   CurveFunc pFunc, CurveFunc pFuncDer, double dInterval, int iSampleStrategy, CDPoint cMaxRef);
 int AddCurveSegment(void *pvData, double dr, CDPoint cBreak, CurveFunc pFunc, CurveFunc pFuncDer,
   double dt1, double dt2, double dInterval, int iSampleStrategy, PDPrimObject pPrimList);
+// add monotone curve not spreading more than 180 degree, thus the result is 2 intersections max
 int AddCurveInterLine(void *pvData, double dr, CurveFunc pFunc, CurveFunc pFuncDer,
   PtProjFunc pFuncProj, CDPoint cTangent, CDPoint cStart, CDPoint cEnd,
-  CDPoint cLn1, CDPoint cLn2, PDRefList pIntersects);
+  CDPoint cLn1, CDPoint cLn2, double *pdRefs);
 
 void RotatePrimitives(PDPrimObject pSrcList, PDPrimObject pDestList, CDPoint cOrig, CDPoint cMainDir);
 

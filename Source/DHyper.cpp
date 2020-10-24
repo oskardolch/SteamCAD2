@@ -797,27 +797,30 @@ int AddHyperInterLine(CDPoint cPt1, CDPoint cPt2, double dOffset, PDPointList pC
   }
 
   int iRes = 0;
+  double dRefs[6];
   if(dBreak < -g_dPrec)
   {
     iRes = AddCurveInterLine(&cRad, dr, HyperFunc, HyperFuncDer, HyperPtProjFunc,
-      {bTangent ? 1.0 : 0.0, dTangent}, {0.0, 0.0}, {0.0, 0.0}, cLn1, cLn2, pBounds);
+      {bTangent ? 1.0 : 0.0, dTangent}, {0.0, 0.0}, {0.0, 0.0}, cLn1, cLn2, &dRefs[iRes]);
   }
   else if(dBreak < g_dPrec)
   {
     iRes = AddCurveInterLine(&cRad, dr, HyperFunc, HyperFuncDer, HyperPtProjFunc,
-      {bTangent ? 1.0 : 0.0, dTangent}, {0.0, 0.0}, {1.0, 0.0}, cLn1, cLn2, pBounds);
+      {bTangent ? 1.0 : 0.0, dTangent}, {0.0, 0.0}, {1.0, 0.0}, cLn1, cLn2, &dRefs[iRes]);
     iRes += AddCurveInterLine(&cRad, dr, HyperFunc, HyperFuncDer, HyperPtProjFunc,
-      {bTangent ? 1.0 : 0.0, dTangent}, {1.0, 0.0}, {0.0, 0.0}, cLn1, cLn2, pBounds);
+      {bTangent ? 1.0 : 0.0, dTangent}, {1.0, 0.0}, {0.0, 0.0}, cLn1, cLn2, &dRefs[iRes]);
   }
   else
   {
     iRes = AddCurveInterLine(&cRad, dr, HyperFunc, HyperFuncDer, HyperPtProjFunc,
-      {bTangent ? 1.0 : 0.0, dTangent}, {0.0, 0.0}, {1.0, -dBreak}, cLn1, cLn2, pBounds);
+      {bTangent ? 1.0 : 0.0, dTangent}, {0.0, 0.0}, {1.0, -dBreak}, cLn1, cLn2, &dRefs[iRes]);
     iRes += AddCurveInterLine(&cRad, dr, HyperFunc, HyperFuncDer, HyperPtProjFunc,
-      {bTangent ? 1.0 : 0.0, dTangent}, {1.0, -dBreak}, {1.0, dBreak}, cLn1, cLn2, pBounds);
+      {bTangent ? 1.0 : 0.0, dTangent}, {1.0, -dBreak}, {1.0, dBreak}, cLn1, cLn2, &dRefs[iRes]);
     iRes += AddCurveInterLine(&cRad, dr, HyperFunc, HyperFuncDer, HyperPtProjFunc,
-      {bTangent ? 1.0 : 0.0, dTangent}, {1.0, dBreak}, {0.0, 0.0}, cLn1, cLn2, pBounds);
+      {bTangent ? 1.0 : 0.0, dTangent}, {1.0, dBreak}, {0.0, 0.0}, cLn1, cLn2, &dRefs[iRes]);
   }
+
+  for(int i = 0; i < iRes; i++) pBounds->AddPoint(dRefs[i]);
   return iRes;
 }
 

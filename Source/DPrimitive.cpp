@@ -1840,7 +1840,7 @@ bool GetRefInUboundSeg(double dRef, CDPoint cStart, CDPoint cEnd)
 
 int AddCurveInterLineFromPt(void *pvData, double dr, CurveFunc pFunc, CurveFunc pFuncDer,
   PtProjFunc pFuncProj, CDPoint cStart, CDPoint cEnd, double dIterStart,
-  CDPoint cLnStart, CDPoint cLnDir, double dLnLen, PDRefList pIntersects)
+  CDPoint cLnStart, CDPoint cLnDir, double dLnLen, int iRoots, double *pdRefs)
 {
   int iRes = 0;
   double dx = dIterStart;
@@ -1875,10 +1875,10 @@ int AddCurveInterLineFromPt(void *pvData, double dr, CurveFunc pFunc, CurveFunc 
   {
     if(GetRefInUboundSeg(dx, cStart, cEnd))
     {
-      if(!pIntersects->HasPoint(dx))
+      if(!PtInDblList(dx, iRoots, pdRefs))
       {
         iRes = 1;
-        pIntersects->AddPoint(dx);
+        pdRefs[iRoots] = dx;
       }
     }
   }
@@ -1887,7 +1887,7 @@ int AddCurveInterLineFromPt(void *pvData, double dr, CurveFunc pFunc, CurveFunc 
 
 int AddCurveInterLine(void *pvData, double dr, CurveFunc pFunc, CurveFunc pFuncDer,
   PtProjFunc pFuncProj, CDPoint cTangent, CDPoint cStart, CDPoint cEnd,
-  CDPoint cLn1, CDPoint cLn2, PDRefList pIntersects)
+  CDPoint cLn1, CDPoint cLn2, double *pdRefs)
 {
   int iRes = 0;
 
@@ -1919,32 +1919,32 @@ int AddCurveInterLine(void *pvData, double dr, CurveFunc pFunc, CurveFunc pFuncD
       dx = cTangent.y - 10.0;
       if(cStart.x > 0.5) dx = cStart.y;
       iRes += AddCurveInterLineFromPt(pvData, dr, pFunc, pFuncDer, pFuncProj, cStart, cEnd, dx,
-        cLn1, cDir2, dLnLen, pIntersects);
+        cLn1, cDir2, dLnLen, iRes, pdRefs);
       dx = cTangent.y + 10.0;
       if(cEnd.x > 0.5) dx = cEnd.y;
       iRes += AddCurveInterLineFromPt(pvData, dr, pFunc, pFuncDer, pFuncProj, cStart, cEnd, dx,
-        cLn1, cDir2, dLnLen, pIntersects);
+        cLn1, cDir2, dLnLen, iRes, pdRefs);
     }
     else // 1 intersection max
     {
       if(cStart.x > 0.5)
         iRes += AddCurveInterLineFromPt(pvData, dr, pFunc, pFuncDer, pFuncProj, cStart, cEnd,
-          cStart.y, cLn1, cDir2, dLnLen, pIntersects);
+          cStart.y, cLn1, cDir2, dLnLen, iRes, pdRefs);
       if(cEnd.x > 0.5)
         iRes += AddCurveInterLineFromPt(pvData, dr, pFunc, pFuncDer, pFuncProj, cStart, cEnd,
-          cEnd.y, cLn1, cDir2, dLnLen, pIntersects);
+          cEnd.y, cLn1, cDir2, dLnLen, iRes, pdRefs);
     }
   }
   else // 1 intersection max
   {
     iRes += AddCurveInterLineFromPt(pvData, dr, pFunc, pFuncDer, pFuncProj, cStart, cEnd, 0.0,
-      cLn1, cDir2, dLnLen, pIntersects);
-    if(cStart.x > 0.5)
+      cLn1, cDir2, dLnLen, iRes, pdRefs);
+    if((cStart.x > 0.5) && (iRes < 1))
       iRes += AddCurveInterLineFromPt(pvData, dr, pFunc, pFuncDer, pFuncProj, cStart, cEnd,
-        cStart.y, cLn1, cDir2, dLnLen, pIntersects);
-    if(cEnd.x > 0.5)
+        cStart.y, cLn1, cDir2, dLnLen, iRes, pdRefs);
+    if((cEnd.x > 0.5) && (iRes < 1))
       iRes += AddCurveInterLineFromPt(pvData, dr, pFunc, pFuncDer, pFuncProj, cStart, cEnd,
-        cEnd.y, cLn1, cDir2, dLnLen, pIntersects);
+        cEnd.y, cLn1, cDir2, dLnLen, iRes, pdRefs);
   }
   return iRes;
 }

@@ -1307,7 +1307,7 @@ double GetSplineRefAtDist(double dDist, double dExt, PDPointList pCache)
 
   double dr = dExt;
   int nOffs = pCache->GetCount(2);
-  if(nOffs > 0) dr += pCache->GetPoint(0, 2).cPoint.y;
+  if(nOffs > 0) dr += pCache->GetPoint(0, 2).cPoint.x;
 
   int iSegs = GetSplineNumSegments(pCache);
   int i = 0;
@@ -1337,7 +1337,7 @@ double GetSplineDistAtRef(double dRef, double dExt, PDPointList pCache)
 
   double dr = dExt;
   int nOffs = pCache->GetCount(2);
-  if(nOffs > 0) dr += pCache->GetPoint(0, 2).cPoint.y;
+  if(nOffs > 0) dr += pCache->GetPoint(0, 2).cPoint.x;
 
   int iSegs = GetSplineNumSegments(pCache);
   int i = 0;
@@ -1473,9 +1473,11 @@ bool GetSplinePointRefDist(double dRef, PDPointList pCache, double *pdDist)
 
 void AddSplineSegment(double d1, double d2, double dExt, PDPointList pCache, PDPrimObject pPrimList)
 {
+  int iSegs = GetSplineNumSegments(pCache);
+  if(iSegs < 1) return;
+
   double dt1 = GetSplineRefAtDist(d1, dExt, pCache);
   double dt2 = GetSplineRefAtDist(d2, dExt, pCache);
-printf("Dobry - %f, %f - %f, %f\n", d1, d2, dt1, dt2);
   if((dt1 < -0.5) || (dt2 < -0.5)) return;
 
   double dr = dExt;
@@ -1485,9 +1487,26 @@ printf("Dobry - %f, %f - %f, %f\n", d1, d2, dt1, dt2);
   double dStart, dEnd;
   int i1 = GetRefIndex(dt1, &dStart);
   int i2 = GetRefIndex(dt2, &dEnd);
-printf("Dobry - %d, %d - %f, %f\n", i1, i2, dStart, dEnd);
 
   CDPrimitive cQuad = GetSplineNthSegment(i1, pCache);
+  if((i2 < i1) || ((i2 == i1) && (dt2 < dt1)))
+  {
+    AddQuadBufPrimitive(cQuad, dr, dStart, 1.0, pPrimList);
+    for(int i = i1 + 1; i < iSegs; i++)
+    {
+      cQuad = GetSplineNthSegment(i, pCache);
+      AddQuadBufPrimitive(cQuad, dr, 0.0, 1.0, pPrimList);
+    }
+    for(int i = 0; i < i2; i++)
+    {
+      cQuad = GetSplineNthSegment(i, pCache);
+      AddQuadBufPrimitive(cQuad, dr, 0.0, 1.0, pPrimList);
+    }
+    cQuad = GetSplineNthSegment(i2, pCache);
+    AddQuadBufPrimitive(cQuad, dr, 0.0, dEnd, pPrimList);
+    return;
+  }
+
   if(i1 == i2)
   {
     AddQuadBufPrimitive(cQuad, dr, dStart, dEnd, pPrimList);
@@ -1527,7 +1546,7 @@ bool GetSplineRestrictPoint(CDPoint cPt, int iMode, double dRestrictValue, PDPoi
 
   double dDist = 0.0;
   int nOffs = pCache->GetCount(2);
-  if(nOffs > 0) dDist = pCache->GetPoint(0, 2).cPoint.y;
+  if(nOffs > 0) dDist = pCache->GetPoint(0, 2).cPoint.x;
 
   double dRad = dDist + dRestrictValue;
 
@@ -1674,36 +1693,36 @@ int AddQuadBufInterLine(CDPoint cPt1, CDPoint cPt2, double dOffset, CDPrimitive 
 
   double dTangent = -1.0;
   CDPoint cTan;
-  if(Solve2x2Matrix(cQuad.cPt3 - 2.0*cQuad.cPt2 + cQuad.cPt1, -1.0*cDir, cQuad.cPt1 + cQuad.cPt2, &cTan)) dTangent = cTan.x;
+  if(Solve2x2Matrix(cQuad.cPt3 - 2.0*cQuad.cPt2 + cQuad.cPt1, -1.0*cDir, cQuad.cPt1 - cQuad.cPt2, &cTan)) dTangent = cTan.x;
 
-  PDRefList pIntersects = new CDRefList();
-
+  double dt = 0.0;
   double dBreaks[2];
   int iBreaks = GetQuadBreaks(cQuad, dOffset, 0.0, 1.0, dBreaks);
-  double dt = 0.0;
+  /*if(iBreaks < 2)
+  {
+    if(iBreaks < 1) dBreaks[iBreaks++] = 0.3;
+    if(dBreaks[0] > 0.5)
+    {
+      dBreaks[1] = dBreaks[0];
+      dBreaks[0] = dBreaks[1]/2.0;
+    }
+    else dBreaks[1] = (dBreaks[0] + 1.0)/2.0;
+    iBreaks = 2;
+  }*/
   if(iBreaks > 0)
   {
-    iRes += AddCurveInterLine(&cQuad, dOffset, QuadFunc, QuadFuncDer,
-      QuadProjFunc, {1.0, dTangent}, {1.0, dt}, {1.0, dBreaks[0]},
-      cPt1, cPt2, pIntersects);
+    iRes += AddCurveInterLine(&cQuad, dOffset, QuadFunc, QuadFuncDer, QuadProjFunc,
+      {1.0, dTangent}, {1.0, dt}, {1.0, dBreaks[0]}, cPt1, cPt2, &pdBounds[iRes]);
     dt = dBreaks[0];
   }
   if(iBreaks > 1)
   {
-    iRes += AddCurveInterLine(&cQuad, dOffset, QuadFunc, QuadFuncDer,
-      QuadProjFunc, {1.0, dTangent}, {1.0, dt}, {1.0, dBreaks[1]},
-      cPt1, cPt2, pIntersects);
+    iRes += AddCurveInterLine(&cQuad, dOffset, QuadFunc, QuadFuncDer, QuadProjFunc,
+      {1.0, dTangent}, {1.0, dt}, {1.0, dBreaks[1]}, cPt1, cPt2, &pdBounds[iRes]);
     dt = dBreaks[1];
   }
-  iRes += AddCurveInterLine(&cQuad, dOffset, QuadFunc, QuadFuncDer,
-    QuadProjFunc, {1.0, dTangent}, {1.0, dt}, {1.0, 1.0},
-    cPt1, cPt2, pIntersects);
-
-  for(int i = 0; i < iRes; i++)
-  {
-    pdBounds[i] = pIntersects->GetPoint(i);
-  }
-  delete pIntersects;
+  iRes += AddCurveInterLine(&cQuad, dOffset, QuadFunc, QuadFuncDer, QuadProjFunc,
+    {1.0, dTangent}, {1.0, dt}, {1.0, 1.0}, cPt1, cPt2, &pdBounds[iRes]);
 
   return iRes;
 }
@@ -1720,7 +1739,7 @@ int AddSplineInterLine(CDPoint cPt1, CDPoint cPt2, double dOffset, PDPointList p
 
   double dr = dOffset;
   int nOffs = pCache->GetCount(2);
-  if(nOffs > 0) dr += pCache->GetPoint(0, 2).cPoint.y;
+  if(nOffs > 0) dr += pCache->GetPoint(0, 2).cPoint.x;
 
   int iSegs = GetSplineNumSegments(pCache);
   CDPrimitive cQuad;
@@ -1730,7 +1749,10 @@ int AddSplineInterLine(CDPoint cPt1, CDPoint cPt2, double dOffset, PDPointList p
   {
     cQuad = GetSplineNthSegment(i, pCache);
     iRoots = AddQuadBufInterLine(cPt1, cPt2, dr, cQuad, !bClosed && (i == iSegs - 1), dRoots);
-    for(int j = 0; j < iRoots; j++) pBounds->AddPoint((double)i + dRoots[j]);
+    for(int j = 0; j < iRoots; j++)
+    {
+      pBounds->AddPoint((double)i + dRoots[j]);
+    }
     iRes += iRoots;
   }
 
