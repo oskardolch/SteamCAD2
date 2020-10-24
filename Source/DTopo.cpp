@@ -95,7 +95,7 @@ CDPoint VectProd(CDPoint cp1, CDPoint cp2)
 
 CDPoint GetNormal(CDPoint cPt1)
 {
-    CDPoint cRes = {-cPt1.y, cPt1.x};
+    CDPoint cRes = {cPt1.y, -cPt1.x};
     return cRes;
 }
 

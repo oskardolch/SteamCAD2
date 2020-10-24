@@ -577,7 +577,7 @@ int GetQuadBreaks(CDPrimitive cQuad, double dr, double dt1, double dt2, double *
   return iRes;
 }
 
-int GetQuadSpans(CDPrimitive cQuad, double dr, double dt1, double dt2, int *piDivs, double *pdSteps)
+/*int GetQuadSpans(CDPrimitive cQuad, double dr, double dt1, double dt2, int *piDivs, double *pdSteps)
 {
   int iRes = 1;
   double dBreaks[2];
@@ -617,7 +617,7 @@ int GetQuadSpans(CDPrimitive cQuad, double dr, double dt1, double dt2, int *piDi
   }
 
   return iRes;
-}
+}*/
 
 CDPoint GetQuadBufPoint(CDPrimitive cQuad, double dr, double dt)
 {
@@ -638,6 +638,16 @@ CDPoint GetQuadBufPoint(CDPrimitive cQuad, double dr, double dt)
   return GetQuadPoint(&cQuad, dt) + dr*cDir;
 }
 
+CDPoint QuadFunc(void *pvData, double dt)
+{
+  return GetQuadPoint((PDPrimitive)pvData, dt);
+}
+
+CDPoint QuadFuncDer(void *pvData, double dt)
+{
+  return GetQuadDir((PDPrimitive)pvData, dt);
+}
+
 double GetQuadBufLength(CDPrimitive cQuad, double dr, double dt1, double dt2)
 {
   if(cQuad.iType == 1)
@@ -648,7 +658,19 @@ double GetQuadBufLength(CDPrimitive cQuad, double dr, double dt1, double dt2)
 
   if(fabs(dr) < g_dPrec) return GetQuadLength(&cQuad, dt1, dt2);
 
-  int iDivs[3];
+  double dBreaks[2];
+  int iBreaks = GetQuadBreaks(cQuad, dr, 0.0, 1.0, dBreaks);
+  CDPoint cBreak = {-1.0, -1.0};
+  if(iBreaks > 0) cBreak.x = dBreaks[0];
+  if(iBreaks > 1) cBreak.y = dBreaks[1];
+
+  double d2 = GetCurveDistAtRef(&cQuad, dr, cBreak, dt2, QuadFunc, QuadFuncDer, 0.125, 0, {0.0, 1.0});
+  if(fabs(dt1) < g_dPrec) return d2;
+
+  double d1 = GetCurveDistAtRef(&cQuad, dr, cBreak, dt1, QuadFunc, QuadFuncDer, 0.125, 0, {0.0, 1.0});
+  return d2 - d1;
+
+/*  int iDivs[3];
   double dSteps[3];
   int nDivs = GetQuadSpans(cQuad, dr, dt1, dt2, iDivs, dSteps);
 
@@ -677,7 +699,7 @@ double GetQuadBufLength(CDPrimitive cQuad, double dr, double dt1, double dt2)
     }
   }
 
-  return dRes;
+  return dRes;*/
 }
 
 void AddQuadBufPrimitive(CDPrimitive cQuad, double dr, double dt1, double dt2, PDPrimObject pPrimList)
@@ -706,7 +728,15 @@ void AddQuadBufPrimitive(CDPrimitive cQuad, double dr, double dt1, double dt2, P
     return;
   }
 
-  int iDivs[3];
+  double dBreaks[2];
+  int iBreaks = GetQuadBreaks(cQuad, dr, 0.0, 1.0, dBreaks);
+  CDPoint cBreak = {-1.0, -1.0};
+  if(iBreaks > 0) cBreak.x = dBreaks[0];
+  if(iBreaks > 1) cBreak.y = dBreaks[1];
+
+  AddCurveSegment(&cQuad, dr, cBreak, QuadFunc, QuadFuncDer, dt1, dt2, 0.125, 0, pPrimList);
+
+/*  int iDivs[3];
   double dSteps[3];
   int nDivs = GetQuadSpans(cQuad, dr, dt1, dt2, iDivs, dSteps);
 
@@ -732,7 +762,7 @@ void AddQuadBufPrimitive(CDPrimitive cQuad, double dr, double dt1, double dt2, P
       LineXLine(cPrim.cPt1, cDir1, cPrim.cPt3, cDir2, &cPrim.cPt2);
       pPrimList->AddPrimitive(cPrim);
     }
-  }
+  }*/
 
   return;
 }
@@ -1087,7 +1117,21 @@ double GetQuadBufProjAtDist(CDPrimitive cQuad, double dr, double t1, double dDis
 
   if(fabs(dr) < g_dPrec) return GetQuadPointAtDist(&cQuad, t1, dDist);
 
-  int iDivs[3];
+  double dBreaks[2];
+  int iBreaks = GetQuadBreaks(cQuad, dr, 0.0, 1.0, dBreaks);
+  CDPoint cBreak = {-1.0, -1.0};
+  if(iBreaks > 0) cBreak.x = dBreaks[0];
+  if(iBreaks > 1) cBreak.y = dBreaks[1];
+
+  if(fabs(t1) > g_dPrec) dDist += GetQuadBufLength(cQuad, dr, 0.1, t1);
+
+  CDPoint cPt1 = GetCurveRefAtDist(&cQuad, dr, cBreak, dDist, QuadFunc, QuadFuncDer, 0.125, 0, {0.0, 1.0});
+
+  double dt = t1;
+  GetQuadBoundProj(cPt1, cPt1, dr, cQuad, &dt);
+  return dt;
+
+/*  int iDivs[3];
   double dSteps[3];
   int nDivs = GetQuadSpans(cQuad, dr, t1, 1.0, iDivs, dSteps);
 
@@ -1139,7 +1183,7 @@ double GetQuadBufProjAtDist(CDPrimitive cQuad, double dr, double t1, double dDis
   CDPoint cPt1 = GetQuadPoint(&cQuad1, dt);
 
   if(!GetQuadBoundProj(cPt1, cPt1, dr, cQuad, &dt)) dt = dt0;
-  return dt;
+  return dt;*/
 }
 
 int GetRefIndex(double dRef, double *pdt)
@@ -1431,7 +1475,7 @@ void AddSplineSegment(double d1, double d2, double dExt, PDPointList pCache, PDP
 {
   double dt1 = GetSplineRefAtDist(d1, dExt, pCache);
   double dt2 = GetSplineRefAtDist(d2, dExt, pCache);
-//printf("Dobry - %f, %f - %f, %f\n", d1, d2, dt1, dt2);
+printf("Dobry - %f, %f - %f, %f\n", d1, d2, dt1, dt2);
   if((dt1 < -0.5) || (dt2 < -0.5)) return;
 
   double dr = dExt;
@@ -1441,7 +1485,7 @@ void AddSplineSegment(double d1, double d2, double dExt, PDPointList pCache, PDP
   double dStart, dEnd;
   int i1 = GetRefIndex(dt1, &dStart);
   int i2 = GetRefIndex(dt2, &dEnd);
-//printf("Dobry - %d, %d - %f, %f\n", i1, i2, dStart, dEnd);
+printf("Dobry - %d, %d - %f, %f\n", i1, i2, dStart, dEnd);
 
   CDPrimitive cQuad = GetSplineNthSegment(i1, pCache);
   if(i1 == i2)
@@ -1528,16 +1572,6 @@ bool GetSplineReference(double dDist, PDPointList pCache, double *pdRef)
   if(dRef < -0.5) return false;
   *pdRef = dRef;
   return true;
-}
-
-CDPoint QuadFunc(void *pvData, double dt)
-{
-  return GetQuadPoint((PDPrimitive)pvData, dt);
-}
-
-CDPoint QuadFuncDer(void *pvData, double dt)
-{
-  return GetQuadDir((PDPrimitive)pvData, dt);
 }
 
 double QuadProjFunc(void *pvData, double dOffset, CDPoint cPt, CDPoint cStart, CDPoint cEnd)
