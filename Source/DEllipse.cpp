@@ -798,15 +798,44 @@ double GetElpsDistFromPt(CDPoint cPt, CDPoint cRefPt, int iSrchMask, PDPointList
 
   CDPoint cOrig = pCache->GetPoint(0, 0).cPoint;
   CDPoint cRad = pCache->GetPoint(1, 0).cPoint;
-  CDPoint cMainDir = pCache->GetPoint(2, 0).cPoint;
+
   double dDist = 0.0;
   int nOffs = pCache->GetCount(2);
   if(nOffs > 0) dDist = pCache->GetPoint(0, 2).cPoint.x;
 
+  double dMin = -1.0;
+
+  if(fabs(cRad.x - cRad.y) < g_dPrec)
+  {
+    if(iSrchMask & 1)
+    {
+      dMin = GetDist(cRefPt, cOrig);
+      pPtX->bIsSet = true;
+      pPtX->cOrigin = cOrig;
+    }
+
+    CDPoint cProj = GetElpsBoundProj(cRad.x, cRad.x, dDist, cPt - cOrig, cRefPt - cOrig, iSrchMask & 2);
+    if(cProj.x > 4.0) return dMin;
+
+    double dRad = cRad.x + dDist;
+    CDPoint cPt1 = cOrig + dRad*cProj;
+    double dNorm = GetDist(cPt1, cRefPt);
+    if((dNorm < dMin) || (dMin < -0.5))
+    {
+      pPtX->bIsSet = true;
+      pPtX->cOrigin = cPt1;
+      pPtX->cDirection = cProj;
+      pPtX->dRef = atan2(cProj.y, cProj.x);
+      return dNorm;
+    }
+    return dMin;
+  }
+
+  CDPoint cMainDir = pCache->GetPoint(2, 0).cPoint;
+
   CDPoint cPt1 = Rotate(cPt - cOrig, cMainDir, false);
   CDPoint cRefPt1 = Rotate(cRefPt - cOrig, cMainDir, false);
 
-  double dMin = -1.0;
   double dNorm;
 
   if((pCache->GetCount(3) > 0) && (iSrchMask & 1))
@@ -957,11 +986,14 @@ double GetElpsRadiusAtPt(CDPoint cPt, PDPointList pCache, PDLine pPtR, bool bNew
   CDPoint cOrig = pLocCache->GetPoint(0, 0).cPoint;
   CDPoint cRad = pLocCache->GetPoint(1, 0).cPoint;
   CDPoint cMainDir = pLocCache->GetPoint(2, 0).cPoint;
+
   double dDist = 0.0;
   int nOffs = pLocCache->GetCount(2);
   if(nOffs > 0) dDist = pLocCache->GetPoint(0, 2).cPoint.x;
 
   if(bNewPt) delete pLocCache;
+
+  if(fabs(cRad.x - cRad.y) < g_dPrec) return fabs(cRad.x + dDist);
 
   CDPoint cDir, cPt1, cPt2, cPt3;
 
@@ -1013,6 +1045,13 @@ bool GetElpsPointRefDist(double dRef, PDPointList pCache, double *pdDist)
   //CDPoint cMainDir = pCache->GetPoint(2, 0).cPoint;
   int nOffs = pCache->GetCount(2);
   if(nOffs > 0) dDist = pCache->GetPoint(0, 2).cPoint.x;
+
+  if(fabs(cRad.x - cRad.y) < g_dPrec)
+  {
+    double dRad = fabs(cRad.x + dDist);
+    *pdDist = dRef*dRad;
+    return true;
+  }
 
   int iBreaks = pCache->GetCount(4);
   CDPoint cBreak = {-1.0, 0.0};
@@ -1133,14 +1172,25 @@ void AddElpsExtPrim(PDRect pRect, PDPointList pCache, PDPrimObject pPrimList)
   if(iCnt < 3) return;
 
   CDPoint cOrig, cRad, cMainDir;
+  CDPrimitive cPrimPt;
 
   cOrig = pCache->GetPoint(0, 0).cPoint;
   cRad = pCache->GetPoint(1, 0).cPoint;
+  if(fabs(cRad.x - cRad.y) < g_dPrec)
+  {
+    cPrimPt.iType = 7;
+    cPrimPt.cPt1.x = 1;
+    cPrimPt.cPt1.y = 0;
+    cPrimPt.cPt2 = cOrig;
+    cPrimPt.cPt3 = 0;
+    cPrimPt.cPt4 = 0;
+    CropPrimitive(cPrimPt, pRect, pPrimList);
+  }
+
   cMainDir = pCache->GetPoint(2, 0).cPoint;
 
   if(pCache->GetCount(3) > 0)
   {
-    CDPrimitive cPrimPt;
     CDPoint cPt2 = pCache->GetPoint(0, 3).cPoint;
     CDPoint cCenter;
     cCenter.x = cRad.x - cPt2.x;
@@ -1192,6 +1242,13 @@ bool GetElpsRefPoint(double dRef, double dExt, PDPointList pCache, PDPoint pPt)
   double dco = cos(dRef);
   double dsi = sin(dRef);
 
+  if(fabs(cRad.x - cRad.y) < g_dPrec)
+  {
+    CDPoint cDir = {dco, dsi};
+    *pPt = cOrig + (cRad.x + dr)*cDir;
+    return true;
+  }
+
   CDPoint cNorm;
   cNorm.x = cRad.y*dco;
   cNorm.y = cRad.x*dsi;
@@ -1225,6 +1282,13 @@ bool GetElpsRefDir(double dRef, PDPointList pCache, PDPoint pPt)
 
   double dco = cos(dRef);
   double dsi = sin(dRef);
+
+  if(fabs(cRad.x - cRad.y) < g_dPrec)
+  {
+    CDPoint cDir = {dco, dsi};
+    *pPt = cDir;
+    return true;
+  }
 
   CDPoint cNorm;
   cNorm.x = -cRad.x*dsi;
@@ -1260,6 +1324,14 @@ bool GetElpsReference(double dDist, PDPointList pCache, double *pdRef)
   double dr = 0.0;
   int nOffs = pCache->GetCount(2);
   if(nOffs > 0) dr = pCache->GetPoint(0, 2).cPoint.x;
+
+  if(fabs(cRad.x - cRad.y) < g_dPrec)
+  {
+    double dRad = fabs(cRad.x + dr);
+    if(dRad < g_dPrec) return false;
+    *pdRef = dDist/dRad;
+    return true;
+  }
 
   int iBreaks = pCache->GetCount(4);
   CDPoint cBreak = {-1.0, 0.0};
