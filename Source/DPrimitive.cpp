@@ -1912,8 +1912,10 @@ int AddCurveInterLine(void *pvData, double dr, CurveFunc pFunc, CurveFunc pFuncD
       {
         if(fabs(cPtX.x) < g_dPrec)
         {
-          // the line is touching the curve, this point is not of interrest
-          return 0;
+          //// the line is touching the curve, this point is not of interrest
+          //return 0;
+          pdRefs[0] = cTangent.y;
+          return 1;
         }
       }
       dx = cTangent.y - 10.0;

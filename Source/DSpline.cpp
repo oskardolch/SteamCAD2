@@ -1745,15 +1745,21 @@ int AddSplineInterLine(CDPoint cPt1, CDPoint cPt2, double dOffset, PDPointList p
   CDPrimitive cQuad;
   double dRoots[4];
   int iRoots;
+  double dx;
   for(int i = 0; i < iSegs; i++)
   {
     cQuad = GetSplineNthSegment(i, pCache);
     iRoots = AddQuadBufInterLine(cPt1, cPt2, dr, cQuad, !bClosed && (i == iSegs - 1), dRoots);
     for(int j = 0; j < iRoots; j++)
     {
-      pBounds->AddPoint((double)i + dRoots[j]);
+      dx = (double)i + dRoots[j];
+      if(!pBounds->HasPoint(dx))
+      {
+        pBounds->AddPoint(dx);
+        iRes++;
+      }
     }
-    iRes += iRoots;
+    //iRes += iRoots;
   }
 
   return iRes;
