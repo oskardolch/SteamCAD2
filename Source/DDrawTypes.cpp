@@ -1282,8 +1282,9 @@ int CDObject::BuildPrimitives(CDLine cTmpPt, int iMode, PDRect pRect, int iTemp,
       }
       else dEnd = 0.0;
 
-      if((nCrs < 2) && (m_iType < dtSpline))
+      if(nCrs < 2)
       {
+        if(m_iType == dtSpline) cAdd.cPt3.x = m_cLineStyle.dPattern[0];
         cAdd.cPt3.y = dEnd;
         AddCurveSegment(cAdd, plPrimitive, pBounds);
       }

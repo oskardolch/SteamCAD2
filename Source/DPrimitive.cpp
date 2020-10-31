@@ -1906,18 +1906,32 @@ int AddCurveInterLine(void *pvData, double dr, CurveFunc pFunc, CurveFunc pFuncD
       cDir1 /= d1;
       cPt1.x += dr*cDir1.y;
       cPt1.y -= dr*cDir1.x;
-      CDPoint cPtX;
+      /*CDPoint cPtX;
 
       if(LineXLine(cPt1, cDir1, cLn1, cDir2, &cPtX) > 0)
       {
         if(fabs(cPtX.x) < g_dPrec)
         {
           //// the line is touching the curve, this point is not of interrest
-          //return 0;
-          pdRefs[0] = cTangent.y;
-          return 1;
+          return 0;
+          //pdRefs[0] = cTangent.y;
+          //return 1;
         }
+      }*/
+
+      CDPoint cPtX = Rotate(cPt1 - cLn1, cDir2, false);
+      if(fabs(cPtX.y) < g_dPrec)
+      {
+        if((cPtX.x > -g_dPrec) && (cPtX.x < dLnLen - g_dPrec))
+        {
+          // the line is touching the curve
+          return 0;
+          //pdRefs[0] = cTangent.y;
+          //return 1;
+        }
+        else return 0;
       }
+
       dx = cTangent.y - 10.0;
       if(cStart.x > 0.5) dx = cStart.y;
       iRes += AddCurveInterLineFromPt(pvData, dr, pFunc, pFuncDer, pFuncProj, cStart, cEnd, dx,
