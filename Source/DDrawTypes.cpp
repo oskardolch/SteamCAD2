@@ -753,37 +753,6 @@ int CDObject::GetRectangleIntersects(PDRect pRect, double dOffset, int iBndMode,
   {
     CDPoint cProbe;
     pBounds->Sort(0);
-    /*if(iBndMode > 0)
-    {
-      if(iBndMode == 2)
-      {
-        double dt = ((*pBounds)[0] + (*pBounds)[1])/2.0;
-        GetNativeRefPoint(dt, dOffset, &cProbe);
-        if(!DPtInDRect(cProbe, pRect))
-        {
-          pBounds->InsertPoint(0, (*pBounds)[iTot - 1]);
-          pBounds->Truncate(iTot);
-        }
-      }
-      else
-      {
-        GetNativeRefPoint(pRefBnds->x, dOffset, &cProbe);
-        if(DPtInDRect(cProbe, pRect))
-        {
-          pBounds->InsertPoint(0, pRefBnds->x);
-          iTot++;
-        }
-        if(iBndMode > 2)
-        {
-          GetNativeRefPoint(pRefBnds->y, dOffset, &cProbe);
-          if(DPtInDRect(cProbe, pRect))
-          {
-            pBounds->AddPoint(pRefBnds->y);
-            iTot++;
-          }
-        }
-      }
-    }*/
     if(iBndMode > 0)
     {
       GetNativeRefPoint(pRefBnds->x, dOffset, &cProbe);
@@ -813,8 +782,6 @@ int CDObject::GetRectangleIntersects(PDRect pRect, double dOffset, int iBndMode,
       bLastIn = bCurIn;
       dRef2 = dRef1;
       dRef1 = pBounds->GetPoint(i--);
-      //if(dRef1 < dRef2) dRef = (dRef1 + dRef2)/2.0;
-      //else dRef = pRefBnds->x;
       dRef = (dRef1 + dRef2)/2.0;
       GetNativeRefPoint(dRef, dOffset, &cProbe);
       bCurIn = DPtInDRect(cProbe, pRect);
