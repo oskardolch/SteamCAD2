@@ -1925,9 +1925,9 @@ int AddCurveInterLine(void *pvData, double dr, CurveFunc pFunc, CurveFunc pFuncD
         if((cPtX.x > -g_dPrec) && (cPtX.x < dLnLen - g_dPrec))
         {
           // the line is touching the curve
-          return 0;
-          //pdRefs[0] = cTangent.y;
-          //return 1;
+          //return 0;
+          pdRefs[0] = cTangent.y;
+          return 1;
         }
         else return 0;
       }

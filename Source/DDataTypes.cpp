@@ -164,7 +164,7 @@ double GetPtDistFromLineSeg(CDPoint cPt, CDPoint cLp1, CDPoint cLp2, PDLine pPtX
   CDPoint cPt1 = Rotate(cPt - cLp1, cDir, false);
   CDPoint cPt2 = {dNorm, 0.0};
   double dDir = 1.0;
-  if(cPt1.y < 0) dDir = -1.0;
+  if(cPt1.y > g_dPrec) dDir = -1.0;
 
   if(cPt1.x < g_dPrec)
   {
@@ -186,7 +186,7 @@ double GetPtDistFromLineSeg(CDPoint cPt, CDPoint cLp1, CDPoint cLp2, PDLine pPtX
   pPtX->cDirection = GetNormal(cDir);
   pPtX->dRef = cPt1.x/dNorm;
 
-  return cPt1.y;
+  return -cPt1.y;
 }
 
 bool DPtInDRect(CDPoint cPt, PDRect pRect)
@@ -827,113 +827,47 @@ int IntersectBounds(CDPoint cBnds1, CDPoint cBnds2, int iBndMode, double dLength
   return 1;
 }
 
-int UnionBoundPts(CDPoint cBnds1, CDPoint cBnds2, double dLength, PDPoint pRes)
+int GetInterval(double d1, PDRefList pBounds)
 {
-  bool b1Closed = false;
-  bool b2Closed = false;
-
-  if(dLength > g_dPrec)
+  bool bFound = false;
+  int i = 0;
+  while(!bFound && (i < pBounds->GetCount()))
   {
-    b1Closed = fabs(cBnds1.y - cBnds1.x - dLength) < g_dPrec;
-    b2Closed = fabs(cBnds2.y - cBnds2.x - dLength) < g_dPrec;
+    bFound = d1 < (*pBounds)[i++] + g_dPrec;
   }
-
-  if(b1Closed)
+  if(!bFound) return i;
+  if(i % 2 > 0)
   {
-    pRes[0] = cBnds1;
-    return 1;
+    if(d1 > (*pBounds)[i - 1] - g_dPrec) return i;
   }
-
-  if(b2Closed)
-  {
-    pRes[0] = cBnds2;
-    return 1;
-  }
-
-  if((cBnds1.x > cBnds1.y) && (cBnds2.x > cBnds2.y))
-  {
-    pRes[0] = cBnds1;
-    if(cBnds2.x < cBnds1.x) pRes[0].x = cBnds2.x;
-    if(cBnds2.y > cBnds1.y) pRes[0].y = cBnds2.y;
-    return 1;
-  }
-
-  if(cBnds1.x > cBnds1.y)
-  {
-    if((cBnds2.x > cBnds1.x) || (cBnds2.y < cBnds1.y))
-    {
-      pRes[0] = cBnds1;
-      return 1;
-    }
-    if(cBnds2.x > cBnds1.y)
-    {
-      if(cBnds2.y < cBnds1.x)
-      {
-        pRes[0] = cBnds1;
-        pRes[1] = cBnds2;
-        return 2;
-      }
-      pRes[0].x = cBnds2.x;
-      pRes[0].y = cBnds1.y;
-      return 1;
-    }
-    if(cBnds2.y < cBnds1.x)
-    {
-      pRes[0].x = cBnds1.x;
-      pRes[0].y = cBnds2.y;
-      return 1;
-    }
-    // the next should not happen, but just for sure:
-    pRes[0].x = cBnds1.x;
-    pRes[0].y = cBnds1.x + dLength;
-    return 1;
-  }
-
-  if(cBnds2.x > cBnds2.y)
-  {
-    if((cBnds1.x > cBnds2.x) || (cBnds1.y < cBnds2.y))
-    {
-      pRes[0] = cBnds2;
-      return 1;
-    }
-    if(cBnds1.x > cBnds2.y)
-    {
-      if(cBnds1.y < cBnds2.x)
-      {
-        pRes[0] = cBnds1;
-        pRes[1] = cBnds2;
-        return 2;
-      }
-      pRes[0].x = cBnds1.x;
-      pRes[0].y = cBnds2.y;
-      return 1;
-    }
-    if(cBnds1.y < cBnds2.x)
-    {
-      pRes[0].x = cBnds2.x;
-      pRes[0].y = cBnds1.y;
-      return 1;
-    }
-    // the next should not happen, but just for sure:
-    pRes[0].x = cBnds1.x;
-    pRes[0].y = cBnds1.x + dLength;
-    return 1;
-  }
-
-  if((cBnds2.x > cBnds1.y) || (cBnds1.x > cBnds2.y))
-  {
-    pRes[0] = cBnds1;
-    pRes[1] = cBnds2;
-    return 2;
-  }
-
-  pRes[0] = cBnds1;
-  if(cBnds2.x < cBnds1.x) pRes[0].x = cBnds2.x;
-  if(cBnds2.y > cBnds1.y) pRes[0].y = cBnds2.y;
-  return 1;
+  return i - 1;
 }
 
-int UnionBounds(PDRefList pBnds1, PDRefList pBnds2, double dLen, PDRefList pBndsRes)
+void MergeInterval(double d1, double d2, PDRefList pBounds)
+{
+  int i1 = GetInterval(d1, pBounds);
+  int i2 = GetInterval(d2, pBounds);
+  if(i1 == i2)
+  {
+    if(i1 % 2 > 0) return;
+    pBounds->InsertPoint(i1, d2);
+    pBounds->InsertPoint(i1, d1);
+    return;
+  }
+  if(i1 % 2 == 0) pBounds->SetPoint(i1, d1);
+  if(i2 % 2 == 0) pBounds->SetPoint(i2 - 1, d2);
+
+  if(i2 - i1 > 1)
+  {
+    int iStart = i2 - 2;
+    if(i2 % 2 > 0) iStart = i2 - 1;
+    int iEnd = i1 + 1;
+    if(i1 % 2 > 0) iEnd = i1;
+    for(int i = iStart; i >= iEnd; i--) pBounds->Remove(i);
+  }
+}
+
+int UnionBounds(PDRefList pBnds1, PDRefList pBnds2, int iBoundMode, PDPoint pDrawBnds)
 {
   int iInt1 = pBnds1->GetCount();
   int iInt2 = pBnds2->GetCount();
@@ -941,105 +875,29 @@ int UnionBounds(PDRefList pBnds1, PDRefList pBnds2, double dLen, PDRefList pBnds
 
   if(iInt1 < 1)
   {
-    for(int i = 0; i < iInt2; i++) pBndsRes->AddPoint((*pBnds2)[i]);
+    for(int i = 0; i < iInt2; i++) pBnds1->AddPoint((*pBnds2)[i]);
   }
   else if(iInt2 < 1)
   {
-    for(int i = 0; i < iInt1; i++) pBndsRes->AddPoint((*pBnds1)[i]);
+    // do nothing, pBnds1 is the result
   }
   else
   {
-    iInt1 /= 2;
-    iInt2 /= 2;
-
-    CDPoint cPt1, cPt2;
-    CDPoint cUni1[2];
-    bool bFound;
-    for(int j = iInt2 - 1; j >= 0; j--)
+    for(int i = 0; i < iInt2/2; i++)
+      MergeInterval((*pBnds2)[2*i], (*pBnds2)[2*i + 1], pBnds1);
+  }
+  if(iBoundMode == 2)
+  {
+    int iCnt = pBnds1->GetCount();
+    if(iCnt > 1)
     {
-      cPt2.x = (*pBnds2)[2*j];
-      cPt2.y = (*pBnds2)[2*j + 1];
-
-      bFound = false;
-      int i = 0;
-      while(!bFound && (i < iInt1))
+      if((fabs((*pBnds1)[0] - pDrawBnds->x) < g_dPrec) && (fabs((*pBnds1)[iCnt - 1] - pDrawBnds->y) < g_dPrec))
       {
-        cPt1.x = (*pBnds1)[2*i];
-        cPt1.y = (*pBnds1)[2*i + 1];
-        bFound = (UnionBoundPts(cPt1, cPt2, dLen, cUni1) == 1);
-        i++;
+        pBnds1->Remove(0);
+        iCnt--;
+        pBnds1->InsertPoint(0, (*pBnds1)[iCnt - 2]);
+        pBnds1->Truncate(iCnt - 1);
       }
-      if(bFound)
-      {
-        iInt2--;
-        if(j < iInt2)
-        {
-          pBnds2->Remove(2*j);
-          pBnds2->Remove(2*j);
-        }
-
-        cPt1 = cUni1[0];
-        pBnds1->SetPoint(2*(i - 1), cPt1.x);
-        pBnds1->SetPoint(2*(i - 1) + 1, cPt1.y);
-        for(int k = iInt1 - 1; k >= i; k--)
-        {
-          cPt2.x = (*pBnds1)[2*k];
-          cPt2.y = (*pBnds1)[2*k + 1];
-          if(UnionBoundPts(cPt1, cPt2, dLen, cUni1) == 1)
-          {
-            pBnds1->SetPoint(2*(i - 1), (*pBnds1)[2*k]);
-            pBnds1->SetPoint(2*(i - 1) + 1, (*pBnds1)[2*k + 1]);
-            iInt1--;
-            if(k < iInt1)
-            {
-              pBnds1->Remove(2*k);
-              pBnds1->Remove(2*k);
-            }
-          }
-        }
-      }
-    }
-    if((iInt1 > 0) && ((*pBnds1)[0] > (*pBnds1)[1]))
-    {
-      for(int i = 0; i < iInt1; i++)
-      {
-        pBndsRes->AddPoint((*pBnds1)[2*i]);
-        pBndsRes->AddPoint((*pBnds1)[2*i + 1]);
-      }
-      for(int i = 0; i < iInt2; i++)
-      {
-        pBndsRes->AddPoint((*pBnds2)[2*i]);
-        pBndsRes->AddPoint((*pBnds2)[2*i + 1]);
-      }
-      pBndsRes->Sort(1);
-    }
-    else if((iInt2 > 0) && ((*pBnds2)[0] > (*pBnds2)[1]))
-    {
-      for(int i = 0; i < iInt2; i++)
-      {
-        pBndsRes->AddPoint((*pBnds2)[2*i]);
-        pBndsRes->AddPoint((*pBnds2)[2*i + 1]);
-      }
-      for(int i = 0; i < iInt1; i++)
-      {
-        pBndsRes->AddPoint((*pBnds1)[2*i]);
-        pBndsRes->AddPoint((*pBnds1)[2*i + 1]);
-      }
-      pBndsRes->Sort(1);
-    }
-    else
-    {
-      for(int i = 0; i < iInt1; i++)
-      {
-        pBndsRes->AddPoint((*pBnds1)[2*i]);
-        pBndsRes->AddPoint((*pBnds1)[2*i + 1]);
-      }
-      for(int i = 0; i < iInt2; i++)
-      {
-        pBndsRes->AddPoint((*pBnds2)[2*i]);
-        pBndsRes->AddPoint((*pBnds2)[2*i + 1]);
-      }
-      pBndsRes->Sort(0);
     }
   }
   return 1;

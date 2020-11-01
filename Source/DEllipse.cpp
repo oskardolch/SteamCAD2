@@ -823,15 +823,18 @@ double GetElpsDistFromPt(CDPoint cPt, CDPoint cRefPt, int iSrchMask, PDPointList
     double dRad = cRad.x + dDist;
     CDPoint cPt1 = cOrig + dRad*cProj;
     double dNorm = GetDist(cPt1, cRefPt);
+    double dRad2 = GetNorm(cRefPt - cOrig);
+    double dFact = 1.0;
+    if(dRad2 < dRad - g_dPrec) dFact = -1.0;
     if((dNorm < dMin) || (dMin < -0.5))
     {
       pPtX->bIsSet = true;
       pPtX->cOrigin = cPt1;
       pPtX->cDirection = cProj;
       pPtX->dRef = atan2(cProj.y, cProj.x);
-      return dNorm;
+      return dFact*dNorm;
     }
-    return dMin;
+    return dFact*dMin;
   }
 
   CDPoint cMainDir = pCache->GetPoint(2, 0).cPoint;

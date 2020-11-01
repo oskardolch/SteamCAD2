@@ -751,10 +751,10 @@ int CDObject::GetRectangleIntersects(PDRect pRect, double dOffset, int iBndMode,
 
   if(iTot > 0)
   {
+    CDPoint cProbe;
     pBounds->Sort(0);
-    if(iBndMode > 0)
+    /*if(iBndMode > 0)
     {
-      CDPoint cProbe;
       if(iBndMode == 2)
       {
         double dt = ((*pBounds)[0] + (*pBounds)[1])/2.0;
@@ -782,6 +782,46 @@ int CDObject::GetRectangleIntersects(PDRect pRect, double dOffset, int iBndMode,
             iTot++;
           }
         }
+      }
+    }*/
+    if(iBndMode > 0)
+    {
+      GetNativeRefPoint(pRefBnds->x, dOffset, &cProbe);
+      if(DPtInDRect(cProbe, pRect))
+      {
+        pBounds->InsertPoint(0, pRefBnds->x);
+        iTot++;
+      }
+      if(iBndMode > 1)
+      {
+        GetNativeRefPoint(pRefBnds->y, dOffset, &cProbe);
+        if(DPtInDRect(cProbe, pRect))
+        {
+          pBounds->AddPoint(pRefBnds->y);
+          iTot++;
+        }
+      }
+    }
+
+    int i = iTot - 1;
+    bool bLastIn = false;
+    bool bCurIn = false;
+    double dRef1, dRef2, dRef;
+    dRef1 = pBounds->GetPoint(i--);
+    while(i >= 0)
+    {
+      bLastIn = bCurIn;
+      dRef2 = dRef1;
+      dRef1 = pBounds->GetPoint(i--);
+      //if(dRef1 < dRef2) dRef = (dRef1 + dRef2)/2.0;
+      //else dRef = pRefBnds->x;
+      dRef = (dRef1 + dRef2)/2.0;
+      GetNativeRefPoint(dRef, dOffset, &cProbe);
+      bCurIn = DPtInDRect(cProbe, pRect);
+      if(bCurIn && bLastIn)
+      {
+        pBounds->Remove(i + 2);
+        iTot--;
       }
     }
   }
@@ -886,7 +926,6 @@ int CDObject::GetViewBounds(CDLine cTmpPt, int iMode, PDRect pRect, int iTemp,
   PDRefList pInt2 = new CDRefList();
   int iCnt1 = GetRectangleIntersects(pRect, dMid - dExt, iBndType, &cLocBnds, pInt1);
   int iCnt2 = GetRectangleIntersects(pRect, dMid + dExt, iBndType, &cLocBnds, pInt2);
-//int iCnt2 = 1;
 
   if((iCnt1 < 1) || (iCnt2 < 1))
   {
@@ -905,7 +944,6 @@ int CDObject::GetViewBounds(CDLine cTmpPt, int iMode, PDRect pRect, int iTemp,
       }
     }
   }
-//iCnt2 = 0;
 
   if((iCnt1 < 1) && (iCnt2 < 1))
   {
@@ -914,108 +952,20 @@ int CDObject::GetViewBounds(CDLine cTmpPt, int iMode, PDRect pRect, int iTemp,
     return 0;
   }
 
-  PDRefList pTmpBnds = new CDRefList();
-  int iRes = UnionBounds(pInt1, pInt2, cLocBnds.y - cLocBnds.x, pTmpBnds);
-/*int iRes = iCnt1/2;
-for(int i = 0; i < iCnt1; i++)
-{
-pTmpBnds->AddPoint(pInt1->GetPoint(i));
-}
-pTmpBnds->Sort(0);
-printf("%d", iCnt1);
-for(int i = 0; i < iCnt1; i++)
-{
-printf(", %f", pTmpBnds->GetPoint(i));
-}
-printf("\n");*/
+  int iRes = UnionBounds(pInt1, pInt2, iBndType, &cLocBnds);
   delete pInt2;
-  delete pInt1;
 
   if(IsClosedShape())
-  {
-    int n = pTmpBnds->GetCount();
-    double t1, t2, t3, dTestRef;
-    if((*pTmpBnds)[0] < (*pTmpBnds)[1])
-    {
-      t1 = cLocBnds.y - (*pTmpBnds)[n - 1];
-      t2 = (*pTmpBnds)[0] - cLocBnds.x;
-      t3 = (t1 + t2)/2.0;
-      if(t1 > t2) dTestRef = (*pTmpBnds)[n - 1] + t3;
-      else dTestRef = (*pTmpBnds)[0] - t3;
-      GetNativeRefPoint(dTestRef, dMid, &cProbe);
-      if(DPtInDRect(cProbe, pRect))
-      {
-        pTmpBnds->InsertPoint(0, (*pTmpBnds)[n - 1]);
-        /*if(n < 3)
-        {
-          pBounds->AddPoint(pDrawBnds->x);
-          pBounds->AddPoint(pDrawBnds->y);
-          delete pTmpBnds;
-          return 2;
-        }
-        pTmpBnds->SetPoint(0, (*pTmpBnds)[n - 1]);
-        n -= 2;*/
-        pTmpBnds->Truncate(n);
-      }
-    }
-    bool bFound = false;
-    while(!bFound && ((*pTmpBnds)[0] > (*pTmpBnds)[1]) && (n > 1))
-    {
-      dTestRef = ((*pTmpBnds)[0] + (*pTmpBnds)[n - 1])/2.0;
-      GetNativeRefPoint(dTestRef, dMid, &cProbe);
-      if(DPtInDRect(cProbe, pRect))
-      {
-        if(n < 3)
-        {
-          pBounds->AddPoint(pDrawBnds->x);
-          pBounds->AddPoint(pDrawBnds->y);
-          delete pTmpBnds;
-          return 2;
-        }
-        pTmpBnds->SetPoint(0, (*pTmpBnds)[n - 2]);
-        n -= 2;
-        pTmpBnds->Truncate(n);
-      }
-      else bFound = true;
-    }
-
-    if(n > 2)
-    {
-      for(int i = n/2 - 1; i >= 1; i--)
-      {
-        dTestRef = ((*pTmpBnds)[2*i] + (*pTmpBnds)[2*i - 1])/2.0;
-        GetNativeRefPoint(dTestRef, dMid, &cProbe);
-        if(DPtInDRect(cProbe, pRect))
-        {
-          if(n < 3)
-          {
-            pBounds->AddPoint(pDrawBnds->x);
-            pBounds->AddPoint(pDrawBnds->y);
-            delete pTmpBnds;
-            return 2;
-          }
-          pTmpBnds->SetPoint(2*i - 1, (*pTmpBnds)[2*i + 1]);
-          pTmpBnds->Remove(2*i + 1);
-          pTmpBnds->Remove(2*i);
-        }
-      }
-    }
-  }
-
-  if(IsClosedShape())
-    MergeCornerRefs(pTmpBnds, &cLocBnds, iRectFlag, dCornerRefs);
+    MergeCornerRefs(pInt1, &cLocBnds, iRectFlag, dCornerRefs);
   else
-    MergeCornerRefs(pTmpBnds, NULL, iRectFlag, dCornerRefs);
+    MergeCornerRefs(pInt1, NULL, iRectFlag, dCornerRefs);
 
-//printf("Final: ");
-  for(int i = 0; i < pTmpBnds->GetCount(); i++)
+  for(int i = 0; i < pInt1->GetCount(); i++)
   {
-    GetPointRefDist((*pTmpBnds)[i], &d1);
-//printf("%f - %f, ", (*pTmpBnds)[i], d1);
+    GetPointRefDist((*pInt1)[i], &d1);
     pBounds->AddPoint(d1);
   }
-//printf("\n");
-  delete pTmpBnds;
+  delete pInt1;
 
   return iRes;
 }

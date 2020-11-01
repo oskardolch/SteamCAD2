@@ -1418,7 +1418,7 @@ bool GetSplineRestrictPoint(CDPoint cPt, int iMode, double dRestrictValue, PDPoi
 
   double dDist = 0.0;
   int nOffs = pCache->GetCount(2);
-  if(nOffs > 0) dDist = pCache->GetPoint(0, 2).cPoint.x;
+  if(nOffs > 0) dDist = pCache->GetPoint(0, 2).cPoint.y;
 
   double dRad = dDist + dRestrictValue;
 
