@@ -334,6 +334,9 @@ void CDObject::AddCurveSegment(CDPrimitive cAddMode, PDPrimObject pPrimitive, PD
       case dtSpline:
         AddSplineSegment(pBnds[j].x, pBnds[j].y, dExt, m_pCachePoints, pPrimitive);
         break;
+      case dtEvolvent:
+        AddEvolvSegment(pBnds[j].x, pBnds[j].y, dExt, m_pCachePoints, pPrimitive);
+        break;
       default:
         break;
       }
@@ -720,6 +723,8 @@ int CDObject::AddLineIntersects(CDPoint cPt1, CDPoint cPt2, double dOffset, PDRe
     iRes = AddSplineInterLine(cPt1, cPt2, dOffset, m_pCachePoints, pBounds);
     break;
   case dtEvolvent:
+    iRes = AddEvolvInterLine(cPt1, cPt2, dOffset, m_pCachePoints, pBounds);
+    break;
   case dtLogSpiral:
   case dtArchSpiral:
   case dtPath:
