@@ -570,7 +570,7 @@ bool GetEvolvPointRefDist(double dRef, PDPointList pCache, double *pdDist)
 int AddEvolvInterLine(CDPoint cPt1, CDPoint cPt2, double dOffset, PDPointList pCache, PDRefList pBounds)
 {
   int iCnt = pCache->GetCount(0);
-  if(iCnt < 3) return;
+  if(iCnt < 3) return 0;
 
   CDPoint cOrig, cN1, cRad;
   cOrig = pCache->GetPoint(0, 0).cPoint;
