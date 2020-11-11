@@ -3216,7 +3216,7 @@ void CMainWnd::DrawObjectPlus(HWND hWnd, Graphics *graphics, PDObject pObj, int 
     //   (2, 2) - close last subpath and stroke path
         if(fabs(cPrim.cPt1.x - 1.0) < 0.2)
         {
-          //cairo_new_path(cr);
+          hPath.Reset();
           //if(fabs(cPrim.cPt2.x - 1.0) < 0.2)
           //  cairo_move_to(cr, m_cViewOrigin.x + cPrim.cPt3.x, m_cViewOrigin.y + cPrim.cPt3.y);
         }
