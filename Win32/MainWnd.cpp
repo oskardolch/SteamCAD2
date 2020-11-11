@@ -2886,7 +2886,7 @@ void CMainWnd::DrawDimText(HWND hWnd, HDC hdc, PDPrimitive pPrim, PDObject pObj,
     }
 }*/
 
-void CMainWnd::DrawPrimitivePlus(Graphics *graphics, Pen *pen, PDPrimitive pPrim)
+void CMainWnd::DrawPrimitivePlus(Graphics *graphics, Pen *pen, GraphicsPath *path, PDPrimitive pPrim)
 {
   double dr;
   //POINT pPts[3];
@@ -2902,7 +2902,10 @@ void CMainWnd::DrawPrimitivePlus(Graphics *graphics, Pen *pen, PDPrimitive pPrim
     cStartPt.y = pPrim->cPt1.y + m_cViewOrigin.y;
     cEndPt.x = pPrim->cPt2.x + m_cViewOrigin.x;
     cEndPt.y = pPrim->cPt2.y + m_cViewOrigin.y;
-    graphics->DrawLine(pen, (REAL)cStartPt.x, (REAL)cStartPt.y, (REAL)cEndPt.x, (REAL)cEndPt.y);
+    if(!path)
+      graphics->DrawLine(pen, (REAL)cStartPt.x, (REAL)cStartPt.y, (REAL)cEndPt.x, (REAL)cEndPt.y);
+    else
+      path->AddLine((REAL)cStartPt.x, (REAL)cStartPt.y, (REAL)cEndPt.x, (REAL)cEndPt.y);
     break;
   case 2:
     cStartPt.x = pPrim->cPt1.x + m_cViewOrigin.x + pPrim->cPt2.x*cos(pPrim->cPt3.x);
@@ -2917,40 +2920,74 @@ void CMainWnd::DrawPrimitivePlus(Graphics *graphics, Pen *pen, PDPrimitive pPrim
       cStartPt.x = pPrim->cPt3.x*180.0/M_PI;
       cStartPt.y = (pPrim->cPt3.y - pPrim->cPt3.x)*180.0/M_PI;
       if(cStartPt.y < 0.0) cStartPt.y += 360.0;
-      graphics->DrawArc(pen, (REAL)(m_cViewOrigin.x + pPrim->cPt1.x - dr),
-        (REAL)(m_cViewOrigin.y + pPrim->cPt1.y - dr),
-        (REAL)2.0*dr, (REAL)2.0*dr, (REAL)cStartPt.x, (REAL)cStartPt.y);
+      if(!path)
+        graphics->DrawArc(pen, (REAL)(m_cViewOrigin.x + pPrim->cPt1.x - dr),
+          (REAL)(m_cViewOrigin.y + pPrim->cPt1.y - dr),
+          (REAL)2.0*dr, (REAL)2.0*dr, (REAL)cStartPt.x, (REAL)cStartPt.y);
+      else
+        path->AddArc((REAL)(m_cViewOrigin.x + pPrim->cPt1.x - dr),
+          (REAL)(m_cViewOrigin.y + pPrim->cPt1.y - dr),
+          (REAL)2.0*dr, (REAL)2.0*dr, (REAL)cStartPt.x, (REAL)cStartPt.y);
     }
     else
-      graphics->DrawLine(pen, (REAL)cStartPt.x, (REAL)cStartPt.y, (REAL)cEndPt.x, (REAL)cEndPt.y);
+    {
+      if(!path)
+        graphics->DrawLine(pen, (REAL)cStartPt.x, (REAL)cStartPt.y, (REAL)cEndPt.x, (REAL)cEndPt.y);
+      else
+        path->AddLine((REAL)cStartPt.x, (REAL)cStartPt.y, (REAL)cEndPt.x, (REAL)cEndPt.y);
+    }
     break;
   case 3:
     //dr = (pPrim->cPt2.x - pPrim->cPt1.x);
     dr = pPrim->cPt2.x;
-    graphics->DrawEllipse(pen, (REAL)(m_cViewOrigin.x + pPrim->cPt1.x - dr),
-      (REAL)(m_cViewOrigin.y + pPrim->cPt1.y - dr), (REAL)2.0*dr, (REAL)2.0*dr);
+    if(!path)
+      graphics->DrawEllipse(pen, (REAL)(m_cViewOrigin.x + pPrim->cPt1.x - dr),
+        (REAL)(m_cViewOrigin.y + pPrim->cPt1.y - dr), (REAL)2.0*dr, (REAL)2.0*dr);
+    else
+      path->AddEllipse((REAL)(m_cViewOrigin.x + pPrim->cPt1.x - dr),
+        (REAL)(m_cViewOrigin.y + pPrim->cPt1.y - dr), (REAL)2.0*dr, (REAL)2.0*dr);
     break;
   case 4:
     cPt1 = (pPrim->cPt1 + 2.0*pPrim->cPt2)/3.0;
     cPt2 = (pPrim->cPt3 + 2.0*pPrim->cPt2)/3.0;
-    graphics->DrawBezier(pen, (REAL)(m_cViewOrigin.x + pPrim->cPt1.x),
-      (REAL)(m_cViewOrigin.y + pPrim->cPt1.y),
-      (REAL)(m_cViewOrigin.x + cPt1.x),
-      (REAL)(m_cViewOrigin.y + cPt1.y),
-      (REAL)(m_cViewOrigin.x + cPt2.x),
-      (REAL)(m_cViewOrigin.y + cPt2.y),
-      (REAL)(m_cViewOrigin.x + pPrim->cPt3.x),
-      (REAL)(m_cViewOrigin.y + pPrim->cPt3.y));
+    if(!path)
+      graphics->DrawBezier(pen, (REAL)(m_cViewOrigin.x + pPrim->cPt1.x),
+        (REAL)(m_cViewOrigin.y + pPrim->cPt1.y),
+        (REAL)(m_cViewOrigin.x + cPt1.x),
+        (REAL)(m_cViewOrigin.y + cPt1.y),
+        (REAL)(m_cViewOrigin.x + cPt2.x),
+        (REAL)(m_cViewOrigin.y + cPt2.y),
+        (REAL)(m_cViewOrigin.x + pPrim->cPt3.x),
+        (REAL)(m_cViewOrigin.y + pPrim->cPt3.y));
+    else
+      path->AddBezier((REAL)(m_cViewOrigin.x + pPrim->cPt1.x),
+        (REAL)(m_cViewOrigin.y + pPrim->cPt1.y),
+        (REAL)(m_cViewOrigin.x + cPt1.x),
+        (REAL)(m_cViewOrigin.y + cPt1.y),
+        (REAL)(m_cViewOrigin.x + cPt2.x),
+        (REAL)(m_cViewOrigin.y + cPt2.y),
+        (REAL)(m_cViewOrigin.x + pPrim->cPt3.x),
+        (REAL)(m_cViewOrigin.y + pPrim->cPt3.y));
     break;
   case 5:
-    graphics->DrawBezier(pen, (REAL)(m_cViewOrigin.x + pPrim->cPt1.x),
-      (REAL)(m_cViewOrigin.y + pPrim->cPt1.y),
-      (REAL)(m_cViewOrigin.x + pPrim->cPt2.x),
-      (REAL)(m_cViewOrigin.y + pPrim->cPt2.y),
-      (REAL)(m_cViewOrigin.x + pPrim->cPt3.x),
-      (REAL)(m_cViewOrigin.y + pPrim->cPt3.y),
-      (REAL)(m_cViewOrigin.x + pPrim->cPt4.x),
-      (REAL)(m_cViewOrigin.y + pPrim->cPt4.y));
+    if(!path)
+      graphics->DrawBezier(pen, (REAL)(m_cViewOrigin.x + pPrim->cPt1.x),
+        (REAL)(m_cViewOrigin.y + pPrim->cPt1.y),
+        (REAL)(m_cViewOrigin.x + pPrim->cPt2.x),
+        (REAL)(m_cViewOrigin.y + pPrim->cPt2.y),
+        (REAL)(m_cViewOrigin.x + pPrim->cPt3.x),
+        (REAL)(m_cViewOrigin.y + pPrim->cPt3.y),
+        (REAL)(m_cViewOrigin.x + pPrim->cPt4.x),
+        (REAL)(m_cViewOrigin.y + pPrim->cPt4.y));
+    else
+      path->AddBezier((REAL)(m_cViewOrigin.x + pPrim->cPt1.x),
+        (REAL)(m_cViewOrigin.y + pPrim->cPt1.y),
+        (REAL)(m_cViewOrigin.x + pPrim->cPt2.x),
+        (REAL)(m_cViewOrigin.y + pPrim->cPt2.y),
+        (REAL)(m_cViewOrigin.x + pPrim->cPt3.x),
+        (REAL)(m_cViewOrigin.y + pPrim->cPt3.y),
+        (REAL)(m_cViewOrigin.x + pPrim->cPt4.x),
+        (REAL)(m_cViewOrigin.y + pPrim->cPt4.y));
     break;
   case 7:
     cStartPt.x = pPrim->cPt1.x + m_cViewOrigin.x - 6;
@@ -3131,10 +3168,13 @@ void CMainWnd::DrawObjectPlus(HWND hWnd, Graphics *graphics, PDObject pObj, int 
   REAL rWidth = fabs(cStyle.dWidth)*m_dUnitScale;
   REAL rPtRad = rWidth;
   if(rPtRad < 2.0) rPtRad = 2.0;
+  REAL rDashFactor = rWidth;
+  if(rDashFactor < 1.0) rDashFactor = 1.0;
 
   Pen hPen(Color(EncodeColor(dwColor)), rWidth);
   Pen hPtPen(Color(EncodeColor(dwColor)), 0.0);
   Pen hCentPen(Color(EncodeColor(0xFF888888)), 0.0);
+  GraphicsPath hPath;
 
   CDPrimitive cPrim;
   PDDimension pDim;
@@ -3151,8 +3191,8 @@ void CMainWnd::DrawObjectPlus(HWND hWnd, Graphics *graphics, PDObject pObj, int 
       }
       else if(cPrim.iType == 7)
       {
-        if(iMode == 0) DrawPrimitivePlus(graphics, &hCentPen, &cPrim);
-        else DrawPrimitivePlus(graphics, &hPtPen, &cPrim);
+        if(iMode == 0) DrawPrimitivePlus(graphics, &hCentPen, NULL, &cPrim);
+        else DrawPrimitivePlus(graphics, &hPtPen, NULL, &cPrim);
       }
       else if(cPrim.iType == 8)
       {
@@ -3163,7 +3203,49 @@ void CMainWnd::DrawObjectPlus(HWND hWnd, Graphics *graphics, PDObject pObj, int 
       {
         //DrawDimText(hWnd, hdc, &cPrim, pObj, dwColor, fabs(cStyle.dWidth));
       }
-      else DrawPrimitivePlus(graphics, &hPen, &cPrim);
+      else if(cPrim.iType == 11)
+      {
+    //   (0, 0) - INVALID
+    //   (1, 0) - start a new path without subpath
+    //   (2, 0) - stroke path without closing the last subpath (if exists)
+    //   (0, 1) - start subpath without closing the previous one (if exists)
+    //   (1, 1) - start a new path and immediatelly new subpath
+    //   (2, 1) - INVALID
+    //   (0, 2) - close subpath and immediately start a new one
+    //   (1, 2) - INVALID
+    //   (2, 2) - close last subpath and stroke path
+        if(fabs(cPrim.cPt1.x - 1.0) < 0.2)
+        {
+          //cairo_new_path(cr);
+          //if(fabs(cPrim.cPt2.x - 1.0) < 0.2)
+          //  cairo_move_to(cr, m_cViewOrigin.x + cPrim.cPt3.x, m_cViewOrigin.y + cPrim.cPt3.y);
+        }
+        if(fabs(cPrim.cPt1.y - 1.0) < 0.2)
+        {
+          hPath.StartFigure();
+          //if(fabs(cPrim.cPt2.x - 1.0) < 0.2)
+          //  cairo_move_to(cr, m_cViewOrigin.x + cPrim.cPt3.x, m_cViewOrigin.y + cPrim.cPt3.y);
+        }
+        if(fabs(cPrim.cPt1.y - 2.0) < 0.2)
+        {
+          hPath.CloseFigure();
+          if(fabs(cPrim.cPt1.x) < 0.2) hPath.StartFigure();
+        }
+        if(fabs(cPrim.cPt1.x - 2.0) < 0.2)
+        {
+          if(cPrim.cPt2.x > g_dPrec)
+          {
+            REAL dDash[6];
+            for(int i = 0; i < cStyle.iSegments; i++)
+              dDash[i] = (REAL)m_dUnitScale*cPrim.cPt2.x*cStyle.dPattern[i]/rDashFactor;
+            hPen.SetDashPattern(dDash, cStyle.iSegments);
+            hPen.SetDashOffset((REAL)cPrim.cPt2.y/rDashFactor);
+          }
+          graphics->DrawPath(&hPen, &hPath);
+          hPen.SetDashStyle(DashStyleSolid);
+        }
+      }
+      else DrawPrimitivePlus(graphics, &hPen, &hPath, &cPrim);
       pObj->GetNextPrimitive(&cPrim, m_dUnitScale, iDimen);
     }
 

@@ -159,7 +159,7 @@ private:
   void GetPageDims();
   void DrawDimArrow(HDC hdc, PDPrimitive pPrim);
   //void DrawPrimitive(HDC hdc, PDPrimitive pPrim);
-  void DrawPrimitivePlus(Graphics *graphics, Pen *pen, PDPrimitive pPrim);
+  void DrawPrimitivePlus(Graphics *graphics, Pen *pen, GraphicsPath *path, PDPrimitive pPrim);
   //void DrawObject(HWND hWnd, HDC hdc, PDObject pObj, int iMode, int iDimen);
   void DrawObjectPlus(HWND hWnd, Graphics *graphics, PDObject pObj, int iMode, int iDimen);
   void StartNewObject(HWND hWnd);
