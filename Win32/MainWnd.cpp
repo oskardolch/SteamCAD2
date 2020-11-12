@@ -3176,6 +3176,13 @@ void CMainWnd::DrawObjectPlus(HWND hWnd, Graphics *graphics, PDObject pObj, int 
   Pen hCentPen(Color(EncodeColor(0xFF888888)), 0.0);
   GraphicsPath hPath;
 
+  LineCap lc = LineCapRound;
+  if(cStyle.cCapType == 0) lc = LineCapFlat;
+  else if(cStyle.cCapType == 2) lc = LineCapSquare;
+  DashCap dc = DashCapRound;
+  if(cStyle.cCapType != 1) dc = DashCapFlat;
+  hPen.SetLineCap(lc, lc, dc);
+
   CDPrimitive cPrim;
   PDDimension pDim;
   pObj->GetFirstPrimitive(&cPrim, m_dUnitScale, iDimen);
