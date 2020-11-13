@@ -1405,8 +1405,13 @@ void CDApplication::DrawObject(cairo_t *cr, PDObject pObj, int iMode, int iDimen
           if(cPrim.cPt2.x > g_dPrec)
           {
             double dDash[6];
+            double dSegLen;
             for(int i = 0; i < cStyle.iSegments; i++)
-              dDash[i] = m_dUnitScale*cPrim.cPt2.x*cStyle.dPattern[i];
+            {
+              dSegLen = cStyle.dPattern[i];
+              if((i % 2 == 0) && (dSegLen < 0.001)) dSegLen = 0.001;
+              dDash[i] = m_dUnitScale*cPrim.cPt2.x*dSegLen;
+            }
             cairo_set_dash(cr, dDash, cStyle.iSegments, cPrim.cPt2.y);
           }
           cairo_stroke(cr);
