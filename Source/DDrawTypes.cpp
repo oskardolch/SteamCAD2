@@ -463,14 +463,20 @@ void CDObject::AddPatSegment(double dStart, int iStart, double dEnd, int iEnd,
   if(iBoundMode & 2) cAdd.iType |= 8;
 
   double dPatScale = 1.0;
-  double dPatStart2 = m_cLineStyle.dPattern[0]/2.0;
+  double dSegLen = m_cLineStyle.dPattern[0];
+  if(dSegLen < 0.001) dSegLen = 0.001;
+  double dPatStart2 = dSegLen/2.0;
 //  int iRep;
 
   double dDist = dEnd - dStart;
   double dPatLen = 0;
   double dPerLen = 0;
   for(int i = 0; i < m_cLineStyle.iSegments; i++)
-    dPatLen += m_cLineStyle.dPattern[i];
+  {
+    dSegLen = m_cLineStyle.dPattern[i];
+    if((i % 2 == 0) && (dSegLen < 0.001)) dSegLen = 0.001;
+    dPatLen += dSegLen;
+  }
 
   if(dStart > dEnd)
   {
@@ -1051,7 +1057,13 @@ int CDObject::BuildPrimitives(CDLine cTmpPt, int iMode, PDRect pRect, int iTemp,
     double dPatLen = 0.0;
     int iBoundMode = 2;
     if(bClosed) iBoundMode |= 1;
-    for(int i = 0; i < m_cLineStyle.iSegments; i++) dPatLen += m_cLineStyle.dPattern[i];
+    double dSegLen;
+    for(int i = 0; i < m_cLineStyle.iSegments; i++)
+    {
+      dSegLen = m_cLineStyle.dPattern[i];
+      if((i % 2 == 0) && (dSegLen < 0.001)) dSegLen = 0.001;
+      dPatLen += dSegLen;
+    }
 
     if(m_cBounds[0].bIsSet)
     {
@@ -1191,7 +1203,9 @@ int CDObject::BuildPrimitives(CDLine cTmpPt, int iMode, PDRect pRect, int iTemp,
     {
       cAdd.cPt2.x = 1.0;
       cAdd.cPt2.y = dPatLen;
-      cAdd.cPt3.x = m_cLineStyle.dPattern[0]/2.0;
+      dSegLen = m_cLineStyle.dPattern[0];
+      if(dSegLen < 0.001) dSegLen = 0.001;
+      cAdd.cPt3.x = dSegLen/2.0;
       cAdd.cPt3.y = 0.0;
       iStart = 0;
       iEnd = 0;
@@ -1206,7 +1220,7 @@ int CDObject::BuildPrimitives(CDLine cTmpPt, int iMode, PDRect pRect, int iTemp,
 
       if(nCrs < 2)
       {
-        if(m_iType == dtSpline) cAdd.cPt3.x = m_cLineStyle.dPattern[0];
+        if(m_iType == dtSpline) cAdd.cPt3.x = dSegLen;
         cAdd.cPt3.y = dEnd;
         AddCurveSegment(cAdd, plPrimitive, pBounds);
       }
@@ -4303,8 +4317,8 @@ void CDObject::Rescale(double dRatio, bool bWidths, bool bPatterns, bool bArrows
 
     if(bPatterns)
     {
-        for(int i = 0; i < 2*m_cLineStyle.iSegments; i++) m_cLineStyle.dPattern[i] *= dRatio;
-        for(int i = 2*m_cLineStyle.iSegments; i < 6; i++) m_cLineStyle.dPattern[i] = 0.0;
+        for(int i = 0; i < m_cLineStyle.iSegments; i++) m_cLineStyle.dPattern[i] *= dRatio;
+        for(int i = m_cLineStyle.iSegments; i < 6; i++) m_cLineStyle.dPattern[i] = 0.0;
     }
 }
 
@@ -6007,7 +6021,7 @@ bool CDataList::BuildPath(PDIntList pSelObjs, PDIntList pSel2, PDIntList pPath)
     }
     for(int i = 0; i < n; i++) pSel2->RemoveItem(abs(pPath->GetItem(i)));
 
-    return n > 1;    
+    return n > 1;
 }
 
 bool CDataList::BuildPaths(PDIntList pSelObjs, PDPtrList pPaths)

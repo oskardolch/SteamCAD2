@@ -344,7 +344,7 @@ INT_PTR CDLineStyleDlg::OKBtnClick(HWND hWnd)
           SetFocus(wnd);
           return 0;
         }
-        if(f > 0.0001)
+        //if(f > 0.0001)
         {
           /*if(m_pLSR->cLineStyle.iSegments < i)
           {

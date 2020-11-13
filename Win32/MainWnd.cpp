@@ -3243,8 +3243,25 @@ void CMainWnd::DrawObjectPlus(HWND hWnd, Graphics *graphics, PDObject pObj, int 
           if(cPrim.cPt2.x > g_dPrec)
           {
             REAL dDash[6];
-            for(int i = 0; i < cStyle.iSegments; i++)
-              dDash[i] = (REAL)m_dUnitScale*cPrim.cPt2.x*cStyle.dPattern[i]/rDashFactor;
+            if(cStyle.cCapType == 1)
+            {
+              for(int i = 0; i < cStyle.iSegments; i++)
+              {
+                if(i % 2 == 0)
+                {
+                  double dLen = cStyle.dPattern[i];
+                  if(dLen < 0.001) dLen = 0.001;
+                  dDash[i] = (REAL)(1.0 + m_dUnitScale*cPrim.cPt2.x*dLen/rDashFactor);
+                }
+                else
+                  dDash[i] = (REAL)(-1.0 + m_dUnitScale*cPrim.cPt2.x*cStyle.dPattern[i]/rDashFactor);
+              }
+            }
+            else
+            {
+              for(int i = 0; i < cStyle.iSegments; i++)
+                dDash[i] = (REAL)m_dUnitScale*cPrim.cPt2.x*cStyle.dPattern[i]/rDashFactor;
+            }
             hPen.SetDashPattern(dDash, cStyle.iSegments);
             hPen.SetDashOffset((REAL)cPrim.cPt2.y/rDashFactor);
           }
