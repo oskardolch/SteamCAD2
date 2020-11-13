@@ -464,7 +464,7 @@ void CDObject::AddPatSegment(double dStart, int iStart, double dEnd, int iEnd,
 
   double dPatScale = 1.0;
   double dSegLen = m_cLineStyle.dPattern[0];
-  if(dSegLen < 0.001) dSegLen = 0.001;
+  if(dSegLen < g_dDashMin) dSegLen = g_dDashMin;
   double dPatStart2 = dSegLen/2.0;
 //  int iRep;
 
@@ -474,7 +474,7 @@ void CDObject::AddPatSegment(double dStart, int iStart, double dEnd, int iEnd,
   for(int i = 0; i < m_cLineStyle.iSegments; i++)
   {
     dSegLen = m_cLineStyle.dPattern[i];
-    if((i % 2 == 0) && (dSegLen < 0.001)) dSegLen = 0.001;
+    if((i % 2 == 0) && (dSegLen < g_dDashMin)) dSegLen = g_dDashMin;
     dPatLen += dSegLen;
   }
 
@@ -1061,7 +1061,7 @@ int CDObject::BuildPrimitives(CDLine cTmpPt, int iMode, PDRect pRect, int iTemp,
     for(int i = 0; i < m_cLineStyle.iSegments; i++)
     {
       dSegLen = m_cLineStyle.dPattern[i];
-      if((i % 2 == 0) && (dSegLen < 0.001)) dSegLen = 0.001;
+      if((i % 2 == 0) && (dSegLen < g_dDashMin)) dSegLen = g_dDashMin;
       dPatLen += dSegLen;
     }
 
@@ -1204,7 +1204,7 @@ int CDObject::BuildPrimitives(CDLine cTmpPt, int iMode, PDRect pRect, int iTemp,
       cAdd.cPt2.x = 1.0;
       cAdd.cPt2.y = dPatLen;
       dSegLen = m_cLineStyle.dPattern[0];
-      if(dSegLen < 0.001) dSegLen = 0.001;
+      if(dSegLen < g_dDashMin) dSegLen = g_dDashMin;
       cAdd.cPt3.x = dSegLen/2.0;
       cAdd.cPt3.y = 0.0;
       iStart = 0;

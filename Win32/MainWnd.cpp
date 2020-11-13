@@ -3245,16 +3245,17 @@ void CMainWnd::DrawObjectPlus(HWND hWnd, Graphics *graphics, PDObject pObj, int 
             REAL dDash[6];
             if(cStyle.cCapType == 1)
             {
+              double dSegLen;
               for(int i = 0; i < cStyle.iSegments; i++)
               {
+                dSegLen = cStyle.dPattern[i];
                 if(i % 2 == 0)
                 {
-                  double dLen = cStyle.dPattern[i];
-                  if(dLen < 0.001) dLen = 0.001;
-                  dDash[i] = (REAL)(1.0 + m_dUnitScale*cPrim.cPt2.x*dLen/rDashFactor);
+                  if(dSegLen < g_dDashMin) dSegLen = g_dDashMin;
+                  dDash[i] = (REAL)(1.0 + m_dUnitScale*cPrim.cPt2.x*dSegLen/rDashFactor);
                 }
                 else
-                  dDash[i] = (REAL)(-1.0 + m_dUnitScale*cPrim.cPt2.x*cStyle.dPattern[i]/rDashFactor);
+                  dDash[i] = (REAL)(-1.0 + m_dUnitScale*cPrim.cPt2.x*dSegLen/rDashFactor);
               }
             }
             else

@@ -5,6 +5,7 @@
 
 const double g_dMmToIn = 25.4;
 const double g_dPtToIn = 72.0;
+const double g_dDashMin = 0.001;
 
 typedef struct CDRect
 {

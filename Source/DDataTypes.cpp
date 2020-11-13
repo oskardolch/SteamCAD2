@@ -889,7 +889,7 @@ int UnionBounds(PDRefList pBnds1, PDRefList pBnds2, int iBoundMode, PDPoint pDra
   if(iBoundMode == 2)
   {
     int iCnt = pBnds1->GetCount();
-    if(iCnt > 1)
+    if(iCnt > 2)
     {
       if((fabs((*pBnds1)[0] - pDrawBnds->x) < g_dPrec) && (fabs((*pBnds1)[iCnt - 1] - pDrawBnds->y) < g_dPrec))
       {

@@ -278,30 +278,39 @@ int CircXSegParams(CDPoint cOrig, double dRad, CDPoint cPt1, CDPoint cPt2, PDPoi
 {
   double dLen = GetDist(cPt1, cPt2);
   CDPoint cNorm = (cPt2 - cPt1)/dLen;
-  double dAlpha = atan2(cNorm.y, cNorm.x) - M_PI/2.0;
   CDPoint cOrigRot = Rotate(cOrig - cPt1, cNorm, false);
-  if(fabs(cOrigRot.y) > dRad - g_dPrec) return 0;
+  if(fabs(cOrigRot.y) > dRad + g_dPrec) return 0;
 
-  int iRes = 0;
-  double ds, dt = acos(cOrigRot.y/dRad);
-  double dsi = dRad*sin(dt);
-  double dx = cOrigRot.x - dsi;
-  if((dx > g_dPrec) && (dx < dLen - g_dPrec))
+  double du, dco, dsi;
+
+  if(fabs(cOrigRot.y) > dRad - g_dPrec)
   {
-    iRes++;
-    ds = dAlpha - dt;
-    if(ds < -M_PI) ds += 2*M_PI;
-    if(ds > M_PI) ds -= 2*M_PI;
-    pRes->x = ds;
+    du = cOrigRot.x/dLen;
+    if((du < -g_dPrec) || (du > 1.0 + g_dPrec)) return 0;
+    dco = ((cPt1.x - cOrig.x) + (cPt2.x - cPt1.x)*du)/dRad;
+    dsi = ((cPt1.y - cOrig.y) + (cPt2.y - cPt1.y)*du)/dRad;
+    pRes->x = atan2(dsi, dco);
+    return 1;
   }
-  dx = cOrigRot.x + dsi;
-  if((dx > g_dPrec) && (dx < dLen - g_dPrec))
+
+  double x1 = sqrt(Power2(dRad) - Power2(cOrigRot.y));
+  int iRes = 0;
+  du = (cOrigRot.x - x1)/dLen;
+  if((du > -g_dPrec) && (du < 1.0 + g_dPrec))
   {
     iRes++;
-    ds = dAlpha + dt;
-    if(ds < -M_PI) ds += 2*M_PI;
-    if(ds > M_PI) ds -= 2*M_PI;
-    pRes->y = ds;
+    dco = ((cPt1.x - cOrig.x) + (cPt2.x - cPt1.x)*du)/dRad;
+    dsi = ((cPt1.y - cOrig.y) + (cPt2.y - cPt1.y)*du)/dRad;
+    pRes->x = atan2(dsi, dco);
+  }
+  du = (cOrigRot.x + x1)/dLen;
+  if((du > -g_dPrec) && (du < 1.0 + g_dPrec))
+  {
+    iRes++;
+    dco = ((cPt1.x - cOrig.x) + (cPt2.x - cPt1.x)*du)/dRad;
+    dsi = ((cPt1.y - cOrig.y) + (cPt2.y - cPt1.y)*du)/dRad;
+    if(iRes < 2) pRes->x = atan2(dsi, dco);
+    else pRes->y = atan2(dsi, dco);
   }
   return iRes;
 }
