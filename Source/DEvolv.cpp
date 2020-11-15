@@ -344,6 +344,63 @@ int BuildEvolvPrimitives(CDLine cTmpPt, int iMode, PDRect pRect, PDPointList pPo
     return iRes;
 }*/
 
+double GetEvolvPtProjDown(CDPoint cPt, CDPoint cRad)
+{
+  double dr1 = cRad.x;
+  double dDir = cRad.y;
+
+  double dN = GetNorm(cPt);
+
+  if(dN < dr1 + g_dPrec) return 0.0;
+
+  CDPoint cN2 = cPt/dN;
+  double dMainAngle = dDir*atan2(cN2.y, cN2.x);
+
+  double dAng2 = acos(dr1/dN);
+
+  double da1 = dMainAngle + dAng2;
+  double da2 = dMainAngle - dAng2;
+
+  CDPoint cPt1, cPt2;
+  cPt1.x = cos(da1);
+  cPt1.y = dDir*sin(da1);
+  cPt2.x = cos(da2);
+  cPt2.y = dDir*sin(da2);
+
+  CDPoint cPt3, cPt4;
+  cPt3 = cPt - dr1*cPt1;
+  cPt4 = dr1*cPt2 - cPt;
+
+  dN = GetNorm(cPt3);
+  if(dN < g_dPrec) return 0.0;
+  cPt3 /= dN;
+
+  dN = GetNorm(cPt4);
+  if(dN < g_dPrec) return 0.0;
+  cPt4 /= dN;
+
+  CDPoint cPt5 = Rotate(cRefPt - dr1*cPt1, cPt3, false);
+  CDPoint cPt6 = Rotate(cRefPt - dr1*cPt2, cPt4, false);
+
+  double dt, dt2;
+  int k;
+
+  if(cPt5.x > g_dPrec)
+  {
+    dt = da1;
+    k = Round((cPt5.x/dr1 - dt)/M_PI/2.0);
+    dt2 = dt + k*2.0*M_PI;
+  }
+  else
+  {
+    dt = da2;
+    k = Round((cPt6.x/dr1 - dt)/M_PI/2.0);
+    dt2 = dt + k*2.0*M_PI;
+  }
+
+  return dt2;
+}
+
 double GetEvolvPtProj(CDPoint cPt, CDPoint cRefPt, CDPoint cRad)
 {
   double dr1 = cRad.x;
@@ -572,6 +629,11 @@ int AddEvolvInterLine(CDPoint cPt1, CDPoint cPt2, double dOffset, PDPointList pC
   int iCnt = pCache->GetCount(0);
   if(iCnt < 3) return 0;
 
+  CDPoint cLnDir = cPt2 - cPt1;
+  double dLnNorm = GetNorm(cLnDir);
+  if(dLnNorm < g_dPrec) return 0;
+  cLnDir /= dLnNorm;
+
   CDPoint cOrig, cN1, cRad;
   cOrig = pCache->GetPoint(0, 0).cPoint;
   cN1 = pCache->GetPoint(1, 0).cPoint;
@@ -586,6 +648,13 @@ int AddEvolvInterLine(CDPoint cPt1, CDPoint cPt2, double dOffset, PDPointList pC
   CDPoint cLnPt2 = Rotate(cPt2 - cOrig, cN1, false);
   double dt1 = GetEvolvPtProj(cLnPt1, cLnPt1, cRad);
   double dt2 = GetEvolvPtProj(cLnPt2, cLnPt2, cRad);
+
+  CDPoint cOrigRot = Rotate(cOrig - cPt1, cLnDir, false);
+  double dDir = cRad.y;
+  if(cOrigRot.y < 0.0) dDir *= -1.0;
+  CDPoint cTanProj = {cOrigRot.x + dDir*dr1, 0.0};
+  CDPoint cTanPt = cPt1 + Rotate(cTanProj, cLnDir, true);
+  double dtTan = GetEvolvPtProj(cLnPt2, cLnPt2, cTanPt);
 
   return 0;
 }
