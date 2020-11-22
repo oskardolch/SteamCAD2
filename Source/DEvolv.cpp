@@ -344,8 +344,9 @@ int BuildEvolvPrimitives(CDLine cTmpPt, int iMode, PDRect pRect, PDPointList pPo
     return iRes;
 }*/
 
-double GetEvolvPtProjDown(CDPoint cPt, CDPoint cRad)
+/*double GetEvolvPtProjDown(CDPoint cPt, CDPoint cRad, int *piPeriod)
 {
+  *piPeriod = 0;
   double dr1 = cRad.x;
   double dDir = cRad.y;
 
@@ -399,7 +400,7 @@ double GetEvolvPtProjDown(CDPoint cPt, CDPoint cRad)
   }
 
   return dt2;
-}
+}*/
 
 double GetEvolvPtProj(CDPoint cPt, CDPoint cRefPt, CDPoint cRad)
 {
@@ -624,6 +625,68 @@ bool GetEvolvPointRefDist(double dRef, PDPointList pCache, double *pdDist)
     AddEvolvSegWithBounds(dt1, dt2, cOrig, cN1, cRad, pPrimList, pRect);
 }*/
 
+int GetEvolvInterLineForK(int k, double dOffset, double dr, double ds1, double ds2, PDPoint pRes)
+{
+  int iRes = 0;
+  double dpi = (double)2.0*k*M_PI;
+
+  double dt = 1.5*M_PI - dOffset;
+  double dsi = sin(dt - dOffset);
+  double dco = cos(dt - dOffset);
+  double fx = dsi - (dpi + dt)*dco - dr;
+  double dfx = (dpi + dt)*dsi;
+  int i = 0;
+  bool bFound = fabs(fx) < g_dPrec;
+  while((i < 8) && !bFound && (fabs(dfx) > g_dPrec))
+  {
+    dt -= fx/dfx;
+    dsi = sin(dt - dOffset);
+    dco = cos(dt - dOffset);
+    fx = dsi - (dpi + dt)*dco - dr;
+    dfx = (dpi + dt)*dsi;
+    bFound = fabs(fx) < g_dPrec;
+    i++;
+  }
+  if(bFound)
+  {
+    double ds = dco + (dpi + dt)*dsi;
+    if((ds > ds1 - g_dPrec) && (ds < ds2 - g_dPrec))
+    {
+      iRes = 1;
+      pRes->x = dt;
+    }
+  }
+
+  dt = 0.5*M_PI - dOffset;
+  dsi = sin(dt - dOffset);
+  dco = cos(dt - dOffset);
+  fx = dsi - (dpi + dt)*dco - dr;
+  dfx = (dpi + dt)*dsi;
+  i = 0;
+  bFound = fabs(fx) < g_dPrec;
+  while((i < 8) && !bFound && (fabs(dfx) > g_dPrec))
+  {
+    dt -= fx/dfx;
+    dsi = sin(dt - dOffset);
+    dco = cos(dt - dOffset);
+    fx = dsi - (dpi + dt)*dco - dr;
+    dfx = (dpi + dt)*dsi;
+    bFound = fabs(fx) < g_dPrec;
+    i++;
+  }
+  if(bFound)
+  {
+    double ds = dco + (dpi + dt)*dsi;
+    if((ds > ds1 - g_dPrec) && (ds < ds2 - g_dPrec))
+    {
+      iRes++;
+      if(iRes > 1) pRes->y = dt;
+      else pRes->x = dt;
+    }
+  }
+  return iRes;
+}
+
 int AddEvolvInterLine(CDPoint cPt1, CDPoint cPt2, double dOffset, PDPointList pCache, PDRefList pBounds)
 {
   int iCnt = pCache->GetCount(0);
@@ -639,24 +702,53 @@ int AddEvolvInterLine(CDPoint cPt1, CDPoint cPt2, double dOffset, PDPointList pC
   cN1 = pCache->GetPoint(1, 0).cPoint;
   cRad = pCache->GetPoint(2, 0).cPoint;
   double dr1 = cRad.x;
+  if(dr1 < g_dPrec) return 0;
 
   double dr = dOffset;
   int nOffs = pCache->GetCount(2);
   if(nOffs > 0) dr += pCache->GetPoint(0, 2).cPoint.x;
 
-  CDPoint cLnPt1 = Rotate(cPt1 - cOrig, cN1, false);
-  CDPoint cLnPt2 = Rotate(cPt2 - cOrig, cN1, false);
-  double dt1 = GetEvolvPtProj(cLnPt1, cLnPt1, cRad);
-  double dt2 = GetEvolvPtProj(cLnPt2, cLnPt2, cRad);
+  double du = atan2(cLnDir.y, cLnDir.x) + dr/dr1;
 
-  CDPoint cOrigRot = Rotate(cOrig - cPt1, cLnDir, false);
-  double dDir = cRad.y;
-  if(cOrigRot.y < 0.0) dDir *= -1.0;
-  CDPoint cTanProj = {cOrigRot.x + dDir*dr1, 0.0};
-  CDPoint cTanPt = cPt1 + Rotate(cTanProj, cLnDir, true);
-  double dtTan = GetEvolvPtProj(cLnPt2, cLnPt2, cTanPt);
+  double dl1 = GetNorm(cPt1 - cOrig);
+  double dl2 = GetNorm(cPt2 - cOrig);
 
-  return 0;
+  int k1 = 0;
+  int k2 = 0;
+  if(dl1 > dr1 + g_dPrec)
+  {
+    dl1 = sqrt(Power2(dl1) - Power2(dr1));
+    k1 = (int)(dl1/2.0/M_PI/dr1);
+  }
+  if(dl2 > dr1)
+  {
+    dl2 = sqrt(Power2(dl2) - Power2(dr1));
+    k2 = (int)(dl2/2.0/M_PI/dr1);
+  }
+  if(k1 > k2)
+  {
+    int i = k2;
+    k2 = k1 + 1;
+    k1 = i;
+  }
+  else k2++;
+
+  CDPoint cLnOrg = Rotate(cPt1 - cOrig, cLnDir, false);
+  double dr2 = fabs(cLnOrg.y);
+  int iRes = 0;
+  int iLoc;
+  CDPoint cRoots;
+  double ds1 = -cLnOrg.x;
+  double ds2 = ds1 + dLnNorm;
+
+  for(int i = k1; i <= k2; i++)
+  {
+    iLoc = GetEvolvInterLineForK(i, du, dr/dr1, ds1, ds2, &cRoots);
+    if(iLoc > 0) pBounds->AddPoint(cRoots.x);
+    if(iLoc > 1) pBounds->AddPoint(cRoots.y);
+    iRes += iLoc;
+  }
+  return iRes;
 }
 
 void AddEvolvSegment(double d1, double d2, double dExt, PDPointList pCache, PDPrimObject pPrimList)
