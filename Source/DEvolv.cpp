@@ -653,7 +653,7 @@ int GetEvolvInterLineForK(int k, double dOffset, double dr, double ds1, double d
     if((ds > ds1 - g_dPrec) && (ds < ds2 - g_dPrec))
     {
       iRes = 1;
-      pRes->x = dt;
+      pRes->x = dt + dpi;
     }
   }
 
@@ -680,8 +680,8 @@ int GetEvolvInterLineForK(int k, double dOffset, double dr, double ds1, double d
     if((ds > ds1 - g_dPrec) && (ds < ds2 - g_dPrec))
     {
       iRes++;
-      if(iRes > 1) pRes->y = dt;
-      else pRes->x = dt;
+      if(iRes > 1) pRes->y = dt + dpi;
+      else pRes->x = dt + dpi;
     }
   }
   return iRes;
@@ -734,7 +734,7 @@ int AddEvolvInterLine(CDPoint cPt1, CDPoint cPt2, double dOffset, PDPointList pC
   else k2++;
 
   CDPoint cLnOrg = Rotate(cPt1 - cOrig, cLnDir, false);
-  double dr2 = fabs(cLnOrg.y);
+  double dr2 = cRad.y*cLnOrg.y/dr1;
   int iRes = 0;
   int iLoc;
   CDPoint cRoots;
@@ -743,7 +743,7 @@ int AddEvolvInterLine(CDPoint cPt1, CDPoint cPt2, double dOffset, PDPointList pC
 
   for(int i = k1; i <= k2; i++)
   {
-    iLoc = GetEvolvInterLineForK(i, du, dr/dr1, ds1, ds2, &cRoots);
+    iLoc = GetEvolvInterLineForK(i, du, dr2, ds1, ds2, &cRoots);
     if(iLoc > 0) pBounds->AddPoint(cRoots.x);
     if(iLoc > 1) pBounds->AddPoint(cRoots.y);
     iRes += iLoc;
