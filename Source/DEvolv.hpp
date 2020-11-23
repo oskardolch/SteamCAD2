@@ -6,6 +6,7 @@
 bool AddEvolvPoint(double x, double y, char iCtrl, PDPointList pPoints, int iInputLines);
 bool BuildEvolvCache(CDLine cTmpPt, int iMode, PDPointList pPoints, PDPointList pCache,
   PDLine pCircle, double *pdDist);
+double GetEvolvOffset(PDPointList pCache);
 int AddEvolvInterLine(CDPoint cPt1, CDPoint cPt2, double dOffset, PDPointList pCache, PDRefList pBounds);
 /*int BuildEvolvPrimitives(CDLine cTmpPt, int iMode, PDRect pRect, PDPointList pPoints,
     PDPointList pCache, PDPrimObject pPrimList, PDLine pCircle, PDRefPoint pBounds, double dOffset,
