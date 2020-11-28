@@ -113,295 +113,6 @@ bool BuildEvolvCache(CDLine cTmpPt, int iMode, PDPointList pPoints, PDPointList 
   return true;
 }
 
-/*void GetEvolvBounds(CDPoint cOrig, PDRect pRect, PDPoint pBounds)
-{
-    CDPoint cPt1 = {pRect->cPt1.x, pRect->cPt1.y};
-    CDPoint cPt2 = {pRect->cPt1.x, pRect->cPt2.y};
-    CDPoint cPt3 = {pRect->cPt2.x, pRect->cPt2.y};
-    CDPoint cPt4 = {pRect->cPt2.x, pRect->cPt1.y};
-    bool bIsInside = (cOrig.x > cPt1.x - g_dPrec) && (cOrig.x < cPt3.x + g_dPrec) &&
-        (cOrig.y > cPt1.y - g_dPrec) && (cOrig.y < cPt3.y + g_dPrec);
-
-    CDLine cPtX;
-    double d1 = GetPtDistFromLineSeg(cOrig, cPt1, cPt2, &cPtX);
-    double d2 = GetPtDistFromLineSeg(cOrig, cPt2, cPt3, &cPtX);
-    double d3 = GetPtDistFromLineSeg(cOrig, cPt3, cPt4, &cPtX);
-    double d4 = GetPtDistFromLineSeg(cOrig, cPt4, cPt1, &cPtX);
-
-    if(bIsInside) pBounds->x = 0.0;
-    else
-    {
-        pBounds->x = d1;
-        if(pBounds->x > d2) pBounds->x = d2;
-        if(pBounds->x > d3) pBounds->x = d3;
-        if(pBounds->x > d4) pBounds->x = d4;
-    }
-
-    d1 = GetDist(cOrig, cPt1);
-    d2 = GetDist(cOrig, cPt2);
-    d3 = GetDist(cOrig, cPt3);
-    d4 = GetDist(cOrig, cPt4);
-
-    pBounds->y = d1;
-    if(pBounds->y < d2) pBounds->y = d2;
-    if(pBounds->y < d3) pBounds->y = d3;
-    if(pBounds->y < d4) pBounds->y = d4;
-}
-
-int AddEvolvSegWithBounds(double dt1, double dt2, CDPoint cOrig, CDPoint cMainDir, CDPoint cRad,
-    PDPrimObject pPrimList, PDRect pRect)
-{
-    double dr1 = cRad.x;
-    double dDir = cRad.y;
-
-    double dtInc = M_PI/8.0;
-    double dtTot = dt2 - dt1;
-    int iSegs = (int)dtTot/dtInc;
-    if(iSegs < 1) iSegs = 1;
-    dtInc = dtTot/(double)iSegs;
-
-    double dco = cos(dt1);
-    double dsi = sin(dt1);
-
-    CDPoint cHypPts[5];
-    cHypPts[4].x = dr1*(dco + dt1*dsi);
-    cHypPts[4].y = dDir*dr1*(dsi - dt1*dco);
-
-    CDPoint cPt1, cPt2;
-    double dt;
-
-    cPt2.x = dco;
-    cPt2.y = dDir*dsi;
-
-    CDPrimitive cPrim, cTmpPrim;
-    int iRes = -1;
-    int iCurRes;
-
-    for(int i = 0; i < iSegs; i++)
-    {
-        cHypPts[0] = cHypPts[4];
-        cPt1 = cPt2;
-
-        for(int j = 1; j < 5; j++)
-        {
-            dt = dt1 + dtInc*j/4.0;
-            dco = cos(dt);
-            dsi = sin(dt);
-            cHypPts[j].x = dr1*(dco + dt*dsi);
-            cHypPts[j].y = dDir*dr1*(dsi - dt*dco);
-        }
-
-        cPt2.x = dco;
-        cPt2.y = dDir*dsi;
-
-        if(ApproxLineSeg(5, cHypPts, &cPt1, &cPt2, &cTmpPrim) > -0.5)
-        {
-            cPrim.iType = 5;
-            cPrim.cPt1 = cOrig + Rotate(cTmpPrim.cPt1, cMainDir, true);
-            cPrim.cPt2 = cOrig + Rotate(cTmpPrim.cPt2, cMainDir, true);
-            cPrim.cPt3 = cOrig + Rotate(cTmpPrim.cPt3, cMainDir, true);
-            cPrim.cPt4 = cOrig + Rotate(cTmpPrim.cPt4, cMainDir, true);
-        }
-        else
-        {
-            cPrim.iType = 1;
-            cPrim.cPt1 = cOrig + Rotate(cHypPts[0], cMainDir, true);
-            cPrim.cPt2 = cOrig + Rotate(cHypPts[4], cMainDir, true);
-        }
-
-        iCurRes = CropPrimitive(cPrim, pRect, pPrimList);
-        dt1 += dtInc;
-        if(iRes < 0) iRes = iCurRes;
-        else if(iRes != iCurRes) iRes = 1;
-    }
-    return iRes;
-}
-
-int AddEvolvSegQuadsWithBounds(double dt1, double dt2, CDPoint cOrig, CDPoint cMainDir, CDPoint cRad,
-    PDPrimObject pPrimList, PDRect pRect)
-{
-    double dr1 = cRad.x;
-    double dDir = cRad.y;
-
-    double dtInc = M_PI/8.0;
-    double dtTot = dt2 - dt1;
-    int iSegs = (int)dtTot/dtInc;
-    if(iSegs < 1) iSegs = 1;
-    dtInc = dtTot/(double)iSegs;
-
-    double dco = cos(dt1);
-    double dsi = sin(dt1);
-
-    CDPrimitive cPrim, cTmpPrim;
-    cTmpPrim.cPt3.x = dr1*(dco + dt1*dsi);
-    cTmpPrim.cPt3.y = dDir*dr1*(dsi - dt1*dco);
-
-    CDPoint cDir1, cDir2;
-    double dt;
-
-    cDir2.x = dco;
-    cDir2.y = dDir*dsi;
-
-    int iRes = -1;
-    int iCurRes;
-
-    cPrim.iType = 4;
-
-    for(int i = 0; i < iSegs; i++)
-    {
-        cTmpPrim.cPt1 = cTmpPrim.cPt3;
-        cDir1 = cDir2;
-
-        dt = dt1 + dtInc;
-        dco = cos(dt);
-        dsi = sin(dt);
-        cTmpPrim.cPt3.x = dr1*(dco + dt*dsi);
-        cTmpPrim.cPt3.y = dDir*dr1*(dsi - dt*dco);
-
-        cDir2.x = dco;
-        cDir2.y = dDir*dsi;
-
-        LineXLine(cTmpPrim.cPt1, cDir1, cTmpPrim.cPt3, cDir2, &cTmpPrim.cPt2);
-
-        cPrim.cPt1 = cOrig + Rotate(cTmpPrim.cPt1, cMainDir, true);
-        cPrim.cPt2 = cOrig + Rotate(cTmpPrim.cPt2, cMainDir, true);
-        cPrim.cPt3 = cOrig + Rotate(cTmpPrim.cPt3, cMainDir, true);
-
-        iCurRes = CropPrimitive(cPrim, pRect, pPrimList);
-        dt1 += dtInc;
-        if(iRes < 0) iRes = iCurRes;
-        else if(iRes != iCurRes) iRes = 1;
-    }
-    return iRes;
-}
-
-int BuildEvolvPrimitives(CDLine cTmpPt, int iMode, PDRect pRect, PDPointList pPoints,
-    PDPointList pCache, PDPrimObject pPrimList, PDLine pCircle, PDRefPoint pBounds, double dOffset,
-    double *pdDist, PDPoint pDrawBnds, bool bQuadsOnly)
-{
-    if(iMode > 0) BuildEvolvCache(cTmpPt, iMode, pPoints, pCache, pCircle, pdDist);
-
-    int iCnt = pCache->GetCount(0);
-    if(iCnt < 3) return 0;
-
-    CDPoint cOrig, cN1, cRad;
-    cOrig = pCache->GetPoint(0, 0).cPoint;
-    cN1 = pCache->GetPoint(1, 0).cPoint;
-    cRad = pCache->GetPoint(2, 0).cPoint;
-    double dr1 = cRad.x;
-
-    double dr = dOffset;
-    int nOffs = pCache->GetCount(2);
-    if(nOffs > 0) dr += pCache->GetPoint(0, 2).cPoint.x;
-
-    CDPoint cBounds;
-    GetEvolvBounds(cOrig, pRect, &cBounds);
-
-    double dtMin, dtMax;
-    if(cBounds.x < dr1 + g_dPrec) dtMin = 0.0;
-    else dtMin = sqrt(Power2(cBounds.x/dr1) - 1);
-    if(cBounds.y < dr1 + g_dPrec) dtMax = -1.0;
-    else dtMax = sqrt(Power2(cBounds.y/dr1) - 1);
-
-    if(dtMax < -g_dPrec) return 0;
-
-    double dtInc = M_PI/4.0;
-    double dt1 = dtMin - dtInc;
-    if(dt1 < 0) dt1 = 0;
-    dtMax += dtInc;
-
-    pDrawBnds->x = 0.0;
-    pDrawBnds->y = dr1*Power2(dtMax)/2.0;
-
-    if(pBounds[0].bIsSet)
-    {
-        if(dt1 < pBounds[0].dRef) dt1 = pBounds[0].dRef;
-    }
-    if(pBounds[1].bIsSet)
-    {
-        if(dtMax > pBounds[1].dRef) dtMax = pBounds[1].dRef;
-    }
-
-    if(fabs(dr) > g_dPrec)
-    {
-        double dDir = -1.0*cRad.y;
-        double da = dr/dr1;
-        CDPoint cPt1;
-        cPt1.x = cos(da);
-        cPt1.y = dDir*sin(da);
-        cN1 = Rotate(cN1, cPt1, true);
-
-        if(pBounds[0].bIsSet) dt1 += da;
-        dtMax += da;
-    }
-
-    int iRes = 2;
-    if(bQuadsOnly)
-        iRes = AddEvolvSegQuadsWithBounds(dt1, dtMax, cOrig, cN1, cRad, pPrimList, pRect);
-    else
-        iRes = AddEvolvSegWithBounds(dt1, dtMax, cOrig, cN1, cRad, pPrimList, pRect);
-    if(iRes < 0) iRes = 0;
-    return iRes;
-}*/
-
-/*double GetEvolvPtProjDown(CDPoint cPt, CDPoint cRad, int *piPeriod)
-{
-  *piPeriod = 0;
-  double dr1 = cRad.x;
-  double dDir = cRad.y;
-
-  double dN = GetNorm(cPt);
-
-  if(dN < dr1 + g_dPrec) return 0.0;
-
-  CDPoint cN2 = cPt/dN;
-  double dMainAngle = dDir*atan2(cN2.y, cN2.x);
-
-  double dAng2 = acos(dr1/dN);
-
-  double da1 = dMainAngle + dAng2;
-  double da2 = dMainAngle - dAng2;
-
-  CDPoint cPt1, cPt2;
-  cPt1.x = cos(da1);
-  cPt1.y = dDir*sin(da1);
-  cPt2.x = cos(da2);
-  cPt2.y = dDir*sin(da2);
-
-  CDPoint cPt3, cPt4;
-  cPt3 = cPt - dr1*cPt1;
-  cPt4 = dr1*cPt2 - cPt;
-
-  dN = GetNorm(cPt3);
-  if(dN < g_dPrec) return 0.0;
-  cPt3 /= dN;
-
-  dN = GetNorm(cPt4);
-  if(dN < g_dPrec) return 0.0;
-  cPt4 /= dN;
-
-  CDPoint cPt5 = Rotate(cRefPt - dr1*cPt1, cPt3, false);
-  CDPoint cPt6 = Rotate(cRefPt - dr1*cPt2, cPt4, false);
-
-  double dt, dt2;
-  int k;
-
-  if(cPt5.x > g_dPrec)
-  {
-    dt = da1;
-    k = Round((cPt5.x/dr1 - dt)/M_PI/2.0);
-    dt2 = dt + k*2.0*M_PI;
-  }
-  else
-  {
-    dt = da2;
-    k = Round((cPt6.x/dr1 - dt)/M_PI/2.0);
-    dt2 = dt + k*2.0*M_PI;
-  }
-
-  return dt2;
-}*/
-
 double GetEvolvPtProj(CDPoint cPt, CDPoint cRefPt, CDPoint cRad)
 {
   double dr1 = cRad.x;
@@ -593,37 +304,6 @@ bool GetEvolvPointRefDist(double dRef, PDPointList pCache, double *pdDist)
 
   return true;
 }
-
-/*void AddEvolvSegment(double d1, double d2, PDPointList pCache, PDPrimObject pPrimList, PDRect pRect)
-{
-    int iCnt = pCache->GetCount(0);
-    if(iCnt < 3) return;
-
-    CDPoint cOrig, cN1, cRad;
-    cOrig = pCache->GetPoint(0, 0).cPoint;
-    cN1 = pCache->GetPoint(1, 0).cPoint;
-    cRad = pCache->GetPoint(2, 0).cPoint;
-    double dr1 = cRad.x;
-
-    double dr = 0.0;
-    int nOffs = pCache->GetCount(2);
-    if(nOffs > 0) dr = pCache->GetPoint(0, 2).cPoint.x;
-
-    double dt1 = sqrt(2.0*d1/dr1);
-    double dt2 = sqrt(2.0*d2/dr1);
-
-    if(fabs(dr) > g_dPrec)
-    {
-        double dDir = -1.0*cRad.y;
-        double da = dr/dr1;
-        CDPoint cPt1;
-        cPt1.x = cos(da);
-        cPt1.y = dDir*sin(da);
-        cN1 = Rotate(cN1, cPt1, true);
-    }
-
-    AddEvolvSegWithBounds(dt1, dt2, cOrig, cN1, cRad, pPrimList, pRect);
-}*/
 
 double GetEvolvOffset(PDPointList pCache)
 {
@@ -841,71 +521,87 @@ int AddEvolvInterLine(CDPoint cPt1, CDPoint cPt2, double dOffset, PDPointList pC
 
 CDPoint EvolvFunc(void *pvData, double dt)
 {
-  CDPoint cRad = *(PDPoint)pvData;
-  double dco = cos(dt);
-  double dsi = sin(dt);
-  CDPoint cRes = {dco + dt*dsi, cRad.y*(dsi - dt*dco)};
+  PDPoint pEvPts = (PDPoint)pvData;
+  CDPoint cRad = pEvPts[0];
+  double dt1 = dt + pEvPts[1].x;
+  double dco = cos(dt1);
+  double dsi = sin(dt1);
+  CDPoint cRes = {dco + dt1*dsi, cRad.y*(dsi - dt1*dco)};
   return cRad.x*cRes;
 }
 
 CDPoint EvolvFuncDer(void *pvData, double dt)
 {
-  CDPoint cRad = *(PDPoint)pvData;
-  double dco = cos(dt);
-  double dsi = sin(dt);
-  CDPoint cRes = {dt*dco, cRad.y*dt*dsi};
+  PDPoint pEvPts = (PDPoint)pvData;
+  CDPoint cRad = pEvPts[0];
+  double dt1 = dt + pEvPts[1].x;
+  double dco = cos(dt1);
+  double dsi = sin(dt1);
+  CDPoint cRes = {dco, cRad.y*dsi};
   return cRad.x*cRes;
 }
 
 void AddEvolvSegment(double d1, double d2, double dExt, PDPointList pCache, PDPrimObject pPrimList)
 {
-//printf("AddEvolvSegment: %f, %f\n", d1, d2);
   int iCnt = pCache->GetCount(0);
   if(iCnt < 3) return;
-
-/*for(int i = 0 ; i < 10; i++)
-{
-double dDist = (double)10.0*i;
-double dRef, dNewDist, dNewRef;
-GetEvolvReference(dDist, pCache, &dRef);
-GetEvolvPointRefDist(dRef, pCache, &dNewDist);
-GetEvolvReference(dNewDist, pCache, &dNewRef);
-printf("Check: %d - %f, %f, %f, %f\n", i, dDist, dRef, dNewDist, dNewRef);
-}*/
 
   CDPoint cOrig, cN1, cRad;
   cOrig = pCache->GetPoint(0, 0).cPoint;
   cN1 = pCache->GetPoint(1, 0).cPoint;
   cRad = pCache->GetPoint(2, 0).cPoint;
   double dr1 = cRad.x;
+  CDPoint cBreak = {-1.0, -1.0};
 
-  double dr = dExt;
+  double dr = 0.0;
   int nOffs = pCache->GetCount(2);
-  if(nOffs > 0) dr += pCache->GetPoint(0, 2).cPoint.x;
-
-  double dt1 = sqrt(2.0*d1/dr1);
-  double dt2 = sqrt(2.0*d2/dr1);
-
-  PDPrimObject pTmpPrim = new CDPrimObject();
-  AddCurveSegment(&cRad, dr, {-1.0, -1.0}, EvolvFunc, EvolvFuncDer, dt1, dt2, M_PI/8.0, 0, pTmpPrim);
-  RotatePrimitives(pTmpPrim, pPrimList, cOrig, cN1);
-  delete pTmpPrim;
-
-
-  /*if(fabs(dr) > g_dPrec)
+  if(nOffs > 0)
   {
-    double dDir = -1.0*cRad.y;
-    double da = dr/dr1;
+    dr = pCache->GetPoint(0, 2).cPoint.x;
+    if(dr < -g_dPrec) cBreak.x = -dr/dr1;
+  }
+  dr += dExt;
+
+  double dRef1 = 0.0;
+
+  if(fabs(dr) > g_dPrec)
+  {
+    dRef1 = dr/dr1;
     CDPoint cPt1;
-    cPt1.x = cos(da);
-    cPt1.y = dDir*sin(da);
+    cPt1.x = cos(dRef1);
+    cPt1.y = -cRad.y*sin(dRef1);
     cN1 = Rotate(cN1, cPt1, true);
+    //dRef += dRef1;
   }
 
-  AddEvolvSegWithBounds(dt1, dt2, cOrig, cN1, cRad, pPrimList, pRect);*/
+  double dt1, dt2;
+  
+  if(dr > g_dPrec)
+  {
+    dt1 = sqrt(Power2(dRef1) + 2.0*d1/dr1) - dRef1;
+    dt2 = sqrt(Power2(dRef1) + 2.0*d2/dr1) - dRef1;
+  }
+  else
+  {
+    if(d1 > dr1*Power2(dRef1)/2.0) 
+      dt1 = sqrt(2.0*d1/dr1 - Power2(dRef1)) - dRef1;
+    else dt1 = sqrt(Power2(dRef1) - 2.0*d1/dr1) + dRef1;
+    if(d2 > dr1*Power2(dRef1)/2.0)
+      dt2 = sqrt(2.0*d2/dr1 - Power2(dRef1)) - dRef1;
+    else dt2 = sqrt(Power2(dRef1) - 2.0*d2/dr1) + dRef1;
+  }
+
+  CDPoint cEvPts[2];
+  cEvPts[0] = cRad;
+  cEvPts[1].x = dRef1;
+  cEvPts[1].y = dExt/dr1;
+  PDPrimObject pTmpPrim = new CDPrimObject();
+  AddCurveSegment(cEvPts, 0.0, cBreak, EvolvFunc, EvolvFuncDer, dt1, dt2, M_PI/8.0, 0, pTmpPrim);
+  RotatePrimitives(pTmpPrim, pPrimList, cOrig, cN1);
+  delete pTmpPrim;
 }
 
-bool GetEvolvRefPoint(double dRef, PDPointList pCache, PDPoint pPt)
+bool GetEvolvRefPoint(double dRef, double dExt, PDPointList pCache, PDPoint pPt)
 {
   if(dRef < 0) return false;
 
@@ -918,9 +614,9 @@ bool GetEvolvRefPoint(double dRef, PDPointList pCache, PDPoint pPt)
   double dr1 = cRad.x;
   double dDir = cRad.y;
 
-  double dr = 0.0;
+  double dr = dExt;
   int nOffs = pCache->GetCount(2);
-  if(nOffs > 0) dr = pCache->GetPoint(0, 2).cPoint.x;
+  if(nOffs > 0) dr += pCache->GetPoint(0, 2).cPoint.x;
 
   CDPoint cPt1;
 
@@ -1040,21 +736,13 @@ bool GetEvolvReference(double dDist, PDPointList pCache, double *pdRef)
   int nOffs = pCache->GetCount(2);
   if(nOffs > 0) dr = pCache->GetPoint(0, 2).cPoint.x;
 
-  /**pdRef = sqrt(2.0*dDist/dr1);
-
-  if(fabs(dr) > g_dPrec)
-  {
-    double da = dr/dr1;
-    *pdRef -= da;
-  }*/
-
   double dRef1 = dr/dr1;
   /*if(dr > g_dPrec) *pdDist = dr1*(Power2(dRef + dRef1) - Power2(dRef1))/2.0;
   else if(dRef > -dRef1) *pdDist = dr1*(Power2(dRef + dRef1) + Power2(dRef1))/2.0;
   else *pdDist = dr1*(Power2(dRef1) - Power2(dRef + dRef1))/2.0;*/
-  if(dr > g_dPrec) *pdRef = sqrt(Power2(dRef1) + 2.0*dDist/dr1) + dRef1;
+  if(dr > g_dPrec) *pdRef = sqrt(Power2(dRef1) + 2.0*dDist/dr1) - dRef1;
   else if(dDist > dr1*Power2(dRef1)/2.0) *pdRef = sqrt(2.0*dDist/dr1 - Power2(dRef1)) - dRef1;
-  else *pdRef = sqrt(Power2(dRef1) - 2.0*dDist/dr1) - dRef1;
+  else *pdRef = sqrt(Power2(dRef1) - 2.0*dDist/dr1) + dRef1;
 
   return true;
 }

@@ -2169,7 +2169,7 @@ bool CDObject::GetNativeRefPoint(double dRef, double dOffset, PDPoint pPt)
     case dtSpline:
         return GetSplineRefPoint(dRef, dOffset, m_pCachePoints, pPt);
     case dtEvolvent:
-        return GetEvolvRefPoint(dRef, m_pCachePoints, pPt);
+        return GetEvolvRefPoint(dRef, dOffset, m_pCachePoints, pPt);
     case dtPath:
         return GetPathRefPoint(dRef, dOffset, pPt);
     default:
