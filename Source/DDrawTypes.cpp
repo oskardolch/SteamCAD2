@@ -749,7 +749,8 @@ int CDObject::GetRectangleIntersects(PDRect pRect, double dOffset, int iBndMode,
   cPt1 = pRect->cPt1;
   cPt2.x = pRect->cPt2.x;
   cPt2.y = cPt1.y;
-  int iTot = AddLineIntersects(cPt1, cPt2, dOffset, pBounds);
+  int iTot = 0;
+  iTot += AddLineIntersects(cPt1, cPt2, dOffset, pBounds);
   cPt1 = cPt2;
   cPt2.y = pRect->cPt2.y;
   iTot += AddLineIntersects(cPt1, cPt2, dOffset, pBounds);
