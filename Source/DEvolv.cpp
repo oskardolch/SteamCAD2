@@ -417,45 +417,35 @@ int GetEvolvInterLineForK(int k, double dOffset, double dr, double ds1, double d
   return iRes;
 }
 
-int AddEvolvInterLine(CDPoint cPt1, CDPoint cPt2, double dOffset, PDPointList pCache, PDRefList pBounds)
+int AddEvolvInterLineDir(CDPoint cPt1, CDPoint cPt2, CDPoint cOrig, CDPoint cMainDir,
+  double dRad, double dDir, double dOffset1, double dOffset2, bool bReverse, PDRefList pBounds)
 {
-  int iCnt = pCache->GetCount(0);
-  if(iCnt < 3) return 0;
-
-  CDPoint cOrig, cN1, cRad;
-  cOrig = pCache->GetPoint(0, 0).cPoint;
-  cN1 = pCache->GetPoint(1, 0).cPoint;
-  cRad = pCache->GetPoint(2, 0).cPoint;
-  double dr1 = cRad.x;
-  if(dr1 < g_dPrec) return 0;
-
-  CDPoint cLn1 = Rotate(cPt1 - cOrig, cN1, false);
-  CDPoint cLn2 = Rotate(cPt2 - cOrig, cN1, false);
-  cLn1.y *= cRad.y;
-  cLn2.y *= cRad.y;
+  CDPoint cLn1 = Rotate(cPt1 - cOrig, cMainDir, false);
+  CDPoint cLn2 = Rotate(cPt2 - cOrig, cMainDir, false);
+  cLn1.y *= dDir;
+  cLn2.y *= dDir;
   CDPoint cLnDir = cLn2 - cLn1;
   double dLnNorm = GetNorm(cLnDir);
   if(dLnNorm < g_dPrec) return 0;
   cLnDir /= dLnNorm;
 
-  double dr = dOffset;
-  int nOffs = pCache->GetCount(2);
-  if(nOffs > 0) dr += pCache->GetPoint(0, 2).cPoint.x;
+  double dr = dOffset1 + dOffset2;
+  if(bReverse) dr *= -1.0;
 
   double dl1 = GetNorm(cPt1 - cOrig);
   double dl2 = GetNorm(cPt2 - cOrig);
 
   int k1 = 0;
   int k2 = 0;
-  if(dl1 > dr1 + g_dPrec)
+  if(dl1 > dRad + g_dPrec)
   {
-    dl1 = sqrt(Power2(dl1) - Power2(dr1));
-    k1 = (int)(dl1/2.0/M_PI/dr1);
+    dl1 = sqrt(Power2(dl1) - Power2(dRad));
+    k1 = (int)(dl1/2.0/M_PI/dRad);
   }
-  if(dl2 > dr1)
+  if(dl2 > dRad)
   {
-    dl2 = sqrt(Power2(dl2) - Power2(dr1));
-    k2 = (int)(dl2/2.0/M_PI/dr1);
+    dl2 = sqrt(Power2(dl2) - Power2(dRad));
+    k2 = (int)(dl2/2.0/M_PI/dRad);
   }
   if(k1 > k2)
   {
@@ -485,11 +475,11 @@ int AddEvolvInterLine(CDPoint cPt1, CDPoint cPt2, double dOffset, PDPointList pC
     //if(dv < 0.0) dv += 2.0*M_PI;
   }
 
-  double dr2 = dProjNorm/dr1;
+  double dr2 = dProjNorm/dRad;
   int k = (int)dr2/2.0/M_PI;
   if(k < k1) k1 = k;
 
-  double dtOff = dr/dr1;
+  double dtOff = dr/dRad;
   double du = dv + dtOff;
   du -= M_PI/2.0;
 
@@ -502,20 +492,73 @@ int AddEvolvInterLine(CDPoint cPt1, CDPoint cPt2, double dOffset, PDPointList pC
     ds1 = cLnProj2.y;
     ds2 = cLnProj1.y;
   }
-  ds1 /= dr1;
-  ds2 /= dr1;
+  ds1 /= dRad;
+  ds2 /= dRad;
 
   int iRes = 0;
   int iLoc;
   CDPoint cRoots;
 
+  if(bReverse) k1 = 0;
+
+  double dt;
   for(int i = k1; i <= k2; i++)
   {
     iLoc = GetEvolvInterLineForK(i, du, dr2, ds1, ds2, &cRoots);
-    if(iLoc > 0) pBounds->AddPoint(cRoots.x - dtOff);
-    if(iLoc > 1) pBounds->AddPoint(cRoots.y - dtOff);
-    iRes += iLoc;
+    if(bReverse)
+    {
+      if(iLoc > 0)
+      {
+        dt = dtOff - cRoots.x;
+        if((dt > -g_dPrec) && (dt < -dOffset1/dRad + g_dPrec))
+        {
+          pBounds->AddPoint(dt);
+          iRes++;
+        }
+      }
+      if(iLoc > 1)
+      {
+        dt = dtOff - cRoots.y;
+        if((dt > -g_dPrec) && (dt < -dOffset1/dRad + g_dPrec))
+        {
+          pBounds->AddPoint(dt);
+          iRes++;
+        }
+      }
+//printf("%i, %i, %i, %f, %f - %f, %f\n", i, iRes, iLoc, dtOff - cRoots.x, dtOff - cRoots.y, dtOff, dOffset1/dRad);
+    }
+    else
+    {
+      if(iLoc > 0) pBounds->AddPoint(cRoots.x - dtOff);
+      if(iLoc > 1) pBounds->AddPoint(cRoots.y - dtOff);
+      iRes += iLoc;
+    }
   }
+  return iRes;
+}
+
+int AddEvolvInterLine(CDPoint cPt1, CDPoint cPt2, double dOffset, PDPointList pCache, PDRefList pBounds)
+{
+  int iCnt = pCache->GetCount(0);
+  if(iCnt < 3) return 0;
+
+  CDPoint cOrig, cN1, cRad;
+  cOrig = pCache->GetPoint(0, 0).cPoint;
+  cN1 = pCache->GetPoint(1, 0).cPoint;
+  cRad = pCache->GetPoint(2, 0).cPoint;
+  double dr1 = cRad.x;
+  if(dr1 < g_dPrec) return 0;
+
+  int iRes = 0;
+  double dr = 0.0;
+  int nOffs = pCache->GetCount(2);
+  if(nOffs > 0)
+  {
+    dr = pCache->GetPoint(0, 2).cPoint.x;
+    if(dr < -g_dPrec)
+      iRes += AddEvolvInterLineDir(cPt1, cPt2, cOrig, cN1, cRad.x, -cRad.y, dr, dOffset, true, pBounds);
+  }
+  iRes += AddEvolvInterLineDir(cPt1, cPt2, cOrig, cN1, cRad.x, cRad.y, dr, dOffset, false, pBounds);
   return iRes;
 }
 
@@ -585,10 +628,10 @@ void AddEvolvSegment(double d1, double d2, double dExt, PDPointList pCache, PDPr
   {
     if(d1 > dr1*Power2(dRef1)/2.0) 
       dt1 = sqrt(2.0*d1/dr1 - Power2(dRef1)) - dRef1;
-    else dt1 = sqrt(Power2(dRef1) - 2.0*d1/dr1) + dRef1;
+    else dt1 = -dRef1 - sqrt(Power2(dRef1) - 2.0*d1/dr1);
     if(d2 > dr1*Power2(dRef1)/2.0)
       dt2 = sqrt(2.0*d2/dr1 - Power2(dRef1)) - dRef1;
-    else dt2 = sqrt(Power2(dRef1) - 2.0*d2/dr1) + dRef1;
+    else dt2 = -dRef1 - sqrt(Power2(dRef1) - 2.0*d2/dr1);
   }
 
   CDPoint cEvPts[2];
@@ -742,7 +785,7 @@ bool GetEvolvReference(double dDist, PDPointList pCache, double *pdRef)
   else *pdDist = dr1*(Power2(dRef1) - Power2(dRef + dRef1))/2.0;*/
   if(dr > g_dPrec) *pdRef = sqrt(Power2(dRef1) + 2.0*dDist/dr1) - dRef1;
   else if(dDist > dr1*Power2(dRef1)/2.0) *pdRef = sqrt(2.0*dDist/dr1 - Power2(dRef1)) - dRef1;
-  else *pdRef = sqrt(Power2(dRef1) - 2.0*dDist/dr1) + dRef1;
+  else *pdRef = -dRef1 - sqrt(Power2(dRef1) - 2.0*dDist/dr1);
 
   return true;
 }
