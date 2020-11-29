@@ -420,17 +420,30 @@ int GetEvolvInterLineForK(int k, double dOffset, double dr, double ds1, double d
 int AddEvolvInterLineDir(CDPoint cPt1, CDPoint cPt2, CDPoint cOrig, CDPoint cMainDir,
   double dRad, double dDir, double dOffset1, double dOffset2, bool bReverse, PDRefList pBounds)
 {
-  CDPoint cLn1 = Rotate(cPt1 - cOrig, cMainDir, false);
-  CDPoint cLn2 = Rotate(cPt2 - cOrig, cMainDir, false);
+  double dr = dOffset1 + dOffset2;
+  if(bReverse) dr *= -1.0;
+
+  double dtOff = dr/dRad;
+  double da = 0.0;
+
+  CDPoint cN1 = cMainDir;
+  if(fabs(dOffset1) > g_dPrec)
+  {
+    da = dOffset1/dRad;
+    if(bReverse) da *= -1.0;
+    CDPoint cPt = {cos(da), -dDir*sin(da)};
+    cN1 = Rotate(cMainDir, cPt, true);
+    dtOff -= da;
+  }
+
+  CDPoint cLn1 = Rotate(cPt1 - cOrig, cN1, false);
+  CDPoint cLn2 = Rotate(cPt2 - cOrig, cN1, false);
   cLn1.y *= dDir;
   cLn2.y *= dDir;
   CDPoint cLnDir = cLn2 - cLn1;
   double dLnNorm = GetNorm(cLnDir);
   if(dLnNorm < g_dPrec) return 0;
   cLnDir /= dLnNorm;
-
-  double dr = dOffset1 + dOffset2;
-  if(bReverse) dr *= -1.0;
 
   double dl1 = GetNorm(cPt1 - cOrig);
   double dl2 = GetNorm(cPt2 - cOrig);
@@ -479,7 +492,6 @@ int AddEvolvInterLineDir(CDPoint cPt1, CDPoint cPt2, CDPoint cOrig, CDPoint cMai
   int k = (int)dr2/2.0/M_PI;
   if(k < k1) k1 = k;
 
-  double dtOff = dr/dRad;
   double du = dv + dtOff;
   du -= M_PI/2.0;
 
@@ -500,6 +512,7 @@ int AddEvolvInterLineDir(CDPoint cPt1, CDPoint cPt2, CDPoint cOrig, CDPoint cMai
   CDPoint cRoots;
 
   if(bReverse) k1 = 0;
+  dtOff += da;
 
   double dt;
   for(int i = k1; i <= k2; i++)
@@ -525,13 +538,27 @@ int AddEvolvInterLineDir(CDPoint cPt1, CDPoint cPt2, CDPoint cOrig, CDPoint cMai
           iRes++;
         }
       }
-//printf("%i, %i, %i, %f, %f - %f, %f\n", i, iRes, iLoc, dtOff - cRoots.x, dtOff - cRoots.y, dtOff, dOffset1/dRad);
     }
     else
     {
-      if(iLoc > 0) pBounds->AddPoint(cRoots.x - dtOff);
-      if(iLoc > 1) pBounds->AddPoint(cRoots.y - dtOff);
-      iRes += iLoc;
+      if(iLoc > 0)
+      {
+        dt = cRoots.x - dtOff;
+        if(dt > -g_dPrec)
+        {
+          pBounds->AddPoint(dt);
+          iRes++;
+        }
+      }
+      if(iLoc > 1)
+      {
+        dt = cRoots.y - dtOff;
+        if(dt > -g_dPrec)
+        {
+          pBounds->AddPoint(dt);
+          iRes++;
+        }
+      }
     }
   }
   return iRes;
