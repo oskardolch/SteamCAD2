@@ -809,7 +809,7 @@ int CDObject::GetRectangleIntersects(PDRect pRect, double dOffset, int iBndMode,
 }
 
 int CDObject::GetViewBounds(CDLine cTmpPt, int iMode, PDRect pRect, int iTemp,
-  PDRefList pBounds, PDPoint pDrawBnds, double *pdMovedDist)
+  PDRefList pBounds, PDPoint pDrawBnds, bool bMergeWithBounds)
 {
   if(iMode > 0) BuildCache(cTmpPt, iMode);
 
@@ -946,6 +946,46 @@ int CDObject::GetViewBounds(CDLine cTmpPt, int iMode, PDRect pRect, int iTemp,
   }
   delete pInt1;
 
+  if(bMergeWithBounds && (iRes == 1))
+  {
+    int iLen = pBounds->GetCount();
+    if(IsClosedShape())
+    {
+
+    }
+    else
+    {
+      if(m_cBounds[0].bIsSet)
+      {
+        if(m_cBounds[1].bIsSet)
+        {
+          if(m_cBounds[1].dRef < (*pBounds)[0] + g_dPrec) iRes = 0;
+          else if(m_cBounds[0].dRef > (*pBounds)[iLen - 1] - g_dPrec) iRes = 0;
+          else
+          {
+            bool bFound = false;
+            int i = 0;
+            while(!bFound && (i < iLen - 1))
+            {
+              bFound = (m_cBounds[0].dRef > (*pBounds)[i] - g_dPrec) &&
+                (m_cBounds[0].dRef < (*pBounds)[i + 1] + g_dPrec) &&
+                (m_cBounds[1].dRef > (*pBounds)[i] - g_dPrec) &&
+                (m_cBounds[1].dRef < (*pBounds)[i + 1] + g_dPrec);
+              i++;
+            }
+            if(bFound)
+            {
+              if(i % 2 > 0) iRes = 0;
+              else iRes = 2;
+            }
+          }
+        }
+        else if(m_cBounds[0].dRef > (*pBounds)[iLen - 1] - g_dPrec) iRes = 0;
+      }
+      else if(m_cBounds[1].bIsSet && (m_cBounds[1].dRef < (*pBounds)[0] + g_dPrec)) iRes = 0;
+    }
+  }
+
   return iRes;
 }
 
@@ -1023,7 +1063,7 @@ int CDObject::BuildPrimitives(CDLine cTmpPt, int iMode, PDRect pRect, int iTemp,
 
   CDPoint cBnds = {0.0, 0.0};
   PDRefList pBounds = new CDRefList();
-  int iRes = GetViewBounds(cTmpPt, iMode, pRect, iTemp, pBounds, &cBnds, &m_dMovedDist);
+  int iRes = GetViewBounds(cTmpPt, iMode, pRect, iTemp, pBounds, &cBnds, false);
 
   int nCrs = m_pCrossPoints->GetCount();
 
@@ -5465,12 +5505,17 @@ void CDataList::SelectByRectangle(PDRect pRect, int iMode, PDPtrList pRegions)
     CDLine cLn;
     cLn.bIsSet = false;
     int k;
+    CDPoint cBnds = {0.0, 0.0};
+    PDRefList pBounds = new CDRefList();
     for(int i = 0; i < m_iDataLen; i++)
     {
         pObj = m_ppObjects[i];
-        k = pObj->BuildPrimitives(cLn, 0, pRect, 2, NULL);
+        //k = pObj->BuildPrimitives(cLn, 0, pRect, 2, NULL);
+        pBounds->Clear();
+        k = pObj->GetViewBounds(cLn, 0, pRect, 2, pBounds, &cBnds, true);
         if(k == iMode) pObj->SetSelected(true, false, -1, pRegions);
     }
+    delete pBounds;
 
     PDPoint pPts = (PDPoint)malloc(4*sizeof(CDPoint));
     pPts[0].x = pRect->cPt1.x - 1.0;
@@ -6134,4 +6179,3 @@ bool CDataList::BreakSelObjects(PDRect pRect, PDPtrList pRegions)
     }
     return bRes;
 }
-

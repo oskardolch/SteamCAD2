@@ -118,7 +118,6 @@ private:
   int AddLineIntersects(CDPoint cPt1, CDPoint cPt2, double dOffset, PDRefList pBounds);
   int GetRectangleIntersects(PDRect pRect, double dOffset, int iBndMode, PDPoint pRefBnds, PDRefList pBounds);
   // returns: 0 - nothing is visible, 1 - part is visible, 2 - whole curve is visible and is closed
-  int GetViewBounds(CDLine cTmpPt, int iMode, PDRect pRect, int iTemp, PDRefList pBounds, PDPoint pDrawBnds, double *pdMovedDist);
   void AddExtraPrimitives(PDRect pRect, PDPrimObject pPrimList);
   //int BuildPurePrimitives(CDLine cTmpPt, int iMode, PDRect pRect, int iTemp, PDPrimObject plPrimitive,
   //  double dExt, double *pdMovedDist, PDPoint pBnds);
@@ -134,6 +133,7 @@ public:
   void Redo();
   // iMode: 0 - normal, 1 - inserting, 2 - buffering, 3 - rounding
   bool BuildCache(CDLine cTmpPt, int iMode);
+  int GetViewBounds(CDLine cTmpPt, int iMode, PDRect pRect, int iTemp, PDRefList pBounds, PDPoint pDrawBnds, bool bMergeWithBounds);
   // returns 0 - not in rect, 1 - partially in rect, 2 - full in rect
   int BuildPrimitives(CDLine cTmpPt, int iMode, PDRect pRect, int iTemp, PDFileAttrs pAttrs);
   void GetFirstPrimitive(PDPrimitive pPrim, double dScale, int iDimen);
