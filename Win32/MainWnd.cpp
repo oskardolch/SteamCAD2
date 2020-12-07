@@ -951,7 +951,7 @@ bool CMainWnd::SaveFile(HWND hWnd, LPWSTR wsFile, bool bSelectOnly)
     OPENFILENAME ofn = {sizeof(OPENFILENAME), hWnd, m_hInstance, wsFilter,
       NULL, 0, 0, wsFile, MAX_PATH, NULL, 0, wsCurDir, NULL,
       OFN_ENABLESIZING | OFN_EXPLORER | OFN_OVERWRITEPROMPT | OFN_PATHMUSTEXIST,
-      0, 0, L"sdr", 0, NULL, NULL};
+      0, 0, L"sc2", 0, NULL, NULL};
 
     bSave = GetSaveFileName(&ofn);
   }
@@ -961,7 +961,7 @@ bool CMainWnd::SaveFile(HWND hWnd, LPWSTR wsFile, bool bSelectOnly)
   LPWSTR sDot = wcsrchr(wsFile, '.');
   if(sDot)
   {
-    if(wcsicmp(sDot, L".sdr") == 0) cVer = 1;
+    if(wcsicmp(sDot, L".sc2") == 0) cVer = 1;
   }
 
   // save the file
@@ -987,7 +987,7 @@ bool CMainWnd::LoadFile(HWND hWnd, LPWSTR wsFile, bool bClear)
   OPENFILENAME ofn = {sizeof(OPENFILENAME), hWnd, m_hInstance, wsFilter,
     NULL, 0, 0, wsFile, MAX_PATH, NULL, 0, wsCurDir, NULL,
     OFN_ENABLESIZING | OFN_EXPLORER | OFN_FILEMUSTEXIST,
-    0, 0, L"sdr", 0, NULL, NULL};
+    0, 0, L"sc2", 0, NULL, NULL};
 
   if(GetOpenFileName(&ofn))
   {
@@ -3182,6 +3182,11 @@ void CMainWnd::DrawObjectPlus(HWND hWnd, Graphics *graphics, PDObject pObj, int 
   DashCap dc = DashCapRound;
   if(cStyle.cCapType != 1) dc = DashCapFlat;
   hPen.SetLineCap(lc, lc, dc);
+
+  LineJoin lj = LineJoinRound;
+  if(cStyle.cJoinType == 2) lj = LineJoinBevel;
+  else if(cStyle.cJoinType == 0) lj = LineJoinMiter;
+  hPen.SetLineJoin(lj);
 
   CDPrimitive cPrim;
   PDDimension pDim;

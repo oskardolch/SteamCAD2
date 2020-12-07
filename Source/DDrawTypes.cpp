@@ -149,7 +149,7 @@ bool CDObject::AddPoint(double x, double y, char iCtrl, double dRestrictVal, boo
     bRes = AddSplinePoint(x, y, iCtrl, dRestrictVal, m_pInputPoints);
     break;
   case dtEvolvent:
-    bRes = AddEvolvPoint(x, y, iCtrl, m_pInputPoints, iInputLines);
+    bRes = AddEvolvPoint(x, y, iCtrl, dRestrictVal, m_pInputPoints, iInputLines);
     break;
   case dtLogSpiral:
   case dtArchSpiral:
@@ -1221,7 +1221,7 @@ int CDObject::BuildPrimitives(CDLine cTmpPt, int iMode, PDRect pRect, int iTemp,
 
       if(nCrs < 2)
       {
-        if(m_iType == dtSpline) cAdd.cPt3.x = dSegLen;
+        if(m_iType == dtSpline || m_iType == dtEvolvent) cAdd.cPt3.x = 0.0;
         cAdd.cPt3.y = dEnd;
         AddCurveSegment(cAdd, plPrimitive, pBounds);
       }

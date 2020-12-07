@@ -31,7 +31,7 @@ BEGIN
     IDS_ANGLE "Angle: "
     IDS_RADIUS "Radius: "
     IDS_DISTANCE "Distance: "
-    IDS_STEAMDRAWFILTER "SteamCAD2 files (*.sc2)\1*.sdr\1All files\1*.*\1\1"
+    IDS_STEAMDRAWFILTER "SteamCAD2 files (*.sc2)\1*.sc2;*.sdr\1All files\1*.*\1\1"
     IDS_NUMCOPIES "# of copies: "
     IDS_SELPOINTTOROTATE "Click a point to rotate about"
     IDS_SELLINETOMOVE "Click a line to move along"
