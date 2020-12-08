@@ -939,19 +939,67 @@ int CDObject::GetViewBounds(CDLine cTmpPt, int iMode, PDRect pRect, int iTemp,
   else
     MergeCornerRefs(pInt1, NULL, iRectFlag, dCornerRefs);
 
-  for(int i = 0; i < pInt1->GetCount(); i++)
+  int iLen = pInt1->GetCount();
+  for(int i = 0; i < iLen; i++)
   {
     GetPointRefDist((*pInt1)[i], &d1);
     pBounds->AddPoint(d1);
   }
-  delete pInt1;
 
   if(bMergeWithBounds && (iRes == 1))
   {
-    int iLen = pBounds->GetCount();
     if(IsClosedShape())
     {
-
+      if(m_cBounds[0].bIsSet && m_cBounds[1].bIsSet)
+      {
+        if(m_cBounds[1].dRef < m_cBounds[0].dRef)
+        {
+          if((*pInt1)[0] > (*pInt1)[1])
+          {
+            if((m_cBounds[0].dRef > (*pInt1)[0] - g_dPrec) && (m_cBounds[1].dRef < (*pInt1)[1] + g_dPrec))
+              iRes = 2;
+          }
+          else if((m_cBounds[1].dRef < (*pInt1)[0] + g_dPrec) && (m_cBounds[0].dRef > (*pInt1)[iLen - 1] - g_dPrec))
+            iRes = 0;
+        }
+        else
+        {
+          bool bFound = false;
+          int i = 0;
+          if((*pInt1)[0] > (*pInt1)[1])
+          {
+            if((m_cBounds[1].dRef < (*pInt1)[1] + g_dPrec) || (m_cBounds[0].dRef > (*pInt1)[0] - g_dPrec))
+            {
+              iRes = 2;
+              i = iLen;
+            }
+            else if((m_cBounds[0].dRef > (*pInt1)[1] - g_dPrec) || (m_cBounds[1].dRef < (*pInt1)[0] + g_dPrec))
+            {
+              iRes = 0;
+              i = iLen;
+            }
+            else i = 1;
+          }
+          else if((m_cBounds[0].dRef > (*pInt1)[iLen - 1] - g_dPrec) || (m_cBounds[1].dRef < (*pInt1)[0] + g_dPrec))
+          {
+            iRes = 0;
+            i == iLen;
+          }
+          while(!bFound && (i < iLen - 1))
+          {
+            bFound = (m_cBounds[0].dRef > (*pInt1)[i] - g_dPrec) &&
+              (m_cBounds[0].dRef < (*pInt1)[i + 1] + g_dPrec) &&
+              (m_cBounds[1].dRef > (*pInt1)[i] - g_dPrec) &&
+              (m_cBounds[1].dRef < (*pInt1)[i + 1] + g_dPrec);
+            i++;
+          }
+          if(bFound)
+          {
+            if(i % 2 > 0) iRes = 2;
+            else iRes = 0;
+          }
+        }
+      }
     }
     else
     {
@@ -959,32 +1007,34 @@ int CDObject::GetViewBounds(CDLine cTmpPt, int iMode, PDRect pRect, int iTemp,
       {
         if(m_cBounds[1].bIsSet)
         {
-          if(m_cBounds[1].dRef < (*pBounds)[0] + g_dPrec) iRes = 0;
-          else if(m_cBounds[0].dRef > (*pBounds)[iLen - 1] - g_dPrec) iRes = 0;
+          if(m_cBounds[1].dRef < (*pInt1)[0] + g_dPrec) iRes = 0;
+          else if(m_cBounds[0].dRef > (*pInt1)[iLen - 1] - g_dPrec) iRes = 0;
           else
           {
             bool bFound = false;
             int i = 0;
             while(!bFound && (i < iLen - 1))
             {
-              bFound = (m_cBounds[0].dRef > (*pBounds)[i] - g_dPrec) &&
-                (m_cBounds[0].dRef < (*pBounds)[i + 1] + g_dPrec) &&
-                (m_cBounds[1].dRef > (*pBounds)[i] - g_dPrec) &&
-                (m_cBounds[1].dRef < (*pBounds)[i + 1] + g_dPrec);
+              bFound = (m_cBounds[0].dRef > (*pInt1)[i] - g_dPrec) &&
+                (m_cBounds[0].dRef < (*pInt1)[i + 1] + g_dPrec) &&
+                (m_cBounds[1].dRef > (*pInt1)[i] - g_dPrec) &&
+                (m_cBounds[1].dRef < (*pInt1)[i + 1] + g_dPrec);
               i++;
             }
             if(bFound)
             {
-              if(i % 2 > 0) iRes = 0;
-              else iRes = 2;
+              if(i % 2 > 0) iRes = 2;
+              else iRes = 0;
             }
           }
         }
-        else if(m_cBounds[0].dRef > (*pBounds)[iLen - 1] - g_dPrec) iRes = 0;
+        else if(m_cBounds[0].dRef > (*pInt1)[iLen - 1] - g_dPrec) iRes = 0;
       }
-      else if(m_cBounds[1].bIsSet && (m_cBounds[1].dRef < (*pBounds)[0] + g_dPrec)) iRes = 0;
+      else if(m_cBounds[1].bIsSet && (m_cBounds[1].dRef < (*pInt1)[0] + g_dPrec)) iRes = 0;
     }
   }
+
+  delete pInt1;
 
   return iRes;
 }
