@@ -4203,39 +4203,40 @@ LRESULT CMainWnd::ToolsScaleCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl)
 
 LRESULT CMainWnd::ToolsStatCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl)
 {
-    int iStats[9];
-    for(int i = 0; i < 9; i++) iStats[i] = 0;
+  int iStats[9];
+  for(int i = 0; i < 9; i++) iStats[i] = 0;
 
-    m_pDrawObjects->GetStatistics(iStats);
+  m_pDrawObjects->GetStatistics(iStats);
 
-    CDStatRec cSR;
-    cSR.iLines = iStats[1];
-    cSR.iCircles = iStats[2];
-    cSR.iEllips = iStats[3];
-    cSR.iArcEllips = iStats[4];
-    cSR.iHypers = iStats[5];
-    cSR.iParabs = iStats[6];
-    cSR.iSplines = iStats[7];
-    cSR.iEvolvs = iStats[8];
-    cSR.iDimens = iStats[0];
+  CDStatRec cSR;
+  cSR.iLines = iStats[1];
+  cSR.iCircles = iStats[2];
+  cSR.iEllips = iStats[3];
+  cSR.iArcEllips = iStats[4];
+  cSR.iHypers = iStats[5];
+  cSR.iParabs = iStats[6];
+  cSR.iSplines = iStats[7];
+  cSR.iEvolvs = iStats[8];
+  cSR.iDimens = iStats[0];
 
-    m_pStatDlg->ShowDialog(hwnd, &cSR);
-    return 0;
+  m_pStatDlg->ShowDialog(hwnd, &cSR);
+  return 0;
 }
 
 LRESULT CMainWnd::PathCreateCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl)
 {
-    return 0;
+  m_pDrawObjects->CreatePath();
+  return 0;
 }
 
 LRESULT CMainWnd::PathBreakCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl)
 {
-    return 0;
+  return 0;
 }
 
 LRESULT CMainWnd::PathAreaCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl)
 {
-    return 0;
+  return 0;
 }
 
 LRESULT CMainWnd::PathGroupCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl)
