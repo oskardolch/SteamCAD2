@@ -115,6 +115,7 @@ private:
   void SwapBounds();
   bool RemovePart(bool bDown, PDRefPoint pBounds);
   bool IsClosedPath();
+  int AddSubIntersects(CDPoint cPt1, CDPoint cPt2, double dOffset, PDRefList pBounds);
   int AddLineIntersects(CDPoint cPt1, CDPoint cPt2, double dOffset, PDRefList pBounds);
   int GetRectangleIntersects(PDRect pRect, double dOffset, int iBndMode, PDPoint pRefBnds, PDRefList pBounds);
   // returns: 0 - nothing is visible, 1 - part is visible, 2 - whole curve is visible and is closed

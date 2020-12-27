@@ -191,28 +191,28 @@ void CDObject::Redo()
 
 bool CDObject::BuildSubCache(CDLine cTmpPt, int iMode)
 {
-    int n = m_pSubObjects->GetCount();
-    bool bRes = n > 0;
-    int i = 0;
-    if(m_iType == dtPath)
+  int n = m_pSubObjects->GetCount();
+  bool bRes = n > 0;
+  int i = 0;
+  if(m_iType == dtPath)
+  {
+    PDPathSeg pObj;
+    while(bRes && (i < n))
     {
-        PDPathSeg pObj;
-        while(bRes && (i < n))
-        {
-            pObj = (PDPathSeg)m_pSubObjects->GetItem(i++);
-            bRes = pObj->pSegment->BuildCache(cTmpPt, iMode);
-        }
+      pObj = (PDPathSeg)m_pSubObjects->GetItem(i++);
+      bRes = pObj->pSegment->BuildCache(cTmpPt, iMode);
     }
-    else if(m_iType == dtGroup)
+  }
+  else if(m_iType == dtGroup)
+  {
+    PDObject pObj;
+    while(bRes && (i < n))
     {
-        PDObject pObj;
-        while(bRes && (i < n))
-        {
-            pObj = (PDObject)m_pSubObjects->GetItem(i++);
-            bRes = pObj->BuildCache(cTmpPt, iMode);
-        }
+      pObj = (PDObject)m_pSubObjects->GetItem(i++);
+      bRes = pObj->BuildCache(cTmpPt, iMode);
     }
-    return bRes;
+  }
+  return bRes;
 }
 
 bool CDObject::BuildCache(CDLine cTmpPt, int iMode)
@@ -703,6 +703,32 @@ int CDObject::BuildPurePrimitives(CDLine cTmpPt, int iMode, PDRect pRect, int iT
   return iRes;
 }*/
 
+int CDObject::AddSubIntersects(CDPoint cPt1, CDPoint cPt2, double dOffset, PDRefList pBounds)
+{
+  int n = m_pSubObjects->GetCount();
+  bool bRes = n > 0;
+  int i = 0;
+  if(m_iType == dtPath)
+  {
+    PDPathSeg pObj;
+    while(bRes && (i < n))
+    {
+      pObj = (PDPathSeg)m_pSubObjects->GetItem(i++);
+      //bRes = pObj->pSegment->BuildCache(cTmpPt, iMode);
+    }
+  }
+  else if(m_iType == dtGroup)
+  {
+    //PDObject pObj;
+    //while(bRes && (i < n))
+    //{
+    //  pObj = (PDObject)m_pSubObjects->GetItem(i++);
+    //  bRes = pObj->BuildCache(cTmpPt, iMode);
+    //}
+  }
+  return 0;
+}
+
 int CDObject::AddLineIntersects(CDPoint cPt1, CDPoint cPt2, double dOffset, PDRefList pBounds)
 {
   int iRes = 0;
@@ -733,7 +759,10 @@ int CDObject::AddLineIntersects(CDPoint cPt1, CDPoint cPt2, double dOffset, PDRe
     break;
   case dtLogSpiral:
   case dtArchSpiral:
+    break;
   case dtPath:
+    iRes = AddSubIntersects(cPt1, cPt2, dOffset, pBounds);
+    break;
   case dtBorderPath:
   case dtBorder:
   case dtArea:
@@ -983,7 +1012,7 @@ int CDObject::GetViewBounds(CDLine cTmpPt, int iMode, PDRect pRect, int iTemp,
           else if((m_cBounds[0].dRef > (*pInt1)[iLen - 1] - g_dPrec) || (m_cBounds[1].dRef < (*pInt1)[0] + g_dPrec))
           {
             iRes = 0;
-            i == iLen;
+            i = iLen;
           }
           while(!bFound && (i < iLen - 1))
           {

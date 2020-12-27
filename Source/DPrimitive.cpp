@@ -1527,8 +1527,8 @@ int AddCurveSegment(void *pvData, double dr, CDPoint cBreak, CurveFunc pFunc, Cu
   return iRes;
 }
 
-CDPoint GetCurveRefAtDist(void *pvData, double dr, CDPoint cBreak, double dDist,
-  CurveFunc pFunc, CurveFunc pFuncDer, double dInterval, int iSampleStrategy, CDPoint cMaxRef)
+CDPoint GetCurveRefAtDist(void *pvData, double dr, CDPoint cBreak, double dDist, CurveFunc pFunc,
+  CurveFunc pFuncDer, double dInterval, int iSampleStrategy, CDPoint cMaxRef)
 {
   double dBase = dInterval;
 

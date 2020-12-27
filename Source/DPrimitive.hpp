@@ -26,8 +26,8 @@ bool PtInDblList(double du, int iSize, double *pdList);
 bool GetRefInUboundSeg(double dRef, CDPoint cStart, CDPoint cEnd);
 
 // iSampleStrategy - 0 = constant, 1 = progressive
-CDPoint GetCurveRefAtDist(void *pvData, double dr, CDPoint cBreak, double dDist,
-  CurveFunc pFunc, CurveFunc pFuncDer, double dInterval, int iSampleStrategy, CDPoint cMaxRef);
+CDPoint GetCurveRefAtDist(void *pvData, double dr, CDPoint cBreak, double dDist, CurveFunc pFunc,
+  CurveFunc pFuncDer, double dInterval, int iSampleStrategy, CDPoint cMaxRef);
 double GetCurveDistAtRef(void *pvData, double dr, CDPoint cBreak, double dRef,
   CurveFunc pFunc, CurveFunc pFuncDer, double dInterval, int iSampleStrategy, CDPoint cMaxRef);
 int AddCurveSegment(void *pvData, double dr, CDPoint cBreak, CurveFunc pFunc, CurveFunc pFuncDer,

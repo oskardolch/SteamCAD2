@@ -1074,6 +1074,31 @@ bool GetElpsPointRefDist(double dRef, PDPointList pCache, double *pdDist)
   return true;
 }
 
+double ElpsNormalize(double d1, double dHalf, double *pdRes)
+{
+  double dRes = fabs(d1);
+  if(dRes > 3.0*dHalf + g_dPrec)
+  {
+    dRes -= 3.0*dHalf;
+    *pdRes = 3.0*M_PI;
+  }
+  else if(dRes > 2.0*dHalf + g_dPrec)
+  {
+    dRes -= 2.0*dHalf;
+    *pdRes = 2.0*M_PI;
+  }
+  else if(dRes > dHalf + g_dPrec)
+  {
+    dRes -= dHalf;
+    *pdRes = M_PI;
+  }
+  else if(dRes > dHalf - g_dPrec)
+  {
+    dRes = dHalf;
+  }
+  return dRes;
+}
+
 void AddElpsSegment(double d1, double d2, double dExt, PDPointList pCache, PDPrimObject pPrimList)
 {
   int iCnt = pCache->GetCount(0);
@@ -1138,15 +1163,22 @@ void AddElpsSegment(double d1, double d2, double dExt, PDPointList pCache, PDPri
   if(cBreak.x > -0.5) cBreak.y = M_PI - cBreak.x;
   else cBreak.y = -1.0;
 
-  CDPoint cPt = GetCurveRefAtDist(&cRad, dr, cBreak, fabs(d1),
+  double dHalf = GetCurveDistAtRef(&cRad, dr, cBreak, M_PI,
+    ElpsFunc, ElpsFuncDer, M_PI/4.0, 0, {1.0, M_PI});
+  double dAdd1 = 0.0;
+  double dd1 = ElpsNormalize(d1, dHalf, &dAdd1);
+  double dAdd2 = 0.0;
+  double dd2 = ElpsNormalize(d2, dHalf, &dAdd2);
+
+  CDPoint cPt = GetCurveRefAtDist(&cRad, dr, cBreak, dd1,
     ElpsFunc, ElpsFuncDer, M_PI/4.0, 0, {1.0, M_PI});
   CDPoint cPt2 = GetElpsBoundProj(cRad.x, cRad.y, dr, cPt, cPt, false);
-  double dt1 = atan2(cPt2.y, cPt2.x);
+  double dt1 = atan2(cPt2.y, cPt2.x) + dAdd1;
   if(d1 < 0.0) dt1 *= -1.0;
-  cPt = GetCurveRefAtDist(&cRad, dr, cBreak, fabs(d2),
+  cPt = GetCurveRefAtDist(&cRad, dr, cBreak, dd2,
     ElpsFunc, ElpsFuncDer, M_PI/4.0, 0, {1.0, M_PI});
   cPt2 = GetElpsBoundProj(cRad.x, cRad.y, dr, cPt, cPt, false);
-  double dt2 = atan2(cPt2.y, cPt2.x);
+  double dt2 = atan2(cPt2.y, cPt2.x) + dAdd2;
   if(d2 < 0.0) dt2 *= -1.0;
 
   dr += dExt;
