@@ -786,6 +786,14 @@ int IntersectBounds(CDPoint cBnds1, CDPoint cBnds2, int iBndMode, double dLength
       pRes[0] = cBnds2;
       return 1;
     }
+    if((cBnds1.x > cBnds1.y) && (cBnds2.x > cBnds2.y) && ((cBnds1.x < cBnds2.y) || (cBnds2.x < cBnds1.y)))
+    {
+      pRes[0].x = cBnds2.x;
+      pRes[0].y = cBnds1.y;
+      pRes[1].x = cBnds1.x;
+      pRes[1].y = cBnds2.y;
+      return 2;
+    }
     if(cBnds1.x > cBnds2.x)
     {
       if(cBnds1.y < cBnds2.y)

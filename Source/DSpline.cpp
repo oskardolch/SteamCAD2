@@ -1348,8 +1348,32 @@ void AddSplineSegment(double d1, double d2, double dExt, PDPointList pCache, PDP
   int iSegs = GetSplineNumSegments(pCache);
   if(iSegs < 1) return;
 
+  int nCtrls = pCache->GetCount(1);
+  bool bClosed = (nCtrls > 0);
+  double dOff1 = 0.0;
+  double dOff2 = 0.0;
+//printf("%f, %f\n", d1, d2);
+
+  if(bClosed)
+  {
+    double dWhole = GetSplineDistAtRef((double)iSegs, dExt, pCache);
+    if(d1 > dWhole + g_dPrec)
+    {
+      d1 -= dWhole;
+      dOff1 = (double)iSegs;
+    }
+    else if(d1 > dWhole - g_dPrec) d1 = dWhole;
+    if(d2 > dWhole + g_dPrec)
+    {
+      d2 -= dWhole;
+      dOff2 = (double)iSegs;
+    }
+    else if(d2 > dWhole - g_dPrec) d2 = dWhole;
+  }
+
   double dt1 = GetSplineRefAtDist(d1, dExt, pCache);
   double dt2 = GetSplineRefAtDist(d2, dExt, pCache);
+
   if((dt1 < -0.5) || (dt2 < -0.5)) return;
 
   double dr = dExt;
@@ -1360,8 +1384,12 @@ void AddSplineSegment(double d1, double d2, double dExt, PDPointList pCache, PDP
   int i1 = GetRefIndex(dt1, &dStart);
   int i2 = GetRefIndex(dt2, &dEnd);
 
+  dt1 += dOff1;
+  dt2 += dOff2;
+//printf("%f, %f - %f, %f - %d, %d - %f, %f\n", d1, d2, dt1, dt2, i1, i2, dStart, dEnd);
+
   CDPrimitive cQuad = GetSplineNthSegment(i1, pCache);
-  if((i2 < i1) || ((i2 == i1) && (dt2 < dt1)))
+  if((i2 < i1) || ((i2 == i1) && ((dt2 < dt1) || (dt2 > (double)iSegs - g_dPrec))))
   {
     AddQuadBufPrimitive(cQuad, dr, dStart, 1.0, pPrimList);
     for(int i = i1 + 1; i < iSegs; i++)
