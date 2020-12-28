@@ -710,10 +710,10 @@ int CDObject::AddSubIntersects(CDPoint cPt1, CDPoint cPt2, double dOffset, PDRef
   int i = 0;
   if(m_iType == dtPath)
   {
-    PDPathSeg pObj;
+    //PDPathSeg pObj;
     while(bRes && (i < n))
     {
-      pObj = (PDPathSeg)m_pSubObjects->GetItem(i++);
+      //pObj = (PDPathSeg)m_pSubObjects->GetItem(i++);
       //bRes = pObj->pSegment->BuildCache(cTmpPt, iMode);
     }
   }
