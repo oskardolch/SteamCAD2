@@ -103,8 +103,9 @@ private:
   int GetDimenDir(double dRef1, double dRef2);
   double GetDimenMidPointRef(double dRef1, double dRef2, int iDir);
   bool GetNativeReference(double dDist, double *pdRef);
+  bool GetBounds(PDPoint pBounds);
   double GetLength();
-  PDPathSeg GetPathRefSegment(double dRef, double *pdFixedRef);
+  PDPathSeg GetPathRefSegment(double dRef, double *pdSegRef, int *piPos);
   bool GetPathRefPoint(double dRef, double dOffset, PDPoint pPt);
   bool GetNativeRefPoint(double dRef, double dOffset, PDPoint pPt);
   bool GetPathRefDir(double dRef, PDPoint pPt);
@@ -125,6 +126,11 @@ private:
   //int BuildPathPrimitives(CDLine cTmpPt, int iMode, PDRect pRect, int iTemp, PDPrimObject plPrimitive,
   //  double dExt, double *pdMovedDist, PDPoint pBnds);
   double GetPathDistFromPt(CDPoint cPt, CDPoint cRefPt, bool bSnapCenters, PDLine pPtX);
+  int GetSimpleViewBounds(CDLine cTmpPt, int iMode, CDLineStyle cStyle, PDRect pRect, PDRefList pBounds,
+    PDPoint pDrawBnds, bool bMergeWithBounds);
+  int GetPathViewBounds(CDLine cTmpPt, int iMode, PDRect pRect, PDRefList pBounds, PDPoint pDrawBnds);
+  void AddSimpleSegment(double d1, double d2, double dExt, bool bReverse, PDPrimObject pPrimList);
+  void AddPathSegment(double d1, double d2, double dExt, PDPrimObject pPrimList);
 public:
   CDObject(CDDrawType iType, double dWidth);
   ~CDObject();
@@ -134,7 +140,7 @@ public:
   void Redo();
   // iMode: 0 - normal, 1 - inserting, 2 - buffering, 3 - rounding
   bool BuildCache(CDLine cTmpPt, int iMode);
-  int GetViewBounds(CDLine cTmpPt, int iMode, PDRect pRect, int iTemp, PDRefList pBounds, PDPoint pDrawBnds, bool bMergeWithBounds);
+  int GetViewBounds(CDLine cTmpPt, int iMode, PDRect pRect, PDRefList pBounds, PDPoint pDrawBnds, bool bMergeWithBounds);
   // returns 0 - not in rect, 1 - partially in rect, 2 - full in rect
   int BuildPrimitives(CDLine cTmpPt, int iMode, PDRect pRect, int iTemp, PDFileAttrs pAttrs);
   void GetFirstPrimitive(PDPrimitive pPrim, double dScale, int iDimen);

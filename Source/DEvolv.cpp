@@ -691,7 +691,7 @@ CDPoint EvolvFuncDer(void *pvData, double dt)
   return cRad.x*cRes;
 }
 
-void AddEvolvSegment(double d1, double d2, double dExt, PDPointList pCache, PDPrimObject pPrimList)
+void AddEvolvSegment(double d1, double d2, double dExt, bool bReverse, PDPointList pCache, PDPrimObject pPrimList)
 {
   int iCnt = pCache->GetCount(0);
   if(iCnt < 3) return;

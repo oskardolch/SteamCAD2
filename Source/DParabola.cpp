@@ -497,7 +497,7 @@ double GetParabPointAtDist(double da, double dr, double dBreak, double dDist)
   return dRes;
 }
 
-void AddParabSegment(double d1, double d2, double dExt, PDPointList pCache, PDPrimObject pPrimList)
+void AddParabSegment(double d1, double d2, double dExt, bool bReverse, PDPointList pCache, PDPrimObject pPrimList)
 {
   int iCnt = pCache->GetCount(0);
   if(iCnt < 3) return;

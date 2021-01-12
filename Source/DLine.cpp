@@ -234,7 +234,7 @@ int BuildLinePrimitives(CDLine cTmpPt, int iMode, PDRect pRect, PDPointList pPoi
     return CropPrimitive(cPrim, pRect, pPrimList);
 }*/
 
-void AddLineSegment(double d1, double d2, double dExt, PDPointList pCache, PDPrimObject pPrimList)
+void AddLineSegment(double d1, double d2, double dExt, bool bReverse, PDPointList pCache, PDPrimObject pPrimList)
 {
   int iCnt = pCache->GetCount(0);
 
@@ -261,8 +261,16 @@ void AddLineSegment(double d1, double d2, double dExt, PDPointList pCache, PDPri
 
   CDPrimitive cPrim;
   cPrim.iType = 1;
-  cPrim.cPt1 = cOrig + Rotate(cPt1, cNorm, true);
-  cPrim.cPt2 = cOrig + Rotate(cPt2, cNorm, true);
+  if(bReverse)
+  {
+    cPrim.cPt1 = cOrig + Rotate(cPt2, cNorm, true);
+    cPrim.cPt2 = cOrig + Rotate(cPt1, cNorm, true);
+  }
+  else
+  {
+    cPrim.cPt1 = cOrig + Rotate(cPt1, cNorm, true);
+    cPrim.cPt2 = cOrig + Rotate(cPt2, cNorm, true);
+  }
   pPrimList->AddPrimitive(cPrim);
   //CropPrimitive(cPrim, pRect, pPrimList);
 }

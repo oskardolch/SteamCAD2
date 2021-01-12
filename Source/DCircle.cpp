@@ -203,7 +203,7 @@ int AddCircleInterLine(CDPoint cPt1, CDPoint cPt2, double dOffset, PDPointList p
   return iRes;
 }
 
-void AddCircSegment(double d1, double d2, double dExt, PDPointList pCache, PDPrimObject pPrimList)
+void AddCircSegment(double d1, double d2, double dExt, bool bReverse, PDPointList pCache, PDPrimObject pPrimList)
 {
   int iCnt = pCache->GetCount(0);
 

@@ -1343,7 +1343,7 @@ bool GetSplinePointRefDist(double dRef, PDPointList pCache, double *pdDist)
   return true;
 }
 
-void AddSplineSegment(double d1, double d2, double dExt, PDPointList pCache, PDPrimObject pPrimList)
+void AddSplineSegment(double d1, double d2, double dExt, bool bReverse, PDPointList pCache, PDPrimObject pPrimList)
 {
   int iSegs = GetSplineNumSegments(pCache);
   if(iSegs < 1) return;

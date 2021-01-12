@@ -18,7 +18,7 @@ double GetLineRadiusAtPt(CDPoint cPt, PDPointList pCache, PDLine pPtR, bool bNew
 bool GetLineAngle(PDPointList pCache, double *pdVal);
 bool GetLinePointRefDist(double dRef, PDPointList pCache, double *pdDist);
 //void AddLineSegment(double d1, double d2, PDPointList pCache, PDPrimObject pPrimList, PDRect pRect);
-void AddLineSegment(double d1, double d2, double dExt, PDPointList pCache, PDPrimObject pPrimList);
+void AddLineSegment(double d1, double d2, double dExt, bool bReverse, PDPointList pCache, PDPrimObject pPrimList);
 bool GetLineRefPoint(double dRef, double dOffset, PDPointList pCache, PDPoint pPt);
 bool GetLineRefDir(double dRef, PDPointList pCache, PDPoint pPt);
 bool GetLineReference(double dDist, PDPointList pCache, double *pdRef);
