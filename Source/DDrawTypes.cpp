@@ -2726,10 +2726,10 @@ double CDObject::GetPathDistFromPt(CDPoint cPt, CDPoint cRefPt, bool bSnapCenter
   {
     pSeg = (PDPathSeg)m_pSubObjects->GetItem(i);
     dCur = pSeg->pSegment->GetDistFromPt(cPt, cRefPt, bSnapCenters, &cCur, NULL);
-    if((iMin < 0) || ((dCur > -0.5) && (dCur < dMin)))
+    if((iMin < 0) || ((dCur > -0.5) && (fabs(dCur) < dMin)))
     {
       iMin = i;
-      dMin = dCur;
+      dMin = fabs(dCur);
       cMin = cCur;
     }
   }
