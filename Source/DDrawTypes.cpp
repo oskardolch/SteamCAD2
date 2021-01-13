@@ -430,6 +430,7 @@ void CDObject::AddCurveSegment(CDPrimitive cAddMode, PDPrimObject pPrimitive, PD
           int n = (int)dDist/cAddMode.cPt2.y/cAddMode.cPt2.x;
           cPath.cPt2.y = n*cAddMode.cPt2.y*cAddMode.cPt2.x - dDist;
         }
+        if(cAddMode.cPt4.x > g_dPrec) cPath.cPt1.y = 2;
         pPrimitive->AddPrimitive(cPath);
       }
     }
@@ -2316,6 +2317,12 @@ bool CDObject::GetBounds(PDPoint pBounds)
 
     GetPointRefDist(m_cBounds[0].dRef, &pBounds->x);
     GetPointRefDist(m_cBounds[1].dRef, &pBounds->y);
+    return true;
+  }
+  if(m_iType == dtPath)
+  {
+    pBounds->x = 0.0;
+    pBounds->y = GetLength();
     return true;
   }
   return false;
@@ -4914,36 +4921,44 @@ CDObject* CDObject::SplitPart(PDRect pRect, PDPtrList pRegions)
 
 bool CDObject::IsBoundShape()
 {
-    switch(m_iType)
-    {
-    case dtLine:
-    case dtHyperbola:
-    case dtParabola:
-        return m_cBounds[0].bIsSet && m_cBounds[1].bIsSet;
-    case dtEvolvent:
-        return m_cBounds[1].bIsSet;
-    default:
-        return true;
-    }
+  switch(m_iType)
+  {
+  case dtLine:
+  case dtHyperbola:
+  case dtParabola:
+    return m_cBounds[0].bIsSet && m_cBounds[1].bIsSet;
+  case dtEvolvent:
+    return m_cBounds[1].bIsSet;
+  default:
+    return true;
+  }
 }
 
 bool CDObject::GetStartPoint(PDPoint pPt)
 {
-    if(m_iType > dtPath) return false;
-    if(IsClosed() > 0) return false;
-    if(m_iType == dtPath)
-    {
-        PDPathSeg pSeg = (PDPathSeg)m_pSubObjects->GetItem(0);
-        if(pSeg->bReverse) return pSeg->pSegment->GetEndPoint(pPt);
-        return pSeg->pSegment->GetStartPoint(pPt);
-    }
-    if(!m_cBounds[0].bIsSet) return false;
-    return GetNativeRefPoint(m_cBounds[0].dRef, 0.0, pPt);
+/*  if(m_iType > dtPath) return false;
+  if(IsClosed() > 0) return false;
+  if(m_iType == dtPath)
+  {
+    PDPathSeg pSeg = (PDPathSeg)m_pSubObjects->GetItem(0);
+    if(pSeg->bReverse) return pSeg->pSegment->GetEndPoint(pPt);
+    return pSeg->pSegment->GetStartPoint(pPt);
+  }
+  if(!m_cBounds[0].bIsSet) return false;
+  return GetNativeRefPoint(m_cBounds[0].dRef, 0.0, pPt);*/
+  CDPoint cBnds;
+  if(GetBounds(&cBnds))
+  {
+    double dRef;
+    GetNativeReference(cBnds.x, &dRef);
+    return GetNativeRefPoint(dRef, 0.0, pPt);
+  }
+  return false;
 }
 
 bool CDObject::GetEndPoint(PDPoint pPt)
 {
-    if(m_iType > dtPath) return false;
+  /*  if(m_iType > dtPath) return false;
     if(IsClosed() > 0) return false;
     if(m_iType == dtPath)
     {
@@ -4953,63 +4968,71 @@ bool CDObject::GetEndPoint(PDPoint pPt)
         return pSeg->pSegment->GetEndPoint(pPt);
     }
     if(!m_cBounds[1].bIsSet) return false;
-    return GetNativeRefPoint(m_cBounds[1].dRef, 0.0, pPt);
+    return GetNativeRefPoint(m_cBounds[1].dRef, 0.0, pPt);*/
+  CDPoint cBnds;
+  if(GetBounds(&cBnds))
+  {
+    double dRef;
+    GetNativeReference(cBnds.y, &dRef);
+    return GetNativeRefPoint(dRef, 0.0, pPt);
+  }
+  return false;
 }
 
 void CDObject::BuildPath(CDObject **ppObjects, PDIntList pPath)
 {
-    int n = pPath->GetCount();
-    PDPathSeg pSeg;
-    PDObject pObj;
-    int iIdx, iType;
-    for(int i = 0; i < n; i++)
+  int n = pPath->GetCount();
+  PDPathSeg pSeg;
+  PDObject pObj;
+  int iIdx, iType;
+  for(int i = 0; i < n; i++)
+  {
+    iIdx = pPath->GetItem(i);
+    pObj = ppObjects[abs(iIdx) - 1];
+    iType = pObj->GetType();
+    if(iType < dtPath)
     {
-        iIdx = pPath->GetItem(i);
-        pObj = ppObjects[abs(iIdx)];
-        iType = pObj->GetType();
-        if(iType < dtPath)
-        {
-            pSeg = (PDPathSeg)malloc(sizeof(CDPathSeg));
-            pSeg->bReverse = iIdx < 0;
-            pSeg->pSegment = pObj;
-            m_pSubObjects->Add(pSeg);
-        }
-        else if(iType == dtPath)
-        {
-            if(iIdx < 0)
-            {
-                for(int j = pObj->m_pSubObjects->GetCount() - 1; j >= 0; j--)
-                {
-                    pSeg = (PDPathSeg)pObj->m_pSubObjects->GetItem(j);
-                    pSeg->bReverse = !pSeg->bReverse;
-                    m_pSubObjects->Add(pSeg);
-                }
-            }
-            else
-            {
-                for(int j = 0; j < pObj->m_pSubObjects->GetCount(); j++)
-                {
-                    pSeg = (PDPathSeg)pObj->m_pSubObjects->GetItem(j);
-                    m_pSubObjects->Add(pSeg);
-                }
-            }
-            pObj->m_pSubObjects->Clear();
-            delete pObj;
-        }
+      pSeg = (PDPathSeg)malloc(sizeof(CDPathSeg));
+      pSeg->bReverse = iIdx < 0;
+      pSeg->pSegment = pObj;
+      m_pSubObjects->Add(pSeg);
     }
+    else if(iType == dtPath)
+    {
+      if(iIdx < 0)
+      {
+        for(int j = pObj->m_pSubObjects->GetCount() - 1; j >= 0; j--)
+        {
+          pSeg = (PDPathSeg)pObj->m_pSubObjects->GetItem(j);
+          pSeg->bReverse = !pSeg->bReverse;
+          m_pSubObjects->Add(pSeg);
+        }
+      }
+      else
+      {
+        for(int j = 0; j < pObj->m_pSubObjects->GetCount(); j++)
+        {
+          pSeg = (PDPathSeg)pObj->m_pSubObjects->GetItem(j);
+          m_pSubObjects->Add(pSeg);
+        }
+      }
+      pObj->m_pSubObjects->Clear();
+      delete pObj;
+    }
+  }
 }
 
 int CDObject::GetSubObjectCount()
 {
-    if(m_iType < dtPath) return 1;
-    int iRes = 0;
-    PDObject pObj;
-    for(int i = 0; i < pObj->m_pSubObjects->GetCount(); i++)
-    {
-        pObj = (PDObject)m_pSubObjects->GetItem(i);
-        iRes += pObj->GetSubObjectCount();
-    }
-    return iRes;
+  if(m_iType < dtPath) return 1;
+  int iRes = 0;
+  PDObject pObj;
+  for(int i = 0; i < pObj->m_pSubObjects->GetCount(); i++)
+  {
+    pObj = (PDObject)m_pSubObjects->GetItem(i);
+    iRes += pObj->GetSubObjectCount();
+  }
+  return iRes;
 }
 
 
@@ -5017,24 +5040,24 @@ int CDObject::GetSubObjectCount()
 
 CDataList::CDataList()
 {
-    m_iDataLen = 0;
-    m_iDataSize = 16;
-    m_ppObjects = (PDObject*)malloc(m_iDataSize*sizeof(PDObject));
-    m_bHasChanged = false;
+  m_iDataLen = 0;
+  m_iDataSize = 16;
+  m_ppObjects = (PDObject*)malloc(m_iDataSize*sizeof(PDObject));
+  m_bHasChanged = false;
 }
 
 CDataList::~CDataList()
 {
-    for(int i = 0; i < m_iDataLen; i++)
-    {
-        delete m_ppObjects[i];
-    }
-    free(m_ppObjects);
+  for(int i = 0; i < m_iDataLen; i++)
+  {
+    delete m_ppObjects[i];
+  }
+  free(m_ppObjects);
 }
 
 int CDataList::GetCount()
 {
-    return m_iDataLen;
+  return m_iDataLen;
 }
 
 void CDataList::Add(PDObject pObject)
@@ -6146,267 +6169,267 @@ void CDataList::RescaleDrawing(double dNewScaleNom, double dNewScaleDenom, bool 
 
 bool CDataList::GetSelSnapEnabled()
 {
-    int iSelTot = 0;
-    int iEnabled = 0;
-    PDObject pObj;
+  int iSelTot = 0;
+  int iEnabled = 0;
+  PDObject pObj;
 
-    for(int i = 0; i < m_iDataLen; i++)
+  for(int i = 0; i < m_iDataLen; i++)
+  {
+    pObj = m_ppObjects[i];
+    if(pObj->GetSelected())
     {
-        pObj = m_ppObjects[i];
-        if(pObj->GetSelected())
-        {
-            iSelTot++;
-            if(pObj->GetSnapTo()) iEnabled++;
-        }
+      iSelTot++;
+      if(pObj->GetSnapTo()) iEnabled++;
     }
+  }
 
-    return 2*iEnabled >= iSelTot;
+  return 2*iEnabled >= iSelTot;
 }
 
 void CDataList::SetSelSnapEnabled(bool bEnable)
 {
-    PDObject pObj;
+  PDObject pObj;
 
-    for(int i = 0; i < m_iDataLen; i++)
-    {
-        pObj = m_ppObjects[i];
-        if(pObj->GetSelected()) pObj->SetSnapTo(bEnable);
-    }
+  for(int i = 0; i < m_iDataLen; i++)
+  {
+    pObj = m_ppObjects[i];
+    if(pObj->GetSelected()) pObj->SetSnapTo(bEnable);
+  }
 }
 
 int CDataList::GetNextSeg(PDIntList pSelObjs, PDIntList pPath, CDPoint cPt1, CDPoint cPt2, PDPoint pPt1, PDPoint pPt2,
-    bool *pbFirst)
+  bool *pbFirst)
 {
-    *pbFirst = false;
-    int n = pPath->GetCount();
-    int iIdxFirst = abs(pPath->GetItem(0));
-    int iIdxLast = abs(pPath->GetItem(n - 1));
+  *pbFirst = false;
+  int n = pPath->GetCount();
+  int iIdxFirst = abs(pPath->GetItem(0)) - 1;
+  int iIdxLast = abs(pPath->GetItem(n - 1)) - 1;
 
-    n = pSelObjs->GetCount();
-    if(n < 2) return 0;
+  n = pSelObjs->GetCount();
+  if(n < 2) return 0;
 
-    int iIdx, i = 1;
-    int iFound = 0;
-    PDObject pObj;
-    double dDist;
+  int iIdx, i = 1;
+  int iFound = 0;
+  PDObject pObj;
+  double dDist;
 
-    while((iFound == 0) && (i < n))
+  while((iFound == 0) && (i < n))
+  {
+    iIdx = pSelObjs->GetItem(i++);
+    pObj = m_ppObjects[iIdx];
+    pObj->GetStartPoint(pPt1);
+    pObj->GetEndPoint(pPt2);
+
+    if(iIdx != iIdxFirst)
     {
-        iIdx = pSelObjs->GetItem(i++);
-        pObj = m_ppObjects[iIdx];
-        pObj->GetStartPoint(pPt1);
-        pObj->GetEndPoint(pPt2);
-
-        if(iIdx != iIdxFirst)
-        {
-            dDist = GetDist(cPt1, *pPt2);
-            if(dDist < g_dPrec) iFound = 1;
-            else
-            {
-                dDist = GetDist(cPt1, *pPt1);
-                if(dDist < g_dPrec) iFound = 2;
-            }
-            if(iFound > 0) *pbFirst = true;
-        }
-        if((iFound == 0) && (iIdx != iIdxLast))
-        {
-            dDist = GetDist(cPt2, *pPt1);
-            if(dDist < g_dPrec)
-            {
-                iFound = 1;
-            }
-            else
-            {
-                dDist = GetDist(cPt2, *pPt2);
-                if(dDist < g_dPrec) iFound = 2;
-            }
-        }
+      dDist = GetDist(cPt1, *pPt2);
+      if(dDist < g_dPrec) iFound = 1;
+      else
+      {
+        dDist = GetDist(cPt1, *pPt1);
+        if(dDist < g_dPrec) iFound = 2;
+      }
+      if(iFound > 0) *pbFirst = true;
     }
+    if((iFound == 0) && (iIdx != iIdxLast))
+    {
+      dDist = GetDist(cPt2, *pPt1);
+      if(dDist < g_dPrec) iFound = 1;
+      else
+      {
+        dDist = GetDist(cPt2, *pPt2);
+        if(dDist < g_dPrec) iFound = 2;
+      }
+    }
+  }
 
-    if(iFound > 1) return 1 - i;
-    if(iFound > 0) return i - 1;
-    return 0;
+  if(iFound > 1) return 1 - i;
+  if(iFound > 0) return i - 1;
+  return 0;
 }
 
 bool CDataList::BuildPath(PDIntList pSelObjs, PDIntList pSel2, PDIntList pPath)
 {
-    CDPoint cPt1, cPt2, cPt3, cPt4;
-    int n = pSel2->GetCount();
-    if(n < 2)
+  CDPoint cPt1, cPt2, cPt3, cPt4;
+  int n = pSel2->GetCount();
+  if(n < 2)
+  {
+    if(n > 0)
     {
-        if(n > 0)
-        {
-            pSelObjs->RemoveItem(pSel2->GetItem(0));
-            pSel2->Remove(0);
-        }
-        return false;
+      pSelObjs->RemoveItem(pSel2->GetItem(0));
+      pSel2->Remove(0);
     }
+    return false;
+  }
 
-    int iSeg = pSel2->GetItem(0);
-    PDObject pObj = m_ppObjects[iSeg];
-    pObj->GetStartPoint(&cPt1);
-    pObj->GetEndPoint(&cPt2);
+  int iSeg = pSel2->GetItem(0);
+  PDObject pObj = m_ppObjects[iSeg];
+  pObj->GetStartPoint(&cPt1);
+  pObj->GetEndPoint(&cPt2);
 
-    pPath->AddItem(iSeg);
+  bool bFirst = false;
+  int iNext = GetNextSeg(pSel2, pPath, cPt1, cPt2, &cPt3, &cPt4, &bFirst);
+  if(iNext != 0) pPath->AddItem(1 + iSeg);
+  else pSel2->RemoveItem(0);
 
-    bool bFirst = false;
-    int iNext = GetNextSeg(pSel2, pPath, cPt1, cPt2, &cPt3, &cPt4, &bFirst);
-
-    double dDist;
-    while(iNext != 0)
+  double dDist;
+  while(iNext != 0)
+  {
+    if(bFirst)
     {
-        if(bFirst)
-        {
-            if(iNext > 0)
-            {
-                pPath->InsertItem(0, pSel2->GetItem(iNext));
-                dDist = GetDist(cPt2, cPt3);
-                cPt1 = cPt3;
-            }
-            else
-            {
-                pPath->InsertItem(0, -pSel2->GetItem(-iNext));
-                dDist = GetDist(cPt2, cPt4);
-                cPt1 = cPt4;
-            }
-        }
-        else
-        {
-            if(iNext > 0)
-            {
-                pPath->AddItem(pSel2->GetItem(iNext));
-                dDist = GetDist(cPt1, cPt4);
-                cPt2 = cPt4;
-            }
-            else
-            {
-                pPath->AddItem(-pSel2->GetItem(-iNext));
-                dDist = GetDist(cPt1, cPt3);
-                cPt2 = cPt3;
-            }
-        }
-        if(dDist < g_dPrec) iNext = 0;
-        else iNext = GetNextSeg(pSel2, pPath, cPt1, cPt2, &cPt3, &cPt4, &bFirst);
+      if(iNext > 0)
+      {
+        pPath->InsertItem(0, 1 + pSel2->GetItem(iNext));
+        dDist = GetDist(cPt2, cPt3);
+        cPt1 = cPt3;
+      }
+      else
+      {
+        pPath->InsertItem(0, -(1 + pSel2->GetItem(-iNext)));
+        dDist = GetDist(cPt2, cPt4);
+        cPt1 = cPt4;
+      }
     }
-
-    n = pPath->GetCount();
-    if(n < 2)
+    else
     {
-        for(int i = 0; i < n; i++)
-        {
-            pSelObjs->RemoveItem(abs(pPath->GetItem(i)));
-        }
+      if(iNext > 0)
+      {
+        pPath->AddItem(1 + pSel2->GetItem(iNext));
+        dDist = GetDist(cPt1, cPt4);
+        cPt2 = cPt4;
+      }
+      else
+      {
+        pPath->AddItem(-(1 + pSel2->GetItem(-iNext)));
+        dDist = GetDist(cPt1, cPt3);
+        cPt2 = cPt3;
+      }
     }
-    for(int i = 0; i < n; i++) pSel2->RemoveItem(abs(pPath->GetItem(i)));
+    if(dDist < g_dPrec) iNext = 0;
+    else iNext = GetNextSeg(pSel2, pPath, cPt1, cPt2, &cPt3, &cPt4, &bFirst);
+  }
 
-    return n > 1;
+  n = pPath->GetCount();
+  if(n < 2)
+  {
+    for(int i = 0; i < n; i++)
+    {
+      pSelObjs->RemoveItem(abs(pPath->GetItem(i)) - 1);
+    }
+  }
+  for(int i = 0; i < n; i++) pSel2->RemoveItem(abs(pPath->GetItem(i)) - 1);
+
+  return n > 1;
 }
 
 bool CDataList::BuildPaths(PDIntList pSelObjs, PDPtrList pPaths)
 {
-    int n = pSelObjs->GetCount();
-    if(n < 1) return false;
+  int n = pSelObjs->GetCount();
+  if(n < 1) return false;
 
-    PDIntList pPath, pSel2 = new CDIntList();
-    for(int i = 0; i < n; i++) pSel2->AddItem(pSelObjs->GetItem(i));
+  PDIntList pPath, pSel2 = new CDIntList();
+  for(int i = 0; i < n; i++) pSel2->AddItem(pSelObjs->GetItem(i));
 
-    pPath = new CDIntList();
-    bool bRes;
+  pPath = new CDIntList();
+  bool bRes = false;
 
-    while(n > 0)
+  while(n > 0)
+  {
+    bRes = BuildPath(pSelObjs, pSel2, pPath);
+    if(bRes)
     {
-        bRes = BuildPath(pSelObjs, pSel2, pPath);
-        if(bRes)
-        {
-            pPaths->Add(pPath);
-            pPath = new CDIntList();
-        }
-        else pPath->Clear();
-
-        n = pSel2->GetCount();
+      pPaths->Add(pPath);
+      pPath = new CDIntList();
     }
+    else pPath->Clear();
 
-    delete pSel2;
-    return pPaths->GetCount() > 0;
+    n = pSel2->GetCount();
+  }
+
+  delete pPath;
+  delete pSel2;
+  return pPaths->GetCount() > 0;
 }
 
-int CDataList::CreatePath()
+int CDataList::CreatePath(PDPtrList pRegions)
 {
-    PDObject pObj, pNewObj;
-    int n, i = m_iDataLen;
-    PDIntList pPath, pSelObjs;
-    pSelObjs = new CDIntList();
+  PDObject pObj, pNewObj;
+  int n, i = m_iDataLen;
+  PDIntList pPath, pSelObjs;
+  pSelObjs = new CDIntList();
 
-    while(i > 0)
+  while(i > 0)
+  {
+    pObj = m_ppObjects[--i];
+    if(pObj->GetSelected())
     {
-        pObj = m_ppObjects[--i];
-        if(pObj->GetSelected())
-        {
-            if(pObj->IsBoundShape() && (pObj->IsClosed() < 2) && (pObj->GetType() <= dtPath))
-            {
-                pSelObjs->AddItem(i);
-            }
-        }
+      if(pObj->IsBoundShape() && (pObj->IsClosed() < 2) && (pObj->GetType() <= dtPath))
+      {
+        pSelObjs->AddItem(i);
+      }
+    }
+  }
+
+  n = pSelObjs->GetCount();
+  if(n < 3)
+  {
+    delete pSelObjs;
+    return 0;
+  }
+
+  int iRes = 0;
+
+  PDPtrList pPaths = new CDPtrList();
+  CDLineStyle cSt;
+  if(BuildPaths(pSelObjs, pPaths))
+  {
+    iRes = pPaths->GetCount();
+    for(i = 0; i < iRes; i++)
+    {
+      pPath = (PDIntList)pPaths->GetItem(i);
+      pObj = m_ppObjects[abs(pPath->GetItem(0)) - 1];
+      cSt = pObj->GetLineStyle();
+      pNewObj = new CDObject(dtPath, cSt.dWidth);
+      pNewObj->BuildPath(m_ppObjects, pPath);
+      pNewObj->SetSelected(true, false, 0, pRegions);
+      Add(pNewObj);
+      delete pPath;
     }
 
     n = pSelObjs->GetCount();
-    if(n < 2)
-    {
-        delete pSelObjs;
-        return 0;
-    }
+    for(i = 0; i < n; i++) Remove(pSelObjs->GetItem(i), false);
+  }
 
-    int iRes = 0;
+  delete pPaths;
+  delete pSelObjs;
 
-    PDPtrList pPaths = new CDPtrList();
-    CDLineStyle cSt;
-    if(BuildPaths(pSelObjs, pPaths))
-    {
-        iRes = pPaths->GetCount();
-        for(i = 0; i < iRes; i++)
-        {
-            pPath = (PDIntList)pPaths->GetItem(i);
-            pObj = m_ppObjects[abs(pPath->GetItem(0))];
-            cSt = pObj->GetLineStyle();
-            pNewObj = new CDObject(dtPath, cSt.dWidth);
-            pNewObj->BuildPath(m_ppObjects, pPath);
-            Add(pNewObj);
-            delete pPath;
-        }
-
-        n = pSelObjs->GetCount();
-        for(i = 0; i < n; i++) Remove(pSelObjs->GetItem(i), false);
-    }
-
-    delete pPaths;
-    delete pSelObjs;
-
-    return iRes;
+  return iRes;
 }
 
 bool CDataList::BreakSelObjects(PDRect pRect, PDPtrList pRegions)
 {
-    PDObject pObj, pNewObj;
-    int iParts;
-    int iLen = m_iDataLen;
-    bool bRes = false;
+  PDObject pObj, pNewObj;
+  int iParts;
+  int iLen = m_iDataLen;
+  bool bRes = false;
 
-    for(int i = 0; i < iLen; i++)
+  for(int i = 0; i < iLen; i++)
+  {
+    pObj = m_ppObjects[i];
+    if(pObj->GetSelected())
     {
-        pObj = m_ppObjects[i];
-        if(pObj->GetSelected())
+      iParts = pObj->GetNumParts();
+      for(int j = 0; j < iParts; j++)
+      {
+        pNewObj = pObj->SplitPart(pRect, pRegions);
+        if(pNewObj)
         {
-            iParts = pObj->GetNumParts();
-            for(int j = 0; j < iParts; j++)
-            {
-                pNewObj = pObj->SplitPart(pRect, pRegions);
-                if(pNewObj)
-                {
-                    Add(pNewObj);
-                    bRes = true;
-                }
-            }
+          Add(pNewObj);
+          bRes = true;
         }
+      }
     }
-    return bRes;
+  }
+  return bRes;
 }
+

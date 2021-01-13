@@ -274,7 +274,7 @@ public:
       bool bArrows, bool bLabels);
   bool GetSelSnapEnabled();
   void SetSelSnapEnabled(bool bEnable);
-  int CreatePath();
+  int CreatePath(PDPtrList pRegions);
   bool BreakSelObjects(PDRect pRect, PDPtrList pRegions);
 } *PDataList;
 

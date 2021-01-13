@@ -1331,6 +1331,7 @@ void CDApplication::DrawObject(cairo_t *cr, PDObject pObj, int iMode, int iDimen
 
   cairo_set_line_width(cr, dWidth);
   cairo_set_line_cap(cr, (cairo_line_cap_t)cStyle.cCapType);
+  cairo_set_line_join(cr, (cairo_line_join_t)cStyle.cJoinType);
   SetLColor(cr, dwColor);
 
   CDPrimitive cPrim;
@@ -4347,7 +4348,16 @@ void CDApplication::ToolsScaleCmd()
 
 void CDApplication::PathCreateCmd()
 {
-    m_pDrawObjects->CreatePath();
+  PDPtrList pRegions = new CDPtrList();
+  pRegions->SetDblVal(m_dUnitScale);
+  m_pDrawObjects->CreatePath(pRegions);
+  GdkRectangle cRect;
+  if(GetUpdateRegion(pRegions, &cRect))
+  {
+    GtkWidget *draw = GetDrawing();
+    gdk_window_invalidate_rect(draw->window, &cRect, FALSE);
+  }
+  SetTitle(m_pMainWnd, false);
 }
 
 void CDApplication::PathBreakCmd()
