@@ -4249,7 +4249,21 @@ LRESULT CMainWnd::ToolsStatCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl)
 
 LRESULT CMainWnd::PathCreateCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl)
 {
-  m_pDrawObjects->CreatePath();
+  PDPtrList pRegions = new CDPtrList();
+  pRegions->SetDblVal(m_dUnitScale);
+  if(m_pDrawObjects->CreatePath(pRegions))
+  {
+    HRGN hRgn = GetUpdateRegion(pRegions);
+    //InvalidateRect(hwnd, NULL, true);
+    if(hRgn)
+    {
+      InvalidateRgn(hwnd, hRgn, TRUE);
+      DeleteObject(hRgn);
+    }
+    SetTitle(hwnd, false);
+  }
+  ClearPolygonList(pRegions);
+  delete pRegions;
   return 0;
 }
 
