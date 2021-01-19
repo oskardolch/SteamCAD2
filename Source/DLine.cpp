@@ -304,7 +304,7 @@ double GetLineDistFromPt(CDPoint cPt, PDPointList pCache, PDLine pPtX)
   cPt2.y = 0.0;
   pPtX->bIsSet = true;
   pPtX->cOrigin = cOrig + Rotate(cPt2, cNorm, true);
-  pPtX->cDirection = GetNormal(cNorm);
+  pPtX->cDirection = -1.0*GetNormal(cNorm);
   pPtX->dRef = cPt1.x;
 
   return cPt1.y;

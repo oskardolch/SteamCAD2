@@ -222,27 +222,14 @@ void AddCircSegment(double d1, double d2, double dExt, bool bReverse, PDPointLis
 
   CDPrimitive cPrim;
   cPrim.iType = 2;
-  //if(fabs(fabs(dAng2 - dAng1) - 2*M_PI) < g_dPrec) cPrim.iType = 3;
   cPrim.cPt1 = cOrig;
   cPrim.cPt2.x = cRad.x + dExt;
-  cPrim.cPt2.y = 0.0; //cOrig.y + cRad.x;
-  if(cPrim.iType == 2)
-  {
-    cPrim.cPt3.x = dAng1;
-    cPrim.cPt3.y = dAng2;
-    cPrim.cPt4 = 0;
-    /*cPrim.cPt3.x = cOrig.x + cRad.x*cos(dAng1);
-    cPrim.cPt3.y = cOrig.y + cRad.x*sin(dAng1);
-    cPrim.cPt4.x = cOrig.x + cRad.x*cos(dAng2);
-    cPrim.cPt4.y = cOrig.y + cRad.x*sin(dAng2);*/
-  }
-  else
-  {
-    cPrim.cPt3 = 0;
-    cPrim.cPt4 = 0;
-  }
+  cPrim.cPt2.y = 0.0;
+  cPrim.cPt3.x = dAng1;
+  cPrim.cPt3.y = dAng2;
+  cPrim.cPt4 = 0;
+  if(bReverse) cPrim.cPt4.x = 1.0;
   pPrimList->AddPrimitive(cPrim);
-  //CropPrimitive(cPrim, pRect, pPrimList);
 }
 
 void AddCircleExtPrim(PDRect pRect, PDPointList pCache, PDPrimObject pPrimList)

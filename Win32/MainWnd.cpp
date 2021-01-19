@@ -2920,21 +2920,45 @@ void CMainWnd::DrawPrimitivePlus(Graphics *graphics, Pen *pen, GraphicsPath *pat
       cStartPt.x = pPrim->cPt3.x*180.0/M_PI;
       cStartPt.y = (pPrim->cPt3.y - pPrim->cPt3.x)*180.0/M_PI;
       if(cStartPt.y < 0.0) cStartPt.y += 360.0;
-      if(!path)
-        graphics->DrawArc(pen, (REAL)(m_cViewOrigin.x + pPrim->cPt1.x - dr),
-          (REAL)(m_cViewOrigin.y + pPrim->cPt1.y - dr),
-          (REAL)2.0*dr, (REAL)2.0*dr, (REAL)cStartPt.x, (REAL)cStartPt.y);
+      if(fabs(pPrim->cPt4.x - 1.0) < 0.2)
+      {
+        if(!path)
+          graphics->DrawArc(pen, (REAL)(m_cViewOrigin.x + pPrim->cPt1.x - dr),
+            (REAL)(m_cViewOrigin.y + pPrim->cPt1.y - dr),
+            (REAL)2.0*dr, (REAL)2.0*dr, (REAL)cEndPt.x, (REAL)cEndPt.y);
+        else
+          path->AddArc((REAL)(m_cViewOrigin.x + pPrim->cPt1.x - dr),
+            (REAL)(m_cViewOrigin.y + pPrim->cPt1.y - dr),
+            (REAL)2.0*dr, (REAL)2.0*dr, (REAL)cEndPt.x, (REAL)cEndPt.y);
+      }
       else
-        path->AddArc((REAL)(m_cViewOrigin.x + pPrim->cPt1.x - dr),
-          (REAL)(m_cViewOrigin.y + pPrim->cPt1.y - dr),
-          (REAL)2.0*dr, (REAL)2.0*dr, (REAL)cStartPt.x, (REAL)cStartPt.y);
+      {
+        if(!path)
+          graphics->DrawArc(pen, (REAL)(m_cViewOrigin.x + pPrim->cPt1.x - dr),
+            (REAL)(m_cViewOrigin.y + pPrim->cPt1.y - dr),
+            (REAL)2.0*dr, (REAL)2.0*dr, (REAL)cStartPt.x, (REAL)cStartPt.y);
+        else
+          path->AddArc((REAL)(m_cViewOrigin.x + pPrim->cPt1.x - dr),
+            (REAL)(m_cViewOrigin.y + pPrim->cPt1.y - dr),
+            (REAL)2.0*dr, (REAL)2.0*dr, (REAL)cStartPt.x, (REAL)cStartPt.y);
+      }
     }
     else
     {
-      if(!path)
-        graphics->DrawLine(pen, (REAL)cStartPt.x, (REAL)cStartPt.y, (REAL)cEndPt.x, (REAL)cEndPt.y);
+      if(fabs(pPrim->cPt4.x - 1.0) < 0.2)
+      {
+        if(!path)
+          graphics->DrawLine(pen, (REAL)cEndPt.x, (REAL)cEndPt.y, (REAL)cStartPt.x, (REAL)cStartPt.y);
+        else
+          path->AddLine((REAL)cEndPt.x, (REAL)cEndPt.y, (REAL)cStartPt.x, (REAL)cStartPt.y);
+      }
       else
-        path->AddLine((REAL)cStartPt.x, (REAL)cStartPt.y, (REAL)cEndPt.x, (REAL)cEndPt.y);
+      {
+        if(!path)
+          graphics->DrawLine(pen, (REAL)cStartPt.x, (REAL)cStartPt.y, (REAL)cEndPt.x, (REAL)cEndPt.y);
+        else
+          path->AddLine((REAL)cStartPt.x, (REAL)cStartPt.y, (REAL)cEndPt.x, (REAL)cEndPt.y);
+      }
     }
     break;
   case 3:
