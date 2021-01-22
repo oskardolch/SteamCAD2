@@ -468,7 +468,7 @@ bool GetCirceRad(PDPointList pCache, double *pdVal)
   return true;
 }
 
-bool GetCircPointRefDist(double dRef, PDPointList pCache, double *pdDist)
+bool GetCircPointRefDist(double dRef, double dOffset, PDPointList pCache, double *pdDist)
 {
   int iCnt = pCache->GetCount(0);
   if(iCnt < 2) return false;
@@ -477,6 +477,7 @@ bool GetCircPointRefDist(double dRef, PDPointList pCache, double *pdDist)
 
   int nOffs = pCache->GetCount(2);
   if(nOffs > 0) cRad.x += pCache->GetPoint(0, 2).cPoint.x;
+  cRad.x += dOffset;
 
   *pdDist = cRad.x*dRef;
   return true;
@@ -525,7 +526,7 @@ bool GetCircRefDir(double dRef, PDPointList pCache, PDPoint pPt)
   return true;
 }
 
-bool GetCircReference(double dDist, PDPointList pCache, double *pdRef)
+bool GetCircReference(double dDist, double dOffset, PDPointList pCache, double *pdRef)
 {
   int iCnt = pCache->GetCount(0);
   if(iCnt < 2) return false;
@@ -535,6 +536,7 @@ bool GetCircReference(double dDist, PDPointList pCache, double *pdRef)
 
   int nOffs = pCache->GetCount(2);
   if(nOffs > 0) cRad.x += pCache->GetPoint(0, 2).cPoint.x;
+  cRad.x += dOffset;
 
   if(cRad.x < g_dPrec) return false;
 

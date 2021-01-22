@@ -102,10 +102,10 @@ private:
   bool GetRefBounds(PDPoint pPoint);
   int GetDimenDir(double dRef1, double dRef2);
   double GetDimenMidPointRef(double dRef1, double dRef2, int iDir);
-  bool GetNativeReference(double dDist, double *pdRef);
-  bool GetBounds(PDPoint pBounds);
-  double GetLength();
-  PDPathSeg GetPathRefSegment(double dRef, double *pdSegRef, int *piPos);
+  bool GetNativeReference(double dDist, double dOffset, double *pdRef);
+  bool GetBounds(PDPoint pBounds, double dOffset);
+  double GetLength(double dOffset);
+  PDPathSeg GetPathRefSegment(double dRef, double dOffset, double *pdSegRef, int *piPos);
   bool GetPathRefPoint(double dRef, double dOffset, PDPoint pPt);
   bool GetNativeRefPoint(double dRef, double dOffset, PDPoint pPt);
   bool GetPathRefDir(double dRef, PDPoint pPt);
@@ -182,7 +182,7 @@ public:
   void MirrorPoints(CDLine cLine);
   bool AddCrossPoint(CDPoint cPt, double dDist);
   bool AddCrossPoint(double dRef);
-  bool GetPointRefDist(double dRef, double *pdDist);
+  bool GetPointRefDist(double dRef, double dOffset, double *pdDist);
   double GetNearestCrossPoint(CDPoint cPt, PDPoint pPt);
   double GetNearestBoundPoint(CDPoint cPt, PDPoint pPt);
   bool AddDimen(CDPoint cPt, double dDist, PDRect pRect, PDFileAttrs pAttrs);
@@ -208,8 +208,8 @@ public:
   CDObject* SplitPart(PDRect pRect, PDPtrList pRegions);
   int IsClosed();
   bool IsBoundShape();
-  bool GetStartPoint(PDPoint pPt);
-  bool GetEndPoint(PDPoint pPt);
+  bool GetStartPoint(PDPoint pPt, double dOffset);
+  bool GetEndPoint(PDPoint pPt, double dOffset);
   void BuildPath(CDObject **ppObjects, PDIntList pPath);
   int GetSubObjectCount();
 } *PDObject;
