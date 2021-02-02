@@ -1389,7 +1389,7 @@ void AddSplineSegment(double d1, double d2, double dExt, bool bReverse, PDPointL
 //printf("%f, %f - %f, %f - %d, %d - %f, %f\n", d1, d2, dt1, dt2, i1, i2, dStart, dEnd);
 
   CDPrimitive cQuad = GetSplineNthSegment(i1, pCache);
-  if((i2 < i1) || ((i2 == i1) && ((dt2 < dt1) || (dt2 > (double)iSegs - g_dPrec))))
+  if((i2 < i1) || ((i2 == i1) && ((dt2 < dt1) || (dt2 > (double)iSegs + g_dPrec))))
   {
     AddQuadBufPrimitive(cQuad, dr, dStart, 1.0, pPrimList);
     for(int i = i1 + 1; i < iSegs; i++)

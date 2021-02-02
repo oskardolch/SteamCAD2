@@ -99,7 +99,7 @@ private:
   // iBoundMode - mask: 1 closed, 2 move point
   void AddPatSegment(double dStart, int iStart, double dEnd, int iEnd,
     int iBoundMode, PDRefList pViewBnds, PDPoint pBnds);
-  bool GetRefBounds(PDPoint pPoint);
+  int GetRefBounds(PDPoint pPoint);
   int GetDimenDir(double dRef1, double dRef2);
   double GetDimenMidPointRef(double dRef1, double dRef2, int iDir);
   bool GetNativeReference(double dDist, double dOffset, double *pdRef);

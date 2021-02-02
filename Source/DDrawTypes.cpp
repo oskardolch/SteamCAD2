@@ -964,10 +964,9 @@ int CDObject::GetSimpleViewBounds(CDLine cTmpPt, int iMode, CDLineStyle cStyle, 
   CDPoint cLocBnds = {0.0, 0.0};
   pDrawBnds->x = 0.0;
   pDrawBnds->y = 0.0;
-  int iBndType = GetBoundType();
+  int iBndType = GetRefBounds(&cLocBnds);
   if(iBndType > 0)
   {
-    GetRefBounds(&cLocBnds);
     GetPointRefDist(cLocBnds.x, dMid, &pDrawBnds->x);
     if(iBndType > 1) GetPointRefDist(cLocBnds.y, dMid, &pDrawBnds->y);
   }
@@ -1289,10 +1288,10 @@ int CDObject::BuildPrimitives(CDLine cTmpPt, int iMode, PDRect pRect, int iTemp,
   cAdd.cPt2.x = 0.0;
   cAdd.cPt4.x = 0.0;
   cAdd.cPt4.y = 0.0;
-  if(bClosed && (m_iType == dtPath))
+  if(bClosed)
   {
     cAdd.cPt4.x = 1.0;
-    cAdd.cPt4.y = cBnds.y - cBnds.x;
+    if(m_iType == dtPath) cAdd.cPt4.y = cBnds.y - cBnds.x;
   }
 
   if((iTemp < 1) && (iRes > 0) && (m_cLineStyle.iSegments > 0))
@@ -2172,16 +2171,16 @@ bool CDObject::IsNearPoint(CDPoint cPt, double dTolerance, int *piDimen)
   return fabs(dDist) < dTolerance;
 }
 
-bool CDObject::GetRefBounds(PDPoint pPoint)
+int CDObject::GetRefBounds(PDPoint pPoint)
 {
   switch(m_iType)
   {
   case dtLine:
-    return false;
+    return 0;
   case dtCircle:
     pPoint->x = -M_PI;
     pPoint->y = M_PI;
-    return true;
+    return 2;
   case dtEllipse:
     if(m_pCachePoints->GetCount(0) > 2)
     {
@@ -2193,37 +2192,37 @@ bool CDObject::GetRefBounds(PDPoint pPoint)
       pPoint->x = 0.0;
       pPoint->y = 1.0;
     }
-    return true;
+    return 2;
   case dtArcEllipse:
     pPoint->x = -M_PI;
     pPoint->y = M_PI;
-    return true;
+    return 2;
   case dtHyperbola:
   case dtParabola:
-    return false;
+    return 0;
   case dtSpline:
     pPoint->x = 0.0;
     pPoint->y = (double)GetSplineNumSegments(m_pCachePoints);
-    return true;
+    return 2;
   case dtEvolvent:
   case dtLogSpiral:
   case dtArchSpiral:
     pPoint->x = 0.0;
     pPoint->y = -1.0;
-    return false;
+    return 1;
   case dtPath:
     pPoint->x = 0.0;
     pPoint->y = GetLength(0.0);
-    return true;
+    return 2;
   default:
-    return false;
+    return 0;
   }
 }
 
 int CDObject::GetDimenDir(double dRef1, double dRef2)
 {
   CDPoint refBnds;
-  if(GetRefBounds(&refBnds))
+  if(GetRefBounds(&refBnds) > 1)
   {
     if((fabs(dRef1 - refBnds.x) < g_dPrec) || (fabs(dRef1 - refBnds.y) < g_dPrec))
     {
@@ -2241,7 +2240,7 @@ double CDObject::GetDimenMidPointRef(double dRef1, double dRef2, int iDir)
   int i1 = iDir;
 
   CDPoint refBnds;
-  if(GetRefBounds(&refBnds)) i1 = CmpDbls(dRef1, dRef2);
+  if(GetRefBounds(&refBnds) > 1) i1 = CmpDbls(dRef1, dRef2);
 
   if(i1 == iDir) d3 = (d1 + d2)/2.0;
   else
@@ -2302,7 +2301,7 @@ bool CDObject::GetBounds(PDPoint pBounds, double dOffset)
   {
     CDPoint cLocBnds = {0.0, 0.0};
     CDPoint cLocRefs = {0.0, 0.0};
-    bool bRefBounds = GetRefBounds(&cLocBnds);
+    bool bRefBounds = GetRefBounds(&cLocBnds) > 1;
 
     if(m_cBounds[0].bIsSet && m_cBounds[1].bIsSet)
     {
