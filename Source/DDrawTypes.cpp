@@ -430,7 +430,7 @@ void CDObject::AddCurveSegment(CDPrimitive cAddMode, PDPrimObject pPrimitive, PD
           int n = (int)dDist/cAddMode.cPt2.y/cAddMode.cPt2.x;
           cPath.cPt2.y = n*cAddMode.cPt2.y*cAddMode.cPt2.x - dDist;
         }
-        if(cAddMode.cPt4.x > g_dPrec) cPath.cPt1.y = 2;
+        if(cAddMode.cPt4.x > 1.5) cPath.cPt1.y = 2;
         pPrimitive->AddPrimitive(cPath);
       }
     }
@@ -539,6 +539,7 @@ void CDObject::AddPatSegment(double dStart, int iStart, double dEnd, int iEnd,
     cAdd.cPt4.y = pBnds->y - pBnds->x;
   }
   if(iBoundMode & 2) cAdd.iType |= 8;
+  if(iBoundMode & 4) cAdd.cPt4.x = 2.0;
 
   double dPatScale = 1.0;
   double dSegLen = m_cLineStyle.dPattern[0];
@@ -1304,6 +1305,7 @@ int CDObject::BuildPrimitives(CDLine cTmpPt, int iMode, PDRect pRect, int iTemp,
     double dPatLen = 0.0;
     int iBoundMode = 2;
     if(bClosed) iBoundMode |= 1;
+    if(iClosed > 1) iBoundMode |= 4;
     double dSegLen;
     for(int i = 0; i < m_cLineStyle.iSegments; i++)
     {
