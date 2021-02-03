@@ -2917,31 +2917,26 @@ void CMainWnd::DrawPrimitivePlus(Graphics *graphics, Pen *pen, GraphicsPath *pat
     if((dr > 2) || (fabs(pPrim->cPt3.y - pPrim->cPt3.x) > 0.001))
     {
       dr = pPrim->cPt2.x;
-      cStartPt.x = pPrim->cPt3.x*180.0/M_PI;
-      cStartPt.y = (pPrim->cPt3.y - pPrim->cPt3.x)*180.0/M_PI;
-      if(cStartPt.y < 0.0) cStartPt.y += 360.0;
       if(fabs(pPrim->cPt4.x - 1.0) < 0.2)
       {
-        if(!path)
-          graphics->DrawArc(pen, (REAL)(m_cViewOrigin.x + pPrim->cPt1.x - dr),
-            (REAL)(m_cViewOrigin.y + pPrim->cPt1.y - dr),
-            (REAL)2.0*dr, (REAL)2.0*dr, (REAL)cEndPt.x, (REAL)cEndPt.y);
-        else
-          path->AddArc((REAL)(m_cViewOrigin.x + pPrim->cPt1.x - dr),
-            (REAL)(m_cViewOrigin.y + pPrim->cPt1.y - dr),
-            (REAL)2.0*dr, (REAL)2.0*dr, (REAL)cEndPt.x, (REAL)cEndPt.y);
+        cStartPt.x = pPrim->cPt3.y*180.0/M_PI;
+        cStartPt.y = (pPrim->cPt3.x - pPrim->cPt3.y)*180.0/M_PI;
+        if(cStartPt.y > 0.0) cStartPt.y -= 360.0;
       }
       else
       {
-        if(!path)
-          graphics->DrawArc(pen, (REAL)(m_cViewOrigin.x + pPrim->cPt1.x - dr),
-            (REAL)(m_cViewOrigin.y + pPrim->cPt1.y - dr),
-            (REAL)2.0*dr, (REAL)2.0*dr, (REAL)cStartPt.x, (REAL)cStartPt.y);
-        else
-          path->AddArc((REAL)(m_cViewOrigin.x + pPrim->cPt1.x - dr),
-            (REAL)(m_cViewOrigin.y + pPrim->cPt1.y - dr),
-            (REAL)2.0*dr, (REAL)2.0*dr, (REAL)cStartPt.x, (REAL)cStartPt.y);
+        cStartPt.x = pPrim->cPt3.x*180.0/M_PI;
+        cStartPt.y = (pPrim->cPt3.y - pPrim->cPt3.x)*180.0/M_PI;
+        if(cStartPt.y < 0.0) cStartPt.y += 360.0;
       }
+      if(!path)
+        graphics->DrawArc(pen, (REAL)(m_cViewOrigin.x + pPrim->cPt1.x - dr),
+          (REAL)(m_cViewOrigin.y + pPrim->cPt1.y - dr),
+          (REAL)2.0*dr, (REAL)2.0*dr, (REAL)cStartPt.x, (REAL)cStartPt.y);
+      else
+        path->AddArc((REAL)(m_cViewOrigin.x + pPrim->cPt1.x - dr),
+          (REAL)(m_cViewOrigin.y + pPrim->cPt1.y - dr),
+          (REAL)2.0*dr, (REAL)2.0*dr, (REAL)cStartPt.x, (REAL)cStartPt.y);
     }
     else
     {
