@@ -328,7 +328,7 @@ void CDObject::AddPathSegment(double d1, double d2, double dExt, PDPrimObject pP
   }
 
   CDPoint cBounds;
-  if(pObj->GetBounds(&cBounds, dExt) > 2)
+  if(pObj->GetBounds(&cBounds, dExt, true) > 2)
   {
     pObj->GetPointRefDist(dRef1, dExt, &dd1);
     if(pSeg->bReverse)
@@ -343,7 +343,7 @@ void CDObject::AddPathSegment(double d1, double d2, double dExt, PDPrimObject pP
     {
       pSeg = (PDPathSeg)m_pSubObjects->GetItem(i);
       pObj = pSeg->pSegment;
-      if(pObj->GetBounds(&cBounds, dExt) > 2)
+      if(pObj->GetBounds(&cBounds, dExt, true) > 2)
         pObj->AddSimpleSegment(cBounds.x, cBounds.y, dExt, pSeg->bReverse, pPrimList);
     }
   }
@@ -354,21 +354,21 @@ void CDObject::AddPathSegment(double d1, double d2, double dExt, PDPrimObject pP
     {
       pSeg = (PDPathSeg)m_pSubObjects->GetItem(i);
       pObj = pSeg->pSegment;
-      if(pObj->GetBounds(&cBounds, dExt) > 2)
+      if(pObj->GetBounds(&cBounds, dExt, true) > 2)
         pObj->AddSimpleSegment(cBounds.x, cBounds.y, dExt, pSeg->bReverse, pPrimList);
     }
     for(int i = 0; i < i2; i++)
     {
       pSeg = (PDPathSeg)m_pSubObjects->GetItem(i);
       pObj = pSeg->pSegment;
-      if(pObj->GetBounds(&cBounds, dExt) > 2)
+      if(pObj->GetBounds(&cBounds, dExt, true) > 2)
         pObj->AddSimpleSegment(cBounds.x, cBounds.y, dExt, pSeg->bReverse, pPrimList);
     }
   }
 
   pSeg = (PDPathSeg)m_pSubObjects->GetItem(i2);
   pObj = pSeg->pSegment;
-  if(pObj->GetBounds(&cBounds, dExt) > 2)
+  if(pObj->GetBounds(&cBounds, dExt, true) > 2)
   {
     pObj->GetPointRefDist(dRef2, dExt, &dd2);
     if(pSeg->bReverse)
@@ -1481,7 +1481,7 @@ int CDObject::BuildPrimitives(CDLine cTmpPt, int iMode, PDRect pRect, int iTemp,
   }
   else if(iRes > 0)
   {
-    int iBndType = GetBounds(&cAdd.cPt1, dMid);
+    int iBndType = GetBounds(&cAdd.cPt1, dMid, false);
     if(iBndType & 1) cAdd.iType |= 2;
     if(iBndType & 2) cAdd.iType |= 4;
     AddCurveSegment(cAdd, plPrimitive, pBounds);
@@ -2288,7 +2288,7 @@ bool CDObject::GetNativeReference(double dDist, double dOffset, double *pdRef)
   }
 }
 
-int CDObject::GetBounds(PDPoint pBounds, double dOffset)
+int CDObject::GetBounds(PDPoint pBounds, double dOffset, bool bAdvancePeriod)
 {
   if(m_iType < dtPath)
   {
@@ -2304,7 +2304,7 @@ int CDObject::GetBounds(PDPoint pBounds, double dOffset)
       if(m_cBounds[1].dRef < m_cBounds[0].dRef - g_dPrec)
       {
         if(iRefBounds < 1) return 1;
-        cLocRefs.y += (cLocBnds.y - cLocBnds.x);
+        if(bAdvancePeriod) cLocRefs.y += (cLocBnds.y - cLocBnds.x);
       }
       GetPointRefDist(cLocRefs.y, dOffset, &pBounds->y);
       return 3;
@@ -2315,7 +2315,7 @@ int CDObject::GetBounds(PDPoint pBounds, double dOffset)
       cLocRefs.x = m_cBounds[0].dRef;
       GetPointRefDist(cLocRefs.x, dOffset, &pBounds->x);
       if(iRefBounds < 2) return 1;
-      cLocRefs.y = m_cBounds[0].dRef + cLocBnds.y - cLocBnds.x;
+      if(bAdvancePeriod) cLocRefs.y = m_cBounds[0].dRef + cLocBnds.y - cLocBnds.x;
       GetPointRefDist(cLocRefs.y, dOffset, &pBounds->y);
       return 3;
     }
@@ -2354,7 +2354,7 @@ double CDObject::GetLength(double dOffset)
   if(m_iType < dtPath)
   {
     CDPoint cBounds = {0.0, 0.0};
-    if(GetBounds(&cBounds, dOffset) > 2) return cBounds.y - cBounds.x;
+    if(GetBounds(&cBounds, dOffset, true) > 2) return cBounds.y - cBounds.x;
     return 0.0;
   }
 
@@ -2417,7 +2417,7 @@ PDPathSeg CDObject::GetPathRefSegment(double dRef, double dOffset, double *pdSeg
   PDObject pObj = pSeg->pSegment;
 
   CDPoint cBounds;
-  if(pObj->GetBounds(&cBounds, dOffset) < 3) return NULL;
+  if(pObj->GetBounds(&cBounds, dOffset, true) < 3) return NULL;
 
   if(pSeg->bReverse)
   {
@@ -2783,7 +2783,7 @@ double CDObject::GetPathDistFromPt(CDPoint cPt, CDPoint cRefPt, bool bSnapCenter
 
   pObj->GetPointRefDist(cMin.dRef, 0.0, &d1);
   CDPoint cBounds;
-  if(pObj->GetBounds(&cBounds, 0.0) > 2)
+  if(pObj->GetBounds(&cBounds, 0.0, true) > 2)
   {
     if(pSeg->bReverse)
       pPtX->dRef += (cBounds.y - d1);
@@ -4995,7 +4995,7 @@ bool CDObject::GetStartPoint(PDPoint pPt, double dOffset)
   if(!m_cBounds[0].bIsSet) return false;
   return GetNativeRefPoint(m_cBounds[0].dRef, 0.0, pPt);*/
   CDPoint cBnds;
-  if(GetBounds(&cBnds, dOffset) & 1)
+  if(GetBounds(&cBnds, dOffset, true) & 1)
   {
     double dRef;
     GetNativeReference(cBnds.x, dOffset, &dRef);
@@ -5018,7 +5018,7 @@ bool CDObject::GetEndPoint(PDPoint pPt, double dOffset)
     if(!m_cBounds[1].bIsSet) return false;
     return GetNativeRefPoint(m_cBounds[1].dRef, 0.0, pPt);*/
   CDPoint cBnds;
-  if(GetBounds(&cBnds, dOffset) & 2)
+  if(GetBounds(&cBnds, dOffset, true) & 2)
   {
     double dRef;
     GetNativeReference(cBnds.y, dOffset, &dRef);
