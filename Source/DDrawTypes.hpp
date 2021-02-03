@@ -103,7 +103,8 @@ private:
   int GetDimenDir(double dRef1, double dRef2);
   double GetDimenMidPointRef(double dRef1, double dRef2, int iDir);
   bool GetNativeReference(double dDist, double dOffset, double *pdRef);
-  bool GetBounds(PDPoint pBounds, double dOffset);
+  // GetBounds = mask: 1 .. pBounds->x is set, 2 .. pBounds->y is set
+  int GetBounds(PDPoint pBounds, double dOffset);
   double GetLength(double dOffset);
   PDPathSeg GetPathRefSegment(double dRef, double dOffset, double *pdSegRef, int *piPos);
   bool GetPathRefPoint(double dRef, double dOffset, PDPoint pPt);

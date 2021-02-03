@@ -328,7 +328,7 @@ void CDObject::AddPathSegment(double d1, double d2, double dExt, PDPrimObject pP
   }
 
   CDPoint cBounds;
-  if(pObj->GetBounds(&cBounds, dExt))
+  if(pObj->GetBounds(&cBounds, dExt) > 2)
   {
     pObj->GetPointRefDist(dRef1, dExt, &dd1);
     if(pSeg->bReverse)
@@ -343,7 +343,7 @@ void CDObject::AddPathSegment(double d1, double d2, double dExt, PDPrimObject pP
     {
       pSeg = (PDPathSeg)m_pSubObjects->GetItem(i);
       pObj = pSeg->pSegment;
-      if(pObj->GetBounds(&cBounds, dExt))
+      if(pObj->GetBounds(&cBounds, dExt) > 2)
         pObj->AddSimpleSegment(cBounds.x, cBounds.y, dExt, pSeg->bReverse, pPrimList);
     }
   }
@@ -354,21 +354,21 @@ void CDObject::AddPathSegment(double d1, double d2, double dExt, PDPrimObject pP
     {
       pSeg = (PDPathSeg)m_pSubObjects->GetItem(i);
       pObj = pSeg->pSegment;
-      if(pObj->GetBounds(&cBounds, dExt))
+      if(pObj->GetBounds(&cBounds, dExt) > 2)
         pObj->AddSimpleSegment(cBounds.x, cBounds.y, dExt, pSeg->bReverse, pPrimList);
     }
     for(int i = 0; i < i2; i++)
     {
       pSeg = (PDPathSeg)m_pSubObjects->GetItem(i);
       pObj = pSeg->pSegment;
-      if(pObj->GetBounds(&cBounds, dExt))
+      if(pObj->GetBounds(&cBounds, dExt) > 2)
         pObj->AddSimpleSegment(cBounds.x, cBounds.y, dExt, pSeg->bReverse, pPrimList);
     }
   }
 
   pSeg = (PDPathSeg)m_pSubObjects->GetItem(i2);
   pObj = pSeg->pSegment;
-  if(pObj->GetBounds(&cBounds, dExt))
+  if(pObj->GetBounds(&cBounds, dExt) > 2)
   {
     pObj->GetPointRefDist(dRef2, dExt, &dd2);
     if(pSeg->bReverse)
@@ -1024,7 +1024,7 @@ int CDObject::GetSimpleViewBounds(CDLine cTmpPt, int iMode, CDLineStyle cStyle, 
         delete pInt1;
         pBounds->AddPoint(pDrawBnds->x);
         pBounds->AddPoint(pDrawBnds->y);
-        if(IsClosedShape()) return 2;
+        if(IsClosedShape() || (iBndType > 0)) return 2;
         return 1;
       }
     }
@@ -1288,10 +1288,10 @@ int CDObject::BuildPrimitives(CDLine cTmpPt, int iMode, PDRect pRect, int iTemp,
   cAdd.cPt2.x = 0.0;
   cAdd.cPt4.x = 0.0;
   cAdd.cPt4.y = 0.0;
-  if(bClosed)
+  if((iClosed > 1) && (m_iType == dtPath))
   {
     cAdd.cPt4.x = 1.0;
-    if(m_iType == dtPath) cAdd.cPt4.y = cBnds.y - cBnds.x;
+    cAdd.cPt4.y = cBnds.y - cBnds.x;
   }
 
   if((iTemp < 1) && (iRes > 0) && (m_cLineStyle.iSegments > 0))
@@ -1481,16 +1481,9 @@ int CDObject::BuildPrimitives(CDLine cTmpPt, int iMode, PDRect pRect, int iTemp,
   }
   else if(iRes > 0)
   {
-    if(m_cBounds[0].bIsSet)
-    {
-      cAdd.iType |= 2;
-      GetPointRefDist(m_cBounds[0].dRef, dMid, &cAdd.cPt1.x);
-    }
-    if(m_cBounds[1].bIsSet)
-    {
-      cAdd.iType |= 4;
-      GetPointRefDist(m_cBounds[1].dRef, dMid, &cAdd.cPt1.y);
-    }
+    int iBndType = GetBounds(&cAdd.cPt1, dMid);
+    if(iBndType & 1) cAdd.iType |= 2;
+    if(iBndType & 2) cAdd.iType |= 4;
     AddCurveSegment(cAdd, plPrimitive, pBounds);
   }
 
@@ -2295,54 +2288,65 @@ bool CDObject::GetNativeReference(double dDist, double dOffset, double *pdRef)
   }
 }
 
-bool CDObject::GetBounds(PDPoint pBounds, double dOffset)
+int CDObject::GetBounds(PDPoint pBounds, double dOffset)
 {
   if(m_iType < dtPath)
   {
     CDPoint cLocBnds = {0.0, 0.0};
     CDPoint cLocRefs = {0.0, 0.0};
-    bool bRefBounds = GetRefBounds(&cLocBnds) > 1;
+    int iRefBounds = GetRefBounds(&cLocBnds);
 
     if(m_cBounds[0].bIsSet && m_cBounds[1].bIsSet)
     {
       cLocRefs.x = m_cBounds[0].dRef;
       cLocRefs.y = m_cBounds[1].dRef;
+      GetPointRefDist(cLocRefs.x, dOffset, &pBounds->x);
       if(m_cBounds[1].dRef < m_cBounds[0].dRef - g_dPrec)
       {
-        if(!bRefBounds) return false;
+        if(iRefBounds < 1) return 1;
         cLocRefs.y += (cLocBnds.y - cLocBnds.x);
       }
-      GetPointRefDist(cLocRefs.x, dOffset, &pBounds->x);
       GetPointRefDist(cLocRefs.y, dOffset, &pBounds->y);
-      return true;
+      return 3;
     }
 
     if(m_cBounds[0].bIsSet)
     {
-      if(!bRefBounds) return false;
       cLocRefs.x = m_cBounds[0].dRef;
-      cLocRefs.y = m_cBounds[0].dRef + cLocBnds.y - cLocBnds.x;
       GetPointRefDist(cLocRefs.x, dOffset, &pBounds->x);
+      if(iRefBounds < 2) return 1;
+      cLocRefs.y = m_cBounds[0].dRef + cLocBnds.y - cLocBnds.x;
       GetPointRefDist(cLocRefs.y, dOffset, &pBounds->y);
-      return true;
+      return 3;
     }
 
-    if(bRefBounds)
+    if(m_cBounds[1].bIsSet)
+    {
+      cLocRefs.y = m_cBounds[1].dRef;
+      GetPointRefDist(cLocRefs.y, dOffset, &pBounds->y);
+      if(iRefBounds < 1) return 2;
+      cLocRefs.x = cLocBnds.x;
+      GetPointRefDist(cLocRefs.x, dOffset, &pBounds->x);
+      return 3;
+    }
+
+    if(iRefBounds > 0)
     {
       GetPointRefDist(cLocBnds.x, dOffset, &pBounds->x);
+      if(iRefBounds < 2) return 1;
       GetPointRefDist(cLocBnds.y, dOffset, &pBounds->y);
-      return true;
+      return 3;
     }
-    return false;
+    return 0;
   }
 
   if(m_iType == dtPath)
   {
     pBounds->x = 0.0;
     pBounds->y = GetLength(dOffset);
-    return true;
+    return 3;
   }
-  return false;
+  return 0;
 }
 
 double CDObject::GetLength(double dOffset)
@@ -2350,7 +2354,7 @@ double CDObject::GetLength(double dOffset)
   if(m_iType < dtPath)
   {
     CDPoint cBounds = {0.0, 0.0};
-    if(GetBounds(&cBounds, dOffset)) return cBounds.y - cBounds.x;
+    if(GetBounds(&cBounds, dOffset) > 2) return cBounds.y - cBounds.x;
     return 0.0;
   }
 
@@ -2413,7 +2417,7 @@ PDPathSeg CDObject::GetPathRefSegment(double dRef, double dOffset, double *pdSeg
   PDObject pObj = pSeg->pSegment;
 
   CDPoint cBounds;
-  if(!pObj->GetBounds(&cBounds, dOffset)) return NULL;
+  if(pObj->GetBounds(&cBounds, dOffset) < 3) return NULL;
 
   if(pSeg->bReverse)
   {
@@ -2779,7 +2783,7 @@ double CDObject::GetPathDistFromPt(CDPoint cPt, CDPoint cRefPt, bool bSnapCenter
 
   pObj->GetPointRefDist(cMin.dRef, 0.0, &d1);
   CDPoint cBounds;
-  if(pObj->GetBounds(&cBounds, 0.0))
+  if(pObj->GetBounds(&cBounds, 0.0) > 2)
   {
     if(pSeg->bReverse)
       pPtX->dRef += (cBounds.y - d1);
@@ -2818,134 +2822,134 @@ double CDObject::GetOffset()
 
 double CDObject::GetDistFromPt(CDPoint cPt, CDPoint cRefPt, bool bSnapCenters, PDLine pPtX, int *piDimen)
 {
-    double dRes = -1.0;
-    CDLine cPtX;
-    int iMask = 0;
-    if(bSnapCenters) iMask = 1;
+  double dRes = -1.0;
+  CDLine cPtX;
+  int iMask = 0;
+  if(bSnapCenters) iMask = 1;
 
-    switch(m_iType)
+  switch(m_iType)
+  {
+  case dtLine:
+    dRes = GetLineDistFromPt(cPt, m_pCachePoints, &cPtX);
+    break;
+  case dtCircle:
+    dRes = GetCircDistFromPt(cPt, cRefPt, bSnapCenters, m_pCachePoints, &cPtX);
+    break;
+  case dtEllipse:
+    dRes = GetElpsDistFromPt(cPt, cRefPt, iMask, m_pCachePoints, &cPtX);
+    break;
+  case dtArcEllipse:
+    dRes = GetArcElpsDistFromPt(cPt, cRefPt, iMask, m_pCachePoints, &cPtX, m_cBounds);
+    break;
+  case dtHyperbola:
+    dRes = GetHyperDistFromPt(cPt, cRefPt, iMask, m_pCachePoints, &cPtX); //, m_cBounds);
+    break;
+  case dtParabola:
+    dRes = GetParabDistFromPt(cPt, cRefPt, iMask, m_pCachePoints, &cPtX); //, m_cBounds);
+    break;
+  case dtSpline:
+    dRes = GetSplineDistFromPt(cPt, cRefPt, iMask, m_pCachePoints, &cPtX);
+    break;
+  case dtEvolvent:
+    dRes = GetEvolvDistFromPt(cPt, cRefPt, m_pCachePoints, &cPtX);
+    break;
+  case dtLogSpiral:
+  case dtArchSpiral:
+  break;
+  case dtPath:
+    dRes = GetPathDistFromPt(cPt, cRefPt, iMask, &cPtX);
+    break;
+  case dtBorderPath:
+  case dtBorder:
+  case dtArea:
+  case dtGroup:
+    break;
+  }
+
+  if(piDimen)
+  {
+    *piDimen = -2;
+    PDDimension pDim;
+    double dDist1;
+    CDPoint cPt1, cPt2;
+    for(int i = 0; i < m_pDimens->GetCount(); i++)
     {
-    case dtLine:
-        dRes = GetLineDistFromPt(cPt, m_pCachePoints, &cPtX);
-        break;
-    case dtCircle:
-        dRes = GetCircDistFromPt(cPt, cRefPt, bSnapCenters, m_pCachePoints, &cPtX);
-        break;
-    case dtEllipse:
-        dRes = GetElpsDistFromPt(cPt, cRefPt, iMask, m_pCachePoints, &cPtX);
-        break;
-    case dtArcEllipse:
-        dRes = GetArcElpsDistFromPt(cPt, cRefPt, iMask, m_pCachePoints, &cPtX, m_cBounds);
-        break;
-    case dtHyperbola:
-        dRes = GetHyperDistFromPt(cPt, cRefPt, iMask, m_pCachePoints, &cPtX); //, m_cBounds);
-        break;
-    case dtParabola:
-        dRes = GetParabDistFromPt(cPt, cRefPt, iMask, m_pCachePoints, &cPtX); //, m_cBounds);
-        break;
-    case dtSpline:
-        dRes = GetSplineDistFromPt(cPt, cRefPt, iMask, m_pCachePoints, &cPtX);
-        break;
-    case dtEvolvent:
-        dRes = GetEvolvDistFromPt(cPt, cRefPt, m_pCachePoints, &cPtX);
-        break;
-    case dtLogSpiral:
-    case dtArchSpiral:
-      break;
-    case dtPath:
-        dRes = GetPathDistFromPt(cPt, cRefPt, iMask, &cPtX);
-        break;
-    case dtBorderPath:
-    case dtBorder:
-    case dtArea:
-    case dtGroup:
-      break;
+      pDim = (PDDimension)m_pDimens->GetItem(i);
+      GetNativeRefPoint(pDim->dRef1, 0.0, &cPt1);
+      dDist1 = GetDist(cPt, cPt1);
+      if(dDist1 < fabs(dRes))
+      {
+        dRes = dDist1;
+        *piDimen = i;
+        cPtX.bIsSet = true;
+        cPtX.cOrigin = cPt1;
+        cPtX.dRef = pDim->dRef1;
+        cPtX.cDirection = 0;
+      }
+      GetNativeRefPoint(pDim->dRef2, 0.0, &cPt1);
+      dDist1 = GetDist(cPt, cPt1);
+      if(dDist1 < fabs(dRes))
+      {
+        dRes = dDist1;
+        *piDimen = i;
+        cPtX.bIsSet = true;
+        cPtX.cOrigin = cPt1;
+        cPtX.dRef = pDim->dRef2;
+        cPtX.cDirection = 0;
+      }
+      cPt1.x = -sin(pDim->cLabelPos.dOrientation);
+      cPt1.y = cos(pDim->cLabelPos.dOrientation);
+      cPt2 = Rotate(cPt - pDim->cLabelPos.cPoint, cPt1, false);
+      if(DPtInDRect(cPt2, &pDim->cExt))
+      {
+        dRes = 0.0;
+        *piDimen = i;
+        cPtX.bIsSet = true;
+        cPtX.cOrigin = pDim->cLabelPos.cPoint;
+        cPtX.dRef = (pDim->dRef1 + pDim->dRef2)/2.0;
+        cPtX.cDirection = 0;
+      }
     }
+  }
 
-    if(piDimen)
-    {
-        *piDimen = -2;
-        PDDimension pDim;
-        double dDist1;
-        CDPoint cPt1, cPt2;
-        for(int i = 0; i < m_pDimens->GetCount(); i++)
-        {
-            pDim = (PDDimension)m_pDimens->GetItem(i);
-            GetNativeRefPoint(pDim->dRef1, 0.0, &cPt1);
-            dDist1 = GetDist(cPt, cPt1);
-            if(dDist1 < fabs(dRes))
-            {
-                dRes = dDist1;
-                *piDimen = i;
-                cPtX.bIsSet = true;
-                cPtX.cOrigin = cPt1;
-                cPtX.dRef = pDim->dRef1;
-                cPtX.cDirection = 0;
-            }
-            GetNativeRefPoint(pDim->dRef2, 0.0, &cPt1);
-            dDist1 = GetDist(cPt, cPt1);
-            if(dDist1 < fabs(dRes))
-            {
-                dRes = dDist1;
-                *piDimen = i;
-                cPtX.bIsSet = true;
-                cPtX.cOrigin = cPt1;
-                cPtX.dRef = pDim->dRef2;
-                cPtX.cDirection = 0;
-            }
-            cPt1.x = -sin(pDim->cLabelPos.dOrientation);
-            cPt1.y = cos(pDim->cLabelPos.dOrientation);
-            cPt2 = Rotate(cPt - pDim->cLabelPos.cPoint, cPt1, false);
-            if(DPtInDRect(cPt2, &pDim->cExt))
-            {
-                dRes = 0.0;
-                *piDimen = i;
-                cPtX.bIsSet = true;
-                cPtX.cOrigin = pDim->cLabelPos.cPoint;
-                cPtX.dRef = (pDim->dRef1 + pDim->dRef2)/2.0;
-                cPtX.cDirection = 0;
-            }
-        }
-    }
-
-    double dNorm = GetNorm(cPtX.cDirection);
-    if((dNorm < g_dPrec) || (m_iType == dtPath))
-    {
-        if(pPtX) *pPtX = cPtX;
-        return dRes;
-    }
-
-    if(BoundPoint(cRefPt, &cPtX, &dRes))
-    {
-        if(pPtX) *pPtX = cPtX;
-        return dRes;
-    }
-
-    dNorm = GetNorm(cPtX.cDirection);
-    if(dNorm < g_dPrec)
-    {
-        if(pPtX) *pPtX = cPtX;
-        return dRes;
-    }
-
-    CDPoint cPtTan = GetNormal(cPtX.cDirection);
-
-    CDPoint cPtX2;
-    double dRes2 = GetLineProj(cPt, cPtX.cOrigin, cPtTan, &cPtX2);
-    if(dRes2 < dRes)
-    {
-        if(pPtX)
-        {
-            pPtX->bIsSet = true;
-            pPtX->cOrigin = cPtX2;
-            pPtX->cDirection = cPtX.cDirection;
-            pPtX->dRef = cPtX.dRef;
-        }
-        return dRes2;
-    }
-
+  double dNorm = GetNorm(cPtX.cDirection);
+  if((dNorm < g_dPrec) || (m_iType == dtPath))
+  {
     if(pPtX) *pPtX = cPtX;
     return dRes;
+  }
+
+  if(BoundPoint(cRefPt, &cPtX, &dRes))
+  {
+    if(pPtX) *pPtX = cPtX;
+    return dRes;
+  }
+
+  dNorm = GetNorm(cPtX.cDirection);
+  if(dNorm < g_dPrec)
+  {
+    if(pPtX) *pPtX = cPtX;
+    return dRes;
+  }
+
+  CDPoint cPtTan = GetNormal(cPtX.cDirection);
+
+  CDPoint cPtX2;
+  double dRes2 = GetLineProj(cPt, cPtX.cOrigin, cPtTan, &cPtX2);
+  if(dRes2 < dRes)
+  {
+    if(pPtX)
+    {
+      pPtX->bIsSet = true;
+      pPtX->cOrigin = cPtX2;
+      pPtX->cDirection = cPtX.cDirection;
+      pPtX->dRef = cPtX.dRef;
+    }
+    return dRes2;
+  }
+
+  if(pPtX) *pPtX = cPtX;
+  return dRes;
 }
 
 CDLineStyle CDObject::GetLineStyle()
@@ -4278,10 +4282,36 @@ double CDObject::GetNearestBoundPoint(CDPoint cPt, PDPoint pPt)
   {
     GetNativeRefPoint(m_cBounds[1].dRef, 0.0, &cPt1);
     double d1 = GetDist(cPt, cPt1);
-    if((dRes > -0.5) && (d1 < dRes))
+    if((dRes < -0.5) || (d1 < dRes))
     {
       dRes = d1;
       *pPt = cPt1;
+    }
+  }
+
+  if(!IsClosedShape())
+  {
+    CDPoint cRefBnds;
+    int iBoundType = GetRefBounds(&cRefBnds);
+    if(iBoundType > 0)
+    {
+      GetNativeRefPoint(cRefBnds.x, 0.0, &cPt1);
+      double d1 = GetDist(cPt, cPt1);
+      if((dRes < -0.5) || (d1 < dRes))
+      {
+        dRes = d1;
+        *pPt = cPt1;
+      }
+    }
+    if(iBoundType > 1)
+    {
+      GetNativeRefPoint(cRefBnds.y, 0.0, &cPt1);
+      double d1 = GetDist(cPt, cPt1);
+      if((dRes < -0.5) || (d1 < dRes))
+      {
+        dRes = d1;
+        *pPt = cPt1;
+      }
     }
   }
 
@@ -4965,7 +4995,7 @@ bool CDObject::GetStartPoint(PDPoint pPt, double dOffset)
   if(!m_cBounds[0].bIsSet) return false;
   return GetNativeRefPoint(m_cBounds[0].dRef, 0.0, pPt);*/
   CDPoint cBnds;
-  if(GetBounds(&cBnds, dOffset))
+  if(GetBounds(&cBnds, dOffset) & 1)
   {
     double dRef;
     GetNativeReference(cBnds.x, dOffset, &dRef);
@@ -4988,7 +5018,7 @@ bool CDObject::GetEndPoint(PDPoint pPt, double dOffset)
     if(!m_cBounds[1].bIsSet) return false;
     return GetNativeRefPoint(m_cBounds[1].dRef, 0.0, pPt);*/
   CDPoint cBnds;
-  if(GetBounds(&cBnds, dOffset))
+  if(GetBounds(&cBnds, dOffset) & 2)
   {
     double dRef;
     GetNativeReference(cBnds.y, dOffset, &dRef);
@@ -5314,207 +5344,201 @@ int CDataList::GetTangSnap(CDPoint cPt, double dDist, bool bNewPt, PDLine pSnapP
 
 int CDataList::GetSnapPoint(int iSnapMask, CDPoint cPt, double dDist, PDLine pSnapPt, PDObject pDynObj)
 {
-//wchar_t buf[128];
-//swprintf(buf, L"Tol: %f", dDist);
-//SendMessage(g_hStatus, SB_SETTEXT, 2, (LPARAM)L"");
+  pSnapPt->bIsSet = false;
 
-    pSnapPt->bIsSet = false;
+  int i = 0;
+  bool bFound1 = false;
+  CDLine cPtSnap1;
+  double dDist1, dblDist;
+  PDObject pObj1 = NULL;
+  dblDist = 2.0*dDist;
+  int iDim;
 
-    int i = 0;
-    bool bFound1 = false;
-    CDLine cPtSnap1;
-    double dDist1, dblDist;
-    PDObject pObj1 = NULL;
-    dblDist = 2.0*dDist;
-    int iDim;
-
-    while(!bFound1 && (i < m_iDataLen))
+  while(!bFound1 && (i < m_iDataLen))
+  {
+    pObj1 = m_ppObjects[i++];
+    if(pObj1->GetSnapTo())
     {
-        pObj1 = m_ppObjects[i++];
-        if(pObj1->GetSnapTo())
-        {
-            dDist1 = fabs(pObj1->GetDistFromPt(cPt, cPt, true, &cPtSnap1, &iDim));
-            bFound1 = cPtSnap1.bIsSet && (dDist1 < dblDist);
-        }
+      dDist1 = fabs(pObj1->GetDistFromPt(cPt, cPt, true, &cPtSnap1, &iDim));
+      bFound1 = cPtSnap1.bIsSet && (dDist1 < dblDist);
     }
+  }
 
-    if(bFound1 && (GetNorm(cPtSnap1.cDirection) < 0.5))
+  if(bFound1 && (GetNorm(cPtSnap1.cDirection) < 0.5))
+  {
+    *pSnapPt = cPtSnap1;
+    return 1;
+  }
+
+  double dDist2;
+  bool bFound2 = false;
+  CDLine cPtSnap2;
+  PDObject pObj2 = NULL;
+
+  while(!bFound2 && (i < m_iDataLen))
+  {
+    pObj2 = m_ppObjects[i++];
+    if(pObj2->GetSnapTo())
     {
-        *pSnapPt = cPtSnap1;
+      dDist2 = fabs(pObj2->GetDistFromPt(cPt, cPt, true, &cPtSnap2, &iDim));
+      bFound2 = cPtSnap2.bIsSet && (dDist2 < dblDist);
+    }
+  }
+
+  if(!(bFound1 || bFound2)) return 0;
+
+  if(bFound2 && (GetNorm(cPtSnap2.cDirection) < 0.5))
+  {
+    *pSnapPt = cPtSnap2;
+    return 1;
+  }
+
+  *pSnapPt = cPtSnap1;
+
+  if(!bFound2)
+  {
+    CDPoint cPt2;
+
+    if((iSnapMask == 1) && pObj1->GetSelected())
+    {
+      dDist2 = pObj1->GetNearestCrossPoint(cPt, &cPt2);
+      if((dDist2 > -0.5) && (dDist2 < dblDist))
+      {
+        pSnapPt->bIsSet = true;
+        pSnapPt->cOrigin = cPt2;
+        pSnapPt->cDirection = 0;
         return 1;
+      }
     }
 
-    double dDist2;
-    bool bFound2 = false;
-    CDLine cPtSnap2;
-    PDObject pObj2 = NULL;
+    if(pDynObj)
+    {
+      int iRes = GetTangSnap(cPt, dblDist, iSnapMask != 2, pSnapPt, pObj1, pDynObj);
+      if(iRes > 0) return iRes;
+    }
 
+    dDist2 = pObj1->GetNearestBoundPoint(cPt, &cPt2);
+    if((dDist2 > -0.5) && (dDist2 < dblDist))
+    {
+      pSnapPt->bIsSet = true;
+      pSnapPt->cOrigin = cPt2;
+      pSnapPt->cDirection = 0;
+      return 1;
+    }
+
+    if(dDist1 < dDist)
+    {
+      return 1;
+    }
+
+    i = 0;
     while(!bFound2 && (i < m_iDataLen))
     {
-        pObj2 = m_ppObjects[i++];
-        if(pObj2->GetSnapTo())
-        {
-            dDist2 = fabs(pObj2->GetDistFromPt(cPt, cPt, true, &cPtSnap2, &iDim));
-            bFound2 = cPtSnap2.bIsSet && (dDist2 < dblDist);
-        }
+      pObj2 = m_ppObjects[i++];
+      if(pObj2->GetSnapTo())
+      {
+        dDist2 = fabs(pObj2->GetDistFromPt(cPt, cPt, true, &cPtSnap2, &iDim));
+        bFound2 = dDist2 < dDist;
+      }
     }
 
-    if(!(bFound1 || bFound2)) return 0;
-
-    if(bFound2 && (GetNorm(cPtSnap2.cDirection) < 0.5))
-    {
-        *pSnapPt = cPtSnap2;
-        return 1;
-    }
-
-    *pSnapPt = cPtSnap1;
-
-    if(!bFound2)
-    {
-        CDPoint cPt2;
-
-        if((iSnapMask == 1) && pObj1->GetSelected())
-        {
-            dDist2 = pObj1->GetNearestCrossPoint(cPt, &cPt2);
-            if((dDist2 > -0.5) && (dDist2 < dblDist))
-            {
-                pSnapPt->bIsSet = true;
-                pSnapPt->cOrigin = cPt2;
-                pSnapPt->cDirection = 0;
-                return 1;
-            }
-        }
-
-        if(pDynObj)
-        {
-            int iRes = GetTangSnap(cPt, dblDist, iSnapMask != 2, pSnapPt, pObj1, pDynObj);
-            if(iRes > 0) return iRes;
-        }
-
-        dDist2 = pObj1->GetNearestBoundPoint(cPt, &cPt2);
-        if((dDist2 > -0.5) && (dDist2 < dblDist))
-        {
-            pSnapPt->bIsSet = true;
-            pSnapPt->cOrigin = cPt2;
-            pSnapPt->cDirection = 0;
-            return 1;
-        }
-
-        if(dDist1 < dDist)
-        {
-            return 1;
-        }
-
-        i = 0;
-        while(!bFound2 && (i < m_iDataLen))
-        {
-            pObj2 = m_ppObjects[i++];
-            if(pObj2->GetSnapTo())
-            {
-                dDist2 = fabs(pObj2->GetDistFromPt(cPt, cPt, true, &cPtSnap2, &iDim));
-                bFound2 = dDist2 < dDist;
-            }
-        }
-
-        if(bFound2)
-        {
-            *pSnapPt = cPtSnap2;
-            return 1;
-        }
-        return 0;
-    }
-
-    double df1, df2;
-    df1 = GetNorm(cPtSnap1.cDirection);
-    df2 = GetNorm(cPtSnap2.cDirection);
-
-    if(df1 < g_dPrec) return 1;
-    if(df2 < g_dPrec)
-    {
-        *pSnapPt = cPtSnap2;
-        return 1;
-    }
-
-    CDPoint cX, cDir = {0, 0};
-    int iX = LineXLine(cPtSnap1.cOrigin, GetNormal(cPtSnap1.cDirection),
-        cPtSnap2.cOrigin, GetNormal(cPtSnap2.cDirection), &cX);
-    if(iX < 1) return 1;
-
-    int iIterMax = 16;
-    int iIter = 0;
-    double dDist3 = GetDist(cPt, cX);
-    dDist1 = fabs(pObj1->GetDistFromPt(cX, cX, true, &cPtSnap1, NULL));
-    dDist2 = fabs(pObj2->GetDistFromPt(cX, cX, true, &cPtSnap2, NULL));
-    bFound2 = dDist3 < dblDist;
-
-    df1 = GetNorm(cPtSnap1.cDirection);
-    df2 = GetNorm(cPtSnap2.cDirection);
-    double dIncl;
-
-    if(df1 < g_dPrec)
-    {
-        *pSnapPt = cPtSnap1;
-        return 1;
-    }
-    if(df2 < g_dPrec)
-    {
-        *pSnapPt = cPtSnap2;
-        return 1;
-    }
-
-    bool bDoIter = bFound2;
-    while(bDoIter)
-    {
-        iIter++;
-        dIncl = 0.0;
-        iX = LineXLine(cPtSnap1.cOrigin, GetNormal(cPtSnap1.cDirection),
-            cPtSnap2.cOrigin, GetNormal(cPtSnap2.cDirection), &cX);
-        if(iX > 0)
-        {
-            dDist3 = GetDist(cPt, cX);
-            dDist1 = fabs(pObj1->GetDistFromPt(cX, cX, true, &cPtSnap1, NULL));
-            dDist2 = fabs(pObj2->GetDistFromPt(cX, cX, true, &cPtSnap2, NULL));
-            bFound2 = dDist3 < dblDist;
-
-            df1 = GetNorm(cPtSnap1.cDirection);
-            df2 = GetNorm(cPtSnap2.cDirection);
-            if(df1 < g_dPrec)
-            {
-                cX = cPtSnap1.cOrigin;
-                cDir = cPtSnap1.cDirection;
-                iIter = iIterMax;
-            }
-            else if(df2 < g_dPrec)
-            {
-                cX = cPtSnap2.cOrigin;
-                cDir = cPtSnap2.cDirection;
-                iIter = iIterMax;
-            }
-            else dIncl = fabs(cPtSnap1.cDirection*cPtSnap2.cDirection);
-        }
-        else bFound2 = false;
-
-        bDoIter = bFound2 && (iIter < iIterMax) &&
-            ((dDist1 > g_dRootPrec) || (dDist2 > g_dRootPrec) || (iIter < 4) ||
-             ((dIncl > 1.0 - g_dPrec) && (dIncl < 1.0 - g_dRootPrec)));
-        /*if(!bDoIter && bFound2 && (iIter < iIterMax))
-        {
-            // do one more iteration
-            iIter = iIterMax - 1;
-            bDoIter = true;
-        }*/
-    }
-
-//swprintf(buf, L"%d", iIter);
-//SendMessage(g_hStatus, SB_SETTEXT, 2, (LPARAM)buf);
     if(bFound2)
     {
-        pSnapPt->bIsSet = true;
-        pSnapPt->cOrigin = cX;
-        pSnapPt->cDirection = 0;
+      *pSnapPt = cPtSnap2;
+      return 1;
     }
+    return 0;
+  }
 
+  double df1, df2;
+  df1 = GetNorm(cPtSnap1.cDirection);
+  df2 = GetNorm(cPtSnap2.cDirection);
+
+  if(df1 < g_dPrec) return 1;
+  if(df2 < g_dPrec)
+  {
+    *pSnapPt = cPtSnap2;
     return 1;
+  }
+
+  CDPoint cX, cDir = {0, 0};
+  int iX = LineXLine(cPtSnap1.cOrigin, GetNormal(cPtSnap1.cDirection),
+    cPtSnap2.cOrigin, GetNormal(cPtSnap2.cDirection), &cX);
+  if(iX < 1) return 1;
+
+  int iIterMax = 16;
+  int iIter = 0;
+  double dDist3 = GetDist(cPt, cX);
+  dDist1 = fabs(pObj1->GetDistFromPt(cX, cX, true, &cPtSnap1, NULL));
+  dDist2 = fabs(pObj2->GetDistFromPt(cX, cX, true, &cPtSnap2, NULL));
+  bFound2 = dDist3 < dblDist;
+
+  df1 = GetNorm(cPtSnap1.cDirection);
+  df2 = GetNorm(cPtSnap2.cDirection);
+  double dIncl;
+
+  if(df1 < g_dPrec)
+  {
+    *pSnapPt = cPtSnap1;
+    return 1;
+  }
+  if(df2 < g_dPrec)
+  {
+    *pSnapPt = cPtSnap2;
+    return 1;
+  }
+
+  bool bDoIter = bFound2;
+  while(bDoIter)
+  {
+    iIter++;
+    dIncl = 0.0;
+    iX = LineXLine(cPtSnap1.cOrigin, GetNormal(cPtSnap1.cDirection),
+    cPtSnap2.cOrigin, GetNormal(cPtSnap2.cDirection), &cX);
+    if(iX > 0)
+    {
+      dDist3 = GetDist(cPt, cX);
+      dDist1 = fabs(pObj1->GetDistFromPt(cX, cX, true, &cPtSnap1, NULL));
+      dDist2 = fabs(pObj2->GetDistFromPt(cX, cX, true, &cPtSnap2, NULL));
+      bFound2 = dDist3 < dblDist;
+
+      df1 = GetNorm(cPtSnap1.cDirection);
+      df2 = GetNorm(cPtSnap2.cDirection);
+      if(df1 < g_dPrec)
+      {
+        cX = cPtSnap1.cOrigin;
+        cDir = cPtSnap1.cDirection;
+        iIter = iIterMax;
+      }
+      else if(df2 < g_dPrec)
+      {
+        cX = cPtSnap2.cOrigin;
+        cDir = cPtSnap2.cDirection;
+        iIter = iIterMax;
+      }
+      else dIncl = fabs(cPtSnap1.cDirection*cPtSnap2.cDirection);
+    }
+    else bFound2 = false;
+
+    bDoIter = bFound2 && (iIter < iIterMax) &&
+    ((dDist1 > g_dRootPrec) || (dDist2 > g_dRootPrec) || (iIter < 4) ||
+    ((dIncl > 1.0 - g_dPrec) && (dIncl < 1.0 - g_dRootPrec)));
+    /*if(!bDoIter && bFound2 && (iIter < iIterMax))
+    {
+      // do one more iteration
+      iIter = iIterMax - 1;
+      bDoIter = true;
+    }*/
+  }
+
+  if(bFound2)
+  {
+    pSnapPt->bIsSet = true;
+    pSnapPt->cOrigin = cX;
+    pSnapPt->cDirection = 0;
+  }
+
+  return 1;
 }
 
 bool CDataList::DeleteSelected(CDataList *pUndoList, PDRect pRect, PDPtrList pRegions)

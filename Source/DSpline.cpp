@@ -950,10 +950,10 @@ int AddMin(int iMins, CDPoint cPt1, CDPoint cPt2, double dRef, double *pdRefs, d
   return 2;
 }
 
-double GetSplineBoundProj(PDPointList pCache, CDPoint cPt, CDPoint cRefPt, bool bSecond)
+double GetSplineBoundProj(PDPointList pCache, CDPoint cPt, CDPoint cRefPt, bool bSecond, double *pdDist)
 {
   int iSegs = GetSplineNumSegments(pCache);
-  if(iSegs < 1) return 0;
+  if(iSegs < 1) return -1.0;
 
   int nCtrls = pCache->GetCount(1);
   bool bClosed = (nCtrls > 0);
@@ -1025,9 +1025,15 @@ double GetSplineBoundProj(PDPointList pCache, CDPoint cPt, CDPoint cRefPt, bool 
 
   if(bSecond)
   {
-    if(iMins < 2) return dRefs[0];
+    if(iMins < 2)
+    {
+      if(pdDist) *pdDist = dMins[0];
+      return dRefs[0];
+    }
+    if(pdDist) *pdDist = dMins[1];
     return dRefs[1];
   }
+  if(pdDist) *pdDist = dMins[0];
   return dRefs[0];
 }
 
@@ -1105,41 +1111,42 @@ double GetSplineDistFromPt(CDPoint cPt, CDPoint cRefPt, int iSrchMask, PDPointLi
     return d2 - dr;
   }
 
-  double dProj = GetSplineBoundProj(pCache, cPt, cRefPt, iSrchMask & 2);
-  if(dProj < -0.5)
+  double dDist = 0.0;
+  double dProj = GetSplineBoundProj(pCache, cPt, cRefPt, iSrchMask & 2, &dDist);
+  if(!bClosed)
   {
-    if(!bClosed)
-    {
-      int iNumSegs = GetSplineNumSegments(pCache);
-      cQuad = GetSplineNthSegment(0, pCache);
-      cDir = GetQuadNormal(&cQuad, 0.0);
-      bPt1 = cQuad.cPt1 + dr*cDir;
-      bPt2 = Rotate(cPt - bPt1, cDir, false);
-      d1 = GetDist(cPt, bPt1);
-      if(bPt2.x < 0.0) d1 *= -1.0;
+    int iNumSegs = GetSplineNumSegments(pCache);
+    cQuad = GetSplineNthSegment(0, pCache);
+    cDir = GetQuadNormal(&cQuad, 0.0);
+    bPt1 = cQuad.cPt1 + dr*cDir;
+    bPt2 = Rotate(cPt - bPt1, cDir, false);
+    d1 = GetDist(cPt, bPt1);
+    if(bPt2.x < 0.0) d1 *= -1.0;
 
+    if((dProj < -0.5) || (fabs(d1) < dDist))
+    {
       pPtX->bIsSet = true;
       pPtX->cOrigin = bPt1;
-      pPtX->cDirection = 0;
+      pPtX->cDirection = cDir;
       pPtX->dRef = 0.0;
-
-      cQuad = GetSplineNthSegment(iNumSegs - 1, pCache);
-      cDir = GetQuadNormal(&cQuad, 1.0);
-      bPt1 = cQuad.cPt3 + dr*cDir;
-      bPt2 = Rotate(cPt - bPt1, cDir, false);
-      d2 = GetDist(cPt, bPt1);
-      if(bPt2.x < 0.0) d2 *= -1.0;
-
-      if(fabs(d2) < fabs(d1))
-      {
-        pPtX->cOrigin = bPt1;
-        pPtX->cDirection = 0;
-        pPtX->dRef = (double)iNumSegs;
-        d1 = d2;
-      }
-      return d1;
     }
-    return 0.0;
+
+    cQuad = GetSplineNthSegment(iNumSegs - 1, pCache);
+    cDir = GetQuadNormal(&cQuad, 1.0);
+    bPt1 = cQuad.cPt3 + dr*cDir;
+    bPt2 = Rotate(cPt - bPt1, cDir, false);
+    d2 = GetDist(cPt, bPt1);
+    if(bPt2.x < 0.0) d2 *= -1.0;
+
+    if((pPtX->bIsSet && (fabs(d2) < fabs(d1))) || (!pPtX->bIsSet && ((dProj < -0.5) || (fabs(d2) < dDist))))
+    {
+      pPtX->bIsSet = true;
+      pPtX->cOrigin = bPt1;
+      pPtX->cDirection = cDir;
+      pPtX->dRef = (double)iNumSegs;
+      d1 = d2;
+    }
+    if(pPtX->bIsSet) return d1;
   }
 
   double dt = GetQuadAtRef(dProj, &cQuad, pCache);
@@ -1450,7 +1457,7 @@ bool GetSplineRestrictPoint(CDPoint cPt, int iMode, double dRestrictValue, PDPoi
 
   double dRad = dDist + dRestrictValue;
 
-  double dRef = GetSplineBoundProj(pCache, cPt, cPt, false);
+  double dRef = GetSplineBoundProj(pCache, cPt, cPt, false, NULL);
   CDPrimitive cQuad;
   double dt = GetQuadAtRef(dRef, &cQuad, pCache);
 
