@@ -3,12 +3,14 @@
 #include <wchar.h>
 #include <math.h>
 #include <commctrl.h>
+#include <shobjidl.h>
 
 #include "XMLUtils.hpp"
 #include "../Source/DMath.hpp"
 #include "../Source/DExpCairo.hpp"
 #include "../Source/DParser.hpp"
 #include "../Source/DExpDXF.hpp"
+#include "shlobjidl_core.hpp"
 
 //#define SQR(X) ((X)*(X))
 
@@ -258,6 +260,7 @@ HWND CMainWnd::DisplayWindow()
 
 LRESULT CMainWnd::WMCreate(HWND hwnd, LPCREATESTRUCT lpcs)
 {
+  CoInitialize(NULL);
   SetWindowLongPtr(hwnd, GWLP_USERDATA, (LONG_PTR)lpcs->lpCreateParams);
 
   /*m_hToolBar = CreateWindowEx(0, TOOLBARCLASSNAME, (LPCTSTR)NULL,
@@ -496,6 +499,7 @@ LRESULT CMainWnd::WMSize(HWND hwnd, WPARAM fwSizeType, WORD nWidth, WORD nHeight
 
 LRESULT CMainWnd::WMDestroy(HWND hwnd)
 {
+  CoUninitialize();
   PostQuitMessage(0);
   return(0);
 }
@@ -756,12 +760,12 @@ LRESULT CMainWnd::WMPaint(HWND hwnd, HDC hdc)
 
   PAINTSTRUCT ps;
   HDC ldc = BeginPaint(hwnd, &ps);
-  Graphics graphics(m_pDrawBuffer);
+  Graphics *graphics = new Graphics(m_pDrawBuffer);
   //graphics.Clear(Color::White);
   SolidBrush whiteBrush(Color::White);
-  graphics.FillRectangle(&whiteBrush, (INT)rc.left, (INT)(rc.top - m_iToolBarHeight),
+  graphics->FillRectangle(&whiteBrush, (INT)rc.left, (INT)(rc.top - m_iToolBarHeight),
     (INT)(rc.right - rc.left), (INT)(rc.bottom - rc.top + m_iToolBarHeight));
-  graphics.SetSmoothingMode(SmoothingModeAntiAlias);
+  graphics->SetSmoothingMode(SmoothingModeAntiAlias);
 
   if(m_iDrawGridMode > 0)
   {
@@ -795,12 +799,12 @@ LRESULT CMainWnd::WMPaint(HWND hwnd, HDC hdc)
         for(int i = iMin; i <= iMax; i++)
         {
           dx = m_cViewOrigin.x + (double)i*m_dUnitScale*m_cFSR.dXGrid;
-          graphics.DrawLine(&grayPen, (REAL)dx, (REAL)0.0, (REAL)dx, (REAL)cr.bottom);
+          graphics->DrawLine(&grayPen, (REAL)dx, (REAL)0.0, (REAL)dx, (REAL)cr.bottom);
         }
         for(int j = jMin; j <= jMax; j++)
         {
           dy = m_cViewOrigin.y + (double)j*m_dUnitScale*m_cFSR.dYGrid;
-          graphics.DrawLine(&grayPen, (REAL)0, (REAL)dy, (REAL)cr.right, (REAL)dy);
+          graphics->DrawLine(&grayPen, (REAL)0, (REAL)dy, (REAL)cr.right, (REAL)dy);
         }
       }
 
@@ -833,7 +837,7 @@ LRESULT CMainWnd::WMPaint(HWND hwnd, HDC hdc)
           for(int j = jMin; j <= jMax; j++)
           {
             dy = m_cViewOrigin.y + (double)j*m_dUnitScale*m_cFSR.dYGrid;
-            graphics.DrawEllipse(&grayPen, (REAL)(dx - 1), (REAL)(dy - 1), (REAL)2.0, (REAL)2.0);
+            graphics->DrawEllipse(&grayPen, (REAL)(dx - 1), (REAL)(dy - 1), (REAL)2.0, (REAL)2.0);
           }
         }
       }
@@ -841,7 +845,7 @@ LRESULT CMainWnd::WMPaint(HWND hwnd, HDC hdc)
   }
 
   Pen brownPen(Color(255, 128, 76, 0), 1);
-  graphics.DrawRectangle(&brownPen, (REAL)m_cViewOrigin.x, (REAL)m_cViewOrigin.y,
+  graphics->DrawRectangle(&brownPen, (REAL)m_cViewOrigin.x, (REAL)m_cViewOrigin.y,
     (REAL)(m_dUnitScale*m_dwPage), (REAL)(m_dUnitScale*m_dhPage));
 
   CDRect cdr;
@@ -857,13 +861,14 @@ LRESULT CMainWnd::WMPaint(HWND hwnd, HDC hdc)
   for(int i = 0; i < iObjs; i++)
   {
     pObj = m_pDrawObjects->GetItem(i);
-    DrawObjectPlus(hwnd, &graphics, pObj, 0, -2);
+    DrawObjectPlus(hwnd, graphics, pObj, 0, -2);
   }
 
-  Graphics dstgraph(ldc);
-  dstgraph.DrawImage(m_pDrawBuffer, 0, 0);
+  Graphics *dstgraph = new Graphics(ldc);
+  //Graphics *dstgraph = graphics;
+  dstgraph->DrawImage(m_pDrawBuffer, 0, 0);
 
-  if(m_pHighObject) DrawObjectPlus(hwnd, &dstgraph, m_pHighObject, 2, m_iHighDimen);
+  if(m_pHighObject) DrawObjectPlus(hwnd, dstgraph, m_pHighObject, 2, m_iHighDimen);
 
   int iDynMode = GetDynMode();
   CDLine cPtX;
@@ -885,18 +890,20 @@ LRESULT CMainWnd::WMPaint(HWND hwnd, HDC hdc)
 
   if((m_iDrawMode > modSelect) || (m_iToolMode > tolNone))
   {
-    dstgraph.DrawLine(m_redPen, (REAL)(m_cLastSnapPt.x - 10), (REAL)m_cLastSnapPt.y,
+    dstgraph->DrawLine(m_redPen, (REAL)(m_cLastSnapPt.x - 10), (REAL)m_cLastSnapPt.y,
       (REAL)(m_cLastSnapPt.x + 10), (REAL)m_cLastSnapPt.y);
-    dstgraph.DrawLine(m_redPen, (REAL)m_cLastSnapPt.x, (REAL)(m_cLastSnapPt.y - 10),
+    dstgraph->DrawLine(m_redPen, (REAL)m_cLastSnapPt.x, (REAL)(m_cLastSnapPt.y - 10),
       (REAL)m_cLastSnapPt.x, (REAL)(m_cLastSnapPt.y + 10));
     if(m_pActiveObject)
     {
       m_pActiveObject->BuildPrimitives(cPtX, iDynMode, &cdr, 0, NULL);
-      DrawObjectPlus(hwnd, &dstgraph, m_pActiveObject, 1, -2);
+      DrawObjectPlus(hwnd, dstgraph, m_pActiveObject, 1, -2);
     }
   }
 
   EndPaint(hwnd, &ps);
+  delete dstgraph;
+  delete graphics;
 
   GetClientRect(hwnd, &rc);
   rc.top += m_iToolBarHeight;
@@ -935,7 +942,7 @@ bool CMainWnd::PromptForSave(HWND hWnd)
 
 bool CMainWnd::SaveFile(HWND hWnd, LPWSTR wsFile, bool bSelectOnly)
 {
-  bool bSave = true;
+  /*bool bSave = true;
   if(!wsFile[0])
   {
     wchar_t wsFilter[128], wsCurDir[1];
@@ -969,53 +976,167 @@ bool CMainWnd::SaveFile(HWND hWnd, LPWSTR wsFile, bool bSelectOnly)
   m_pDrawObjects->SaveToFile(pf, true, bSelectOnly, cVer);
   fclose(pf);
 
+  return true;*/
+  bool bSave = true;
+  if(!wsFile[0])
+  {
+    IFileSaveDialog *pFileOpen = NULL;
+    HRESULT hr = CoCreateInstance(CLSID_FileSaveDialog, NULL, CLSCTX_INPROC_SERVER, IID_IFileSaveDialog, (void**)&pFileOpen);
+    if(SUCCEEDED(hr))
+    {
+      wchar_t wsFilter[128];
+      LoadString(m_hInstance, IDS_STEAMDRAWFILTER, wsFilter, 128);
+
+      int iFilterLen = 0;
+      int n = wcslen(wsFilter);
+      for(int i = 0; i < n; i++)
+      {
+        if(wsFilter[i] == 1) iFilterLen++;
+      }
+      iFilterLen /= 2;
+      COMDLG_FILTERSPEC *pFilter = NULL;
+      if(iFilterLen > 0)
+      {
+        pFilter = (COMDLG_FILTERSPEC*)malloc(iFilterLen*sizeof(COMDLG_FILTERSPEC));
+        int iFilterPos = 0;
+        pFilter[iFilterPos++].pszName = wsFilter;
+        for(int i = 0; i < n; i++)
+        {
+          if(wsFilter[i] == 1)
+          {
+            wsFilter[i] = 0;
+            if(iFilterPos < 2*iFilterLen)
+            {
+              if(iFilterPos % 2 > 0) pFilter[iFilterPos/2].pszSpec = &wsFilter[i + 1];
+              else pFilter[iFilterPos/2].pszName = &wsFilter[i + 1];
+              iFilterPos++;
+            }
+          }
+        }
+        pFileOpen->SetFileTypes(iFilterLen, pFilter);
+      }
+      pFileOpen->SetDefaultExtension(L"sc2");
+      hr = pFileOpen->Show(NULL);
+      if(SUCCEEDED(hr))
+      {
+        IShellItem *pItem;
+        hr = pFileOpen->GetResult(&pItem);
+        if(SUCCEEDED(hr))
+        {
+          PWSTR pszFilePath;
+          hr = pItem->GetDisplayName(SIGDN_FILESYSPATH, &pszFilePath);
+          if(SUCCEEDED(hr))
+          {
+            wcscpy(wsFile, pszFilePath);
+            bSave = true;
+            CoTaskMemFree(pszFilePath);
+          }
+          pItem->Release();
+        }
+      }
+      if(pFilter) free(pFilter);
+      pFileOpen->Release();
+    }
+  }
+  if(!bSave) return false;
+
+  unsigned char cVer = 2;
+  LPWSTR sDot = wcsrchr(wsFile, '.');
+  if(sDot)
+  {
+    if(wcsicmp(sDot, L".sc2") == 0) cVer = 1;
+  }
+
+  // save the file
+  FILE *pf = _wfopen(wsFile, L"wb");
+  m_pDrawObjects->SaveToFile(pf, true, bSelectOnly, cVer);
+  fclose(pf);
+
   return true;
 }
 
 bool CMainWnd::LoadFile(HWND hWnd, LPWSTR wsFile, bool bClear)
 {
-  wchar_t wsFilter[128], wsCurDir[1];
-  wsCurDir[0] = 0;
-  LoadString(m_hInstance, IDS_STEAMDRAWFILTER, wsFilter, 128);
-
-  int n = wcslen(wsFilter);
-  for(int i = 0; i < n; i++)
+  bool bRes = false;
+  IFileOpenDialog *pFileOpen = NULL;
+  HRESULT hr = CoCreateInstance(CLSID_FileOpenDialog, NULL, CLSCTX_INPROC_SERVER, IID_IFileOpenDialog, (void**)&pFileOpen);
+  if(SUCCEEDED(hr))
   {
-    if(wsFilter[i] == 1) wsFilter[i] = 0;
-  }
+    wchar_t wsFilter[128];
+    LoadString(m_hInstance, IDS_STEAMDRAWFILTER, wsFilter, 128);
 
-  OPENFILENAME ofn = {sizeof(OPENFILENAME), hWnd, m_hInstance, wsFilter,
-    NULL, 0, 0, wsFile, MAX_PATH, NULL, 0, wsCurDir, NULL,
-    OFN_ENABLESIZING | OFN_EXPLORER | OFN_FILEMUSTEXIST,
-    0, 0, L"sc2", 0, NULL, NULL};
-
-  if(GetOpenFileName(&ofn))
-  {
-    // load the file
-    FILE *pf = _wfopen(wsFile, L"rb");
-    bool bRead = m_pDrawObjects->ReadFromFile(pf, true, bClear);
-    fclose(pf);
-    if(bRead)
+    int iFilterLen = 0;
+    int n = wcslen(wsFilter);
+    for(int i = 0; i < n; i++)
     {
-      if(bClear)
-      {
-        DataToFileProps();
-        GetPageDims();
-        m_pUndoObjects->ClearAll();
-        m_iRedoCount = 0;
-      }
-
-      RECT rc;
-      GetClientRect(hWnd, &rc);
-      rc.top += m_iToolBarHeight;
-      rc.bottom -= m_iStatusHeight;
-
-      InvalidateRect(hWnd, &rc, TRUE);
-      SetTitle(hWnd, true);
+      if(wsFilter[i] == 1) iFilterLen++;
     }
-    return bRead;
+    iFilterLen /= 2;
+    COMDLG_FILTERSPEC *pFilter = NULL;
+    if(iFilterLen > 0)
+    {
+      pFilter = (COMDLG_FILTERSPEC*)malloc(iFilterLen*sizeof(COMDLG_FILTERSPEC));
+      int iFilterPos = 0;
+      pFilter[iFilterPos++].pszName = wsFilter;
+      for(int i = 0; i < n; i++)
+      {
+        if(wsFilter[i] == 1)
+        {
+          wsFilter[i] = 0;
+          if(iFilterPos < 2*iFilterLen)
+          {
+            if(iFilterPos % 2 > 0) pFilter[iFilterPos/2].pszSpec = &wsFilter[i + 1];
+            else pFilter[iFilterPos/2].pszName = &wsFilter[i + 1];
+            iFilterPos++;
+          }
+        }
+      }
+      pFileOpen->SetFileTypes(iFilterLen, pFilter);
+    }
+    hr = pFileOpen->Show(NULL);
+    if(SUCCEEDED(hr))
+    {
+      IShellItem *pItem;
+      hr = pFileOpen->GetResult(&pItem);
+      if(SUCCEEDED(hr))
+      {
+        PWSTR pszFilePath;
+        hr = pItem->GetDisplayName(SIGDN_FILESYSPATH, &pszFilePath);
+        if(SUCCEEDED(hr))
+        {
+          // load the file
+          FILE *pf = _wfopen(pszFilePath, L"rb");
+          bool bRead = m_pDrawObjects->ReadFromFile(pf, true, bClear);
+          fclose(pf);
+          if(bRead)
+          {
+            if(bClear)
+            {
+              DataToFileProps();
+              GetPageDims();
+              m_pUndoObjects->ClearAll();
+              m_iRedoCount = 0;
+            }
+
+            RECT rc;
+            GetClientRect(hWnd, &rc);
+            rc.top += m_iToolBarHeight;
+            rc.bottom -= m_iStatusHeight;
+
+            InvalidateRect(hWnd, &rc, TRUE);
+            SetTitle(hWnd, true);
+          }
+          bRes = bRead;
+
+          CoTaskMemFree(pszFilePath);
+        }
+        pItem->Release();
+      }
+    }
+    if(pFilter) free(pFilter);
+    pFileOpen->Release();
   }
-  return false;
+  return bRes;
 }
 
 LRESULT CMainWnd::FileNewCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl)
@@ -3190,22 +3311,23 @@ void CMainWnd::DrawObjectPlus(HWND hWnd, Graphics *graphics, PDObject pObj, int 
   REAL rDashFactor = rWidth;
   if(rDashFactor < 1.0) rDashFactor = 1.0;
 
-  Pen hPen(Color(EncodeColor(dwColor)), rWidth);
+  Pen *hPen = new Pen(Color(EncodeColor(dwColor)), rWidth);
   Pen hPtPen(Color(EncodeColor(dwColor)), 0.0);
   Pen hCentPen(Color(EncodeColor(0xFF888888)), 0.0);
-  GraphicsPath hPath;
+  GraphicsPath *hPath = new GraphicsPath(FillModeWinding);
+  hPath->Reset();
 
   LineCap lc = LineCapRound;
   if(cStyle.cCapType == 0) lc = LineCapFlat;
   else if(cStyle.cCapType == 2) lc = LineCapSquare;
   DashCap dc = DashCapRound;
   if(cStyle.cCapType != 1) dc = DashCapFlat;
-  hPen.SetLineCap(lc, lc, dc);
+  hPen->SetLineCap(lc, lc, dc);
 
   LineJoin lj = LineJoinRound;
   if(cStyle.cJoinType == 2) lj = LineJoinBevel;
   else if(cStyle.cJoinType == 0) lj = LineJoinMiter;
-  hPen.SetLineJoin(lj);
+  hPen->SetLineJoin(lj);
 
   CDPrimitive cPrim;
   PDDimension pDim;
@@ -3247,20 +3369,20 @@ void CMainWnd::DrawObjectPlus(HWND hWnd, Graphics *graphics, PDObject pObj, int 
     //   (2, 2) - close last subpath and stroke path
         if(fabs(cPrim.cPt1.x - 1.0) < 0.2)
         {
-          hPath.Reset();
+          hPath->Reset();
           //if(fabs(cPrim.cPt2.x - 1.0) < 0.2)
           //  cairo_move_to(cr, m_cViewOrigin.x + cPrim.cPt3.x, m_cViewOrigin.y + cPrim.cPt3.y);
         }
         if(fabs(cPrim.cPt1.y - 1.0) < 0.2)
         {
-          hPath.StartFigure();
+          hPath->StartFigure();
           //if(fabs(cPrim.cPt2.x - 1.0) < 0.2)
           //  cairo_move_to(cr, m_cViewOrigin.x + cPrim.cPt3.x, m_cViewOrigin.y + cPrim.cPt3.y);
         }
         if(fabs(cPrim.cPt1.y - 2.0) < 0.2)
         {
-          hPath.CloseFigure();
-          if(fabs(cPrim.cPt1.x) < 0.2) hPath.StartFigure();
+          hPath->CloseFigure();
+          if(fabs(cPrim.cPt1.x) < 0.2) hPath->StartFigure();
         }
         if(fabs(cPrim.cPt1.x - 2.0) < 0.2)
         {
@@ -3287,14 +3409,20 @@ void CMainWnd::DrawObjectPlus(HWND hWnd, Graphics *graphics, PDObject pObj, int 
               for(int i = 0; i < cStyle.iSegments; i++)
                 dDash[i] = (REAL)m_dUnitScale*cPrim.cPt2.x*cStyle.dPattern[i]/rDashFactor;
             }
-            hPen.SetDashPattern(dDash, cStyle.iSegments);
-            hPen.SetDashOffset((REAL)cPrim.cPt2.y/rDashFactor);
+            hPen->SetDashPattern(dDash, cStyle.iSegments);
+            hPen->SetDashOffset((REAL)cPrim.cPt2.y/rDashFactor);
           }
-          graphics->DrawPath(&hPen, &hPath);
-          hPen.SetDashStyle(DashStyleSolid);
+          hPath->SetMarker();
+          graphics->DrawPath(hPen, hPath);
+//delete hPath;
+//delete hPen;
+//return;
+//          graphics->Flush(FlushIntentionSync);
+          hPen->SetDashStyle(DashStyleSolid);
+          hPath->Reset();
         }
       }
-      else DrawPrimitivePlus(graphics, &hPen, &hPath, &cPrim);
+      else DrawPrimitivePlus(graphics, hPen, hPath, &cPrim);
       pObj->GetNextPrimitive(&cPrim, m_dUnitScale, iDimen);
     }
 
@@ -3357,6 +3485,8 @@ void CMainWnd::DrawObjectPlus(HWND hWnd, Graphics *graphics, PDObject pObj, int 
       pObj->GetNextPrimitive(&cPrim, m_dUnitScale, iDimen);
     }*/
   }
+  delete hPath;
+  delete hPen;
 }
 
 int CMainWnd::GetDynMode()
