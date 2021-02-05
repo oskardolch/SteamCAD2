@@ -1463,6 +1463,8 @@ int CDObject::BuildPrimitives(CDLine cTmpPt, int iMode, PDRect pRect, int iTemp,
 
       if(nCrs < 2)
       {
+        dStart = cBnds.x;
+        if(nCrs < 1) dEnd = cBnds.y;
         AddPatSegment(dStart, iStart, dEnd, iEnd, iBoundMode, pBounds, &cBnds);
       }
       else
