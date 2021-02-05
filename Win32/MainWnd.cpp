@@ -188,10 +188,16 @@ CMainWnd::CMainWnd(HINSTANCE hInstance)
   m_cMeasPoint2.bIsSet = false;
   m_cLastDynPt.bIsSet = false;
   m_bHasChanged = true;
+
+  GdiplusStartupInput gdiplusStartupInput;
+  GdiplusStartup(&m_gdiplusToken, &gdiplusStartupInput, NULL);
+  CoInitialize(NULL);
 }
 
 CMainWnd::~CMainWnd()
 {
+  CoUninitialize();
+  GdiplusShutdown(m_gdiplusToken);
   if(m_pActiveObject) delete m_pActiveObject;
 
   delete m_pSnapDlg;
@@ -260,7 +266,6 @@ HWND CMainWnd::DisplayWindow()
 
 LRESULT CMainWnd::WMCreate(HWND hwnd, LPCREATESTRUCT lpcs)
 {
-  CoInitialize(NULL);
   SetWindowLongPtr(hwnd, GWLP_USERDATA, (LONG_PTR)lpcs->lpCreateParams);
 
   /*m_hToolBar = CreateWindowEx(0, TOOLBARCLASSNAME, (LPCTSTR)NULL,
@@ -499,7 +504,6 @@ LRESULT CMainWnd::WMSize(HWND hwnd, WPARAM fwSizeType, WORD nWidth, WORD nHeight
 
 LRESULT CMainWnd::WMDestroy(HWND hwnd)
 {
-  CoUninitialize();
   PostQuitMessage(0);
   return(0);
 }
@@ -760,12 +764,13 @@ LRESULT CMainWnd::WMPaint(HWND hwnd, HDC hdc)
 
   PAINTSTRUCT ps;
   HDC ldc = BeginPaint(hwnd, &ps);
+
   Graphics *graphics = new Graphics(m_pDrawBuffer);
-  //graphics.Clear(Color::White);
+  graphics->SetSmoothingMode(SmoothingModeAntiAlias);
+  //graphics->Clear(Color::White);
   SolidBrush whiteBrush(Color::White);
   graphics->FillRectangle(&whiteBrush, (INT)rc.left, (INT)(rc.top - m_iToolBarHeight),
     (INT)(rc.right - rc.left), (INT)(rc.bottom - rc.top + m_iToolBarHeight));
-  graphics->SetSmoothingMode(SmoothingModeAntiAlias);
 
   if(m_iDrawGridMode > 0)
   {
@@ -847,6 +852,7 @@ LRESULT CMainWnd::WMPaint(HWND hwnd, HDC hdc)
   Pen brownPen(Color(255, 128, 76, 0), 1);
   graphics->DrawRectangle(&brownPen, (REAL)m_cViewOrigin.x, (REAL)m_cViewOrigin.y,
     (REAL)(m_dUnitScale*m_dwPage), (REAL)(m_dUnitScale*m_dhPage));
+  graphics->Flush();
 
   CDRect cdr;
   cdr.cPt1.x = (rc.left - m_cViewOrigin.x)/m_dUnitScale;
@@ -867,6 +873,7 @@ LRESULT CMainWnd::WMPaint(HWND hwnd, HDC hdc)
   Graphics *dstgraph = new Graphics(ldc);
   //Graphics *dstgraph = graphics;
   dstgraph->DrawImage(m_pDrawBuffer, 0, 0);
+  dstgraph->SetSmoothingMode(SmoothingModeAntiAlias);
 
   if(m_pHighObject) DrawObjectPlus(hwnd, dstgraph, m_pHighObject, 2, m_iHighDimen);
 
@@ -1057,6 +1064,49 @@ bool CMainWnd::SaveFile(HWND hWnd, LPWSTR wsFile, bool bSelectOnly)
 
 bool CMainWnd::LoadFile(HWND hWnd, LPWSTR wsFile, bool bClear)
 {
+/*  wchar_t wsFilter[128], wsCurDir[1];
+  wsCurDir[0] = 0;
+  LoadString(m_hInstance, IDS_STEAMDRAWFILTER, wsFilter, 128);
+
+  int n = wcslen(wsFilter);
+  for(int i = 0; i < n; i++)
+  {
+    if(wsFilter[i] == 1) wsFilter[i] = 0;
+  }
+
+  OPENFILENAME ofn = {sizeof(OPENFILENAME), hWnd, m_hInstance, wsFilter,
+    NULL, 0, 0, wsFile, MAX_PATH, NULL, 0, wsCurDir, NULL,
+    OFN_ENABLESIZING | OFN_EXPLORER | OFN_FILEMUSTEXIST,
+    0, 0, L"sc2", 0, NULL, NULL};
+
+  if(GetOpenFileName(&ofn))
+  {
+    // load the file
+    FILE *pf = _wfopen(wsFile, L"rb");
+    bool bRead = m_pDrawObjects->ReadFromFile(pf, true, bClear);
+    fclose(pf);
+    if(bRead)
+    {
+      if(bClear)
+      {
+        DataToFileProps();
+        GetPageDims();
+        m_pUndoObjects->ClearAll();
+        m_iRedoCount = 0;
+      }
+
+      RECT rc;
+      GetClientRect(hWnd, &rc);
+      rc.top += m_iToolBarHeight;
+      rc.bottom -= m_iStatusHeight;
+
+      InvalidateRect(hWnd, &rc, TRUE);
+      SetTitle(hWnd, true);
+    }
+    return bRead;
+  }
+  return false;*/
+
   bool bRes = false;
   IFileOpenDialog *pFileOpen = NULL;
   HRESULT hr = CoCreateInstance(CLSID_FileOpenDialog, NULL, CLSCTX_INPROC_SERVER, IID_IFileOpenDialog, (void**)&pFileOpen);
@@ -3311,23 +3361,25 @@ void CMainWnd::DrawObjectPlus(HWND hWnd, Graphics *graphics, PDObject pObj, int 
   REAL rDashFactor = rWidth;
   if(rDashFactor < 1.0) rDashFactor = 1.0;
 
-  Pen *hPen = new Pen(Color(EncodeColor(dwColor)), rWidth);
-  Pen hPtPen(Color(EncodeColor(dwColor)), 0.0);
-  Pen hCentPen(Color(EncodeColor(0xFF888888)), 0.0);
-  GraphicsPath *hPath = new GraphicsPath(FillModeWinding);
-  hPath->Reset();
-
   LineCap lc = LineCapRound;
   if(cStyle.cCapType == 0) lc = LineCapFlat;
   else if(cStyle.cCapType == 2) lc = LineCapSquare;
   DashCap dc = DashCapRound;
   if(cStyle.cCapType != 1) dc = DashCapFlat;
-  hPen->SetLineCap(lc, lc, dc);
 
   LineJoin lj = LineJoinRound;
   if(cStyle.cJoinType == 2) lj = LineJoinBevel;
   else if(cStyle.cJoinType == 0) lj = LineJoinMiter;
+
+  Pen *hPen = new Pen(Color(EncodeColor(dwColor)), rWidth);
+  hPen->SetLineCap(lc, lc, dc);
   hPen->SetLineJoin(lj);
+
+  Pen hPtPen(Color(EncodeColor(dwColor)), 0.0);
+  Pen hCentPen(Color(EncodeColor(0xFF888888)), 0.0);
+  GraphicsPath *hPath = new GraphicsPath(FillModeWinding);
+  hPath->Reset();
+  hPath->ClearMarkers();
 
   CDPrimitive cPrim;
   PDDimension pDim;
@@ -3388,7 +3440,7 @@ void CMainWnd::DrawObjectPlus(HWND hWnd, Graphics *graphics, PDObject pObj, int 
         {
           if(cPrim.cPt2.x > g_dPrec)
           {
-            REAL dDash[6];
+            //REAL dDash[6];
             if(cStyle.cCapType == 1)
             {
               double dSegLen;
@@ -3398,28 +3450,26 @@ void CMainWnd::DrawObjectPlus(HWND hWnd, Graphics *graphics, PDObject pObj, int 
                 if(i % 2 == 0)
                 {
                   if(dSegLen < g_dDashMin) dSegLen = g_dDashMin;
-                  dDash[i] = (REAL)(1.0 + m_dUnitScale*cPrim.cPt2.x*dSegLen/rDashFactor);
+                  m_pdDashPattern[i] = (REAL)(1.0 + m_dUnitScale*cPrim.cPt2.x*dSegLen/rDashFactor);
                 }
                 else
-                  dDash[i] = (REAL)(-1.0 + m_dUnitScale*cPrim.cPt2.x*dSegLen/rDashFactor);
+                  m_pdDashPattern[i] = (REAL)(-1.0 + m_dUnitScale*cPrim.cPt2.x*dSegLen/rDashFactor);
               }
             }
             else
             {
               for(int i = 0; i < cStyle.iSegments; i++)
-                dDash[i] = (REAL)m_dUnitScale*cPrim.cPt2.x*cStyle.dPattern[i]/rDashFactor;
+                m_pdDashPattern[i] = (REAL)m_dUnitScale*cPrim.cPt2.x*cStyle.dPattern[i]/rDashFactor;
             }
-            hPen->SetDashPattern(dDash, cStyle.iSegments);
+            hPen->SetDashStyle(DashStyleCustom);
+            hPen->SetDashPattern(m_pdDashPattern, cStyle.iSegments);
             hPen->SetDashOffset((REAL)cPrim.cPt2.y/rDashFactor);
           }
-          hPath->SetMarker();
           graphics->DrawPath(hPen, hPath);
-//delete hPath;
-//delete hPen;
-//return;
-//          graphics->Flush(FlushIntentionSync);
-          hPen->SetDashStyle(DashStyleSolid);
+          graphics->Flush();
           hPath->Reset();
+          //hPath->ClearMarkers();
+          hPen->SetDashStyle(DashStyleSolid);
         }
       }
       else DrawPrimitivePlus(graphics, hPen, hPath, &cPrim);

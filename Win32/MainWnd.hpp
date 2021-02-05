@@ -57,7 +57,9 @@ private:
   Pen *m_redPen;
   //HPEN m_hSelPen;
   //HPEN m_hBrownPen;
+  ULONG_PTR m_gdiplusToken;
   Bitmap *m_pDrawBuffer;
+  REAL m_pdDashPattern[6];
 
   long m_lSelColor;
   long m_lHighColor;
