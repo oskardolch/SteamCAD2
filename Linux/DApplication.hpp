@@ -135,8 +135,7 @@ private:
   long SetColorAlpha(long lColor, int iAlpha); // 0 <= iAlpha <= 100
   void SetLColor(cairo_t *cr, long lColor);
   void DrawDimArrow(cairo_t *cr, PDPrimitive pPrim);
-  void DrawDimText(cairo_t *cr, PDPrimitive pPrim, PDObject pObj, long dwColor,
-      double dLineWidth);
+  void DrawDimText(cairo_t *cr, PDPrimitive pPrim, PDObject pObj, long dwColor, double dLineWidth);
   void DrawPrimitive(cairo_t *cr, PDPrimitive pPrim);
   void DrawObject(cairo_t *cr, PDObject pObj, int iMode, int iDimen);
 
