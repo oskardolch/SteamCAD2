@@ -243,39 +243,6 @@ bool CDObject::BuildCache(CDLine cTmpPt, int iMode)
   }
 }
 
-/*void CDObject::AddCurveSegment(double dStart, double dEnd, PDRect pRect)
-{
-  switch(m_iType)
-  {
-  case dtLine:
-    AddLineSegment(dStart, dEnd, m_pCachePoints, m_pPrimitive, pRect);
-    break;
-  case dtCircle:
-    AddCircSegment(dStart, dEnd, m_pCachePoints, m_pPrimitive, pRect);
-    break;
-  case dtEllipse:
-    AddElpsSegment(dStart, dEnd, m_pCachePoints, m_pPrimitive, pRect);
-    break;
-  case dtArcEllipse:
-    AddArcElpsSegment(dStart, dEnd, m_pCachePoints, m_pPrimitive, pRect);
-    break;
-  case dtHyperbola:
-    AddHyperSegment(dStart, dEnd, m_pCachePoints, m_pPrimitive, pRect);
-    break;
-  case dtParabola:
-    AddParabSegment(dStart, dEnd, m_pCachePoints, m_pPrimitive, pRect);
-    break;
-  case dtSpline:
-    AddSplineSegment(dStart, dEnd, m_pCachePoints, m_pPrimitive, pRect);
-    break;
-  case dtEvolvent:
-    AddEvolvSegment(dStart, dEnd, m_pCachePoints, m_pPrimitive, pRect);
-    break;
-  default:
-    break;
-  }
-}*/
-
 void CDObject::AddSimpleSegment(double d1, double d2, double dExt, bool bReverse, PDPrimObject pPrimList)
 {
   switch(m_iType)

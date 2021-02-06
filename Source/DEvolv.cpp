@@ -296,7 +296,12 @@ double GetEvolvDistFromPtOff(CDPoint cPt, CDPoint cRefPt, double dOffset, PDPoin
     pPtX->cDirection = Rotate(cCand2, cN1, true);
     d1 = cCand2.x;
   }
-  else pPtX->cDirection = 0;
+  else
+  {
+    //pPtX->cDirection = 0;
+    CDPoint cDir = {0.0, dDir};
+    pPtX->cDirection = Rotate(cDir, cN1, true);
+  }
 
   return d1;
 }
@@ -874,3 +879,4 @@ bool GetEvolvReference(double dDist, PDPointList pCache, double *pdRef)
 
   return true;
 }
+
