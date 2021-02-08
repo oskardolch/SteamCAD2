@@ -213,6 +213,7 @@ public:
   bool GetEndPoint(PDPoint pPt, double dOffset);
   void BuildPath(CDObject **ppObjects, PDIntList pPath);
   int GetSubObjectCount();
+  bool GetSnapPoint(int iSnapMask, CDPoint cPt, double dDist, PDLine pSnapPt, CDObject* pDynObj);
 } *PDObject;
 
 typedef class CDataList
@@ -223,7 +224,6 @@ private:
   PDObject *m_ppObjects;
   CDFileAttrs m_cFileAttrs;
   bool m_bHasChanged;
-  int GetTangSnap(CDPoint cPt, double dDist, bool bNewPt, PDLine pSnapPt, PDObject pObj, PDObject pDynObj);
   int GetNextSeg(PDIntList pSelObjs, PDIntList pPath, CDPoint cPt1, CDPoint cPt2, PDPoint pPt1, PDPoint pPt2, bool *pbFirst);
   bool BuildPath(PDIntList pSelObjs, PDIntList pSel2, PDIntList pPath);
   bool BuildPaths(PDIntList pSelObjs, PDPtrList pPaths);
