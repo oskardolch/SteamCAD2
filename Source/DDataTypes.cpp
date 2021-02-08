@@ -532,6 +532,11 @@ void* CDPtrList::GetItem(int iIndex)
   return m_pData[iIndex];
 }
 
+void* CDPtrList::GetList()
+{
+  return m_pData;
+}
+
 void CDPtrList::Remove(int iIndex)
 {
   m_iDataLen--;

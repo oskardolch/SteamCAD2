@@ -160,14 +160,14 @@ int GetSnapPointFromList(int iSnapMask, CDPoint cPt, double dDist, PDLine pSnapP
   while(!bFound1 && (i < iCount))
   {
     pObj1 = pObjList[i++];
-    if(bHonorSnapTo || pObj1->GetSnapTo())
+    if(!bHonorSnapTo || pObj1->GetSnapTo())
     {
       dDist1 = fabs(pObj1->GetDistFromPt(cPt, cPt, true, &cPtSnap1, &iDim));
       bFound1 = cPtSnap1.bIsSet && (dDist1 < dblDist);
     }
   }
 
-  if(bHonorSnapTo && bFound1 && pObj1->GetSnapPoint(iSnapMask, cPt, dblDist, &cPtSnap1, pDynObj))
+  if(bFound1 && pObj1->GetSnapPoint(iSnapMask, cPt, dblDist, &cPtSnap1, pDynObj))
   {
     *pSnapPt = cPtSnap1;
     return 1;
@@ -187,7 +187,7 @@ int GetSnapPointFromList(int iSnapMask, CDPoint cPt, double dDist, PDLine pSnapP
   while(!bFound2 && (i < iCount))
   {
     pObj2 = pObjList[i++];
-    if(bHonorSnapTo || pObj2->GetSnapTo())
+    if(!bHonorSnapTo || pObj2->GetSnapTo())
     {
       dDist2 = fabs(pObj2->GetDistFromPt(cPt, cPt, true, &cPtSnap2, &iDim));
       bFound2 = cPtSnap2.bIsSet && (dDist2 < dblDist);
@@ -208,7 +208,7 @@ int GetSnapPointFromList(int iSnapMask, CDPoint cPt, double dDist, PDLine pSnapP
   {
     CDPoint cPt2;
 
-    if((iSnapMask == 1) && pObj1->GetSelected())
+    if(bHonorSnapTo && (iSnapMask == 1) && pObj1->GetSelected())
     {
       dDist2 = pObj1->GetNearestCrossPoint(cPt, &cPt2);
       if((dDist2 > -0.5) && (dDist2 < dblDist))
@@ -345,9 +345,10 @@ int GetSnapPointFromList(int iSnapMask, CDPoint cPt, double dDist, PDLine pSnapP
     pSnapPt->bIsSet = true;
     pSnapPt->cOrigin = cX;
     pSnapPt->cDirection = 0;
+    return 1;
   }
 
-  return 1;
+  return 0;
 }
 
 
@@ -5390,9 +5391,23 @@ bool CDObject::GetSnapPoint(int iSnapMask, CDPoint cPt, double dDist, PDLine pSn
   }
   if(m_iType == dtPath)
   {
+    PDPtrList pList = new CDPtrList();
+    PDPathSeg pSeg;
+    for(int i = 0; i < m_pSubObjects->GetCount(); i++)
+    {
+      pSeg = (PDPathSeg)m_pSubObjects->GetItem(i);
+      pList->Add(pSeg->pSegment);
+    }
     int iRes = GetSnapPointFromList(iSnapMask, cPt, dDist, pSnapPt, pDynObj,
-      (PDObject*)m_pSubObjects->GetItem(0), m_pSubObjects->GetCount(), false);
-    if(iRes > 0) return true;
+      (PDObject*)pList->GetList(), pList->GetCount(), false);
+    delete pList;
+    if(iRes > 0)
+    {
+      CDLine cLnRef;
+      GetPathDistFromPt(pSnapPt->cOrigin, pSnapPt->cOrigin, false, &cLnRef);
+      pSnapPt->dRef = cLnRef.dRef;
+      return true;
+    }
   }
   return false;
 }

@@ -166,6 +166,7 @@ public:
   void Clear();
   void Add(void *pPtr);
   void* GetItem(int iIndex);
+  void* GetList();
   void Remove(int iIndex);
   double GetDblVal();
   void SetDblVal(double dVal);
