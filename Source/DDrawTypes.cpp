@@ -216,7 +216,7 @@ int GetSnapPointFromList(int iSnapMask, CDPoint cPt, double dDist, PDLine pSnapP
         pSnapPt->bIsSet = true;
         pSnapPt->cOrigin = cPt2;
         pSnapPt->cDirection = 0;
-        return 1;
+        return 2;
       }
     }
 
@@ -3062,8 +3062,17 @@ double CDObject::GetPathDistFromPt(CDPoint cPt, CDPoint cRefPt, bool bSnapCenter
 
   pObj->GetPointRefDist(cMin.dRef, 0.0, &d1);
   CDPoint cBounds;
-  if(pObj->GetBounds(&cBounds, 0.0, true) > 2)
+  if(pObj->GetBounds(&cBounds, 0.0, false) > 2)
   {
+    if((cBounds.x > cBounds.y) && !pSeg->bReverse)
+    {
+      CDPoint cBnds2;
+      pObj->GetRefBounds(&cBnds2);
+      double d2, d3;
+      pObj->GetPointRefDist(cBnds2.x, 0.0, &d2);
+      pObj->GetPointRefDist(cBnds2.y, 0.0, &d3);
+      d1 += (d3 - d2);
+    }
     if(pSeg->bReverse)
       pPtX->dRef += (cBounds.y - d1);
     else
@@ -5401,7 +5410,7 @@ bool CDObject::GetSnapPoint(int iSnapMask, CDPoint cPt, double dDist, PDLine pSn
     int iRes = GetSnapPointFromList(iSnapMask, cPt, dDist, pSnapPt, pDynObj,
       (PDObject*)pList->GetList(), pList->GetCount(), false);
     delete pList;
-    if(iRes > 0)
+    if(iRes > 1)
     {
       CDLine cLnRef;
       GetPathDistFromPt(pSnapPt->cOrigin, pSnapPt->cOrigin, false, &cLnRef);
