@@ -150,24 +150,16 @@ int GetSnapPointFromList(int iSnapMask, CDPoint cPt, double dDist, PDLine pSnapP
   pSnapPt->bIsSet = false;
 
   int i = 0;
-  bool bFound1 = false;
   CDLine cPtSnap1;
   double dDist1, dblDist;
   PDObject pObj1 = NULL;
   dblDist = 2.0*dDist;
-  int iDim;
-  int iRes1;
+  int iRes1 = 0;
 
-  while(!bFound1 && (i < iCount))
+  while((iRes1 < 1) && (i < iCount))
   {
     pObj1 = pObjList[i++];
     iRes1 = pObj1->GetSnapPoint(iSnapMask, cPt, dDist, &cPtSnap1, pDynObj, bHonorSnapTo);
-    bFound1 = iRes1 > 0;
-    /*if(!bHonorSnapTo || pObj1->GetSnapTo())
-    {
-      dDist1 = fabs(pObj1->GetDistFromPt(cPt, cPt, true, &cPtSnap1, &iDim));
-      bFound1 = cPtSnap1.bIsSet && (dDist1 < dblDist);
-    }*/
   }
   if(iRes1 > 1)
   {
@@ -175,39 +167,19 @@ int GetSnapPointFromList(int iSnapMask, CDPoint cPt, double dDist, PDLine pSnapP
     return iRes1;
   }
 
-  /*if(bFound1 && pObj1->GetSnapPoint(iSnapMask, cPt, dblDist, &cPtSnap1, pDynObj))
-  {
-    *pSnapPt = cPtSnap1;
-    return 1;
-  }
-
-  if(bFound1 && (GetNorm(cPtSnap1.cDirection) < 0.5))
-  {
-    *pSnapPt = cPtSnap1;
-    return 1;
-  }*/
-
   double dDist2;
-  bool bFound2 = false;
   CDLine cPtSnap2;
   PDObject pObj2 = NULL;
-  int iRes2;
+  int iRes2 = 0;
 
-  while(!bFound2 && (i < iCount))
+  while((iRes2 < 1) && (i < iCount))
   {
     pObj2 = pObjList[i++];
     iRes2 = pObj2->GetSnapPoint(iSnapMask, cPt, dDist, &cPtSnap2, pDynObj, bHonorSnapTo);
-    bFound2 = iRes2 > 0;
-    /*if(!bHonorSnapTo || pObj2->GetSnapTo())
-    {
-      dDist2 = fabs(pObj2->GetDistFromPt(cPt, cPt, true, &cPtSnap2, &iDim));
-      bFound2 = cPtSnap2.bIsSet && (dDist2 < dblDist);
-    }*/
   }
 
-  if(!(bFound1 || bFound2)) return 0;
+  if((iRes1 < 1) && (iRes2 < 1)) return 0;
 
-  //if(bFound2 && (GetNorm(cPtSnap2.cDirection) < 0.5))
   if(iRes2 > 1)
   {
     *pSnapPt = cPtSnap2;
@@ -216,71 +188,28 @@ int GetSnapPointFromList(int iSnapMask, CDPoint cPt, double dDist, PDLine pSnapP
 
   *pSnapPt = cPtSnap1;
 
-  if(!bFound2)
+  if(iRes2 < 1)
   {
-    CDPoint cPt2;
-
-    /*if(bHonorSnapTo && (iSnapMask == 1) && pObj1->GetSelected())
-    {
-      dDist2 = pObj1->GetNearestCrossPoint(cPt, &cPt2);
-      if((dDist2 > -0.5) && (dDist2 < dblDist))
-      {
-        pSnapPt->bIsSet = true;
-        pSnapPt->cOrigin = cPt2;
-        pSnapPt->cDirection = 0;
-        return 2;
-      }
-    }*/
-
     if(pDynObj)
     {
       int iRes = GetTangSnap(cPt, dblDist, iSnapMask != 2, pSnapPt, pObj1, pDynObj);
       if(iRes > 0) return iRes;
     }
-
-    dDist2 = pObj1->GetNearestBoundPoint(cPt, &cPt2);
-    if((dDist2 > -0.5) && (dDist2 < dblDist))
-    {
-      pSnapPt->bIsSet = true;
-      pSnapPt->cOrigin = cPt2;
-      pSnapPt->cDirection = 0;
-      return 1;
-    }
-
-    dDist1 = fabs(pObj1->GetDistFromPt(cPt, cPt, true, &cPtSnap1, &iDim));
-    if(dDist1 < dDist)
-    {
-      return 1;
-    }
-
-    i = 0;
-    while(!bFound2 && (i < iCount))
-    {
-      pObj2 = pObjList[i++];
-      if(pObj2->GetSnapTo())
-      {
-        dDist2 = fabs(pObj2->GetDistFromPt(cPt, cPt, true, &cPtSnap2, &iDim));
-        bFound2 = dDist2 < dDist;
-      }
-    }
-
-    if(bFound2)
-    {
-      *pSnapPt = cPtSnap2;
-      return 1;
-    }
-    return 0;
+    if(iRes1 > 0) return iRes1;
   }
+  else if(iRes1 < 1) return iRes2;
+
+  *pSnapPt = cPtSnap1;
 
   double df1, df2;
   df1 = GetNorm(cPtSnap1.cDirection);
   df2 = GetNorm(cPtSnap2.cDirection);
 
-  if(df1 < g_dPrec) return 1;
+  if(df1 < g_dPrec) return 5;
   if(df2 < g_dPrec)
   {
     *pSnapPt = cPtSnap2;
-    return 1;
+    return 5;
   }
 
   CDPoint cX, cDir = {0, 0};
@@ -293,21 +222,17 @@ int GetSnapPointFromList(int iSnapMask, CDPoint cPt, double dDist, PDLine pSnapP
   double dDist3 = GetDist(cPt, cX);
   dDist1 = fabs(pObj1->GetDistFromPt(cX, cX, true, &cPtSnap1, NULL));
   dDist2 = fabs(pObj2->GetDistFromPt(cX, cX, true, &cPtSnap2, NULL));
-  bFound2 = dDist3 < dblDist;
+  bool bFound2 = dDist3 < dblDist;
 
   df1 = GetNorm(cPtSnap1.cDirection);
   df2 = GetNorm(cPtSnap2.cDirection);
   double dIncl;
 
-  if(df1 < g_dPrec)
-  {
-    *pSnapPt = cPtSnap1;
-    return 1;
-  }
+  if(df1 < g_dPrec) return 5;
   if(df2 < g_dPrec)
   {
     *pSnapPt = cPtSnap2;
-    return 1;
+    return 5;
   }
 
   bool bDoIter = bFound2;
@@ -358,7 +283,7 @@ int GetSnapPointFromList(int iSnapMask, CDPoint cPt, double dDist, PDLine pSnapP
     pSnapPt->bIsSet = true;
     pSnapPt->cOrigin = cX;
     pSnapPt->cDirection = 0;
-    return 1;
+    return 4;
   }
 
   return 0;
@@ -5394,7 +5319,11 @@ int CDObject::GetSnapPoint(int iSnapMask, CDPoint cPt, double dDist, PDLine pSna
   double dDist1 = fabs(GetDistFromPt(cPt, cPt, true, &cPtSnap1, &iDim));
   if(!cPtSnap1.bIsSet || (dDist1 > dblDist)) return 0;
 
-  if(cPtSnap1.bIsSet && (GetNorm(cPtSnap1.cDirection) < 0.5)) return 5;
+  if(cPtSnap1.bIsSet && (GetNorm(cPtSnap1.cDirection) < 0.5))
+  {
+    *pSnapPt = cPtSnap1;
+    return 5;
+  }
 
   CDPoint cPt1;
 
@@ -5425,7 +5354,7 @@ int CDObject::GetSnapPoint(int iSnapMask, CDPoint cPt, double dDist, PDLine pSna
 
   CDPoint cLocBnds = {0.0, 0.0};
   int iRefBounds = GetRefBounds(&cLocBnds);
-  if(iRefBounds & 1)
+  if(iRefBounds > 0)
   {
     GetNativeRefPoint(cLocBnds.x, 0.0, &cPt1);
     if(GetDist(cPt, cPt1) < dblDist)
@@ -5436,17 +5365,17 @@ int CDObject::GetSnapPoint(int iSnapMask, CDPoint cPt, double dDist, PDLine pSna
       pSnapPt->cDirection = GetNormal(cPt1);
       return 2;
     }
-  }
-  if(iRefBounds & 2)
-  {
-    GetNativeRefPoint(cLocBnds.y, 0.0, &cPt1);
-    if(GetDist(cPt, cPt1) < dblDist)
+    if(iRefBounds > 1)
     {
-      pSnapPt->bIsSet = true;
-      pSnapPt->cOrigin = cPt1;
-      GetNativeRefDir(cLocBnds.y, &cPt1);
-      pSnapPt->cDirection = GetNormal(cPt1);
-      return 2;
+      GetNativeRefPoint(cLocBnds.y, 0.0, &cPt1);
+      if(GetDist(cPt, cPt1) < dblDist)
+      {
+        pSnapPt->bIsSet = true;
+        pSnapPt->cOrigin = cPt1;
+        GetNativeRefDir(cLocBnds.y, &cPt1);
+        pSnapPt->cDirection = GetNormal(cPt1);
+        return 2;
+      }
     }
   }
 
@@ -5479,10 +5408,16 @@ int CDObject::GetSnapPoint(int iSnapMask, CDPoint cPt, double dDist, PDLine pSna
       CDLine cLnRef;
       GetPathDistFromPt(pSnapPt->cOrigin, pSnapPt->cOrigin, false, &cLnRef);
       pSnapPt->dRef = cLnRef.dRef;
-      return true;
+      return iRes;
     }
   }
-  return false;
+
+  if(dDist1 < dDist)
+  {
+    *pSnapPt = cPtSnap1;
+    return 1;
+  }
+  return 0;
 }
 
 
