@@ -5334,6 +5334,7 @@ int CDObject::GetSnapPoint(int iSnapMask, CDPoint cPt, double dDist, PDLine pSna
     {
       pSnapPt->bIsSet = true;
       pSnapPt->cOrigin = cPt1;
+      pSnapPt->dRef = m_cBounds[0].dRef;
       GetNativeRefDir(m_cBounds[0].dRef, &cPt1);
       pSnapPt->cDirection = GetNormal(cPt1);
       return 2;
@@ -5346,6 +5347,7 @@ int CDObject::GetSnapPoint(int iSnapMask, CDPoint cPt, double dDist, PDLine pSna
     {
       pSnapPt->bIsSet = true;
       pSnapPt->cOrigin = cPt1;
+      pSnapPt->dRef = m_cBounds[1].dRef;
       GetNativeRefDir(m_cBounds[1].dRef, &cPt1);
       pSnapPt->cDirection = GetNormal(cPt1);
       return 2;
@@ -5361,6 +5363,7 @@ int CDObject::GetSnapPoint(int iSnapMask, CDPoint cPt, double dDist, PDLine pSna
     {
       pSnapPt->bIsSet = true;
       pSnapPt->cOrigin = cPt1;
+      pSnapPt->dRef = cLocBnds.x;
       GetNativeRefDir(cLocBnds.x, &cPt1);
       pSnapPt->cDirection = GetNormal(cPt1);
       return 2;
@@ -5372,6 +5375,7 @@ int CDObject::GetSnapPoint(int iSnapMask, CDPoint cPt, double dDist, PDLine pSna
       {
         pSnapPt->bIsSet = true;
         pSnapPt->cOrigin = cPt1;
+        pSnapPt->dRef = cLocBnds.y;
         GetNativeRefDir(cLocBnds.y, &cPt1);
         pSnapPt->cDirection = GetNormal(cPt1);
         return 2;
@@ -5388,6 +5392,28 @@ int CDObject::GetSnapPoint(int iSnapMask, CDPoint cPt, double dDist, PDLine pSna
       pSnapPt->cOrigin = cPt1;
       pSnapPt->cDirection = 0;
       return 3;
+    }
+  }
+
+  if(m_iType == dtEllipse)
+  {
+    double dRefs[8];
+    int iLen = GetElpsSnapPoints(m_pCachePoints, dRefs);
+    int i = 0;
+    bool bFound = false;
+    while(!bFound && (i < iLen))
+    {
+      GetNativeRefPoint(dRefs[i++], 0.0, &cPt1);
+      bFound = (GetDist(cPt, cPt1) < dblDist);
+    }
+    if(bFound)
+    {
+      pSnapPt->bIsSet = true;
+      pSnapPt->cOrigin = cPt1;
+      pSnapPt->dRef = dRefs[i - 1];
+      GetNativeRefDir(pSnapPt->dRef, &cPt1);
+      pSnapPt->cDirection = GetNormal(cPt1);
+      return 2;
     }
   }
 

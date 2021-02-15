@@ -1665,3 +1665,49 @@ bool ElpsRemovePart(bool bDown, PDPointList pCache, PDRefPoint pBounds)
   return true;
 }
 
+int GetElpsSnapPoints(PDPointList pCache, double *pdRefs)
+{
+  int iRes = 0;
+
+  int iCnt = pCache->GetCount(0);
+  if(iCnt < 3) return iRes;
+
+  CDPoint cBreak = {-0.5, 0.0};
+  int iBreaks = pCache->GetCount(4);
+  if(iBreaks > 0) cBreak = pCache->GetPoint(0, 4).cPoint;
+  if(cBreak.x < -0.5) return iRes;
+  pdRefs[iRes++] = cBreak.x - M_PI;
+  pdRefs[iRes++] = -cBreak.x;
+  pdRefs[iRes++] = cBreak.x;
+  pdRefs[iRes++] = M_PI - cBreak.x;
+
+  //CDPoint cOrig = pCache->GetPoint(0, 0).cPoint;
+  CDPoint cRad = pCache->GetPoint(1, 0).cPoint;
+  //CDPoint cMainDir = pCache->GetPoint(2, 0).cPoint;
+
+  double dr = 0.0;
+  int nOffs = pCache->GetCount(2);
+  if(nOffs > 0) dr = pCache->GetPoint(0, 2).cPoint.x;
+
+  double a2 = Power2(cRad.x);
+  double b2 = Power2(cRad.y);
+  double b4 = Power2(b2);
+  double dDisc = (Power2(cRad.x*dr) - b4)/(a2*b2 - b4);
+  if(dDisc < g_dPrec) return iRes;
+  if(dDisc > 1.0 + g_dPrec) return iRes;
+  if(dDisc > 1.0 - g_dPrec)
+  {
+    pdRefs[iRes++] = -M_PI/2.0;
+    pdRefs[iRes++] = M_PI/2.0;
+    return iRes;
+  }
+
+  dDisc = sqrt(dDisc);
+  double dt = asin(dDisc);
+  pdRefs[iRes++] = dt - M_PI;
+  pdRefs[iRes++] = -dt;
+  pdRefs[iRes++] = dt;
+  pdRefs[iRes++] = M_PI - dt;
+  return iRes;
+}
+

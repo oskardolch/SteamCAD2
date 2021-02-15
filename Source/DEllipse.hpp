@@ -22,5 +22,6 @@ bool GetElpsRefDir(double dRef, PDPointList pCache, PDPoint pPt);
 bool GetElpsReference(double dDist, PDPointList pCache, double *pdRef);
 int GetElpsNumParts(PDPointList pCache, PDRefPoint pBounds);
 bool ElpsRemovePart(bool bDown, PDPointList pCache, PDRefPoint pBounds);
+int GetElpsSnapPoints(PDPointList pCache, double *pdRefs);
 
 #endif
