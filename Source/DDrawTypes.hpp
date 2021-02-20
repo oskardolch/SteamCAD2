@@ -132,6 +132,7 @@ private:
   int GetPathViewBounds(CDLine cTmpPt, int iMode, PDRect pRect, PDRefList pBounds, PDPoint pDrawBnds);
   void AddSimpleSegment(double d1, double d2, double dExt, bool bReverse, PDPrimObject pPrimList);
   void AddPathSegment(double d1, double d2, double dExt, PDPrimObject pPrimList);
+  int GetPointReferences(CDPoint cPt, PDRefList pRefs);
 public:
   CDObject(CDDrawType iType, double dWidth);
   ~CDObject();

@@ -1523,7 +1523,9 @@ int AddCurveSegment(void *pvData, double dr, CDPoint cBreak, CurveFunc pFunc, Cu
   int iNumParts = SplitCurveParts(dt1, dt2, cBreak, dParts);
   int iRes = 0;
   for(int i = 0; i < iNumParts - 1; i++)
+  {
     iRes += AddCurvePart(pvData, dr, pFunc, pFuncDer, dParts[i], dParts[i + 1], dInterval, iSampleStrategy, pPrimList);
+  }
   return iRes;
 }
 
@@ -1566,7 +1568,7 @@ CDPoint GetCurveRefAtDist(void *pvData, double dr, CDPoint cBreak, double dDist,
       LineXLine(cQuad.cPt1, cDir1, cQuad.cPt3, cDir2, &cQuad.cPt2);
       d1 = GetQuadLength(&cQuad, 0.0, 1.0);
 
-      if(d1 < dDist + g_dPrec) dDist -= d1;
+      if(d1 < dDist - g_dPrec) dDist -= d1;
       else bFound = true;
     }
     if(iSampleStrategy > 0) dBase += dt;
@@ -1594,7 +1596,7 @@ CDPoint GetCurveRefAtDist(void *pvData, double dr, CDPoint cBreak, double dDist,
       LineXLine(cQuad.cPt1, cDir1, cQuad.cPt3, cDir2, &cQuad.cPt2);
       d1 = GetQuadLength(&cQuad, 0.0, 1.0);
 
-      if(d1 < dDist + g_dPrec) dDist -= d1;
+      if(d1 < dDist - g_dPrec) dDist -= d1;
       else bFound = true;
     }
     dBase = dt + dInterval;
@@ -1625,7 +1627,7 @@ CDPoint GetCurveRefAtDist(void *pvData, double dr, CDPoint cBreak, double dDist,
       LineXLine(cQuad.cPt1, cDir1, cQuad.cPt3, cDir2, &cQuad.cPt2);
       d1 = GetQuadLength(&cQuad, 0.0, 1.0);
 
-      if(d1 < dDist + g_dPrec) dDist -= d1;
+      if(d1 < dDist - g_dPrec) dDist -= d1;
       else bFound = true;
     }
   }
@@ -1646,7 +1648,7 @@ CDPoint GetCurveRefAtDist(void *pvData, double dr, CDPoint cBreak, double dDist,
       LineXLine(cQuad.cPt1, cDir1, cQuad.cPt3, cDir2, &cQuad.cPt2);
       d1 = GetQuadLength(&cQuad, 0.0, 1.0);
 
-      if(d1 < dDist + g_dPrec) dDist -= d1;
+      if(d1 < dDist - g_dPrec) dDist -= d1;
       else bFound = true;
 
       dt = dBase;
