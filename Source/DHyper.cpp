@@ -544,6 +544,48 @@ double GetHyperPointAtDist(double da, double db, double dr, double dBreak, doubl
   CDPoint cRad = {da, db};
   CDPoint cPt1 = GetCurveRefAtDist(&cRad, dr, {dBreak, -1.0}, fabs(dDist),
     HyperFunc, HyperFuncDer, 0.5, 1, {0.0, 0.0});
+
+  if(dBreak > -0.5)
+  {
+    double dv = sqrt(1.0 + Power2(dBreak));
+    CDPoint cPt2 = {cRad.x*dv, cRad.y*dBreak};
+    CDPoint cNorm = {-cRad.y, cRad.x*dBreak/dv};
+    double dNorm = GetNorm(cNorm);
+    cNorm /= dNorm;
+
+    double dDist2 = GetDist(cPt1, cPt2 + dr*cNorm);
+    double dblDist = 2.0*g_dPrec;
+    if(dDist2 < dblDist)
+    {
+      if(dDist < 0.0) return -dBreak;
+      return dBreak;
+    }
+
+    double a2 = Power2(cRad.x);
+    double b2 = Power2(cRad.y);
+    double c2 = Power2(dr/cRad.y);
+    double dDisc = (a2*c2 - b2)/(a2 + b2);
+    if(dDisc > g_dPrec)
+    {
+      double du = sqrt(dDisc);
+      dv = sqrt(1.0 + dDisc);
+
+      cPt2.x = cRad.x*dv;
+      cPt2.y = cRad.y*du;
+      cNorm.x = -cRad.y;
+      cNorm.y = cRad.x*du/dv;
+      dNorm = GetNorm(cNorm);
+      cNorm /= dNorm;
+
+      dDist2 = GetDist(cPt1, cPt2 + dr*cNorm);
+      if(dDist2 < 0.1)
+      {
+        if(dDist < 0.0) return -du;
+        return du;
+      }
+    }
+  }
+
   double dRes = GetHyperBoundProj(da, db, dr, cPt1, cPt1, false);
   if(dDist < 0.0) dRes *= -1.0;
   return dRes;
@@ -906,5 +948,47 @@ bool HyperRemovePart(bool bDown, PDPointList pCache, PDRefPoint pBounds)
     else return false;
   }
   return true;
+}
+
+int GetHyperSnapPoints(PDPointList pCache, double *pdRefs)
+{
+  int iCnt = pCache->GetCount(0);
+
+  if(iCnt < 3) return false;
+
+  //CDPoint cOrig = pCache->GetPoint(0, 0).cPoint;
+  CDPoint cRad = pCache->GetPoint(1, 0).cPoint;
+  //CDPoint cNorm = pCache->GetPoint(2, 0).cPoint;
+
+  double dr = 0.0;
+  int nOffs = pCache->GetCount(2);
+  if(nOffs > 0) dr += pCache->GetPoint(0, 2).cPoint.x;
+
+  double dBreak = -1.0;
+  if(pCache->GetCount(4) > 0) dBreak = pCache->GetPoint(0, 4).cPoint.x;
+
+  if(dBreak < -g_dPrec) return 0;
+
+  int iRes = 0;
+  if(dBreak < g_dPrec)
+  {
+    pdRefs[iRes++] = 0.0;
+    return iRes;
+  }
+
+  pdRefs[iRes++] = -dBreak;
+  pdRefs[iRes++] = dBreak;
+
+  double a2 = Power2(cRad.x);
+  double b2 = Power2(cRad.y);
+  double c2 = Power2(dr/cRad.y);
+  double dDisc = (a2*c2 - b2)/(a2 + b2);
+
+  if(dDisc < -g_dPrec) return iRes;
+  if(dDisc < g_dPrec) return iRes;
+  double dt = sqrt(dDisc);
+  pdRefs[iRes++] = -dt;
+  pdRefs[iRes++] = dt;
+  return iRes;
 }
 

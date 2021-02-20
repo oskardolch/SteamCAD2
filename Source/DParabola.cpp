@@ -492,6 +492,43 @@ double GetParabPointAtDist(double da, double dr, double dBreak, double dDist)
 {
   CDPoint cPt1 = GetCurveRefAtDist(&da, dr, {dBreak, -1.0}, fabs(dDist),
     ParabFunc, ParabFuncDer, 0.5, 1, {0.0, 0.0});
+
+  if(dBreak > -0.5)
+  {
+    CDPoint cPt2 = {dBreak, da*Power2(dBreak)};
+    CDPoint cNorm = {2.0*da*dBreak, -1.0};
+    double dNorm = GetNorm(cNorm);
+    cNorm /= dNorm;
+
+    double dDist2 = GetDist(cPt1, cPt2 + dr*cNorm);
+    double dblDist = 2.0*g_dPrec;
+    if(dDist2 < dblDist)
+    {
+      if(dDist < 0.0) return -dBreak;
+      return dBreak;
+    }
+
+    double dDisc = Power2(dr) - 0.25/Power2(da);
+    if(dDisc > g_dPrec)
+    {
+      double dt = sqrt(dDisc);
+
+      cPt2.x = dt;
+      cPt2.y = da*Power2(dt);
+      cNorm.x = 2.0*da*dt;
+      cNorm.y = -1.0;
+      dNorm = GetNorm(cNorm);
+      cNorm /= dNorm;
+
+      dDist2 = GetDist(cPt1, cPt2 + dr*cNorm);
+      if(dDist2 < 0.1)
+      {
+        if(dDist < 0.0) return -dt;
+        return dt;
+      }
+    }
+  }
+
   double dRes = GetParabBoundProj(da, dr, cPt1, cPt1, false);
   if(dDist < 0.0) dRes *= -1.0;
   return dRes;
@@ -832,5 +869,44 @@ bool ParabRemovePart(bool bDown, PDPointList pCache, PDRefPoint pBounds)
     }
   }
   return true;
+}
+
+int GetParabSnapPoints(PDPointList pCache, double *pdRefs)
+{
+  int iCnt = pCache->GetCount(0);
+
+  if(iCnt < 3) return false;
+
+  //CDPoint cOrig = pCache->GetPoint(0, 0).cPoint;
+  CDPoint cRad = pCache->GetPoint(1, 0).cPoint;
+  //CDPoint cNorm = pCache->GetPoint(2, 0).cPoint;
+
+  double dr = 0.0;
+  int nOffs = pCache->GetCount(2);
+  if(nOffs > 0) dr += pCache->GetPoint(0, 2).cPoint.x;
+
+  double dBreak = -1.0;
+  if(pCache->GetCount(4) > 0) dBreak = pCache->GetPoint(0, 4).cPoint.x;
+
+  if(dBreak < -g_dPrec) return 0;
+
+  int iRes = 0;
+  if(dBreak < g_dPrec)
+  {
+    pdRefs[iRes++] = 0.0;
+    return iRes;
+  }
+
+  pdRefs[iRes++] = -dBreak;
+  pdRefs[iRes++] = dBreak;
+
+  double dDisc = Power2(dr) - 0.25/Power2(cRad.x);
+
+  if(dDisc < -g_dPrec) return iRes;
+  if(dDisc < g_dPrec) return iRes;
+  double dt = sqrt(dDisc);
+  pdRefs[iRes++] = -dt;
+  pdRefs[iRes++] = dt;
+  return iRes;
 }
 

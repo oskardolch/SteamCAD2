@@ -4421,10 +4421,15 @@ int CDObject::GetPointReferences(CDPoint cPt, PDRefList pRefs)
   double dblDist = 2.0*g_dPrec;
   CDPoint cPt1;
 
-  if(m_iType == dtEllipse)
+  double dRefs[8];
+  int iLen = 0;
+
+  if(m_iType == dtEllipse) iLen = GetElpsSnapPoints(m_pCachePoints, dRefs);
+  else if(m_iType == dtHyperbola) iLen = GetHyperSnapPoints(m_pCachePoints, dRefs);
+  else if(m_iType == dtParabola) iLen = GetParabSnapPoints(m_pCachePoints, dRefs);
+
+  if(iLen > 0)
   {
-    double dRefs[8];
-    int iLen = GetElpsSnapPoints(m_pCachePoints, dRefs);
     for(int i = 0; i < iLen; i++)
     {
       GetNativeRefPoint(dRefs[i], 0.0, &cPt1);
@@ -5432,10 +5437,15 @@ int CDObject::GetSnapPoint(int iSnapMask, CDPoint cPt, double dDist, PDLine pSna
     }
   }
 
-  if(m_iType == dtEllipse)
+  double dRefs[8];
+  int iLen = 0;
+
+  if(m_iType == dtEllipse) iLen = GetElpsSnapPoints(m_pCachePoints, dRefs);
+  else if(m_iType == dtHyperbola) iLen = GetHyperSnapPoints(m_pCachePoints, dRefs);
+  else if(m_iType == dtParabola) iLen = GetParabSnapPoints(m_pCachePoints, dRefs);
+
+  if(iLen > 0)
   {
-    double dRefs[8];
-    int iLen = GetElpsSnapPoints(m_pCachePoints, dRefs);
     int i = 0;
     bool bFound = false;
     while(!bFound && (i < iLen))

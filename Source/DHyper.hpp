@@ -21,5 +21,6 @@ bool GetHyperRefDir(double dRef, PDPointList pCache, PDPoint pPt);
 bool GetHyperReference(double dDist, PDPointList pCache, double *pdRef);
 int GetHyperNumParts(PDPointList pCache, PDRefPoint pBounds);
 bool HyperRemovePart(bool bDown, PDPointList pCache, PDRefPoint pBounds);
+int GetHyperSnapPoints(PDPointList pCache, double *pdRefs);
 
 #endif

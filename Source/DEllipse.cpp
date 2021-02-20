@@ -1413,8 +1413,8 @@ bool GetElpsReference(double dDist, PDPointList pCache, double *pdRef)
 
     double a2 = Power2(cRad.x);
     double b2 = Power2(cRad.y);
-    double b4 = Power2(b2);
-    double dDisc = (Power2(cRad.x*dr) - b4)/(a2*b2 - b4);
+    double c2 = Power2(dr/cRad.y);
+    double dDisc = (a2*c2 - b2)/(a2 - b2);
     if((dDisc > -g_dPrec) && (dDisc < 1.0 + g_dPrec))
     {
       if(dDisc < g_dPrec)
@@ -1773,8 +1773,8 @@ int GetElpsSnapPoints(PDPointList pCache, double *pdRefs)
 
   double a2 = Power2(cRad.x);
   double b2 = Power2(cRad.y);
-  double b4 = Power2(b2);
-  double dDisc = (Power2(cRad.x*dr) - b4)/(a2*b2 - b4);
+  double c2 = Power2(dr/cRad.y);
+  double dDisc = (a2*c2 - b2)/(a2 - b2);
   if(dDisc < g_dPrec) return iRes;
   if(dDisc > 1.0 + g_dPrec) return iRes;
   if(dDisc > 1.0 - g_dPrec)
