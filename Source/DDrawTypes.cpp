@@ -390,7 +390,7 @@ bool CDObject::AddPoint(double x, double y, char iCtrl, double dRestrictVal, boo
     bRes = AddEllipsePoint(x, y, iCtrl, dRestrictVal, m_pInputPoints, iInputLines);
     break;
   case dtArcEllipse:
-    bRes = AddArcElpsPoint(x, y, iCtrl, m_pInputPoints, iInputLines);
+    bRes = AddArcElpsPoint(x, y, iCtrl, dRestrictVal, m_pInputPoints, iInputLines);
     break;
   case dtHyperbola:
     bRes = AddHyperPoint(x, y, iCtrl, dRestrictVal, m_pInputPoints, iInputLines);
