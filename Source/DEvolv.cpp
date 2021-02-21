@@ -217,7 +217,7 @@ double GetEvolvDistFromPtOff(CDPoint cPt, CDPoint cRefPt, double dOffset, PDPoin
 
   double dr = dOffset;
   int nOffs = pCache->GetCount(2);
-  if(nOffs > 0) dr = pCache->GetPoint(0, 2).cPoint.x;
+  if(nOffs > 0) dr += pCache->GetPoint(0, 2).cPoint.x;
 
   double da = dr/dr1;
   CDPoint cN2 = {cos(da), -dDir*sin(da)};
@@ -231,6 +231,7 @@ double GetEvolvDistFromPtOff(CDPoint cPt, CDPoint cRefPt, double dOffset, PDPoin
   double dt2 = -1.0;
   double dco2, dsi2;
   CDPoint cCand1, cCand2;
+  CDPoint cNorm1, cNorm2;
   bool bDir1 = true;
   bool bDir2 = true;
 
@@ -252,6 +253,8 @@ double GetEvolvDistFromPtOff(CDPoint cPt, CDPoint cRefPt, double dOffset, PDPoin
     dsi2 = sin(dt2);
     cCand2.x = dr1*(dco2 + dt2*dsi2);
     cCand2.y = -dDir*dr1*(dsi2 - dt2*dco2);
+    cNorm2.x = dsi2;
+    cNorm2.y = dDir*dco2;
     d2 = GetDist(cCand2, cPt2);
   }
 
@@ -270,6 +273,8 @@ double GetEvolvDistFromPtOff(CDPoint cPt, CDPoint cRefPt, double dOffset, PDPoin
   double dsi1 = sin(dt1);
   cCand1.x = dr1*(dco1 + dt1*dsi1);
   cCand1.y = dDir*dr1*(dsi1 - dt1*dco1);
+  cNorm1.x = dsi1;
+  cNorm1.y = -dDir*dco1;
   double d1 = GetDist(cCand1, cPt2);
 
   if((dt2 > -0.5) && (d2 < d1))
@@ -278,6 +283,7 @@ double GetEvolvDistFromPtOff(CDPoint cPt, CDPoint cRefPt, double dOffset, PDPoin
     dt1 = -dt2;
     bDir1 = bDir2;
     cCand1 = cCand2;
+    cNorm1 = cNorm2;
     dco1 = dco2;
     dsi1 = -dsi2;
     dDir *= -1.0;
@@ -288,17 +294,12 @@ double GetEvolvDistFromPtOff(CDPoint cPt, CDPoint cRefPt, double dOffset, PDPoin
   pPtX->dRef = dt1 - da;
   if(bDir1)
   {
-    CDPoint cDir;
-    cDir.x = dsi1;
-    cDir.y = -dDir*dco1;
-
-    cCand2 = Rotate(cPt1 - cCand1, cDir, false);
-    pPtX->cDirection = Rotate(cCand2, cN1, true);
+    cCand2 = Rotate(cPt1 - cCand1, cNorm1, false);
     d1 = cCand2.x;
+    pPtX->cDirection = Rotate(cNorm1, cN1, true);
   }
   else
   {
-    //pPtX->cDirection = 0;
     CDPoint cDir = {0.0, dDir};
     pPtX->cDirection = Rotate(cDir, cN1, true);
   }
@@ -878,5 +879,25 @@ bool GetEvolvReference(double dDist, PDPointList pCache, double *pdRef)
   else *pdRef = -dRef1 - sqrt(Power2(dRef1) - 2.0*dDist/dr1);
 
   return true;
+}
+
+int GetEvolvSnapPoints(PDPointList pCache, double *pdRefs)
+{
+  int iCnt = pCache->GetCount(0);
+  if(iCnt < 3) return false;
+
+  //CDPoint cOrig = pCache->GetPoint(0, 0).cPoint;
+  //CDPoint cN1 = pCache->GetPoint(1, 0).cPoint;
+  CDPoint cRad = pCache->GetPoint(2, 0).cPoint;
+  double dr1 = cRad.x;
+  //double dDir = cRad.y;
+
+  double dr = 0.0;
+  int nOffs = pCache->GetCount(2);
+  if(nOffs > 0) dr = pCache->GetPoint(0, 2).cPoint.x;
+
+  if(dr > -g_dPrec) return 0;
+  pdRefs[0] = -dr/dr1;
+  return 1;
 }
 

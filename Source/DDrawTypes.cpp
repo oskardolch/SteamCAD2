@@ -197,9 +197,11 @@ int GetSnapPointFromList(int iSnapMask, CDPoint cPt, double dDist, PDLine pSnapP
     }
     if(iRes1 > 0) return iRes1;
   }
-  else if(iRes1 < 1) return iRes2;
-
-  *pSnapPt = cPtSnap1;
+  else if(iRes1 < 1)
+  {
+    *pSnapPt = cPtSnap2;
+    return iRes2;
+  }
 
   double df1, df2;
   df1 = GetNorm(cPtSnap1.cDirection);
@@ -1681,18 +1683,37 @@ int CDObject::BuildPrimitives(CDLine cTmpPt, int iMode, PDRect pRect, int iTemp,
       }
       else
       {
-        GetPointRefDist(m_pCrossPoints->GetPoint(0), dMid, &dEnd);
-        AddPatSegment(0.0, iStart, dEnd, 1, iBoundMode, pBounds, &cBnds);
+        int i = 0;
+        int iTmpEnd = 1;
+        dStart = 0.0;
+        GetPointRefDist(m_pCrossPoints->GetPoint(i++), dMid, &dEnd);
+        if(iStart > 0)
+        {
+          dStart = cBnds.x;
+          if(dEnd < dStart + g_dPrec)
+          {
+            iStart = 1;
+            if(nCrs > 1) GetPointRefDist(m_pCrossPoints->GetPoint(i++), dMid, &dEnd);
+            else
+            {
+              dEnd = cBnds.y;
+              iTmpEnd = 2;
+            }
+          }
+        }
+        AddPatSegment(dStart, iStart, dEnd, iTmpEnd, iBoundMode, pBounds, &cBnds);
         iStart = 1;
-        for(int i = 1; i < nCrs; i++)
+        while(i < nCrs)
         {
           dStart = dEnd;
-          GetPointRefDist(m_pCrossPoints->GetPoint(i), dMid, &dEnd);
+          GetPointRefDist(m_pCrossPoints->GetPoint(i++), dMid, &dEnd);
           AddPatSegment(dStart, 1, dEnd, 1, iBoundMode, pBounds, &cBnds);
         }
         dStart = dEnd;
-        if(nCrs > 0) iStart = 1;
-        AddPatSegment(dStart, iStart, 0.0, iEnd, iBoundMode, pBounds, &cBnds);
+        dEnd = 0.0;
+        if(iEnd > 0) dEnd = cBnds.y;
+        if((iEnd < 1) || (dStart < dEnd - g_dPrec))
+          AddPatSegment(dStart, iStart, dEnd, iEnd, iBoundMode, pBounds, &cBnds);
       }
     }
   }
@@ -2811,149 +2832,156 @@ void CDObject::SetSelected(bool bSelect, bool bInvert, int iDimen, PDPtrList pRe
 
 int CDObject::GetType()
 {
-    return m_iType;
+  return m_iType;
 }
 
 CDLine CDObject::GetLine()
 {
-    CDLine cRes = {false, {0, 0}, {0, 0}};
+  CDLine cRes = {false, {0, 0}, {0, 0}};
 
-    if(m_iType != 1) return cRes;
+  if(m_iType != 1) return cRes;
 
-    int iCnt = m_pCachePoints->GetCount(0);
-    if(iCnt < 2) return cRes;
+  int iCnt = m_pCachePoints->GetCount(0);
+  if(iCnt < 2) return cRes;
 
-    CDInputPoint cInPt1 = m_pCachePoints->GetPoint(0, 0);
-    CDInputPoint cInPt2 = m_pCachePoints->GetPoint(1, 0);
+  CDInputPoint cInPt1 = m_pCachePoints->GetPoint(0, 0);
+  CDInputPoint cInPt2 = m_pCachePoints->GetPoint(1, 0);
 
-    cRes.bIsSet = true;
-    cRes.cOrigin = cInPt1.cPoint;
-    cRes.cDirection = cInPt2.cPoint;
-    return cRes;
+  cRes.bIsSet = true;
+  cRes.cOrigin = cInPt1.cPoint;
+  cRes.cDirection = cInPt2.cPoint;
+  return cRes;
 }
 
 CDLine CDObject::GetCircle()
 {
-    CDLine cRes = {false, {0, 0}, {0, 0}};
+  CDLine cRes = {false, {0, 0}, {0, 0}};
 
-    if(m_iType != 2) return cRes;
+  if(m_iType != 2) return cRes;
 
-    int iCnt = m_pCachePoints->GetCount(0);
-    if(iCnt < 2) return cRes;
+  int iCnt = m_pCachePoints->GetCount(0);
+  if(iCnt < 2) return cRes;
 
-    CDInputPoint cInPt1 = m_pCachePoints->GetPoint(0, 0);
-    CDInputPoint cInPt2 = m_pCachePoints->GetPoint(1, 0);
+  CDInputPoint cInPt1 = m_pCachePoints->GetPoint(0, 0);
+  CDInputPoint cInPt2 = m_pCachePoints->GetPoint(1, 0);
 
-    cRes.bIsSet = true;
-    cRes.cOrigin = cInPt1.cPoint;
-    cRes.cDirection = cInPt2.cPoint;
-    return cRes;
+  cRes.bIsSet = true;
+  cRes.cOrigin = cInPt1.cPoint;
+  cRes.cDirection = cInPt2.cPoint;
+  return cRes;
 }
 
 void CDObject::SetInputLine(int iIndex, CDLine cLine)
 {
-    m_cLines[iIndex] = cLine;
+  m_cLines[iIndex] = cLine;
 }
 
 bool CDObject::HasEnoughPoints()
 {
-    int iInputLines = 0;
-    if(m_cLines[0].bIsSet) iInputLines++;
-    if(m_cLines[1].bIsSet) iInputLines++;
+  int iInputLines = 0;
+  if(m_cLines[0].bIsSet) iInputLines++;
+  if(m_cLines[1].bIsSet) iInputLines++;
 
-    switch(m_iType)
-    {
-    case dtLine:
-        return(HasLineEnoughPoints(m_pInputPoints));
-    case dtCircle:
-        return(HasCircEnoughPoints(m_pInputPoints, iInputLines));
-    case dtEllipse:
-        return(HasElpsEnoughPoints(m_pInputPoints, iInputLines));
-    case dtArcEllipse:
-        return(HasArcElpsEnoughPoints(m_pInputPoints, iInputLines));
-    case dtHyperbola:
-        return(HasHyperEnoughPoints(m_pInputPoints, iInputLines));
-    case dtParabola:
-        return(HasParabEnoughPoints(m_pInputPoints, iInputLines));
-    case dtSpline:
-        return(HasSplineEnoughPoints(m_pInputPoints));
-    case dtEvolvent:
-        return(HasEvolvEnoughPoints(m_pInputPoints, iInputLines));
-    default:
-        return false;
-    }
+  switch(m_iType)
+  {
+  case dtLine:
+    return(HasLineEnoughPoints(m_pInputPoints));
+  case dtCircle:
+    return(HasCircEnoughPoints(m_pInputPoints, iInputLines));
+  case dtEllipse:
+    return(HasElpsEnoughPoints(m_pInputPoints, iInputLines));
+  case dtArcEllipse:
+    return(HasArcElpsEnoughPoints(m_pInputPoints, iInputLines));
+  case dtHyperbola:
+    return(HasHyperEnoughPoints(m_pInputPoints, iInputLines));
+  case dtParabola:
+    return(HasParabEnoughPoints(m_pInputPoints, iInputLines));
+  case dtSpline:
+    return(HasSplineEnoughPoints(m_pInputPoints));
+  case dtEvolvent:
+    return(HasEvolvEnoughPoints(m_pInputPoints, iInputLines));
+  default:
+    return false;
+  }
 }
 
 bool CDObject::GetPoint(int iIndex, char iCtrl, PDInputPoint pPoint)
 {
-    int iCnt = m_pInputPoints->GetCount(iCtrl);
-    if(iIndex >= iCnt) return false;
-    *pPoint = m_pInputPoints->GetPoint(iIndex, iCtrl);
-    return true;
+  int iCnt = m_pInputPoints->GetCount(iCtrl);
+  if(iIndex >= iCnt) return false;
+  *pPoint = m_pInputPoints->GetPoint(iIndex, iCtrl);
+  return true;
 }
 
 void CDObject::SetPoint(int iIndex, char iCtrl, CDInputPoint cPoint)
 {
-    m_pInputPoints->SetPoint(iIndex, iCtrl, cPoint.cPoint.x, cPoint.cPoint.y, cPoint.iCtrl);
+  m_pInputPoints->SetPoint(iIndex, iCtrl, cPoint.cPoint.x, cPoint.cPoint.y, cPoint.iCtrl);
 }
 
 bool CDObject::BoundPoint(CDPoint cRefPt, PDLine pPtX, double *pdDist)
 {
-    if(IsClosedShape())
-    {
-        bool bRes = false;
-        if(m_cBounds[0].bIsSet && m_cBounds[1].bIsSet)
-        {
-            if(m_cBounds[0].dRef > m_cBounds[1].dRef)
-            {
-                bRes = ((pPtX->dRef > m_cBounds[1].dRef) && (m_cBounds[0].dRef > pPtX->dRef));
-            }
-            else bRes = ((pPtX->dRef < m_cBounds[0].dRef) || (m_cBounds[1].dRef < pPtX->dRef));
-        }
-        if(bRes)
-        {
-            pPtX->cDirection = 0;
-            pPtX->dRef = m_cBounds[0].dRef;
-            GetNativeRefPoint(m_cBounds[0].dRef, 0.0, &pPtX->cOrigin);
-            *pdDist = GetDist(cRefPt, pPtX->cOrigin);
+  CDPoint cDir;
 
-            CDPoint cPt2;
-            GetNativeRefPoint(m_cBounds[1].dRef, 0.0, &cPt2);
-            double d1 = GetDist(cRefPt, cPt2);
-            if(d1 < *pdDist)
-            {
-                pPtX->dRef = m_cBounds[1].dRef;
-                pPtX->cOrigin = cPt2;
-                *pdDist = d1;
-            }
-            return true;
-        }
-        return false;
+  if(IsClosedShape())
+  {
+    bool bRes = false;
+    if(m_cBounds[0].bIsSet && m_cBounds[1].bIsSet)
+    {
+      if(m_cBounds[0].dRef > m_cBounds[1].dRef)
+      {
+        bRes = ((pPtX->dRef > m_cBounds[1].dRef) && (m_cBounds[0].dRef > pPtX->dRef));
+      }
+      else bRes = ((pPtX->dRef < m_cBounds[0].dRef) || (m_cBounds[1].dRef < pPtX->dRef));
     }
+    if(bRes)
+    {
+      pPtX->dRef = m_cBounds[0].dRef;
+      GetNativeRefPoint(m_cBounds[0].dRef, 0.0, &pPtX->cOrigin);
+      GetNativeRefDir(m_cBounds[0].dRef, &cDir);
+      pPtX->cDirection = GetNormal(cDir);
+      *pdDist = GetDist(cRefPt, pPtX->cOrigin);
 
-    if(m_cBounds[0].bIsSet)
-    {
-        if(pPtX->dRef < m_cBounds[0].dRef)
-        {
-            pPtX->cDirection = 0;
-            pPtX->dRef = m_cBounds[0].dRef;
-            GetNativeRefPoint(m_cBounds[0].dRef, 0.0, &pPtX->cOrigin);
-            *pdDist = GetDist(cRefPt, pPtX->cOrigin);
-            return true;
-        }
-    }
-    if(m_cBounds[1].bIsSet)
-    {
-        if(pPtX->dRef > m_cBounds[1].dRef)
-        {
-            pPtX->cDirection = 0;
-            pPtX->dRef = m_cBounds[1].dRef;
-            GetNativeRefPoint(m_cBounds[1].dRef, 0.0, &pPtX->cOrigin);
-            *pdDist = GetDist(cRefPt, pPtX->cOrigin);
-            return true;
-        }
+      CDPoint cPt2;
+      GetNativeRefPoint(m_cBounds[1].dRef, 0.0, &cPt2);
+      double d1 = GetDist(cRefPt, cPt2);
+      if(d1 < *pdDist)
+      {
+        pPtX->dRef = m_cBounds[1].dRef;
+        pPtX->cOrigin = cPt2;
+        GetNativeRefDir(m_cBounds[1].dRef, &cDir);
+        pPtX->cDirection = GetNormal(cDir);
+        *pdDist = d1;
+      }
+      return true;
     }
     return false;
+  }
+
+  if(m_cBounds[0].bIsSet)
+  {
+    if(pPtX->dRef < m_cBounds[0].dRef)
+    {
+      pPtX->dRef = m_cBounds[0].dRef;
+      GetNativeRefPoint(m_cBounds[0].dRef, 0.0, &pPtX->cOrigin);
+      GetNativeRefDir(m_cBounds[0].dRef, &cDir);
+      pPtX->cDirection = GetNormal(cDir);
+      *pdDist = GetDist(cRefPt, pPtX->cOrigin);
+      return true;
+    }
+  }
+  if(m_cBounds[1].bIsSet)
+  {
+    if(pPtX->dRef > m_cBounds[1].dRef)
+    {
+      pPtX->dRef = m_cBounds[1].dRef;
+      GetNativeRefPoint(m_cBounds[1].dRef, 0.0, &pPtX->cOrigin);
+      GetNativeRefDir(m_cBounds[1].dRef, &cDir);
+      pPtX->cDirection = GetNormal(cDir);
+      *pdDist = GetDist(cRefPt, pPtX->cOrigin);
+      return true;
+    }
+  }
+  return false;
 }
 
 double CDObject::GetPathDistFromPt(CDPoint cPt, CDPoint cRefPt, bool bSnapCenters, PDLine pPtX)
@@ -3068,10 +3096,10 @@ double CDObject::GetDistFromPt(CDPoint cPt, CDPoint cRefPt, bool bSnapCenters, P
     dRes = GetArcElpsDistFromPt(cPt, cRefPt, iMask, m_pCachePoints, &cPtX, m_cBounds);
     break;
   case dtHyperbola:
-    dRes = GetHyperDistFromPt(cPt, cRefPt, iMask, m_pCachePoints, &cPtX); //, m_cBounds);
+    dRes = GetHyperDistFromPt(cPt, cRefPt, iMask, m_pCachePoints, &cPtX);
     break;
   case dtParabola:
-    dRes = GetParabDistFromPt(cPt, cRefPt, iMask, m_pCachePoints, &cPtX); //, m_cBounds);
+    dRes = GetParabDistFromPt(cPt, cRefPt, iMask, m_pCachePoints, &cPtX);
     break;
   case dtSpline:
     dRes = GetSplineDistFromPt(cPt, cRefPt, iMask, m_pCachePoints, &cPtX);
@@ -4427,6 +4455,7 @@ int CDObject::GetPointReferences(CDPoint cPt, PDRefList pRefs)
   if(m_iType == dtEllipse) iLen = GetElpsSnapPoints(m_pCachePoints, dRefs);
   else if(m_iType == dtHyperbola) iLen = GetHyperSnapPoints(m_pCachePoints, dRefs);
   else if(m_iType == dtParabola) iLen = GetParabSnapPoints(m_pCachePoints, dRefs);
+  else if(m_iType == dtEvolvent) iLen = GetEvolvSnapPoints(m_pCachePoints, dRefs);
 
   if(iLen > 0)
   {
@@ -4462,7 +4491,7 @@ int CDObject::GetPointReferences(CDPoint cPt, PDRefList pRefs)
 
   CDLine cPtX;
   double d1 = GetDistFromPt(cPt, cPt, false, &cPtX, NULL);
-  if(!cPtX.bIsSet || d1 > dblDist) return 0;
+  if(!cPtX.bIsSet || fabs(d1) > dblDist) return 0;
   if(GetNorm(cPtX.cDirection) < 0.5) return 0;
   pRefs->AddPoint(cPtX.dRef);
   return pRefs->GetCount();
@@ -5443,6 +5472,7 @@ int CDObject::GetSnapPoint(int iSnapMask, CDPoint cPt, double dDist, PDLine pSna
   if(m_iType == dtEllipse) iLen = GetElpsSnapPoints(m_pCachePoints, dRefs);
   else if(m_iType == dtHyperbola) iLen = GetHyperSnapPoints(m_pCachePoints, dRefs);
   else if(m_iType == dtParabola) iLen = GetParabSnapPoints(m_pCachePoints, dRefs);
+  else if(m_iType == dtEvolvent) iLen = GetEvolvSnapPoints(m_pCachePoints, dRefs);
 
   if(iLen > 0)
   {
