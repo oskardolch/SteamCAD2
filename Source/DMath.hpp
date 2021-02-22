@@ -26,17 +26,12 @@ int SolvePolynomFuzzy(int iDeg, double *pdCoefs, double *pdRoots);
 
 int GetPolyDegree(int iDeg, double *pdCoefs);
 int ReducePoly(int iDeg, double *pdCoefs);
-int MultiplyPolynoms(int iDeg1, int iDeg2, double *pCoefs1, double *pCoefs2,
-	double *pCoefsRes);
-int AddPolynoms(int iDeg1, int iDeg2, double *pCoefs1, double *pCoefs2,
-	double *pCoefsRes);
-int AddPolynomsMult(int iDeg1, int iDeg2, double *pCoefs1, double *pCoefs2,
-	double xmul, double *pCoefsRes);
-int AddPolynomsMult2(int iDeg1, int iDeg2, double *pCoefs1, double *pCoefs2,
-	double xmul1, double xmul2, double *pCoefsRes);
+int MultiplyPolynoms(int iDeg1, int iDeg2, double *pCoefs1, double *pCoefs2, double *pCoefsRes);
+int AddPolynoms(int iDeg1, int iDeg2, double *pCoefs1, double *pCoefs2, double *pCoefsRes);
+int AddPolynomsMult(int iDeg1, int iDeg2, double *pCoefs1, double *pCoefs2, double xmul, double *pCoefsRes);
+int AddPolynomsMult2(int iDeg1, int iDeg2, double *pCoefs1, double *pCoefs2, double xmul1, double xmul2, double *pCoefsRes);
 double EvaluatePolynom(int iDeg, double *pCoefs, double x);
 
-bool Solve3x3Matrix(CDPoint3 cMat1, CDPoint3 cMat2, CDPoint3 cMat3, CDPoint3 cB,
-    PDPoint3 pSol);
+bool Solve3x3Matrix(CDPoint3 cMat1, CDPoint3 cMat2, CDPoint3 cMat3, CDPoint3 cB, PDPoint3 pSol);
 
 #endif
