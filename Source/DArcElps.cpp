@@ -839,51 +839,45 @@ void AddArcPrimitive(CDPoint cRad, CDPoint cOrig, CDPoint cMainDir, CDPoint cSol
 {
   double dAng = atan2(cSol.y, cSol.x);
   double db1 = M_PI - dAng;
+  double dIntervals[4] = {-db1, -dAng, dAng, db1};
+  CDPoint cCenters[4] = {{-cSol.x, 0.0}, {0.0, cSol.y}, {cSol.x, 0.0}, {0.0, -cSol.y}};
+  double dRads[4] = {cRad.x, cRad.y, cRad.x, cRad.y};
+  int iStart = 0;
+  while((d1 > dIntervals[iStart] - g_dPrec) && (iStart < 4)) iStart++;
 
-  double dBnds[4];
-  int iSegs = MergeBounds(d1, d2, db1, -db1, bFullCycle, dBnds);
-
-  CDPoint cCenter = {-cSol.x, 0.0};
+  CDPoint cBnd1 = {d1, d2};
+  CDPoint cBnd2;
+  double d2pi = 2.0*M_PI;
+  CDPoint cBnds[2];
+  int iSegs;
   CDPrimitive cPrim;
 
-  for(int i = 0; i < iSegs; i++)
+  for(int i = iStart; i < 4; i++)
   {
-    cPrim = TransArcPrimitive(cOrig, cMainDir,
-      GetArcPrimitive(cRad.x, cCenter, bReverse, dBnds[2*i], dBnds[2*i + 1]));
-    if(cPrim.iType == 2) pPrimList->AddPrimitive(cPrim);
+    if(i < 1) cBnd2.x = dIntervals[3];
+    else cBnd2.x = dIntervals[i - 1];
+    cBnd2.y = dIntervals[i];
+    iSegs = IntersectBounds(cBnd1, cBnd2, 8, d2pi, cBnds);
+    for(int j = 0; j < iSegs; j++)
+    {
+      cPrim = TransArcPrimitive(cOrig, cMainDir,
+        GetArcPrimitive(dRads[i], cCenters[i], bReverse, cBnds[j].x, cBnds[j].y));
+      if(cPrim.iType == 2) pPrimList->AddPrimitive(cPrim);
+    }
   }
 
-  iSegs = MergeBounds(d1, d2, -db1, -dAng, bFullCycle, dBnds);
-  cCenter.x = 0.0;
-  cCenter.y = cSol.y;
-
-  for(int i = 0; i < iSegs; i++)
+  for(int i = 0; i < iStart; i++)
   {
-    cPrim = TransArcPrimitive(cOrig, cMainDir,
-      GetArcPrimitive(cRad.y, cCenter, bReverse, dBnds[2*i], dBnds[2*i + 1]));
-    if(cPrim.iType == 2) pPrimList->AddPrimitive(cPrim);
-  }
-
-  iSegs = MergeBounds(d1, d2, -dAng, dAng, bFullCycle, dBnds);
-  cCenter.x = cSol.x;
-  cCenter.y = 0.0;
-
-  for(int i = 0; i < iSegs; i++)
-  {
-    cPrim = TransArcPrimitive(cOrig, cMainDir,
-      GetArcPrimitive(cRad.x, cCenter, bReverse, dBnds[2*i], dBnds[2*i + 1]));
-    if(cPrim.iType == 2) pPrimList->AddPrimitive(cPrim);
-  }
-
-  iSegs = MergeBounds(d1, d2, dAng, db1, bFullCycle, dBnds);
-  cCenter.x = 0.0;
-  cCenter.y = -cSol.y;
-
-  for(int i = 0; i < iSegs; i++)
-  {
-    cPrim = TransArcPrimitive(cOrig, cMainDir,
-      GetArcPrimitive(cRad.y, cCenter, bReverse, dBnds[2*i], dBnds[2*i + 1]));
-    if(cPrim.iType == 2) pPrimList->AddPrimitive(cPrim);
+    if(i < 1) cBnd2.x = dIntervals[3];
+    else cBnd2.x = dIntervals[i - 1];
+    cBnd2.y = dIntervals[i];
+    iSegs = IntersectBounds(cBnd1, cBnd2, 8, d2pi, cBnds);
+    for(int j = 0; j < iSegs; j++)
+    {
+      cPrim = TransArcPrimitive(cOrig, cMainDir,
+        GetArcPrimitive(dRads[i], cCenters[i], bReverse, cBnds[j].x, cBnds[j].y));
+      if(cPrim.iType == 2) pPrimList->AddPrimitive(cPrim);
+    }
   }
 }
 
@@ -1650,7 +1644,7 @@ void AddArcElpsSegment(double d1, double d2, double dExt, bool bReverse, PDPoint
     double dr = fabs(cRad.x);
     if(dr < g_dPrec) return;
 
-    if(d1 > d2)
+    /*if(d1 > d2)
     {
       dAng1 = d1/dr;
       dAng2 = d2/dr;
@@ -1662,7 +1656,7 @@ void AddArcElpsSegment(double d1, double d2, double dExt, bool bReverse, PDPoint
     }
 
     cPrim.iType = 2;
-    /*cPrim.cPt1 = cOrig;
+    cPrim.cPt1 = cOrig;
     cPrim.cPt2.x = cOrig.x + dr;
     cPrim.cPt2.y = cOrig.y + dr;
     cPrim.cPt3.x = cOrig.x + cRad.x*cos(dAng1);
@@ -1671,6 +1665,10 @@ void AddArcElpsSegment(double d1, double d2, double dExt, bool bReverse, PDPoint
     cPrim.cPt4.y = cOrig.y + cRad.x*sin(dAng2);
     CropPrimitive(cPrim, pRect, pPrimList);*/
 
+    dAng1 = d1/dr;
+    dAng2 = d2/dr;
+
+    cPrim.iType = 2;
     cPrim.cPt1 = cOrig;
     cPrim.cPt2.x = fabs(cRad.x);
     cPrim.cPt2.y = 0.0;
@@ -1688,13 +1686,14 @@ void AddArcElpsSegment(double d1, double d2, double dExt, bool bReverse, PDPoint
   CDPoint cSol = pCache->GetPoint(3, 0).cPoint;
 
   double dAng = atan2(cSol.y, cSol.x);
-  double da1 = GetArcElpsRefAtDist(d1, cRad, dAng);
-  double da2 = GetArcElpsRefAtDist(d2, cRad, dAng);
+  double dt1 = GetArcElpsRefAtDist(d1, cRad, dAng);
+  double dt2 = GetArcElpsRefAtDist(d2, cRad, dAng);
   //AddArcPrimitiveWithBounds(cRad, cOrig, cMainDir, cSol, pRect, pPrimList, da1, da2, false);
-  AddArcPrimitive(cRad, cOrig, cMainDir, cSol, bReverse, pPrimList, da1, da2, false);
+  bool bFullCycle = fabs(dt2 - dt1 - 2.0*M_PI) < g_dPrec;
+  AddArcPrimitive(cRad, cOrig, cMainDir, cSol, bReverse, pPrimList, dt1, dt2, bFullCycle);
 }
 
-bool GetArcElpsRefPoint(double dRef, PDPointList pCache, PDPoint pPt)
+bool GetArcElpsRefPoint(double dRef, double dExt, PDPointList pCache, PDPoint pPt)
 {
   int iCnt = pCache->GetCount(0);
   if(iCnt < 2) return false;
@@ -1703,13 +1702,11 @@ bool GetArcElpsRefPoint(double dRef, PDPointList pCache, PDPoint pPt)
   CDPoint cRad = pCache->GetPoint(1, 0).cPoint;
   CDPoint cPt1;
 
+  double dOff = dExt;
   int nOffs = pCache->GetCount(2);
-  if(nOffs > 0)
-  {
-    double dOff = pCache->GetPoint(0, 2).cPoint.x;
-    cRad.x += dOff;
-    cRad.y += dOff;
-  }
+  if(nOffs > 0) dOff += pCache->GetPoint(0, 2).cPoint.x;
+  cRad.x += dOff;
+  cRad.y += dOff;
 
   if(iCnt < 3)
   {
@@ -2148,5 +2145,15 @@ bool ArcElpsRemovePart(bool bDown, PDPointList pCache, PDRefPoint pBounds)
   }
 
   return false;
+}
+
+CDPoint GetArcElpsViewBnds(PDPointList pCache)
+{
+  int iCnt = pCache->GetCount(0);
+  if(iCnt < 5) return {-M_PI, M_PI};
+
+  CDPoint cSol = pCache->GetPoint(3, 0).cPoint;
+  double dSweep = atan2(cSol.y, cSol.x);
+  return {-dSweep, 2*M_PI - dSweep};
 }
 

@@ -1323,7 +1323,7 @@ int RefInOpenBounds(PDRefPoint pBounds, double dRef)
     return 3;
 }
 
-int MergeBounds(double da1, double da2, double db1, double db2, bool bFullCycle, double *pdBnds)
+/*int MergeBounds(double da1, double da2, double db1, double db2, bool bFullCycle, double *pdBnds)
 {
     if(bFullCycle)
     {
@@ -1366,7 +1366,7 @@ int MergeBounds(double da1, double da2, double db1, double db2, bool bFullCycle,
     if(iSum == 7) pdBnds[1] = db2;
 
     return 1;
-}
+}*/
 
 int SplitCurveParts(double dt1, double dt2, CDPoint cBreak, double *pdParts)
 {

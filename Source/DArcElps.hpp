@@ -19,10 +19,11 @@ double GetArcElpsRadiusAtPt(CDPoint cPt, PDPointList pCache, PDLine pPtR, bool b
   PDPointList pPoints, PDLine pLines);
 bool GetArcElpsPointRefDist(double dRef, PDPointList pCache, double *pdDist);
 void AddArcElpsSegment(double d1, double d2, double dExt, bool bReverse, PDPointList pCache, PDPrimObject pPrimList); //, PDRect pRect);
-bool GetArcElpsRefPoint(double dRef, PDPointList pCache, PDPoint pPt);
+bool GetArcElpsRefPoint(double dRef, double dExt, PDPointList pCache, PDPoint pPt);
 bool GetArcElpsRefDir(double dRef, PDPointList pCache, PDPoint pPt);
 bool GetArcElpsReference(double dDist, PDPointList pCache, double *pdRef);
 int GetArcElpsNumParts(PDPointList pCache, PDRefPoint pBounds);
 bool ArcElpsRemovePart(bool bDown, PDPointList pCache, PDRefPoint pBounds);
+CDPoint GetArcElpsViewBnds(PDPointList pCache);
 
 #endif
