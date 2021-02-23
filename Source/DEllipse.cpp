@@ -1217,7 +1217,8 @@ void AddElpsExtPrim(PDRect pRect, PDPointList pCache, PDPrimObject pPrimList)
     cPrimPt.cPt2 = cOrig;
     cPrimPt.cPt3 = 0;
     cPrimPt.cPt4 = 0;
-    CropPrimitive(cPrimPt, pRect, pPrimList);
+    //CropPrimitive(cPrimPt, pRect, pPrimList);
+    CropPoints(cPrimPt, pRect, pPrimList);
   }
 
   cMainDir = pCache->GetPoint(2, 0).cPoint;
@@ -1236,7 +1237,8 @@ void AddElpsExtPrim(PDRect pRect, PDPointList pCache, PDPrimObject pPrimList)
     cCenter.x *= -1.0;
     cPrimPt.cPt3 = cOrig + Rotate(cCenter, cMainDir, true);
     cPrimPt.cPt4 = 0;
-    CropPrimitive(cPrimPt, pRect, pPrimList);
+    //CropPrimitive(cPrimPt, pRect, pPrimList);
+    CropPoints(cPrimPt, pRect, pPrimList);
 
     cCenter.x = 0.0;
     cCenter.y = cPt2.y - cRad.y;
@@ -1248,7 +1250,8 @@ void AddElpsExtPrim(PDRect pRect, PDPointList pCache, PDPrimObject pPrimList)
     cCenter.y *= -1.0;
     cPrimPt.cPt3 = cOrig + Rotate(cCenter, cMainDir, true);
     cPrimPt.cPt4 = 0;
-    CropPrimitive(cPrimPt, pRect, pPrimList);
+    //CropPrimitive(cPrimPt, pRect, pPrimList);
+    CropPoints(cPrimPt, pRect, pPrimList);
   }
 }
 

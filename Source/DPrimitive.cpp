@@ -12,7 +12,93 @@
 extern HWND g_hStatus;*/
 // -----
 
-int CropLineLeft(CDPrimitive cPrim, CDPoint cPt1, CDPoint cPt2,
+CDPoint GetBezier(CDPrimitive cPrim, double dt)
+{
+    double ds = 1.0 - dt;
+    CDPoint cRes = Power3(ds)*cPrim.cPt1 + 3.0*Power2(ds)*dt*cPrim.cPt2 +
+        3.0*ds*Power2(dt)*cPrim.cPt3 + Power3(dt)*cPrim.cPt4;
+    return cRes;
+}
+
+CDPoint GetBezierDeriv(CDPrimitive cPrim, double dt)
+{
+    double ds = 1.0 - dt;
+    CDPoint cRes = Power2(ds)*(cPrim.cPt2 - cPrim.cPt1) +
+
+        2.0*ds*dt*(cPrim.cPt3 - cPrim.cPt2) +
+        Power2(dt)*(cPrim.cPt4 - cPrim.cPt3);
+    return 3.0*cRes;
+}
+
+CDPoint GetBezierDeriv2(CDPrimitive cPrim, double dt)
+{
+    double ds = 1.0 - dt;
+    CDPoint cRes = ds*(cPrim.cPt3 - 2.0*cPrim.cPt2 + cPrim.cPt1) +
+        dt*(cPrim.cPt4 - 2.0*cPrim.cPt3 + cPrim.cPt2);
+    return 6.0*cRes;
+}
+
+CDPoint GetBezierDir(CDPrimitive cPrim, double dt)
+{
+    double ds = 1.0 - dt;
+    CDPoint cRes = Power2(ds)*(cPrim.cPt2 - cPrim.cPt1) +
+        2.0*ds*dt*(cPrim.cPt3 - cPrim.cPt2) +
+        Power2(dt)*(cPrim.cPt4 - cPrim.cPt3);
+    double dNorm = GetNorm(cRes);
+    if(dNorm > g_dPrec) return cRes/dNorm;
+    if(dt < g_dPrec)
+    {
+        cRes = cPrim.cPt2 - cPrim.cPt1;
+        dNorm = GetNorm(cRes);
+        if(dNorm > g_dPrec) return cRes/dNorm;
+        cRes = cPrim.cPt3 - cPrim.cPt1;
+        dNorm = GetNorm(cRes);
+        if(dNorm > g_dPrec) return cRes/dNorm;
+        cRes = cPrim.cPt4 - cPrim.cPt1;
+        dNorm = GetNorm(cRes);
+        if(dNorm > g_dPrec) return cRes/dNorm;
+    }
+    if(ds < g_dPrec)
+    {
+        cRes = cPrim.cPt4 - cPrim.cPt3;
+        dNorm = GetNorm(cRes);
+        if(dNorm > g_dPrec) return cRes/dNorm;
+        cRes = cPrim.cPt4 - cPrim.cPt2;
+        dNorm = GetNorm(cRes);
+        if(dNorm > g_dPrec) return cRes/dNorm;
+        cRes = cPrim.cPt4 - cPrim.cPt1;
+        dNorm = GetNorm(cRes);
+        if(dNorm > g_dPrec) return cRes/dNorm;
+    }
+    return cRes;
+}
+
+int GetQuadrant(CDPoint cPt1)
+{
+    if((cPt1.y <= 0) && (cPt1.x > 0)) return 1;
+    if((cPt1.y < 0) && (cPt1.x <= 0)) return 2;
+    if((cPt1.y >= 0) && (cPt1.x < 0)) return 3;
+    return 4;
+}
+
+int CmpAngle(CDPoint cPt1, CDPoint cPt2)
+{
+    double dx = fabs(cPt2.x - cPt1.x);
+    double dy = fabs(cPt2.y - cPt1.y);
+
+    if((dx < g_dPrec) && (dy < g_dPrec)) return 0; // the angles are equal
+
+    int iq1 = GetQuadrant(cPt1);
+    int iq2 = GetQuadrant(cPt2);
+
+    if(iq1 < iq2) return 1;
+    if(iq2 < iq1) return -1;
+
+    if(iq1 < 3) return cPt1.x < cPt2.x ? -1: 1;
+    return cPt1.x > cPt2.x ? -1: 1;
+}
+
+/*int CropLineLeft(CDPrimitive cPrim, CDPoint cPt1, CDPoint cPt2,
     PDPrimObject pPrimList)
 {
     CDPoint cDir = cPt2 - cPt1;
@@ -46,31 +132,6 @@ int CropLineLeft(CDPrimitive cPrim, CDPoint cPt1, CDPoint cPt2,
     pPrimList->AddPrimitive(cPrim);
 
     return 1;
-}
-
-int GetQuadrant(CDPoint cPt1)
-{
-    if((cPt1.y <= 0) && (cPt1.x > 0)) return 1;
-    if((cPt1.y < 0) && (cPt1.x <= 0)) return 2;
-    if((cPt1.y >= 0) && (cPt1.x < 0)) return 3;
-    return 4;
-}
-
-int CmpAngle(CDPoint cPt1, CDPoint cPt2)
-{
-    double dx = fabs(cPt2.x - cPt1.x);
-    double dy = fabs(cPt2.y - cPt1.y);
-
-    if((dx < g_dPrec) && (dy < g_dPrec)) return 0; // the angles are equal
-
-    int iq1 = GetQuadrant(cPt1);
-    int iq2 = GetQuadrant(cPt2);
-
-    if(iq1 < iq2) return 1;
-    if(iq2 < iq1) return -1;
-
-    if(iq1 < 3) return cPt1.x < cPt2.x ? -1: 1;
-    return cPt1.x > cPt2.x ? -1: 1;
 }
 
 int CropArcLeft(CDPrimitive cPrim, CDPoint cPt1, CDPoint cPt2,
@@ -264,66 +325,6 @@ CDPrimitive SubBezier(CDPrimitive cPrim, double dt1, double dt2)
     cRes.cPt3 = cp23/3.0 + 2.0*cRes.cPt2 - cRes.cPt1;
     cRes.cPt4 = cp24 + 3.0*cRes.cPt3 - 3.0*cRes.cPt2 + cRes.cPt1;
 
-    return cRes;
-}
-
-CDPoint GetBezier(CDPrimitive cPrim, double dt)
-{
-    double ds = 1.0 - dt;
-    CDPoint cRes = Power3(ds)*cPrim.cPt1 + 3.0*Power2(ds)*dt*cPrim.cPt2 +
-        3.0*ds*Power2(dt)*cPrim.cPt3 + Power3(dt)*cPrim.cPt4;
-    return cRes;
-}
-
-CDPoint GetBezierDeriv(CDPrimitive cPrim, double dt)
-{
-    double ds = 1.0 - dt;
-    CDPoint cRes = Power2(ds)*(cPrim.cPt2 - cPrim.cPt1) +
-        2.0*ds*dt*(cPrim.cPt3 - cPrim.cPt2) +
-        Power2(dt)*(cPrim.cPt4 - cPrim.cPt3);
-    return 3.0*cRes;
-}
-
-CDPoint GetBezierDeriv2(CDPrimitive cPrim, double dt)
-{
-    double ds = 1.0 - dt;
-    CDPoint cRes = ds*(cPrim.cPt3 - 2.0*cPrim.cPt2 + cPrim.cPt1) +
-        dt*(cPrim.cPt4 - 2.0*cPrim.cPt3 + cPrim.cPt2);
-    return 6.0*cRes;
-}
-
-CDPoint GetBezierDir(CDPrimitive cPrim, double dt)
-{
-    double ds = 1.0 - dt;
-    CDPoint cRes = Power2(ds)*(cPrim.cPt2 - cPrim.cPt1) +
-        2.0*ds*dt*(cPrim.cPt3 - cPrim.cPt2) +
-        Power2(dt)*(cPrim.cPt4 - cPrim.cPt3);
-    double dNorm = GetNorm(cRes);
-    if(dNorm > g_dPrec) return cRes/dNorm;
-    if(dt < g_dPrec)
-    {
-        cRes = cPrim.cPt2 - cPrim.cPt1;
-        dNorm = GetNorm(cRes);
-        if(dNorm > g_dPrec) return cRes/dNorm;
-        cRes = cPrim.cPt3 - cPrim.cPt1;
-        dNorm = GetNorm(cRes);
-        if(dNorm > g_dPrec) return cRes/dNorm;
-        cRes = cPrim.cPt4 - cPrim.cPt1;
-        dNorm = GetNorm(cRes);
-        if(dNorm > g_dPrec) return cRes/dNorm;
-    }
-    if(ds < g_dPrec)
-    {
-        cRes = cPrim.cPt4 - cPrim.cPt3;
-        dNorm = GetNorm(cRes);
-        if(dNorm > g_dPrec) return cRes/dNorm;
-        cRes = cPrim.cPt4 - cPrim.cPt2;
-        dNorm = GetNorm(cRes);
-        if(dNorm > g_dPrec) return cRes/dNorm;
-        cRes = cPrim.cPt4 - cPrim.cPt1;
-        dNorm = GetNorm(cRes);
-        if(dNorm > g_dPrec) return cRes/dNorm;
-    }
     return cRes;
 }
 
@@ -525,33 +526,6 @@ int CropPrimitiveByHalfPlaneLeft(CDPrimitive cPrim, CDPoint cPt1, CDPoint cPt2,
     }
 }
 
-int CropPoints(CDPrimitive cPrim, PDRect pRect, PDPrimObject pPrimList)
-{
-    int iRes = 0;
-    CDPrimitive cPrim1;
-    if(cPrim.cPt1.x > 0.5)
-    {
-        if(DPtInDRect(cPrim.cPt2, pRect))
-        {
-            cPrim1.iType = cPrim.iType;
-            cPrim1.cPt1 = cPrim.cPt2;
-            pPrimList->AddPrimitive(cPrim1);
-            iRes++;
-        }
-    }
-    if(cPrim.cPt1.y > 0.5)
-    {
-        if(DPtInDRect(cPrim.cPt3, pRect))
-        {
-            cPrim1.iType = cPrim.iType;
-            cPrim1.cPt1 = cPrim.cPt3;
-            pPrimList->AddPrimitive(cPrim1);
-            iRes++;
-        }
-    }
-    return iRes;
-}
-
 int CropPrimitive(CDPrimitive cPrim, PDRect pRect, PDPrimObject pPrimList)
 {
     if(cPrim.iType > 5)
@@ -630,6 +604,33 @@ int CropPrimitive(CDPrimitive cPrim, PDRect pRect, PDPrimObject pPrimList)
     delete pPL1;
 
     return iRes1;
+}*/
+
+int CropPoints(CDPrimitive cPrim, PDRect pRect, PDPrimObject pPrimList)
+{
+  int iRes = 0;
+  CDPrimitive cPrim1;
+  if(cPrim.cPt1.x > 0.5)
+  {
+    if(DPtInDRect(cPrim.cPt2, pRect))
+    {
+      cPrim1.iType = cPrim.iType;
+      cPrim1.cPt1 = cPrim.cPt2;
+      pPrimList->AddPrimitive(cPrim1);
+      iRes++;
+    }
+  }
+  if(cPrim.cPt1.y > 0.5)
+  {
+    if(DPtInDRect(cPrim.cPt3, pRect))
+    {
+      cPrim1.iType = cPrim.iType;
+      cPrim1.cPt1 = cPrim.cPt3;
+      pPrimList->AddPrimitive(cPrim1);
+      iRes++;
+    }
+  }
+  return iRes;
 }
 
 bool IsSameDir(CDPoint cPt1, CDPoint cPt2)

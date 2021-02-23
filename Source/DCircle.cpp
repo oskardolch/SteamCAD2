@@ -248,7 +248,8 @@ void AddCircleExtPrim(PDRect pRect, PDPointList pCache, PDPrimObject pPrimList)
   cPrimPt.cPt2 = cOrig;
   cPrimPt.cPt3 = 0;
   cPrimPt.cPt4 = 0;
-  CropPrimitive(cPrimPt, pRect, pPrimList);
+  //CropPrimitive(cPrimPt, pRect, pPrimList);
+  CropPoints(cPrimPt, pRect, pPrimList);
 }
 
 double GetCircDistFromPt(CDPoint cPt, CDPoint cRefPt, bool bSnapCenters, PDPointList pCache, PDLine pPtX)

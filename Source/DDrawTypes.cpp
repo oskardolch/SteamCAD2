@@ -509,6 +509,9 @@ void CDObject::AddSimpleSegment(double d1, double d2, double dExt, bool bReverse
   case dtEllipse:
     AddElpsSegment(d1, d2, dExt, bReverse, m_pCachePoints, pPrimList);
     break;
+  case dtArcEllipse:
+    AddArcElpsSegment(d1, d2, dExt, bReverse, m_pCachePoints, pPrimList);
+    break;
   case dtHyperbola:
     AddHyperSegment(d1, d2, dExt, bReverse, m_pCachePoints, pPrimList);
     break;
@@ -1742,7 +1745,8 @@ int CDObject::BuildPrimitives(CDLine cTmpPt, int iMode, PDRect pRect, int iTemp,
     {
       if(GetNativeRefPoint(m_cBounds[1].dRef, 0.0, &cPrim.cPt3)) cPrim.cPt1.y = 1.0;
     }
-    CropPrimitive(cPrim, pRect, plPrimitive);
+    //CropPrimitive(cPrim, pRect, plPrimitive);
+    CropPoints(cPrim, pRect, plPrimitive);
   }
 
   if((iTemp < 1) && (iRes > 0) && (nCrs > 0))

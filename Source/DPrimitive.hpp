@@ -7,7 +7,8 @@ typedef CDPoint (CurveFunc)(void *pvData, double dt);
 typedef double (PtProjFunc)(void *pvData, double dOffset, CDPoint cPt, CDPoint cStart, CDPoint cEnd);
 
 int CmpAngle(CDPoint cPt1, CDPoint cPt2);
-int CropPrimitive(CDPrimitive cPrim, PDRect pRect, PDPrimObject pPrimList);
+//int CropPrimitive(CDPrimitive cPrim, PDRect pRect, PDPrimObject pPrimList);
+int CropPoints(CDPrimitive cPrim, PDRect pRect, PDPrimObject pPrimList);
 double ApproxLineSeg(int iPoints, PDPoint pPoints, PDPoint pStartDir,
 	PDPoint pEndDir, PDPrimitive pPrim);
 bool PointInArc(CDPoint cPt, CDLine cStart, CDLine cEnd);
