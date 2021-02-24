@@ -549,9 +549,10 @@ int AddArcElpsInterLine(CDPoint cPt1, CDPoint cPt2, double dOffset, PDPointList 
 
     cRot1 = cPt1 - cOrig;
     cRot2 = cPt2 - cOrig;
+    cCros = cRot2 - cRot1;
     dCoefs[0] = cRot1*cRot1 - Power2(dr);
-    dCoefs[1] = 2.0*cRot1*(cRot2 - cRot1);
-    dCoefs[2] = (cRot1 + cRot2)*(cRot1 + cRot2);
+    dCoefs[1] = 2.0*cRot1*cCros;
+    dCoefs[2] = cCros*cCros;
     iRoots = SolvePolynom(2, dCoefs, dRoots);
     if(iRoots < 2) return 0;
 
@@ -587,10 +588,11 @@ int AddArcElpsInterLine(CDPoint cPt1, CDPoint cPt2, double dOffset, PDPointList 
     cLn1.y = cRot1.y;
     cLn2.x = cRot2.x - cCenters.x;
     cLn2.x = cRot2.y;
+    cCros = cLn2 - cLn1;
 
     dCoefs[0] = cLn1*cLn1 - Power2(dr);
-    dCoefs[1] = 2.0*cLn1*(cLn2 - cLn1);
-    dCoefs[2] = (cLn1 + cLn2)*(cLn1 + cLn2);
+    dCoefs[1] = 2.0*cLn1*cCros;
+    dCoefs[2] = cCros*cCros;
     iRoots = SolvePolynom(2, dCoefs, dRoots);
     if(iRoots > 1)
     {
@@ -617,10 +619,11 @@ int AddArcElpsInterLine(CDPoint cPt1, CDPoint cPt2, double dOffset, PDPointList 
     cLn1.y = cRot1.y;
     cLn2.x = cRot2.x + cCenters.x;
     cLn2.x = cRot2.y;
+    cCros = cLn2 - cLn1;
 
     dCoefs[0] = cLn1*cLn1 - Power2(dr);
-    dCoefs[1] = 2.0*cLn1*(cLn2 - cLn1);
-    dCoefs[2] = (cLn1 + cLn2)*(cLn1 + cLn2);
+    dCoefs[1] = 2.0*cLn1*cCros;
+    dCoefs[2] = cCros*cCros;
     iRoots = SolvePolynom(2, dCoefs, dRoots);
     if(iRoots > 1)
     {
@@ -649,13 +652,14 @@ int AddArcElpsInterLine(CDPoint cPt1, CDPoint cPt2, double dOffset, PDPointList 
   if(fabs(dr) > g_dPrec)
   {
     cLn1.x = cRot1.x;
-    cLn1.y = cRot1.y - cCenters.y;
+    cLn1.y = cRot1.y + cCenters.y;
     cLn2.x = cRot2.x;
-    cLn2.x = cRot2.y - cCenters.y;
+    cLn2.x = cRot2.y + cCenters.y;
+    cCros = cLn2 - cLn1;
 
     dCoefs[0] = cLn1*cLn1 - Power2(dr);
-    dCoefs[1] = 2.0*cLn1*(cLn2 - cLn1);
-    dCoefs[2] = (cLn1 + cLn2)*(cLn1 + cLn2);
+    dCoefs[1] = 2.0*cLn1*cCros;
+    dCoefs[2] = cCros*cCros;
     iRoots = SolvePolynom(2, dCoefs, dRoots);
     if(iRoots > 1)
     {
@@ -679,13 +683,14 @@ int AddArcElpsInterLine(CDPoint cPt1, CDPoint cPt2, double dOffset, PDPointList 
     }
 
     cLn1.x = cRot1.x;
-    cLn1.y = cRot1.y + cCenters.y;
+    cLn1.y = cRot1.y - cCenters.y;
     cLn2.x = cRot2.x;
-    cLn2.x = cRot2.y + cCenters.y;
+    cLn2.x = cRot2.y - cCenters.y;
+    cCros = cLn2 - cLn1;
 
     dCoefs[0] = cLn1*cLn1 - Power2(dr);
-    dCoefs[1] = 2.0*cLn1*(cLn2 - cLn1);
-    dCoefs[2] = (cLn1 + cLn2)*(cLn1 + cLn2);
+    dCoefs[1] = 2.0*cLn1*cCros;
+    dCoefs[2] = cCros*cCros;
     iRoots = SolvePolynom(2, dCoefs, dRoots);
     if(iRoots > 1)
     {
@@ -708,6 +713,7 @@ int AddArcElpsInterLine(CDPoint cPt1, CDPoint cPt2, double dOffset, PDPointList 
       }
     }
   }
+//printf("%d\n", iRes);
   return iRes;
 }
 
@@ -837,6 +843,7 @@ CDPrimitive TransArcPrimitive(CDPoint cOrig, CDPoint cMainDir, CDPrimitive cPrim
 void AddArcPrimitive(CDPoint cRad, CDPoint cOrig, CDPoint cMainDir, CDPoint cSol,
   bool bReverse, PDPrimObject pPrimList, double d1, double d2, bool bFullCycle)
 {
+//printf("xxx - %f, %f\n", d1, d2);
   double dAng = atan2(cSol.y, cSol.x);
   double db1 = M_PI - dAng;
   double dIntervals[4] = {-db1, -dAng, dAng, db1};
@@ -845,14 +852,54 @@ void AddArcPrimitive(CDPoint cRad, CDPoint cOrig, CDPoint cMainDir, CDPoint cSol
   int iStart = 0;
   while((d1 > dIntervals[iStart] - g_dPrec) && (iStart < 4)) iStart++;
 
-  CDPoint cBnd1 = {d1, d2};
-  CDPoint cBnd2;
-  double d2pi = 2.0*M_PI;
-  CDPoint cBnds[2];
-  int iSegs;
+  //CDPoint cBnd1 = {d1, d2};
+  //CDPoint cBnd2;
+  //double d2pi = 2.0*M_PI;
+  //CDPoint cBnds[2];
+  //int iSegs;
   CDPrimitive cPrim;
+  double dt1, dt2 = d1;
 
-  for(int i = iStart; i < 4; i++)
+  if(d1 > d2)
+  {
+    for(int i = iStart; i < 4; i++)
+    {
+      dt1 = dt2;
+      if(i < 1) dt1 = dIntervals[3];
+      else dt1 = dIntervals[i - 1];
+      cPrim = TransArcPrimitive(cOrig, cMainDir,
+        GetArcPrimitive(dRads[i], cCenters[i], bReverse, dt1, dt2));
+      if(cPrim.iType == 2) pPrimList->AddPrimitive(cPrim);
+    }
+  }
+  dt1 = dt2;
+  int i = 0;
+  dt2 = dIntervals[i++];
+//printf("%d - %f, %f\n", i, dt1, dt2);
+  while((dt2 < d2 - g_dPrec) && (i < 4))
+  {
+    cPrim = TransArcPrimitive(cOrig, cMainDir,
+      GetArcPrimitive(dRads[i - 1], cCenters[i - 1], bReverse, dt1, dt2));
+    if(cPrim.iType == 2) pPrimList->AddPrimitive(cPrim);
+    dt1 = dt2;
+    dt2 = dIntervals[i++];
+//printf("%d - %f, %f\n", i, dt1, dt2);
+  }
+  if(dt2 < d2 - g_dPrec)
+  {
+    cPrim = TransArcPrimitive(cOrig, cMainDir,
+      GetArcPrimitive(dRads[i - 1], cCenters[i - 1], bReverse, dt1, dt2));
+    if(cPrim.iType == 2) pPrimList->AddPrimitive(cPrim);
+    dt1 = dt2;
+  }
+  dt2 = d2;
+//printf("%d - %f, %f\n", i, dt1, dt2);
+  if(i > 3) i = 0;
+  cPrim = TransArcPrimitive(cOrig, cMainDir,
+    GetArcPrimitive(dRads[i], cCenters[i], bReverse, dt1, dt2));
+  if(cPrim.iType == 2) pPrimList->AddPrimitive(cPrim);
+
+/*  for(int i = iStart; i < 4; i++)
   {
     if(i < 1) cBnd2.x = dIntervals[3];
     else cBnd2.x = dIntervals[i - 1];
@@ -878,7 +925,7 @@ void AddArcPrimitive(CDPoint cRad, CDPoint cOrig, CDPoint cMainDir, CDPoint cSol
         GetArcPrimitive(dRads[i], cCenters[i], bReverse, cBnds[j].x, cBnds[j].y));
       if(cPrim.iType == 2) pPrimList->AddPrimitive(cPrim);
     }
-  }
+  }*/
 }
 
 /*int BuildArcElpsPrimitives(CDLine cTmpPt, int iMode, PDRect pRect, PDPointList pPoints,
@@ -1624,6 +1671,7 @@ double GetArcElpsRefAtDist(double dDist, CDPoint cRad, double dAng)
 
 void AddArcElpsSegment(double d1, double d2, double dExt, bool bReverse, PDPointList pCache, PDPrimObject pPrimList) //, PDRect pRect)
 {
+//printf("yyy - %f, %f\n", d1, d2);
   int iCnt = pCache->GetCount(0);
   if(iCnt < 2) return;
 
@@ -1670,13 +1718,14 @@ void AddArcElpsSegment(double d1, double d2, double dExt, bool bReverse, PDPoint
 
     cPrim.iType = 2;
     cPrim.cPt1 = cOrig;
-    cPrim.cPt2.x = fabs(cRad.x);
+    cPrim.cPt2.x = dr;
     cPrim.cPt2.y = 0.0;
     cPrim.cPt3.x = dAng1;
     cPrim.cPt3.y = dAng2;
     cPrim.cPt4 = 0;
     if(bReverse != (cRad.x < 0)) cPrim.cPt4.x = 1.0;
 
+    pPrimList->AddPrimitive(cPrim);
     return;
   }
 
@@ -2147,7 +2196,7 @@ bool ArcElpsRemovePart(bool bDown, PDPointList pCache, PDRefPoint pBounds)
   return false;
 }
 
-CDPoint GetArcElpsViewBnds(PDPointList pCache)
+/*CDPoint GetArcElpsViewBnds(PDPointList pCache)
 {
   int iCnt = pCache->GetCount(0);
   if(iCnt < 5) return {-M_PI, M_PI};
@@ -2155,5 +2204,5 @@ CDPoint GetArcElpsViewBnds(PDPointList pCache)
   CDPoint cSol = pCache->GetPoint(3, 0).cPoint;
   double dSweep = atan2(cSol.y, cSol.x);
   return {-dSweep, 2*M_PI - dSweep};
-}
+}*/
 

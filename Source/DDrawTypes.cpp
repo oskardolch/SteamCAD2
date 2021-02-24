@@ -2430,9 +2430,9 @@ int CDObject::GetRefBounds(PDPoint pPoint)
     }
     return 2;
   case dtArcEllipse:
-    *pPoint = GetArcElpsViewBnds(m_pCachePoints);
-    //pPoint->x = -M_PI;
-    //pPoint->y = M_PI;
+    //*pPoint = GetArcElpsViewBnds(m_pCachePoints);
+    pPoint->x = -M_PI;
+    pPoint->y = M_PI;
     return 2;
   case dtHyperbola:
   case dtParabola:
