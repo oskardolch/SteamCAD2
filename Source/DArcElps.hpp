@@ -8,9 +8,6 @@ bool BuildArcElpsCache(CDLine cTmpPt, int iMode, PDPointList pPoints, PDPointLis
   PDLine pLines, double *pdMovedDist);
 int AddArcElpsInterLine(CDPoint cPt1, CDPoint cPt2, double dOffset, PDPointList pCache, PDRefList pBounds);
 double GetArcElpsOffset(PDPointList pCache);
-//int BuildArcElpsPrimitives(CDLine cTmpPt, int iMode, PDRect pRect, PDPointList pPoints,
-//  PDPointList pCache, PDPrimObject pPrimList, PDLine pLines, PDRefPoint pBounds, double dOffset,
-//  double *pdMovedDist, PDPoint pDrawBnds);
 double GetArcElpsDistFromPt(CDPoint cPt, CDPoint cRefPt, int iSrchMask, PDPointList pCache, PDLine pPtX); //, PDRefPoint pBounds);
 bool HasArcElpsEnoughPoints(PDPointList pPoints, int iInputLines);
 bool GetArcElpsRestrictPoint(CDPoint cPt, int iMode, double dRestrictValue, PDPoint pSnapPt,
@@ -24,6 +21,5 @@ bool GetArcElpsRefDir(double dRef, PDPointList pCache, PDPoint pPt);
 bool GetArcElpsReference(double dDist, PDPointList pCache, double *pdRef);
 int GetArcElpsNumParts(PDPointList pCache, PDRefPoint pBounds);
 bool ArcElpsRemovePart(bool bDown, PDPointList pCache, PDRefPoint pBounds);
-//CDPoint GetArcElpsViewBnds(PDPointList pCache);
 
 #endif

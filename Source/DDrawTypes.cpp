@@ -1513,7 +1513,8 @@ int CDObject::BuildPrimitives(CDLine cTmpPt, int iMode, PDRect pRect, int iTemp,
   cAdd.cPt2.x = 0.0;
   cAdd.cPt4.x = 0.0;
   cAdd.cPt4.y = 0.0;
-  if((iClosed > 1) && (m_iType == dtPath))
+  //if((iClosed > 1) && (m_iType == dtPath))
+  if(iClosed > 0)
   {
     cAdd.cPt4.x = 1.0;
     cAdd.cPt4.y = cBnds.y - cBnds.x;
@@ -1723,7 +1724,7 @@ int CDObject::BuildPrimitives(CDLine cTmpPt, int iMode, PDRect pRect, int iTemp,
   }
   else if(iRes > 0)
   {
-    int iBndType = GetBounds(&cAdd.cPt1, dMid, false);
+    int iBndType = GetBounds(&cAdd.cPt1, dMid, iClosed > 0);
     if(iBndType & 1) cAdd.iType |= 2;
     if(iBndType & 2) cAdd.iType |= 4;
     AddCurveSegment(cAdd, plPrimitive, pBounds);
@@ -2430,7 +2431,6 @@ int CDObject::GetRefBounds(PDPoint pPoint)
     }
     return 2;
   case dtArcEllipse:
-    //*pPoint = GetArcElpsViewBnds(m_pCachePoints);
     pPoint->x = -M_PI;
     pPoint->y = M_PI;
     return 2;
