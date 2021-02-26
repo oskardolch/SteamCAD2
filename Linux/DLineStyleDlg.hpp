@@ -8,55 +8,55 @@
 
 typedef struct CDLineStyleRec
 {
-    CDLineStyle cLineStyle;
-    CDFileUnit cUnit;
-    gboolean bWidthSet;
-    gboolean bExcSet;
-    gboolean bPatSet;
-    gboolean bCapSet;
-    gboolean bJoinSet;
-    gboolean bColorSet;
-    gboolean bWidthChanged;
-    gboolean bExcChanged;
-    gboolean bPatChanged;
-    gboolean bCapChanged;
-    gboolean bJoinChanged;
-    gboolean bColorChanged;
+  CDLineStyle cLineStyle;
+  CDFileUnit cUnit;
+  gboolean bWidthSet;
+  gboolean bExcSet;
+  gboolean bPatSet;
+  gboolean bCapSet;
+  gboolean bJoinSet;
+  gboolean bColorSet;
+  gboolean bWidthChanged;
+  gboolean bExcChanged;
+  gboolean bPatChanged;
+  gboolean bCapChanged;
+  gboolean bJoinChanged;
+  gboolean bColorChanged;
 } *PDLineStyleRec;
 
 typedef class CDLineStyleDlg
 {
 private:
-    gint m_iX;
-    gint m_iY;
-    gboolean m_bSettingUp;
-    PDLineStyleRec m_pLSR;
-/*    gboolean m_bWidthChanged;
-    gboolean m_bExcChanged;
-    gboolean m_bPatChanged;*/
+  gint m_iX;
+  gint m_iY;
+  gboolean m_bSettingUp;
+  PDLineStyleRec m_pLSR;
+/*  gboolean m_bWidthChanged;
+  gboolean m_bExcChanged;
+  gboolean m_bPatChanged;*/
 
-    GtkWidget *m_pDlg;
-    GtkWidget *m_pLineWidthEdt;
-    GtkWidget *m_pEccentEdt;
-    GtkWidget *m_pLineCapCB;
-    GtkWidget *m_pLineJoinCB;
-    GtkWidget *m_pLineColorBtn;
-    GtkWidget *m_pPatternEdt[6];
+  GtkWidget *m_pDlg;
+  GtkWidget *m_pLineWidthEdt;
+  GtkWidget *m_pEccentEdt;
+  GtkWidget *m_pLineCapCB;
+  GtkWidget *m_pLineJoinCB;
+  GtkWidget *m_pLineColorBtn;
+  GtkWidget *m_pPatternEdt[6];
 public:
-    CDLineStyleDlg();
-    ~CDLineStyleDlg();
-    gboolean ShowDialog(GtkWidget *pWndParent, PDLineStyleRec pLSR);
-    void SaveSettings(FILE *fp);
-    void RestoreSettings(gint iLeft, gint iTop);
+  CDLineStyleDlg();
+  ~CDLineStyleDlg();
+  gboolean ShowDialog(GtkWidget *pWndParent, PDLineStyleRec pLSR);
+  void SaveSettings(FILE *fp);
+  void RestoreSettings(gint iLeft, gint iTop);
 
-    gboolean Configure(GtkWidget *widget, GdkEvent *event);
-    void LineWidthChange(GtkEntry *entry);
-    void LineExcChange(GtkEntry *entry);
-    void LinePatChange(GtkEntry *entry);
-    void LineCapChange(GtkComboBox *entry);
-    void LineJoinChange(GtkComboBox *entry);
-    void LineColorChange(GtkColorButton *entry);
-    void OKBtnClick(GtkButton *button);
+  gboolean Configure(GtkWidget *widget, GdkEvent *event);
+  void LineWidthChange(GtkEntry *entry);
+  void LineExcChange(GtkEntry *entry);
+  void LinePatChange(GtkEntry *entry);
+  void LineCapChange(GtkComboBox *entry);
+  void LineJoinChange(GtkComboBox *entry);
+  void LineColorChange(GtkColorButton *entry);
+  void OKBtnClick(GtkButton *button);
 } *PDLineStyleDlg;
 
 #endif
