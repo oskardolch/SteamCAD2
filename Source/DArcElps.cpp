@@ -31,7 +31,7 @@ bool AddArcElpsPoint(double x, double y, char iCtrl, double dRestrictVal, PDPoin
     if(nOffs2 > 0) pPoints->SetPoint(0, 2, cNewPt.x, cNewPt.y, iCtrl);
     else if(nOffs3 > 0) pPoints->SetPoint(0, 3, cNewPt.x, cNewPt.y, iCtrl);
     else if(nOffs4 > 0) pPoints->SetPoint(0, 4, cNewPt.x, cNewPt.y, iCtrl);
-    else pPoints->AddPoint(x, y, iCtrl);
+    else pPoints->AddPoint(cNewPt.x, cNewPt.y, iCtrl);
     return true;
   }
 
@@ -643,6 +643,12 @@ CDPrimitive GetArcPrimitive(double dRad, CDPoint cCenter, bool bReverse, double 
   double dr = fabs(dRad);
   if(dr < g_dPrec) return cRes;
 
+  if(dRad < 0.0)
+  {
+    da1 = OpositeAngle(da1);
+    da2 = OpositeAngle(da2);
+  }
+
   cRes.iType = 2;
   cRes.cPt1 = cCenter;
   cRes.cPt2.x = dr;
@@ -650,7 +656,7 @@ CDPrimitive GetArcPrimitive(double dRad, CDPoint cCenter, bool bReverse, double 
   cRes.cPt3.x = da1;
   cRes.cPt3.y = da2;
   cRes.cPt4 = 0;
-  if(bReverse != (dRad < 0.0)) cRes.cPt4.x = 1.0;
+  if(bReverse) cRes.cPt4.x = 1.0;
   return cRes;
 }
 
@@ -1354,29 +1360,13 @@ void AddArcElpsSegment(double d1, double d2, double dExt, bool bReverse, PDPoint
     double dr = fabs(cRad.x);
     if(dr < g_dPrec) return;
 
-    /*if(d1 > d2)
-    {
-      dAng1 = d1/dr;
-      dAng2 = d2/dr;
-    }
-    else
-    {
-      dAng1 = d2/dr;
-      dAng2 = d1/dr;
-    }
-
-    cPrim.iType = 2;
-    cPrim.cPt1 = cOrig;
-    cPrim.cPt2.x = cOrig.x + dr;
-    cPrim.cPt2.y = cOrig.y + dr;
-    cPrim.cPt3.x = cOrig.x + cRad.x*cos(dAng1);
-    cPrim.cPt3.y = cOrig.y + cRad.x*sin(dAng1);
-    cPrim.cPt4.x = cOrig.x + cRad.x*cos(dAng2);
-    cPrim.cPt4.y = cOrig.y + cRad.x*sin(dAng2);
-    CropPrimitive(cPrim, pRect, pPrimList);*/
-
     dAng1 = d1/dr;
     dAng2 = d2/dr;
+    if(cRad.x < 0.0)
+    {
+      dAng1 = OpositeAngle(dAng1);
+      dAng2 = OpositeAngle(dAng2);
+    }
 
     cPrim.iType = 2;
     cPrim.cPt1 = cOrig;
@@ -1385,7 +1375,7 @@ void AddArcElpsSegment(double d1, double d2, double dExt, bool bReverse, PDPoint
     cPrim.cPt3.x = dAng1;
     cPrim.cPt3.y = dAng2;
     cPrim.cPt4 = 0;
-    if(bReverse != (cRad.x < 0)) cPrim.cPt4.x = 1.0;
+    if(bReverse) cPrim.cPt4.x = 1.0;
 
     pPrimList->AddPrimitive(cPrim);
     return;
@@ -1855,5 +1845,53 @@ bool ArcElpsRemovePart(bool bDown, PDPointList pCache, PDRefPoint pBounds)
   }
 
   return false;
+}
+
+int GetArcElpsSnapPoints(PDPointList pCache, double *pdRefs)
+{
+  int iRes = 0;
+
+  int iCnt = pCache->GetCount(0);
+  if(iCnt < 5) return iRes;
+
+  //CDPoint cOrig = pCache->GetPoint(0, 0).cPoint;
+  CDPoint cRad = pCache->GetPoint(1, 0).cPoint;
+
+  int nOffs = pCache->GetCount(2);
+  if(nOffs > 0)
+  {
+    double dOff = pCache->GetPoint(0, 2).cPoint.x;
+    cRad.x += dOff;
+    cRad.y += dOff;
+  }
+
+  //CDPoint cMainDir = pCache->GetPoint(2, 0).cPoint;
+  CDPoint cSol = pCache->GetPoint(3, 0).cPoint;
+  //CDPoint cInter = pCache->GetPoint(4, 0).cPoint;
+
+  if(cRad.x > g_dPrec) return iRes;
+  if(cRad.y < -g_dPrec) return iRes;
+
+  double dAng = atan2(cSol.y, cSol.x);
+  pdRefs[iRes++] = dAng - M_PI;
+  pdRefs[iRes++] = -dAng;
+  pdRefs[iRes++] = dAng;
+  pdRefs[iRes++] = M_PI - dAng;
+  if(cRad.x > -g_dPrec) return iRes;
+  if(cRad.y < g_dPrec) return iRes;
+  if(cRad.y < cSol.y - g_dPrec) return iRes;
+  if(cRad.y < cSol.y + g_dPrec)
+  {
+    pdRefs[iRes++] = -M_PI/2.0;
+    pdRefs[iRes++] = M_PI/2.0;
+    return iRes;
+  }
+
+  dAng = acos(cSol.y/cRad.y);
+  pdRefs[iRes++] = -M_PI/2.0 - dAng;
+  pdRefs[iRes++] = -M_PI/2.0 + dAng;
+  pdRefs[iRes++] = M_PI/2.0 - dAng;
+  pdRefs[iRes++] = M_PI/2.0 + dAng;
+  return iRes;
 }
 

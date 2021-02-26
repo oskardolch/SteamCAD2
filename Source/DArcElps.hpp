@@ -21,5 +21,6 @@ bool GetArcElpsRefDir(double dRef, PDPointList pCache, PDPoint pPt);
 bool GetArcElpsReference(double dDist, PDPointList pCache, double *pdRef);
 int GetArcElpsNumParts(PDPointList pCache, PDRefPoint pBounds);
 bool ArcElpsRemovePart(bool bDown, PDPointList pCache, PDRefPoint pBounds);
+int GetArcElpsSnapPoints(PDPointList pCache, double *pdRefs);
 
 #endif

@@ -4459,6 +4459,7 @@ int CDObject::GetPointReferences(CDPoint cPt, PDRefList pRefs)
   int iLen = 0;
 
   if(m_iType == dtEllipse) iLen = GetElpsSnapPoints(m_pCachePoints, dRefs);
+  else if(m_iType == dtArcEllipse) iLen = GetArcElpsSnapPoints(m_pCachePoints, dRefs);
   else if(m_iType == dtHyperbola) iLen = GetHyperSnapPoints(m_pCachePoints, dRefs);
   else if(m_iType == dtParabola) iLen = GetParabSnapPoints(m_pCachePoints, dRefs);
   else if(m_iType == dtEvolvent) iLen = GetEvolvSnapPoints(m_pCachePoints, dRefs);
@@ -5476,6 +5477,7 @@ int CDObject::GetSnapPoint(int iSnapMask, CDPoint cPt, double dDist, PDLine pSna
   int iLen = 0;
 
   if(m_iType == dtEllipse) iLen = GetElpsSnapPoints(m_pCachePoints, dRefs);
+  else if(m_iType == dtArcEllipse) iLen = GetArcElpsSnapPoints(m_pCachePoints, dRefs);
   else if(m_iType == dtHyperbola) iLen = GetHyperSnapPoints(m_pCachePoints, dRefs);
   else if(m_iType == dtParabola) iLen = GetParabSnapPoints(m_pCachePoints, dRefs);
   else if(m_iType == dtEvolvent) iLen = GetEvolvSnapPoints(m_pCachePoints, dRefs);

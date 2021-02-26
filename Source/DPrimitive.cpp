@@ -1368,6 +1368,13 @@ int RefInOpenBounds(PDRefPoint pBounds, double dRef)
     return 1;
 }*/
 
+double OpositeAngle(double dAng)
+{
+  double dRes = dAng + M_PI;
+  while(dRes > M_PI + g_dPrec) dRes -= 2.0*M_PI;
+  return dRes;
+}
+
 int SplitCurveParts(double dt1, double dt2, CDPoint cBreak, double *pdParts)
 {
   int iRes = 0;

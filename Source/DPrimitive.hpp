@@ -21,6 +21,7 @@ double GetQuadPointAtDist(PDPrimitive pQuad, double t1, double dDist);
 int RefInBounds(double da1, double da2, double dRef);
 int RefInOpenBounds(PDRefPoint pBounds, double dRef);
 //int MergeBounds(double da1, double da2, double db1, double db2, bool bFullCycle, double *pdBnds);
+double OpositeAngle(double dAng);
 
 bool PtInDblList(double du, int iSize, double *pdList);
 // cStart, cEnd - x = 0 .. not set, x = 1 .. set, y is the reference
