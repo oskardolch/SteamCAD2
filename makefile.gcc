@@ -38,7 +38,7 @@ dl_writer_ascii.o : dxflib/dl_writer_ascii.cpp dxflib/dl_writer_ascii.h
 dl_dxf.o : dxflib/dl_dxf.cpp dxflib/dl_dxf.h
 
 
-DGuiobj = SteamCAD.o DMenu.o DApplication.o DDataTypes.o DMath.o DTopo.o \
+DGuiobj = SteamCAD2.o DMenu.o DApplication.o DDataTypes.o DMath.o DTopo.o \
     DDrawTypes.o DPrimitive.o DLine.o DCircle.o DEllipse.o DArcElps.o \
     DHyper.o DParabola.o DSpline.o DEvolv.o DExpCairo.o DParser.o \
     DFileMenu.o DModeMenu.o DEditMenu.o DViewToolsMenu.o DFileSetupDlg.o \
@@ -50,7 +50,7 @@ DGuimod = $(addprefix $(BUILDDIR), $(DGuiobj)) \
 %.o : Linux/%.cpp
 	$(CC) $(CFLAGS) -c $< -o $(BUILDDIR)$@ $(CARGS)
 
-SteamCAD.o : Linux/SteamCAD.cpp Linux/DApplication.hpp
+SteamCAD2.o : Linux/SteamCAD2.cpp Linux/DApplication.hpp
 DApplication.o : Linux/DApplication.cpp Linux/DApplication.hpp Linux/DLxBaseDefs.h \
     Linux/DMenu.hpp Source/DDrawTypes.hpp Source/DMath.hpp Source/DExpCairo.hpp \
     Linux/DFileSetupDlg.hpp Linux/DLineStyleDlg.hpp Linux/DStatDlg.hpp \

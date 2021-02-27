@@ -4,7 +4,7 @@ AM_CPPFLAGS = $(GTK_CFLAGS) -DLOCALEDIR='"$(localedir)"' -DCONFDIR=\"$(sysconfdi
 AM_LDFLAGS = -Wl,-rpath,.
 SteamCAD_LDADD = $(GTK_LIBS)
 
-bin_PROGRAMS = SteamCAD
+bin_PROGRAMS = SteamCAD2
 SteamCAD_SOURCES = dxflib/dl_writer_ascii.cpp dxflib/dl_dxf.cpp \
     Source/DDataTypes.cpp Source/DMath.cpp Source/DTopo.cpp \
     Source/DDrawTypes.cpp Source/DPrimitive.cpp Source/DLine.cpp \
@@ -12,7 +12,7 @@ SteamCAD_SOURCES = dxflib/dl_writer_ascii.cpp dxflib/dl_dxf.cpp \
     Source/DHyper.cpp Source/DParabola.cpp Source/DSpline.cpp \
     Source/DEvolv.cpp Source/DExpCairo.cpp Source/DParser.cpp \
     Source/DExpDXF.cpp \
-    Linux/SteamCAD.cpp Linux/DApplication.cpp Linux/DMenu.cpp \
+    Linux/SteamCAD2.cpp Linux/DApplication.cpp Linux/DMenu.cpp \
     Linux/DFileMenu.cpp Linux/DModeMenu.cpp Linux/DEditMenu.cpp \
     Linux/DViewToolsMenu.cpp Linux/DFileSetupDlg.cpp \
     Linux/DLineStyleDlg.cpp Linux/DDimEditDlg.cpp Linux/DStatDlg.cpp \

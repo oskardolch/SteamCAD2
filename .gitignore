@@ -1,6 +1,6 @@
-# run "git clean -ndX" to see what filed are actually ignored
+# run "git clean -ndX" to see what files are actually ignored
 
-autobuild
+steamcad2_autobuild
 config.*
 !config.sub
 !config.guess

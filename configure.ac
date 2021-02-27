@@ -2,7 +2,7 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ([2.62])
-AC_INIT([SteamCAD], [1.1], [pavel@pamsoft.cz])
+AC_INIT([SteamCAD2], [1.0], [pavel@pamsoft.cz])
 AC_CONFIG_HEADERS([Linux/config.h])
 
 AM_INIT_AUTOMAKE([subdir-objects])
