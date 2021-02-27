@@ -2773,7 +2773,7 @@ bool CDObject::IsValidRef(double dRef)
 
     if(m_cBounds[0].dRef > m_cBounds[1].dRef)
     {
-      if((m_cBounds[1].dRef < dRef) && (dRef < m_cBounds[0].dRef))
+      if((m_cBounds[1].dRef < dRef - g_dPrec) && (dRef + g_dPrec < m_cBounds[0].dRef))
         return false;
       return true;
     }
@@ -2781,12 +2781,12 @@ bool CDObject::IsValidRef(double dRef)
 
   if(m_cBounds[0].bIsSet)
   {
-    if(dRef < m_cBounds[0].dRef) return false;
+    if(dRef < m_cBounds[0].dRef - g_dPrec) return false;
   }
 
   if(m_cBounds[1].bIsSet)
   {
-    if(dRef > m_cBounds[1].dRef) return false;
+    if(dRef > m_cBounds[1].dRef + g_dPrec) return false;
   }
 
   return true;
@@ -4461,8 +4461,11 @@ int CDObject::GetPointReferences(CDPoint cPt, PDRefList pRefs)
   {
     for(int i = 0; i < iLen; i++)
     {
-      GetNativeRefPoint(dRefs[i], 0.0, &cPt1);
-      if(GetDist(cPt, cPt1) < dblDist) pRefs->AddPoint(dRefs[i]);
+      if(IsValidRef(dRefs[i]))
+      {
+        GetNativeRefPoint(dRefs[i], 0.0, &cPt1);
+        if(GetDist(cPt, cPt1) < dblDist) pRefs->AddPoint(dRefs[i]);
+      }
     }
     int iCnt = pRefs->GetCount();
     if(iCnt > 0) return iCnt;
@@ -5467,8 +5470,12 @@ int CDObject::GetSnapPoint(int iSnapMask, CDPoint cPt, double dDist, PDLine pSna
     bool bFound = false;
     while(!bFound && (i < iLen))
     {
-      GetNativeRefPoint(dRefs[i++], 0.0, &cPt1);
-      bFound = (GetDist(cPt, cPt1) < dblDist);
+      if(IsValidRef(dRefs[i]))
+      {
+        GetNativeRefPoint(dRefs[i], 0.0, &cPt1);
+        bFound = (GetDist(cPt, cPt1) < dblDist);
+      }
+      i++;
     }
     if(bFound)
     {
