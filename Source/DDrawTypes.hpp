@@ -133,6 +133,7 @@ private:
   void AddSimpleSegment(double d1, double d2, double dExt, bool bReverse, PDPrimObject pPrimList);
   void AddPathSegment(double d1, double d2, double dExt, PDPrimObject pPrimList);
   int GetPointReferences(CDPoint cPt, PDRefList pRefs);
+  CDObject* SplitByRef(double dRef, PDPtrList pRegions);
 public:
   CDObject(CDDrawType iType, double dWidth);
   ~CDObject();
@@ -168,7 +169,7 @@ public:
   bool GetRestrictPoint(CDPoint cPt, int iMode, bool bRestrictSet, double dRestrictValue,
       PDPoint pSnapPt);
   CDObject* Copy();
-  bool Split(CDPoint cPt, double dDist, PDRect pRect, CDObject** ppNewObj, PDPtrList pRegions);
+  bool Split(CDPoint cPt, PDPtrList pNewObjects, PDRect pRect, PDPtrList pRegions);
   bool Extend(CDPoint cPt, double dDist, PDRect pRect, PDPtrList pRegions);
   void SetBound(int iIndex, CDLine cBound);
   void SetBound(int iIndex, CDRefPoint cBound);

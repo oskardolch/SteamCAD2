@@ -544,10 +544,16 @@ void CDObject::AddPathSegment(double d1, double d2, double dExt, PDPrimObject pP
 
   if((i1 == i2) && (d1 < d2 - g_dPrec))
   {
-    pObj->GetPointRefDist(dRef1, dExt, &dd1);
-    pObj->GetPointRefDist(dRef2, dExt, &dd2);
-    pObj->AddSimpleSegment(dd1, dd2, dExt, pSeg->bReverse, pPrimList);
-    return;
+    if(d2 - d1 < pObj->GetLength(0.0) + g_dPrec)
+    {
+      pObj->GetPointRefDist(dRef1, dExt, &dd1);
+      pObj->GetPointRefDist(dRef2, dExt, &dd2);
+      if(pSeg->bReverse)
+        pObj->AddSimpleSegment(dd2, dd1, dExt, true, pPrimList);
+      else
+        pObj->AddSimpleSegment(dd1, dd2, dExt, false, pPrimList);
+      return;
+    }
   }
 
   CDPoint cBounds;
@@ -1727,6 +1733,13 @@ int CDObject::BuildPrimitives(CDLine cTmpPt, int iMode, PDRect pRect, int iTemp,
     int iBndType = GetBounds(&cAdd.cPt1, dMid, iClosed > 0);
     if(iBndType & 1) cAdd.iType |= 2;
     if(iBndType & 2) cAdd.iType |= 4;
+    if((nCrs > 0) && (iClosed > 1))
+    {
+      double dLen = cAdd.cPt1.y - cAdd.cPt1.x;
+      double dt = m_pCrossPoints->GetPoint(0);
+      GetPointRefDist(dt, dMid, &cAdd.cPt1.x);
+      cAdd.cPt1.y = cAdd.cPt1.x + dLen;
+    }
     AddCurveSegment(cAdd, plPrimitive, pBounds);
   }
 
@@ -2685,74 +2698,74 @@ PDPathSeg CDObject::GetPathRefSegment(double dRef, double dOffset, double *pdSeg
 
 bool CDObject::GetPathRefPoint(double dRef, double dOffset, PDPoint pPt)
 {
-    double d1;
-    PDPathSeg pSeg = GetPathRefSegment(dRef, dOffset, &d1, NULL);
-    if(!pSeg) return false;
+  double d1;
+  PDPathSeg pSeg = GetPathRefSegment(dRef, dOffset, &d1, NULL);
+  if(!pSeg) return false;
 
-    return pSeg->pSegment->GetNativeRefPoint(d1, dOffset, pPt);
+  return pSeg->pSegment->GetNativeRefPoint(d1, dOffset, pPt);
 }
 
 bool CDObject::GetNativeRefPoint(double dRef, double dOffset, PDPoint pPt)
 {
-    switch(m_iType)
-    {
-    case dtLine:
-        return GetLineRefPoint(dRef, dOffset, m_pCachePoints, pPt);
-    case dtCircle:
-        return GetCircRefPoint(dRef, dOffset, m_pCachePoints, pPt);
-    case dtEllipse:
-        return GetElpsRefPoint(dRef, dOffset, m_pCachePoints, pPt);
-    case dtArcEllipse:
-        return GetArcElpsRefPoint(dRef, dOffset, m_pCachePoints, pPt);
-    case dtHyperbola:
-        return GetHyperRefPoint(dRef, dOffset, m_pCachePoints, pPt);
-    case dtParabola:
-        return GetParabRefPoint(dRef, dOffset, m_pCachePoints, pPt);
-    case dtSpline:
-        return GetSplineRefPoint(dRef, dOffset, m_pCachePoints, pPt);
-    case dtEvolvent:
-        return GetEvolvRefPoint(dRef, dOffset, m_pCachePoints, pPt);
-    case dtPath:
-        return GetPathRefPoint(dRef, dOffset, pPt);
-    default:
-        return false;
-    }
+  switch(m_iType)
+  {
+  case dtLine:
+    return GetLineRefPoint(dRef, dOffset, m_pCachePoints, pPt);
+  case dtCircle:
+    return GetCircRefPoint(dRef, dOffset, m_pCachePoints, pPt);
+  case dtEllipse:
+    return GetElpsRefPoint(dRef, dOffset, m_pCachePoints, pPt);
+  case dtArcEllipse:
+    return GetArcElpsRefPoint(dRef, dOffset, m_pCachePoints, pPt);
+  case dtHyperbola:
+    return GetHyperRefPoint(dRef, dOffset, m_pCachePoints, pPt);
+  case dtParabola:
+    return GetParabRefPoint(dRef, dOffset, m_pCachePoints, pPt);
+  case dtSpline:
+    return GetSplineRefPoint(dRef, dOffset, m_pCachePoints, pPt);
+  case dtEvolvent:
+    return GetEvolvRefPoint(dRef, dOffset, m_pCachePoints, pPt);
+  case dtPath:
+    return GetPathRefPoint(dRef, dOffset, pPt);
+  default:
+    return false;
+  }
 }
 
 bool CDObject::GetPathRefDir(double dRef, PDPoint pPt)
 {
-    double d1;
-    PDPathSeg pSeg = GetPathRefSegment(dRef, 0.0, &d1, NULL);
-    if(!pSeg) return false;
+  double d1;
+  PDPathSeg pSeg = GetPathRefSegment(dRef, 0.0, &d1, NULL);
+  if(!pSeg) return false;
 
-    return pSeg->pSegment->GetNativeRefDir(d1, pPt);
+  return pSeg->pSegment->GetNativeRefDir(d1, pPt);
 }
 
 bool CDObject::GetNativeRefDir(double dRef, PDPoint pPt)
 {
-    switch(m_iType)
-    {
-    case dtLine:
-        return GetLineRefDir(dRef, m_pCachePoints, pPt);
-    case dtCircle:
-        return GetCircRefDir(dRef, m_pCachePoints, pPt);
-    case dtEllipse:
-        return GetElpsRefDir(dRef, m_pCachePoints, pPt);
-    case dtArcEllipse:
-        return GetArcElpsRefDir(dRef, m_pCachePoints, pPt);
-    case dtHyperbola:
-        return GetHyperRefDir(dRef, m_pCachePoints, pPt);
-    case dtParabola:
-        return GetParabRefDir(dRef, m_pCachePoints, pPt);
-    case dtSpline:
-        return GetSplineRefDir(dRef, m_pCachePoints, pPt);
-    case dtEvolvent:
-        return GetEvolvRefDir(dRef, m_pCachePoints, pPt);
-    case dtPath:
-        return GetPathRefDir(dRef, pPt);
-    default:
-        return false;
-    }
+  switch(m_iType)
+  {
+  case dtLine:
+    return GetLineRefDir(dRef, m_pCachePoints, pPt);
+  case dtCircle:
+    return GetCircRefDir(dRef, m_pCachePoints, pPt);
+  case dtEllipse:
+    return GetElpsRefDir(dRef, m_pCachePoints, pPt);
+  case dtArcEllipse:
+    return GetArcElpsRefDir(dRef, m_pCachePoints, pPt);
+  case dtHyperbola:
+    return GetHyperRefDir(dRef, m_pCachePoints, pPt);
+  case dtParabola:
+    return GetParabRefDir(dRef, m_pCachePoints, pPt);
+  case dtSpline:
+    return GetSplineRefDir(dRef, m_pCachePoints, pPt);
+  case dtEvolvent:
+    return GetEvolvRefDir(dRef, m_pCachePoints, pPt);
+  case dtPath:
+    return GetPathRefDir(dRef, pPt);
+  default:
+    return false;
+  }
 }
 
 bool CDObject::IsValidRef(double dRef)
@@ -3432,20 +3445,131 @@ void CDObject::SetBound(int iIndex, CDRefPoint cBound)
   }
 }
 
-bool CDObject::Split(CDPoint cPt, double dDist, PDRect pRect, CDObject** ppNewObj, PDPtrList pRegions)
+PDObject CDObject::SplitByRef(double dRef, PDPtrList pRegions)
 {
-  *ppNewObj = NULL;
+  CDRefPoint cBnd;
+  cBnd.bIsSet = true;
+  cBnd.dRef = dRef;
 
+  int iClosed = IsClosed();
+  if(iClosed == 2)
+  {
+    SetBound(0, cBnd);
+    AddRegions(pRegions, -1);
+    return NULL;
+  }
+
+  PDObject pNewObj = NULL;
+
+  if(m_cBounds[0].bIsSet)
+  {
+    if(m_cBounds[1].bIsSet)
+    {
+      pNewObj = Copy();
+      SetBound(1, cBnd);
+      pNewObj->SetBound(0, cBnd);
+    }
+    else
+    {
+      pNewObj = Copy();
+      SetBound(1, cBnd);
+      pNewObj->SetBound(0, cBnd);
+      if(iClosed > 0) pNewObj->SetBound(1, m_cBounds[0]);
+    }
+  }
+  else
+  {
+    if(m_cBounds[1].bIsSet)
+    {
+      pNewObj = Copy();
+      SetBound(0, cBnd);
+      pNewObj->SetBound(1, cBnd);
+    }
+    else if(iClosed < 1)
+    {
+      pNewObj = Copy();
+      SetBound(0, cBnd);
+      pNewObj->SetBound(1, cBnd);
+    }
+    else SetBound(0, cBnd);
+  }
+
+  PDDimension pDim;
+  int n = m_pDimens->GetCount();
+  for(int i = n - 1; i >= 0; i--)
+  {
+    pDim = (PDDimension)m_pDimens->GetItem(i);
+    if(m_cBounds[0].bIsSet && m_cBounds[1].bIsSet)
+    {
+      if(m_cBounds[0].dRef < m_cBounds[1].dRef)
+      {
+        if(pDim->dRef1 < m_cBounds[0].dRef - g_dPrec)
+        {
+          m_pDimens->Remove(i);
+          if(pDim->dRef2 < m_cBounds[0].dRef + g_dPrec) pNewObj->AddDimenPtr(pDim);
+          else free(pDim);
+        }
+        else if(pDim->dRef2 > m_cBounds[1].dRef + g_dPrec)
+        {
+          m_pDimens->Remove(i);
+          if(pDim->dRef1 > m_cBounds[1].dRef - g_dPrec) pNewObj->AddDimenPtr(pDim);
+          else free(pDim);
+        }
+      }
+    }
+    else if(m_cBounds[0].bIsSet)
+    {
+      if(pDim->dRef1 < m_cBounds[0].dRef - g_dPrec)
+      {
+        m_pDimens->Remove(i);
+        if(pDim->dRef2 < m_cBounds[0].dRef + g_dPrec) pNewObj->AddDimenPtr(pDim);
+        else free(pDim);
+      }
+    }
+    else if(m_cBounds[1].bIsSet)
+    {
+      if(pDim->dRef2 > m_cBounds[1].dRef + g_dPrec)
+      {
+        m_pDimens->Remove(i);
+        if(pDim->dRef1 > m_cBounds[1].dRef - g_dPrec) pNewObj->AddDimenPtr(pDim);
+        else free(pDim);
+      }
+    }
+  }
+
+  CDLine cPtX;
+  cPtX.bIsSet = false;
+  AddRegions(pRegions, -1);
+  pNewObj->BuildCache(cPtX, 0);
+  pNewObj->SetSelected(true, false, -1, pRegions);
+  return pNewObj;
+}
+
+bool CDObject::Split(CDPoint cPt, PDPtrList pNewObjects, PDRect pRect, PDPtrList pRegions)
+{
   // new version should be based on reference list:
   PDRefList pRefs = new CDRefList();
   int iRefs = GetPointReferences(cPt, pRefs);
-  double dRef, dRef2;
+  pRefs->Sort(0);
+  double dRef;
+  PDObject pNewObj = NULL;
   for(int i = 0; i < iRefs; i++)
   {
     dRef = pRefs->GetPoint(i);
+    if(pNewObj)
+    {
+      pNewObjects->Add(pNewObj);
+      pNewObj = pNewObj->SplitByRef(dRef, pRegions);
+    }
+    else pNewObj = SplitByRef(dRef, pRegions);
   }
+  if(pNewObj) pNewObjects->Add(pNewObj);
   delete pRefs;
+  return pNewObjects->GetCount() > 0;
   // ----
+
+  /*
+  *ppNewObj = NULL;
 
   CDLine cPtX, cLn;
   cLn.bIsSet = false;
@@ -3548,7 +3672,7 @@ bool CDObject::Split(CDPoint cPt, double dDist, PDRect pRect, CDObject** ppNewOb
   pNewObj->SetSelected(true, false, -1, pRegions);
 
   *ppNewObj = pNewObj;
-  return true;
+  return true;*/
 }
 
 bool CDObject::Extend(CDPoint cPt, double dDist, PDRect pRect, PDPtrList pRegions)
@@ -5749,22 +5873,25 @@ bool CDataList::CutSelected(CDPoint cPt, double dDist, PDRect pRect, PDPtrList p
   bool bRes = false;
   PDObject pObj, pObjNew = NULL;
   int n = m_iDataLen;
+  PDPtrList pNewObjs = new CDPtrList();
   for(int i = 0; i < n; i++)
   {
     pObj = m_ppObjects[i];
     if(pObj->GetSelected())
     {
-      if(pObj->Split(cPt, dDist, pRect, &pObjNew, pRegions))
+      pNewObjs->Clear();
+      if(pObj->Split(cPt, pNewObjs, pRect, pRegions))
       {
         bRes = true;
-        if(pObjNew)
+        for(int i = 0; i < pNewObjs->GetCount(); i++)
         {
+          pObjNew = (PDObject)pNewObjs->GetItem(i);
           Add(pObjNew);
-          pObjNew = NULL;
         }
       }
     }
   }
+  delete pNewObjs;
   if(bRes) m_bHasChanged = true;
   return bRes;
 }
