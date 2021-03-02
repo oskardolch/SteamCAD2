@@ -243,7 +243,7 @@ int GetSnapPointFromList(int iSnapMask, CDPoint cPt, double dDist, PDLine pSnapP
     iIter++;
     dIncl = 0.0;
     iX = LineXLine(cPtSnap1.cOrigin, GetNormal(cPtSnap1.cDirection),
-    cPtSnap2.cOrigin, GetNormal(cPtSnap2.cDirection), &cX);
+      cPtSnap2.cOrigin, GetNormal(cPtSnap2.cDirection), &cX);
     if(iX > 0)
     {
       dDist3 = GetDist(cPt, cX);
@@ -270,8 +270,8 @@ int GetSnapPointFromList(int iSnapMask, CDPoint cPt, double dDist, PDLine pSnapP
     else bFound2 = false;
 
     bDoIter = bFound2 && (iIter < iIterMax) &&
-    ((dDist1 > g_dRootPrec) || (dDist2 > g_dRootPrec) || (iIter < 4) ||
-    ((dIncl > 1.0 - g_dPrec) && (dIncl < 1.0 - g_dRootPrec)));
+      ((dDist1 > g_dRootPrec) || (dDist2 > g_dRootPrec) || (iIter < 4) ||
+      ((dIncl > 1.0 - g_dPrec) && (dIncl < 1.0 - g_dRootPrec)));
     /*if(!bDoIter && bFound2 && (iIter < iIterMax))
     {
       // do one more iteration
@@ -4595,6 +4595,21 @@ int CDObject::GetPointReferences(CDPoint cPt, PDRefList pRefs)
     if(iCnt > 0) return iCnt;
   }
 
+  if(m_iType == dtSpline)
+  {
+    double dt;
+    PDRefList pRefs1 = new CDRefList();
+    iLen = GetSplineSnapPoints(cPt, dblDist, m_pCachePoints, pRefs1);
+    for(int i = 0; i < iLen; i++)
+    {
+      dt = pRefs1->GetPoint(i);
+      if(IsValidRef(dt)) pRefs->AddPoint(dt);
+    }
+    delete pRefs1;
+    int iCnt = pRefs->GetCount();
+    if(iCnt > 0) return iCnt;
+  }
+
   /*if(m_iType == dtPath)
   {
     PDPtrList pList = new CDPtrList();
@@ -5610,6 +5625,34 @@ int CDObject::GetSnapPoint(int iSnapMask, CDPoint cPt, double dDist, PDLine pSna
       pSnapPt->cDirection = GetNormal(cPt1);
       return 2;
     }
+  }
+
+  if(m_iType == dtSpline)
+  {
+    bool bFound = false;
+    PDRefList pRefs = new CDRefList();
+    iLen = GetSplineSnapPoints(cPt, dblDist, m_pCachePoints, pRefs);
+    if(iLen > 0)
+    {
+      double dt;
+      int i = 0;
+      while(!bFound && (i < iLen))
+      {
+        dt = pRefs->GetPoint(i++);
+        bFound = IsValidRef(dt);
+      }
+      if(bFound)
+      {
+        GetNativeRefPoint(dt, 0.0, &cPt1);
+        pSnapPt->bIsSet = true;
+        pSnapPt->cOrigin = cPt1;
+        pSnapPt->dRef = dt;
+        GetNativeRefDir(dt, &cPt1);
+        pSnapPt->cDirection = GetNormal(cPt1);
+      }
+    }
+    delete pRefs;
+    if(bFound) return 2;
   }
 
   if(m_iType == dtPath)
