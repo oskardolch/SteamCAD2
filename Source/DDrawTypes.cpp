@@ -444,25 +444,39 @@ void CDObject::Redo()
 
 bool CDObject::BuildSubCache(CDLine cTmpPt, int iMode)
 {
+  CDLine cOffL;
   int n = m_pSubObjects->GetCount();
   bool bRes = n > 0;
   int i = 0;
   if(m_iType == dtPath)
   {
+    if(iMode == 2)
+    {
+      CDLine cSnap;
+      m_dMovedDist = GetPathDistFromPt(cTmpPt.cOrigin, cTmpPt.cOrigin, false, &cSnap);
+     
+      cOffL.bIsSet = true;
+      cOffL.cOrigin = 0;
+      cOffL.cDirection.x = 1.0;
+      cOffL.cDirection.y = m_dMovedDist;
+    }
+    else cOffL = cTmpPt;
     PDPathSeg pObj;
     while(bRes && (i < n))
     {
       pObj = (PDPathSeg)m_pSubObjects->GetItem(i++);
-      bRes = pObj->pSegment->BuildCache(cTmpPt, iMode);
+      bRes = pObj->pSegment->BuildCache(cOffL, iMode);
     }
+printf("cache: %f, %d\n", m_dMovedDist, iMode);
   }
   else if(m_iType == dtGroup)
   {
+    cOffL.bIsSet = false;
     PDObject pObj;
     while(bRes && (i < n))
     {
       pObj = (PDObject)m_pSubObjects->GetItem(i++);
-      bRes = pObj->BuildCache(cTmpPt, iMode);
+      bRes = pObj->BuildCache(cOffL, iMode);
     }
   }
   return bRes;
@@ -475,6 +489,7 @@ bool CDObject::BuildCache(CDLine cTmpPt, int iMode)
   case dtLine:
     return BuildLineCache(cTmpPt, iMode, m_pInputPoints, m_pCachePoints, &m_dMovedDist);
   case dtCircle:
+printf("BuildCache Circle: %d\n", iMode);
     return BuildCircCache(cTmpPt, iMode, m_pInputPoints, m_pCachePoints, m_cLines, &m_dMovedDist);
   case dtEllipse:
     return BuildEllipseCache(cTmpPt, iMode, m_pInputPoints, m_pCachePoints, m_cLines, &m_dMovedDist);
@@ -490,6 +505,7 @@ bool CDObject::BuildCache(CDLine cTmpPt, int iMode)
     return BuildEvolvCache(cTmpPt, iMode, m_pInputPoints, m_pCachePoints, m_cLines, &m_dMovedDist);
   case dtPath:
   case dtGroup:
+printf("BuildCache: %d\n", iMode);
     return BuildSubCache(cTmpPt, iMode);
   default:
     return true;
@@ -1451,10 +1467,24 @@ int CDObject::GetPathViewBounds(CDLine cTmpPt, int iMode, PDRect pRect, PDRefLis
   PDRefList pLocBounds = new CDRefList();
   CDPoint cLocBnds = {0.0, 0.0};
 
+  CDLine cOffL;
+  if(iMode == 2)
+  {
+    CDLine cSnap;
+    m_dMovedDist = GetPathDistFromPt(cTmpPt.cOrigin, cTmpPt.cOrigin, false, &cSnap);
+   
+    cOffL.bIsSet = true;
+    cOffL.cOrigin = 0;
+    cOffL.cDirection.x = 1.0;
+    cOffL.cDirection.y = m_dMovedDist;
+printf("View bounds: %f\n", m_dMovedDist);
+  }
+  else cOffL = cTmpPt;
+
   for(int i = 0; i < iCnt; i++)
   {
     pSeg = (PDPathSeg)m_pSubObjects->GetItem(i);
-    iLocRes = pSeg->pSegment->GetSimpleViewBounds(cTmpPt, iMode, m_cLineStyle, pRect, pLocBounds, &cLocBnds, true);
+    iLocRes = pSeg->pSegment->GetSimpleViewBounds(cOffL, iMode, m_cLineStyle, pRect, pLocBounds, &cLocBnds, true);
     if(iRes < 0) iRes = iLocRes;
     else if(iLocRes != iRes) iRes = 1;
   }
@@ -3302,6 +3332,19 @@ CDObject* CDObject::Copy()
   {
     dRef = m_pCrossPoints->GetPoint(i);
     pRes->AddCrossPoint(dRef);
+  }
+
+  if(m_iType == dtPath)
+  {
+    PDPathSeg pSegIn, pSegOut;
+    for(int i = 0; i < m_pSubObjects->GetCount(); i++)
+    {
+      pSegIn = (PDPathSeg)m_pSubObjects->GetItem(i);
+      pSegOut = (PDPathSeg)malloc(sizeof(CDPathSeg));
+      pSegOut->bReverse = pSegIn->bReverse;
+      pSegOut->pSegment = pSegIn->pSegment->Copy();
+      pRes->m_pSubObjects->Add(pSegOut);
+    }
   }
 
   return pRes;
