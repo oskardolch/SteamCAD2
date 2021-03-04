@@ -19,8 +19,8 @@ void AddArcElpsSegment(double d1, double d2, double dExt, bool bReverse, PDPoint
 bool GetArcElpsRefPoint(double dRef, double dExt, PDPointList pCache, PDPoint pPt);
 bool GetArcElpsRefDir(double dRef, PDPointList pCache, PDPoint pPt);
 bool GetArcElpsReference(double dDist, PDPointList pCache, double *pdRef);
-int GetArcElpsNumParts(PDPointList pCache, PDRefPoint pBounds);
-bool ArcElpsRemovePart(bool bDown, PDPointList pCache, PDRefPoint pBounds);
+//int GetArcElpsNumParts(PDPointList pCache, PDRefPoint pBounds);
+//bool ArcElpsRemovePart(bool bDown, PDPointList pCache, PDRefPoint pBounds);
 int GetArcElpsSnapPoints(PDPointList pCache, double *pdRefs);
 
 #endif

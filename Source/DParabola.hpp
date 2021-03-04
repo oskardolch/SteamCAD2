@@ -19,8 +19,8 @@ bool GetParabRestrictPoint(CDPoint cPt, int iMode, double dRestrictValue, PDPoin
   PDPointList pCache);
 bool GetParabRefDir(double dRef, PDPointList pCache, PDPoint pPt);
 bool GetParabReference(double dDist, PDPointList pCache, double *pdRef);
-int GetParabNumParts(PDPointList pCache, PDRefPoint pBounds);
-bool ParabRemovePart(bool bDown, PDPointList pCache, PDRefPoint pBounds);
+//int GetParabNumParts(PDPointList pCache, PDRefPoint pBounds);
+//bool ParabRemovePart(bool bDown, PDPointList pCache, PDRefPoint pBounds);
 int GetParabSnapPoints(PDPointList pCache, double *pdRefs);
 
 #endif

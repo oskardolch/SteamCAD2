@@ -1509,7 +1509,7 @@ bool GetArcElpsReference(double dDist, PDPointList pCache, double *pdRef)
   return true;
 }
 
-int GetArcElpsNumParts(PDPointList pCache, PDRefPoint pBounds)
+/*int GetArcElpsNumParts(PDPointList pCache, PDRefPoint pBounds)
 {
   int iCnt = pCache->GetCount(0);
   if(iCnt < 5) return 0;
@@ -1845,7 +1845,7 @@ bool ArcElpsRemovePart(bool bDown, PDPointList pCache, PDRefPoint pBounds)
   }
 
   return false;
-}
+}*/
 
 int GetArcElpsSnapPoints(PDPointList pCache, double *pdRefs)
 {

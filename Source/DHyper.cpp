@@ -866,7 +866,7 @@ int AddHyperInterLine(CDPoint cPt1, CDPoint cPt2, double dOffset, PDPointList pC
   return iRes;
 }
 
-int GetHyperNumParts(PDPointList pCache, PDRefPoint pBounds)
+/*int GetHyperNumParts(PDPointList pCache, PDRefPoint pBounds)
 {
   int iCnt = pCache->GetCount(0);
   if(iCnt < 3) return 0;
@@ -948,7 +948,7 @@ bool HyperRemovePart(bool bDown, PDPointList pCache, PDRefPoint pBounds)
     else return false;
   }
   return true;
-}
+}*/
 
 int GetHyperSnapPoints(PDPointList pCache, double *pdRefs)
 {

@@ -115,7 +115,7 @@ private:
   bool BoundPoint(CDPoint cRefPt, PDLine pPtX, double *pdDist);
   int AddDimenPrimitive(int iPos, PDDimension pDim, PDPrimObject pPrimitive, PDRect pRect);
   void SwapBounds();
-  bool RemovePart(bool bDown, PDRefPoint pBounds);
+  //bool RemovePart(bool bDown, PDRefPoint pBounds);
   bool IsClosedPath();
   int AddSubIntersects(CDPoint cPt1, CDPoint cPt2, double dOffset, PDRefList pBounds);
   int AddLineIntersects(CDPoint cPt1, CDPoint cPt2, double dOffset, PDRefList pBounds);
@@ -127,8 +127,8 @@ private:
   //int BuildPathPrimitives(CDLine cTmpPt, int iMode, PDRect pRect, int iTemp, PDPrimObject plPrimitive,
   //  double dExt, double *pdMovedDist, PDPoint pBnds);
   double GetPathDistFromPt(CDPoint cPt, CDPoint cRefPt, bool bSnapCenters, PDLine pPtX);
-  int GetSimpleViewBounds(CDLine cTmpPt, int iMode, CDLineStyle cStyle, PDRect pRect, PDRefList pBounds,
-    PDPoint pDrawBnds, bool bMergeWithBounds);
+  int GetSimpleViewBounds(CDLine cTmpPt, int iMode, double dOffset, double dLineHalfWidth, PDRect pRect,
+    PDRefList pBounds, PDPoint pDrawBnds, bool bMergeWithBounds);
   int GetPathViewBounds(CDLine cTmpPt, int iMode, PDRect pRect, PDRefList pBounds, PDPoint pDrawBnds);
   void AddSimpleSegment(double d1, double d2, double dExt, bool bReverse, PDPrimObject pPrimList);
   void AddPathSegment(double d1, double d2, double dExt, PDPrimObject pPrimList);
@@ -207,8 +207,8 @@ public:
   CDPoint GetPointToDir(CDPoint cPoint, double dAngle, CDPoint cPtTarget);
   void SetAuxInt(int iVal);
   int GetAuxInt();
-  int GetNumParts();
-  CDObject* SplitPart(PDRect pRect, PDPtrList pRegions);
+  //int GetNumParts();
+  //CDObject* SplitPart(PDRect pRect, PDPtrList pRegions);
   int IsClosed();
   bool IsBoundShape();
   bool GetStartPoint(PDPoint pPt, double dOffset);

@@ -789,7 +789,7 @@ int AddParabInterLine(CDPoint cPt1, CDPoint cPt2, double dOffset, PDPointList pC
   return iRes;
 }
 
-int GetParabNumParts(PDPointList pCache, PDRefPoint pBounds)
+/*int GetParabNumParts(PDPointList pCache, PDRefPoint pBounds)
 {
   int iCnt = pCache->GetCount(0);
   if(iCnt < 3) return 0;
@@ -869,7 +869,7 @@ bool ParabRemovePart(bool bDown, PDPointList pCache, PDRefPoint pBounds)
     }
   }
   return true;
-}
+}*/
 
 int GetParabSnapPoints(PDPointList pCache, double *pdRefs)
 {

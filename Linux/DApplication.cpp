@@ -1661,7 +1661,7 @@ cairo_stroke(cr);
 
   cairo_destroy(cr2);
 
-  if(!m_bRenderDirect)
+/*  if(!m_bRenderDirect)
   {
     if(bNotWholeWindow)
     {
@@ -1676,7 +1676,7 @@ cairo_stroke(cr);
         m_pActiveObject->BuildPrimitives(cPtX, iDynMode, &cdr, 0, NULL);
       }
     }
-  }
+  }*/
 
   return;
 }
@@ -2179,7 +2179,7 @@ void CDApplication::FileExportCmd(bool bFromAccel)
   g_free(sFile);
   if(!sDot) g_free(sFileExt);
 
-  GtkWidget *draw = GetDrawing();
+  /*GtkWidget *draw = GetDrawing();
   int iWidth = gdk_window_get_width(draw->window);
   int iHeight = gdk_window_get_height(draw->window);
 
@@ -2189,7 +2189,7 @@ void CDApplication::FileExportCmd(bool bFromAccel)
   cdr.cPt2.x = (iWidth - m_cViewOrigin.x)/m_dUnitScale;
   cdr.cPt2.y = (iHeight - m_cViewOrigin.y)/m_dUnitScale;
 
-  m_pDrawObjects->BuildAllPrimitives(&cdr);
+  m_pDrawObjects->BuildAllPrimitives(&cdr);*/
   return;
 }
 
@@ -2694,10 +2694,10 @@ void CDApplication::EditMirrorCmd(GtkWidget *widget)
 void CDApplication::EditLineStyleCmd(GtkWidget *widget)
 {
   GtkWidget *draw = GetDrawing();
-  int iWidth = gdk_window_get_width(draw->window);
-  int iHeight = gdk_window_get_height(draw->window);
+  //int iWidth = gdk_window_get_width(draw->window);
+  //int iHeight = gdk_window_get_height(draw->window);
   GdkRectangle cRect;
-  CDRect cdr;
+  //CDRect cdr;
 
   CDLineStyleRec cLSRec;
   CDDimension cDimen;
@@ -2731,12 +2731,12 @@ void CDApplication::EditLineStyleCmd(GtkWidget *widget)
       if(cLSRec.bColorSet && cLSRec.bColorChanged) iMask |= 32;
       if(m_pDrawObjects->SetSelectedLineStyle(iMask, &cLSRec.cLineStyle, pRegions))
       {
-        cdr.cPt1.x = -m_cViewOrigin.x/m_dUnitScale;
+        /*cdr.cPt1.x = -m_cViewOrigin.x/m_dUnitScale;
         cdr.cPt1.y = -m_cViewOrigin.y/m_dUnitScale;
         cdr.cPt2.x = (iWidth - m_cViewOrigin.x)/m_dUnitScale;
         cdr.cPt2.y = (iHeight - m_cViewOrigin.y)/m_dUnitScale;
 
-        m_pDrawObjects->BuildAllPrimitives(&cdr);
+        m_pDrawObjects->BuildAllPrimitives(&cdr);*/
         if(GetUpdateRegion(pRegions, &cRect)) gdk_window_invalidate_rect(draw->window, &cRect, FALSE);
         SetTitle(widget, false);
       }
@@ -2748,13 +2748,12 @@ void CDApplication::EditLineStyleCmd(GtkWidget *widget)
     {
       if(m_pDrawObjects->SetSelectedDimen(&cDimen, pRegions))
       {
-        CDRect cdr;
-        cdr.cPt1.x = -m_cViewOrigin.x/m_dUnitScale;
+        /*cdr.cPt1.x = -m_cViewOrigin.x/m_dUnitScale;
         cdr.cPt1.y = -m_cViewOrigin.y/m_dUnitScale;
         cdr.cPt2.x = (iWidth - m_cViewOrigin.x)/m_dUnitScale;
         cdr.cPt2.y = (iHeight - m_cViewOrigin.y)/m_dUnitScale;
 
-        m_pDrawObjects->BuildAllPrimitives(&cdr);
+        m_pDrawObjects->BuildAllPrimitives(&cdr);*/
         if(GetUpdateRegion(pRegions, &cRect)) gdk_window_invalidate_rect(draw->window, &cRect, FALSE);
         SetTitle(widget, false);
       }

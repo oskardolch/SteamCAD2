@@ -20,8 +20,8 @@ void AddElpsExtPrim(PDRect pRect, PDPointList pCache, PDPrimObject pPrimList);
 bool GetElpsRefPoint(double dRef, double dExt, PDPointList pCache, PDPoint pPt);
 bool GetElpsRefDir(double dRef, PDPointList pCache, PDPoint pPt);
 bool GetElpsReference(double dDist, PDPointList pCache, double *pdRef);
-int GetElpsNumParts(PDPointList pCache, PDRefPoint pBounds);
-bool ElpsRemovePart(bool bDown, PDPointList pCache, PDRefPoint pBounds);
+//int GetElpsNumParts(PDPointList pCache, PDRefPoint pBounds);
+//bool ElpsRemovePart(bool bDown, PDPointList pCache, PDRefPoint pBounds);
 int GetElpsSnapPoints(PDPointList pCache, double *pdRefs);
 
 #endif

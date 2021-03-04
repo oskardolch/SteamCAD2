@@ -1499,7 +1499,7 @@ bool GetElpsReference(double dDist, PDPointList pCache, double *pdRef)
   return true;
 }
 
-int GetElpsNumParts(PDPointList pCache, PDRefPoint pBounds)
+/*int GetElpsNumParts(PDPointList pCache, PDRefPoint pBounds)
 {
   int iCnt = pCache->GetCount(0);
   if(iCnt < 3) return 0;
@@ -1776,7 +1776,7 @@ bool ElpsRemovePart(bool bDown, PDPointList pCache, PDRefPoint pBounds)
     break;
   }
   return true;
-}
+}*/
 
 int GetElpsSnapPoints(PDPointList pCache, double *pdRefs)
 {
