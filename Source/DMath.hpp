@@ -8,9 +8,9 @@ const double g_dBezCirc = 0.55196764827565714118;
 
 typedef struct CDPoint3
 {
-    double x;
-    double y;
-    double z;
+  double x;
+  double y;
+  double z;
 } *PDPoint3;
 
 double operator*(const CDPoint3& p1, const CDPoint3& p2);

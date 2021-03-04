@@ -7,7 +7,6 @@ typedef CDPoint (CurveFunc)(void *pvData, double dt);
 typedef double (PtProjFunc)(void *pvData, double dOffset, CDPoint cPt, CDPoint cStart, CDPoint cEnd);
 
 int CmpAngle(CDPoint cPt1, CDPoint cPt2);
-//int CropPrimitive(CDPrimitive cPrim, PDRect pRect, PDPrimObject pPrimList);
 int CropPoints(CDPrimitive cPrim, PDRect pRect, PDPrimObject pPrimList);
 double ApproxLineSeg(int iPoints, PDPoint pPoints, PDPoint pStartDir,
 	PDPoint pEndDir, PDPrimitive pPrim);
@@ -20,7 +19,6 @@ double GetQuadPointAtDist(PDPrimitive pQuad, double t1, double dDist);
 // returns 3 if it is inside, 2 if it coincidents with da2, 1 if it coincidents with da1, 0 otherwise
 int RefInBounds(double da1, double da2, double dRef);
 int RefInOpenBounds(PDRefPoint pBounds, double dRef);
-//int MergeBounds(double da1, double da2, double db1, double db2, bool bFullCycle, double *pdBnds);
 double OpositeAngle(double dAng);
 
 bool PtInDblList(double du, int iSize, double *pdList);

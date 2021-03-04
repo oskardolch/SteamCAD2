@@ -14,276 +14,88 @@ extern HWND g_hStatus;*/
 
 CDPoint GetBezier(CDPrimitive cPrim, double dt)
 {
-    double ds = 1.0 - dt;
-    CDPoint cRes = Power3(ds)*cPrim.cPt1 + 3.0*Power2(ds)*dt*cPrim.cPt2 +
-        3.0*ds*Power2(dt)*cPrim.cPt3 + Power3(dt)*cPrim.cPt4;
-    return cRes;
+  double ds = 1.0 - dt;
+  CDPoint cRes = Power3(ds)*cPrim.cPt1 + 3.0*Power2(ds)*dt*cPrim.cPt2 +
+    3.0*ds*Power2(dt)*cPrim.cPt3 + Power3(dt)*cPrim.cPt4;
+  return cRes;
 }
 
 CDPoint GetBezierDeriv(CDPrimitive cPrim, double dt)
 {
-    double ds = 1.0 - dt;
-    CDPoint cRes = Power2(ds)*(cPrim.cPt2 - cPrim.cPt1) +
-
-        2.0*ds*dt*(cPrim.cPt3 - cPrim.cPt2) +
-        Power2(dt)*(cPrim.cPt4 - cPrim.cPt3);
-    return 3.0*cRes;
+  double ds = 1.0 - dt;
+  CDPoint cRes = Power2(ds)*(cPrim.cPt2 - cPrim.cPt1) + 2.0*ds*dt*(cPrim.cPt3 - cPrim.cPt2) +
+    Power2(dt)*(cPrim.cPt4 - cPrim.cPt3);
+  return 3.0*cRes;
 }
 
 CDPoint GetBezierDeriv2(CDPrimitive cPrim, double dt)
 {
-    double ds = 1.0 - dt;
-    CDPoint cRes = ds*(cPrim.cPt3 - 2.0*cPrim.cPt2 + cPrim.cPt1) +
-        dt*(cPrim.cPt4 - 2.0*cPrim.cPt3 + cPrim.cPt2);
-    return 6.0*cRes;
+  double ds = 1.0 - dt;
+  CDPoint cRes = ds*(cPrim.cPt3 - 2.0*cPrim.cPt2 + cPrim.cPt1) +
+    dt*(cPrim.cPt4 - 2.0*cPrim.cPt3 + cPrim.cPt2);
+  return 6.0*cRes;
 }
 
 CDPoint GetBezierDir(CDPrimitive cPrim, double dt)
 {
-    double ds = 1.0 - dt;
-    CDPoint cRes = Power2(ds)*(cPrim.cPt2 - cPrim.cPt1) +
-        2.0*ds*dt*(cPrim.cPt3 - cPrim.cPt2) +
-        Power2(dt)*(cPrim.cPt4 - cPrim.cPt3);
-    double dNorm = GetNorm(cRes);
+  double ds = 1.0 - dt;
+  CDPoint cRes = Power2(ds)*(cPrim.cPt2 - cPrim.cPt1) + 2.0*ds*dt*(cPrim.cPt3 - cPrim.cPt2) +
+    Power2(dt)*(cPrim.cPt4 - cPrim.cPt3);
+  double dNorm = GetNorm(cRes);
+  if(dNorm > g_dPrec) return cRes/dNorm;
+  if(dt < g_dPrec)
+  {
+    cRes = cPrim.cPt2 - cPrim.cPt1;
+    dNorm = GetNorm(cRes);
     if(dNorm > g_dPrec) return cRes/dNorm;
-    if(dt < g_dPrec)
-    {
-        cRes = cPrim.cPt2 - cPrim.cPt1;
-        dNorm = GetNorm(cRes);
-        if(dNorm > g_dPrec) return cRes/dNorm;
-        cRes = cPrim.cPt3 - cPrim.cPt1;
-        dNorm = GetNorm(cRes);
-        if(dNorm > g_dPrec) return cRes/dNorm;
-        cRes = cPrim.cPt4 - cPrim.cPt1;
-        dNorm = GetNorm(cRes);
-        if(dNorm > g_dPrec) return cRes/dNorm;
-    }
-    if(ds < g_dPrec)
-    {
-        cRes = cPrim.cPt4 - cPrim.cPt3;
-        dNorm = GetNorm(cRes);
-        if(dNorm > g_dPrec) return cRes/dNorm;
-        cRes = cPrim.cPt4 - cPrim.cPt2;
-        dNorm = GetNorm(cRes);
-        if(dNorm > g_dPrec) return cRes/dNorm;
-        cRes = cPrim.cPt4 - cPrim.cPt1;
-        dNorm = GetNorm(cRes);
-        if(dNorm > g_dPrec) return cRes/dNorm;
-    }
-    return cRes;
+    cRes = cPrim.cPt3 - cPrim.cPt1;
+    dNorm = GetNorm(cRes);
+    if(dNorm > g_dPrec) return cRes/dNorm;
+    cRes = cPrim.cPt4 - cPrim.cPt1;
+    dNorm = GetNorm(cRes);
+    if(dNorm > g_dPrec) return cRes/dNorm;
+  }
+  if(ds < g_dPrec)
+  {
+    cRes = cPrim.cPt4 - cPrim.cPt3;
+    dNorm = GetNorm(cRes);
+    if(dNorm > g_dPrec) return cRes/dNorm;
+    cRes = cPrim.cPt4 - cPrim.cPt2;
+    dNorm = GetNorm(cRes);
+    if(dNorm > g_dPrec) return cRes/dNorm;
+    cRes = cPrim.cPt4 - cPrim.cPt1;
+    dNorm = GetNorm(cRes);
+    if(dNorm > g_dPrec) return cRes/dNorm;
+  }
+  return cRes;
 }
 
 int GetQuadrant(CDPoint cPt1)
 {
-    if((cPt1.y <= 0) && (cPt1.x > 0)) return 1;
-    if((cPt1.y < 0) && (cPt1.x <= 0)) return 2;
-    if((cPt1.y >= 0) && (cPt1.x < 0)) return 3;
-    return 4;
+  if((cPt1.y <= 0) && (cPt1.x > 0)) return 1;
+  if((cPt1.y < 0) && (cPt1.x <= 0)) return 2;
+  if((cPt1.y >= 0) && (cPt1.x < 0)) return 3;
+  return 4;
 }
 
 int CmpAngle(CDPoint cPt1, CDPoint cPt2)
 {
-    double dx = fabs(cPt2.x - cPt1.x);
-    double dy = fabs(cPt2.y - cPt1.y);
+  double dx = fabs(cPt2.x - cPt1.x);
+  double dy = fabs(cPt2.y - cPt1.y);
 
-    if((dx < g_dPrec) && (dy < g_dPrec)) return 0; // the angles are equal
+  if((dx < g_dPrec) && (dy < g_dPrec)) return 0; // the angles are equal
 
-    int iq1 = GetQuadrant(cPt1);
-    int iq2 = GetQuadrant(cPt2);
+  int iq1 = GetQuadrant(cPt1);
+  int iq2 = GetQuadrant(cPt2);
 
-    if(iq1 < iq2) return 1;
-    if(iq2 < iq1) return -1;
+  if(iq1 < iq2) return 1;
+  if(iq2 < iq1) return -1;
 
-    if(iq1 < 3) return cPt1.x < cPt2.x ? -1: 1;
-    return cPt1.x > cPt2.x ? -1: 1;
+  if(iq1 < 3) return cPt1.x < cPt2.x ? -1: 1;
+  return cPt1.x > cPt2.x ? -1: 1;
 }
 
-/*int CropLineLeft(CDPrimitive cPrim, CDPoint cPt1, CDPoint cPt2,
-    PDPrimObject pPrimList)
-{
-    CDPoint cDir = cPt2 - cPt1;
-    double dNorm = GetNorm(cDir);
-    if(dNorm < g_dPrec) return 0;
-
-    CDPoint cN1 = cDir/dNorm;
-    CDPoint cX1 = Rotate(cPrim.cPt1 - cPt1, cN1, false);
-    CDPoint cX2 = Rotate(cPrim.cPt2 - cPt1, cN1, false);
-
-    if((cX1.y > 0) && (cX2.y > 0)) return 0;
-    if((cX1.y < 0) && (cX2.y < 0))
-    {
-        pPrimList->AddPrimitive(cPrim);
-        return 2;
-    }
-
-    CDPoint cY1 = {0, 0};
-    CDPoint cY2 = {dNorm, 0.0};
-
-    CDPoint cRes;
-
-    int iX = LineXLine(cX1, cX2 - cX1, cY1, cY2 - cY1, &cRes);
-
-    if(iX < 1) return 0;
-
-    cY1 = Rotate(cRes, cN1, true);
-
-    if(cX1.y > 0) cPrim.cPt1 = cY1 + cPt1;
-    else if(cX2.y > 0) cPrim.cPt2 = cY1 + cPt1;
-    pPrimList->AddPrimitive(cPrim);
-
-    return 1;
-}
-
-int CropArcLeft(CDPrimitive cPrim, CDPoint cPt1, CDPoint cPt2,
-    PDPrimObject pPrimList)
-{
-    CDPoint cDir = cPt2 - cPt1;
-    double dNorm = GetNorm(cDir);
-    if(dNorm < g_dPrec) return 0;
-
-    double dr = cPrim.cPt2.x - cPrim.cPt1.x;
-    CDPoint cN1 = cDir/dNorm;
-    CDPoint cX1 = Rotate(cPrim.cPt1 - cPt1, cN1, false);
-    CDPoint cX2 = Rotate(cPrim.cPt3 - cPt1, cN1, false);
-    CDPoint cX3 = Rotate(cPrim.cPt4 - cPt1, cN1, false);
-
-    if(cX1.y - dr > 0) return 0;
-    if(cX1.y + dr < 0)
-    {
-        pPrimList->AddPrimitive(cPrim);
-        return 2;
-    }
-
-    CDPoint cDir2 = cPrim.cPt3 - cPrim.cPt1;
-    double dNorm2 = GetNorm(cDir2);
-    if(dNorm2 < g_dPrec) return 0;
-
-    CDPoint cY1 = {0, 0};
-    CDPoint cY2 = {dNorm, 0.0};
-
-    CDPoint cRes[2];
-
-    int iRes = 0;
-
-    int iX = CircXLine(false, cX1, dr, cY1, cY2, cRes);
-
-    if(iX < 2)
-    {
-        if(cX1.y < 0)
-        {
-            pPrimList->AddPrimitive(cPrim);
-            iRes = 2;
-        }
-        return iRes;
-    }
-
-    CDPoint cxX1 = cPt1 + Rotate(cRes[1], cN1, true);
-    CDPoint cxX2 = cPt1 + Rotate(cRes[0], cN1, true);
-
-    CDPoint cN2 = cDir2/dNorm2;
-
-    CDPoint cXR1 = Rotate(cxX1 - cPrim.cPt1, cN2, false);
-    CDPoint cXR2 = Rotate(cxX2 - cPrim.cPt1, cN2, false);
-    CDPoint cXR3 = Rotate(cPrim.cPt4 - cPrim.cPt1, cN2, false);
-
-    int i1 = CmpAngle(cXR1, cXR3);
-    if(i1 < 1)
-    {
-        if(cX2.y < 0)
-        {
-            iRes = 2;
-            if(cX3.y > 0)
-            {
-                cPrim.cPt4 = cPt1 + Rotate(cRes[0], cN1, true);
-                iRes = 1;
-            }
-            pPrimList->AddPrimitive(cPrim);
-        }
-        else if(cX3.y < 0)
-        {
-            iRes = 2;
-            if(cX2.y > 0)
-            {
-                cPrim.cPt3 = cPt1 + Rotate(cRes[1], cN1, true);
-                iRes = 1;
-            }
-            pPrimList->AddPrimitive(cPrim);
-        }
-        return iRes;
-    }
-
-    int i2 = CmpAngle(cXR2, cXR3);
-    if(i2 < 1)
-    {
-        if(cX2.y < 0) cPrim.cPt4 = cPt1 + Rotate(cRes[0], cN1, true);
-        else cPrim.cPt3 = cPt1 + Rotate(cRes[1], cN1, true);
-        pPrimList->AddPrimitive(cPrim);
-        return 1;
-    }
-
-    if(cX2.y > 0)
-    {
-        cPrim.cPt3 = cPt1 + Rotate(cRes[1], cN1, true);
-        cPrim.cPt4 = cPt1 + Rotate(cRes[0], cN1, true);
-        pPrimList->AddPrimitive(cPrim);
-    }
-    else
-    {
-        CDPrimitive cPrim1;
-        cPrim1.iType = 2;
-        cPrim1.cPt1 = cPrim.cPt1;
-        cPrim1.cPt2 = cPrim.cPt2;
-        cPrim1.cPt3 = cPrim.cPt3;
-        cPrim1.cPt4 = cPt1 + Rotate(cRes[0], cN1, true);
-        pPrimList->AddPrimitive(cPrim1);
-        cPrim1.cPt3 = cPt1 + Rotate(cRes[1], cN1, true);
-        cPrim1.cPt4 = cPrim.cPt4;
-        pPrimList->AddPrimitive(cPrim1);
-    }
-    return 1;
-}
-
-int CropCircLeft(CDPrimitive cPrim, CDPoint cPt1, CDPoint cPt2,
-    PDPrimObject pPrimList)
-{
-    CDPoint cDir = cPt2 - cPt1;
-    double dNorm = GetNorm(cDir);
-    if(dNorm < g_dPrec) return 0;
-
-    double dr = cPrim.cPt2.x - cPrim.cPt1.x;
-    CDPoint cN1 = cDir/dNorm;
-    CDPoint cX1 = Rotate(cPrim.cPt1 - cPt1, cN1, false);
-
-    if(cX1.y - dr > 0) return 0;
-    if(cX1.y + dr < 0)
-    {
-        pPrimList->AddPrimitive(cPrim);
-        return 2;
-    }
-
-    CDPoint cY1 = {0, 0};
-    CDPoint cY2 = {dNorm, 0.0};
-
-    CDPoint cRes[2];
-
-    int iX = CircXLine(false, cX1, dr, cY1, cY2, cRes);
-
-    if(iX < 1) return 0;
-    if(iX < 2)
-    {
-        if(cX1.y > 0) return 0;
-        pPrimList->AddPrimitive(cPrim);
-        return 2;
-    }
-
-    cPrim.iType = 2;
-    cPrim.cPt3 = cPt1 + Rotate(cRes[1], cN1, true);
-    cPrim.cPt4 = cPt1 + Rotate(cRes[0], cN1, true);
-    pPrimList->AddPrimitive(cPrim);
-    return 1;
-}
-
-CDPrimitive SubQuad(CDPrimitive cPrim, double dt1, double dt2)
+/*CDPrimitive SubQuad(CDPrimitive cPrim, double dt1, double dt2)
 {
     CDPrimitive cRes;
     cRes.iType = 4;
@@ -326,284 +138,6 @@ CDPrimitive SubBezier(CDPrimitive cPrim, double dt1, double dt2)
     cRes.cPt4 = cp24 + 3.0*cRes.cPt3 - 3.0*cRes.cPt2 + cRes.cPt1;
 
     return cRes;
-}
-
-int CropQuadLeft(CDPrimitive cPrim, CDPoint cPt1, CDPoint cPt2,
-    PDPrimObject pPrimList)
-{
-    CDPoint cDir = cPt2 - cPt1;
-    double dNorm = GetNorm(cDir);
-    if(dNorm < g_dPrec) return 0;
-
-    CDPoint cN1 = cDir/dNorm;
-
-    CDPoint cCoefs[3];
-    cCoefs[0] = cPrim.cPt1;
-    cCoefs[1] = cPrim.cPt2;
-    cCoefs[2] = cPrim.cPt3;
-
-    CDPoint cptX[2];
-    double dts[2];
-    int iX = QuadXSeg(cCoefs, cPt1, cPt2, cptX, dts);
-
-    CDPoint cp1 = Rotate(cPrim.cPt1 - cPt1, cN1, false);
-
-    int iRes = 0;
-
-    if(iX < 1)
-    {
-        if(cp1.y < g_dPrec)
-        {
-            pPrimList->AddPrimitive(cPrim);
-            iRes = 2;
-        }
-        return iRes;
-    }
-
-    int iCurRoot = 0;
-    //CDPoint cp2 = Rotate(cPrim.cPt4 - cPt1, cN1, false);
-    double dt1 = 0.0;
-    double dt2 = dts[iCurRoot++];
-
-    CDPrimitive cPrim1;
-    CDPoint cp3, cp4;
-
-    if(dt2 < g_dPrec)
-    {
-        if(iCurRoot < iX) dt2 = dts[iCurRoot++];
-        else dt2 = 1.0;
-    }
-
-    cp3 = GetQuadPoint(&cPrim, (dt1 + dt2)/2.0);
-    cp4 = Rotate(cp3 - cPt1, cN1, false);
-
-    if(cp4.y < 0)
-    {
-        cPrim1 = SubQuad(cPrim, dt1, dt2);
-        pPrimList->AddPrimitive(cPrim1);
-        iRes = 1;
-    }
-
-    if(dt2 > 1.0 - g_dPrec) return iRes;
-
-    dt1 = dt2;
-    if(iCurRoot < iX) dt2 = dts[iCurRoot++];
-    else dt2 = 1.0;
-
-    cp3 = GetQuadPoint(&cPrim, (dt1 + dt2)/2.0);
-    cp4 = Rotate(cp3 - cPt1, cN1, false);
-
-    if(cp4.y < 0)
-    {
-        cPrim1 = SubQuad(cPrim, dt1, dt2);
-        pPrimList->AddPrimitive(cPrim1);
-        iRes = 1;
-    }
-
-    if(dt2 > 1.0 - g_dPrec) return iRes;
-
-    dt1 = dt2;
-    if(iCurRoot < iX) dt2 = dts[iCurRoot++];
-    else dt2 = 1.0;
-
-    cp3 = GetQuadPoint(&cPrim, (dt1 + dt2)/2.0);
-    cp4 = Rotate(cp3 - cPt1, cN1, false);
-
-    if(cp4.y < 0)
-    {
-        cPrim1 = SubQuad(cPrim, dt1, dt2);
-        pPrimList->AddPrimitive(cPrim1);
-        iRes = 1;
-    }
-
-    return iRes;
-}
-
-int CropBezierLeft(CDPrimitive cPrim, CDPoint cPt1, CDPoint cPt2,
-    PDPrimObject pPrimList)
-{
-    CDPoint cDir = cPt2 - cPt1;
-    double dNorm = GetNorm(cDir);
-    if(dNorm < g_dPrec) return 0;
-
-    CDPoint cN1 = cDir/dNorm;
-
-    CDPoint cptX[3];
-    double dts[3];
-    int iX = BezXLine(cPrim.cPt1, cPrim.cPt2, cPrim.cPt3, cPrim.cPt4,
-        cPt1, cPt2, cptX, dts);
-
-    CDPoint cp1 = Rotate(cPrim.cPt1 - cPt1, cN1, false);
-
-    int iRes = 0;
-
-    if(iX < 1)
-    {
-        if(cp1.y < g_dPrec)
-        {
-            pPrimList->AddPrimitive(cPrim);
-            iRes = 2;
-        }
-        return iRes;
-    }
-
-    int iCurRoot = 0;
-    //CDPoint cp2 = Rotate(cPrim.cPt4 - cPt1, cN1, false);
-    double dt1 = 0.0;
-    double dt2 = dts[iCurRoot++];
-
-    CDPrimitive cPrim1;
-    CDPoint cp3, cp4;
-
-    if(dt2 < g_dPrec)
-    {
-        if(iCurRoot < iX) dt2 = dts[iCurRoot++];
-        else dt2 = 1.0;
-    }
-
-    cp3 = GetBezier(cPrim, (dt1 + dt2)/2.0);
-    cp4 = Rotate(cp3 - cPt1, cN1, false);
-
-    if(cp4.y < 0)
-    {
-        cPrim1 = SubBezier(cPrim, dt1, dt2);
-        pPrimList->AddPrimitive(cPrim1);
-        iRes = 1;
-    }
-
-    if(dt2 > 1.0 - g_dPrec) return iRes;
-
-    dt1 = dt2;
-    if(iCurRoot < iX) dt2 = dts[iCurRoot++];
-    else dt2 = 1.0;
-
-    cp3 = GetBezier(cPrim, (dt1 + dt2)/2.0);
-    cp4 = Rotate(cp3 - cPt1, cN1, false);
-
-    if(cp4.y < 0)
-    {
-        cPrim1 = SubBezier(cPrim, dt1, dt2);
-        pPrimList->AddPrimitive(cPrim1);
-        iRes = 1;
-    }
-
-    if(dt2 > 1.0 - g_dPrec) return iRes;
-
-    dt1 = dt2;
-    if(iCurRoot < iX) dt2 = dts[iCurRoot++];
-    else dt2 = 1.0;
-
-    cp3 = GetBezier(cPrim, (dt1 + dt2)/2.0);
-    cp4 = Rotate(cp3 - cPt1, cN1, false);
-
-    if(cp4.y < 0)
-    {
-        cPrim1 = SubBezier(cPrim, dt1, dt2);
-        pPrimList->AddPrimitive(cPrim1);
-        iRes = 1;
-    }
-
-    return iRes;
-}
-
-int CropPrimitiveByHalfPlaneLeft(CDPrimitive cPrim, CDPoint cPt1, CDPoint cPt2,
-    PDPrimObject pPrimList)
-{
-    switch(cPrim.iType)
-    {
-    case 1:
-        return CropLineLeft(cPrim, cPt1, cPt2, pPrimList);
-    case 2:
-        return CropArcLeft(cPrim, cPt1, cPt2, pPrimList);
-    case 3:
-        return CropCircLeft(cPrim, cPt1, cPt2, pPrimList);
-    case 4:
-        return CropQuadLeft(cPrim, cPt1, cPt2, pPrimList);
-    case 5:
-        return CropBezierLeft(cPrim, cPt1, cPt2, pPrimList);
-    default:
-        return 0;
-    }
-}
-
-int CropPrimitive(CDPrimitive cPrim, PDRect pRect, PDPrimObject pPrimList)
-{
-    if(cPrim.iType > 5)
-        return CropPoints(cPrim, pRect, pPrimList);
-
-    CDPoint cp1, cp2;
-    cp1.x = pRect->cPt1.x;
-    cp1.y = pRect->cPt1.y;
-    cp2.x = pRect->cPt1.x;
-    cp2.y = pRect->cPt2.y;
-
-    PDPrimObject pPL1 = new CDPrimObject();
-    int iRes1 = CropPrimitiveByHalfPlaneLeft(cPrim, cp1, cp2, pPL1);
-
-    PDPrimObject pPL2 = new CDPrimObject();
-    CDPrimitive cPr1;
-
-    cp1.x = pRect->cPt1.x;
-    cp1.y = pRect->cPt2.y;
-    cp2.x = pRect->cPt2.x;
-    cp2.y = pRect->cPt2.y;
-
-    int iRes2 = iRes1;
-    int iRes3 = 0;
-    int k;
-
-    for(int i = 0; i < pPL1->GetCount(); i++)
-    {
-        cPr1 = pPL1->GetPrimitive(i);
-        k = CropPrimitiveByHalfPlaneLeft(cPr1, cp1, cp2, pPL2);
-        if(k < 2) iRes2 = 1;
-        if(k > 0) iRes3 = 1;
-    }
-    iRes1 = iRes2;
-    if(iRes3 < 1) iRes1 = 0;
-
-    pPL1->Clear();
-
-    cp1.x = pRect->cPt2.x;
-    cp1.y = pRect->cPt2.y;
-    cp2.x = pRect->cPt2.x;
-    cp2.y = pRect->cPt1.y;
-
-    iRes2 = iRes1;
-    iRes3 = 0;
-
-    for(int i = 0; i < pPL2->GetCount(); i++)
-    {
-        cPr1 = pPL2->GetPrimitive(i);
-        k = CropPrimitiveByHalfPlaneLeft(cPr1, cp1, cp2, pPL1);
-        if(k < 2) iRes2 = 1;
-        if(k > 0) iRes3 = 1;
-    }
-    iRes1 = iRes2;
-    if(iRes3 < 1) iRes1 = 0;
-
-    cp1.x = pRect->cPt2.x;
-    cp1.y = pRect->cPt1.y;
-    cp2.x = pRect->cPt1.x;
-    cp2.y = pRect->cPt1.y;
-
-    iRes2 = iRes1;
-    iRes3 = 0;
-
-    for(int i = 0; i < pPL1->GetCount(); i++)
-    {
-        cPr1 = pPL1->GetPrimitive(i);
-        k = CropPrimitiveByHalfPlaneLeft(cPr1, cp1, cp2, pPrimList);
-        if(k < 2) iRes2 = 1;
-        if(k > 0) iRes3 = 1;
-    }
-    iRes1 = iRes2;
-    if(iRes3 < 1) iRes1 = 0;
-
-    delete pPL2;
-    delete pPL1;
-
-    return iRes1;
 }*/
 
 int CropPoints(CDPrimitive cPrim, PDRect pRect, PDPrimObject pPrimList)
@@ -635,738 +169,680 @@ int CropPoints(CDPrimitive cPrim, PDRect pRect, PDPrimObject pPrimList)
 
 bool IsSameDir(CDPoint cPt1, CDPoint cPt2)
 {
-	double dVect = fabs(Deter2(cPt1, cPt2));
-	double dScal = cPt1*cPt2;
-	if(fabs(dScal) < g_dPrec) return(false);
-	dVect /= dScal;
-	return((dVect < g_dPrec) && (dScal > g_dPrec));
+  double dVect = fabs(Deter2(cPt1, cPt2));
+  double dScal = cPt1*cPt2;
+  if(fabs(dScal) < g_dPrec) return false;
+  dVect /= dScal;
+  return (dVect < g_dPrec) && (dScal > g_dPrec);
 }
 
 double Approx3pt(PDPoint pPoints, PDPoint pStartDir, PDPoint pEndDir, PDPrimitive pPrim)
 {
-	CDPoint pCt[2];
+  CDPoint pCt[2];
 
-	double d1 = GetDist(pPoints[0], pPoints[1]);
-	double d2 = GetDist(pPoints[1], pPoints[2]);
-	if(d1 + d2 < g_dPrec) return(-1.0);
+  double d1 = GetDist(pPoints[0], pPoints[1]);
+  double d2 = GetDist(pPoints[1], pPoints[2]);
+  if(d1 + d2 < g_dPrec) return -1.0;
 
-	double t = d1/(d1 + d2);
-	if(t < g_dPrec)
+  double t = d1/(d1 + d2);
+  if(t < g_dPrec)
+  {
+    pPrim->iType = 1;
+    pPrim->cPt1 = pPoints[1];
+    pPrim->cPt2 = pPoints[2];
+    pPrim->cPt3 = 0;
+    pPrim->cPt4 = 0;
+    return 0.0;
+  }
+  if(t > 1 - g_dPrec)
+  {
+    pPrim->iType = 1;
+    pPrim->cPt1 = pPoints[0];
+    pPrim->cPt2 = pPoints[1];
+    pPrim->cPt3 = 0;
+    pPrim->cPt4 = 0;
+    return 0.0;
+  }
+
+  double dc[2];
+  double dDet;
+  int iType = 2;
+  if(pStartDir && pEndDir)
+  {
+    dDet = Deter2(*pStartDir, *pEndDir);
+    if(fabs(dDet) < g_dPrec) iType = 3;
+    else
     {
-        pPrim->iType = 1;
-        pPrim->cPt1 = pPoints[1];
-        pPrim->cPt2 = pPoints[2];
-        pPrim->cPt3 = 0;
-        pPrim->cPt4 = 0;
-        return 0.0;
-    }
-	if(t > 1 - g_dPrec)
-    {
-        pPrim->iType = 1;
-        pPrim->cPt1 = pPoints[0];
-        pPrim->cPt2 = pPoints[1];
-        pPrim->cPt3 = 0;
-        pPrim->cPt4 = 0;
-        return 0.0;
-    }
-
-	double dc[2];
-	double dDet;
-	int iType = 2;
-	if(pStartDir && pEndDir)
-	{
-		dDet = Deter2(*pStartDir, *pEndDir);
-		if(fabs(dDet) < g_dPrec) iType = 3;
-		else
-		{
-			dc[0] = Deter2(pPoints[1] - pPoints[0], *pEndDir)/dDet;
-			dc[1] = -Deter2(pPoints[1] - pPoints[0], *pStartDir)/dDet;
-			if((dc[0] > g_dPrec) && (dc[1] > g_dPrec))
-			{
-				pCt[0] = pPoints[0] + dc[0]*(*pStartDir);
-				pCt[1] = pPoints[1] - dc[1]*(*pEndDir);
-				if(GetDist(pCt[0], pCt[1]) > g_dPrec) iType = 3;
-			}
-			else iType = 3;
-		}
-	}
-	else
-	{
-		pCt[0] = (pPoints[1] - Power2(1 - t)*pPoints[0] -
-			Power2(t)*pPoints[2])/2.0/t/(1 - t);
-	}
-
-    if(iType < 3)
-    {
-        /*CDPoint pCv[3];
-        pCv[0] = pPoints[0];
-        pCv[1] = pCt[0];
-        pCv[2] = pPoints[2];
-
-        pPrim->iType = 4;
-        pPrim->cPt1 = pCv[0];
-        pPrim->cPt2 = pCv[0]/3.0 + 2.0*pCv[1]/3.0;
-        pPrim->cPt3 = 2.0*pCv[1]/3.0 + pCv[2]/3.0;
-        pPrim->cPt4 = pCv[2];*/
-        pPrim->iType = 4;
-        pPrim->cPt1 = pPoints[0];
-        pPrim->cPt2 = pCt[0];
-        pPrim->cPt3 = pPoints[2];
-        return 0.0;
-    }
-
-    dDet = Deter2(*pEndDir, *pStartDir);
-    if(fabs(dDet) < g_dPrec) return(-1.0);
-
-    double dt1 = t*Power2(1 - t);
-    double dt2 = Power2(t)*(1 - t);
-
-    CDPoint cPt = (pPoints[1] - Power3(1 - t)*pPoints[0] -
-        Power3(t)*pPoints[2])/3.0 - dt1*pPoints[0] - dt2*pPoints[2];
-    dc[0] = Deter2(*pEndDir, cPt)*dt2/dDet;
-    dc[1] = Deter2(*pStartDir, cPt)*dt1/dDet;
-
-    if((dc[0] > g_dPrec) && (dc[1] > g_dPrec))
-    {
+      dc[0] = Deter2(pPoints[1] - pPoints[0], *pEndDir)/dDet;
+      dc[1] = -Deter2(pPoints[1] - pPoints[0], *pStartDir)/dDet;
+      if((dc[0] > g_dPrec) && (dc[1] > g_dPrec))
+      {
         pCt[0] = pPoints[0] + dc[0]*(*pStartDir);
         pCt[1] = pPoints[1] - dc[1]*(*pEndDir);
+        if(GetDist(pCt[0], pCt[1]) > g_dPrec) iType = 3;
+      }
+      else iType = 3;
     }
-    else return(-1.0);
+  }
+  else
+  {
+    pCt[0] = (pPoints[1] - Power2(1 - t)*pPoints[0] - Power2(t)*pPoints[2])/2.0/t/(1 - t);
+  }
 
-    pPrim->iType = 5;
+  if(iType < 3)
+  {
+    pPrim->iType = 4;
     pPrim->cPt1 = pPoints[0];
     pPrim->cPt2 = pCt[0];
-    pPrim->cPt3 = pCt[1];
-    pPrim->cPt4 = pPoints[2];
-	return(0.0);
+    pPrim->cPt3 = pPoints[2];
+    return 0.0;
+  }
+
+  dDet = Deter2(*pEndDir, *pStartDir);
+  if(fabs(dDet) < g_dPrec) return -1.0;
+
+  double dt1 = t*Power2(1 - t);
+  double dt2 = Power2(t)*(1 - t);
+
+  CDPoint cPt = (pPoints[1] - Power3(1 - t)*pPoints[0] -
+    Power3(t)*pPoints[2])/3.0 - dt1*pPoints[0] - dt2*pPoints[2];
+  dc[0] = Deter2(*pEndDir, cPt)*dt2/dDet;
+  dc[1] = Deter2(*pStartDir, cPt)*dt1/dDet;
+
+  if((dc[0] > g_dPrec) && (dc[1] > g_dPrec))
+  {
+    pCt[0] = pPoints[0] + dc[0]*(*pStartDir);
+    pCt[1] = pPoints[1] - dc[1]*(*pEndDir);
+  }
+  else return -1.0;
+
+  pPrim->iType = 5;
+  pPrim->cPt1 = pPoints[0];
+  pPrim->cPt2 = pCt[0];
+  pPrim->cPt3 = pCt[1];
+  pPrim->cPt4 = pPoints[2];
+  return 0.0;
 }
 
 double Approx4pt(PDPoint pPoints, PDPrimitive pPrim)
 {
-	double d1 = GetDist(pPoints[0], pPoints[1]);
-	double d2 = GetDist(pPoints[1], pPoints[2]);
-	double d3 = GetDist(pPoints[2], pPoints[3]);
-	double d = d1 + d2 + d3;
-	if(d < g_dPrec) return(-1.0);
+  double d1 = GetDist(pPoints[0], pPoints[1]);
+  double d2 = GetDist(pPoints[1], pPoints[2]);
+  double d3 = GetDist(pPoints[2], pPoints[3]);
+  double d = d1 + d2 + d3;
+  if(d < g_dPrec) return -1.0;
 
-	double t1 = d1/d;
-	double t2 = (d1 + d2)/d;
+  double t1 = d1/d;
+  double t2 = (d1 + d2)/d;
 
-	if(t1 < g_dPrec)
-		return(Approx3pt(&pPoints[1], NULL, NULL, pPrim));
+  if(t1 < g_dPrec)
+    return Approx3pt(&pPoints[1], NULL, NULL, pPrim);
 
-	if(t2 > 1 - g_dPrec)
-		return(Approx3pt(pPoints, NULL, NULL, pPrim));
+  if(t2 > 1 - g_dPrec)
+    return Approx3pt(pPoints, NULL, NULL, pPrim);
 
-	if(fabs(t2 - t1) < g_dPrec)
-	{
-		CDPoint plPts[3];
-		plPts[0] = pPoints[0];
-		plPts[1] = pPoints[1];
-		plPts[2] = pPoints[3];
-		return(Approx3pt(plPts, NULL, NULL, pPrim));
-	}
+  if(fabs(t2 - t1) < g_dPrec)
+  {
+    CDPoint plPts[3];
+    plPts[0] = pPoints[0];
+    plPts[1] = pPoints[1];
+    plPts[2] = pPoints[3];
+    return Approx3pt(plPts, NULL, NULL, pPrim);
+  }
 
-	double b[2] = {pPoints[1].x - pPoints[0].x*Power3(1 - t1) -
-		pPoints[3].x*Power3(t1),
-		pPoints[2].x - pPoints[0].x*Power3(1 - t2) - pPoints[3].x*Power3(t2)};
-	double m[4] = {3.0*t1*Power2(1 - t1), 3.0*Power2(t1)*(1 - t1),
-		3.0*t2*Power2(1 - t2), 3.0*Power2(t2)*(1 - t2)};
-	d = m[0]*m[3] - m[1]*m[2];
+  double b[2] = {pPoints[1].x - pPoints[0].x*Power3(1 - t1) -
+    pPoints[3].x*Power3(t1),
+    pPoints[2].x - pPoints[0].x*Power3(1 - t2) - pPoints[3].x*Power3(t2)};
+  double m[4] = {3.0*t1*Power2(1 - t1), 3.0*Power2(t1)*(1 - t1),
+    3.0*t2*Power2(1 - t2), 3.0*Power2(t2)*(1 - t2)};
+  d = m[0]*m[3] - m[1]*m[2];
 
-	CDPoint cPt[2];
+  CDPoint cPt[2];
 
-	cPt[0].x = (m[3]*b[0] - m[1]*b[1])/d;
-	cPt[1].x = (m[0]*b[1] - m[2]*b[0])/d;
+  cPt[0].x = (m[3]*b[0] - m[1]*b[1])/d;
+  cPt[1].x = (m[0]*b[1] - m[2]*b[0])/d;
 
-	b[0] = pPoints[1].y - pPoints[0].y*Power3(1 - t1) - pPoints[3].y*Power3(t1);
-	b[1] = pPoints[2].y - pPoints[0].y*Power3(1 - t2) - pPoints[3].y*Power3(t2);
+  b[0] = pPoints[1].y - pPoints[0].y*Power3(1 - t1) - pPoints[3].y*Power3(t1);
+  b[1] = pPoints[2].y - pPoints[0].y*Power3(1 - t2) - pPoints[3].y*Power3(t2);
 
-	cPt[0].y = (m[3]*b[0] - m[1]*b[1])/d;
-	cPt[1].y = (m[0]*b[1] - m[2]*b[0])/d;
+  cPt[0].y = (m[3]*b[0] - m[1]*b[1])/d;
+  cPt[1].y = (m[0]*b[1] - m[2]*b[0])/d;
 
-    pPrim->iType = 5;
-    pPrim->cPt1 = pPoints[0];
-    pPrim->cPt2 = cPt[0];
-    pPrim->cPt3 = cPt[1];
-    pPrim->cPt4 = pPoints[3];
-	return(0.0);
+  pPrim->iType = 5;
+  pPrim->cPt1 = pPoints[0];
+  pPrim->cPt2 = cPt[0];
+  pPrim->cPt3 = cPt[1];
+  pPrim->cPt4 = pPoints[3];
+  return 0.0;
 }
 
 double ApproxNptFixT(int n, PDPoint pPoints, double *pt, PDPrimitive pPrim)
 {
-	double b[2] = {0, 0};
-	double m[4] = {0, 0, 0, 0};
-	for(int i = 0; i < n - 2; i++)
-	{
-		b[0] += (pPoints[i + 1].x - pPoints[0].x*Power3(1 - pt[i]) -
-			pPoints[n - 1].x*Power3(pt[i]))*pt[i]*Power2(1 - pt[i]);
-		b[1] += (pPoints[i + 1].x - pPoints[0].x*Power3(1 - pt[i]) -
-			pPoints[n - 1].x*Power3(pt[i]))*Power2(pt[i])*(1 - pt[i]);
+  double b[2] = {0, 0};
+  double m[4] = {0, 0, 0, 0};
+  for(int i = 0; i < n - 2; i++)
+  {
+    b[0] += (pPoints[i + 1].x - pPoints[0].x*Power3(1 - pt[i]) -
+      pPoints[n - 1].x*Power3(pt[i]))*pt[i]*Power2(1 - pt[i]);
+    b[1] += (pPoints[i + 1].x - pPoints[0].x*Power3(1 - pt[i]) -
+      pPoints[n - 1].x*Power3(pt[i]))*Power2(pt[i])*(1 - pt[i]);
 
-		m[0] += Power2(pt[i])*Power4(1 - pt[i]);
-		m[1] += Power3(pt[i])*Power3(1 - pt[i]);
-		m[3] += Power4(pt[i])*Power2(1 - pt[i]);
-	}
-	m[0] *= 3.0;
-	m[1] *= 3.0;
-	m[3] *= 3.0;
-	m[2] = m[1];
+    m[0] += Power2(pt[i])*Power4(1 - pt[i]);
+    m[1] += Power3(pt[i])*Power3(1 - pt[i]);
+    m[3] += Power4(pt[i])*Power2(1 - pt[i]);
+  }
+  m[0] *= 3.0;
+  m[1] *= 3.0;
+  m[3] *= 3.0;
+  m[2] = m[1];
 
-	double d = m[0]*m[3] - m[1]*m[2];
-	if(fabs(d) < g_dCrossPrec) return(-1.0);
+  double d = m[0]*m[3] - m[1]*m[2];
+  if(fabs(d) < g_dCrossPrec) return(-1.0);
 
-	CDPoint cPt[2];
-	cPt[0].x = (m[3]*b[0] - m[1]*b[1])/d;
-	cPt[1].x = (m[0]*b[1] - m[2]*b[0])/d;
+  CDPoint cPt[2];
+  cPt[0].x = (m[3]*b[0] - m[1]*b[1])/d;
+  cPt[1].x = (m[0]*b[1] - m[2]*b[0])/d;
 
-	b[0] = 0;
-	b[1] = 0;
-	for(int i = 0; i < n - 2; i++)
-	{
-		b[0] += (pPoints[i + 1].y - pPoints[0].y*Power3(1 - pt[i]) -
-			pPoints[n - 1].y*Power3(pt[i]))*pt[i]*Power2(1 - pt[i]);
-		b[1] += (pPoints[i + 1].y - pPoints[0].y*Power3(1 - pt[i]) -
-			pPoints[n - 1].y*Power3(pt[i]))*Power2(pt[i])*(1 - pt[i]);
-	}
+  b[0] = 0;
+  b[1] = 0;
+  for(int i = 0; i < n - 2; i++)
+  {
+    b[0] += (pPoints[i + 1].y - pPoints[0].y*Power3(1 - pt[i]) -
+      pPoints[n - 1].y*Power3(pt[i]))*pt[i]*Power2(1 - pt[i]);
+    b[1] += (pPoints[i + 1].y - pPoints[0].y*Power3(1 - pt[i]) -
+      pPoints[n - 1].y*Power3(pt[i]))*Power2(pt[i])*(1 - pt[i]);
+  }
 
-	cPt[0].y = (m[3]*b[0] - m[1]*b[1])/d;
-	cPt[1].y = (m[0]*b[1] - m[2]*b[0])/d;
+  cPt[0].y = (m[3]*b[0] - m[1]*b[1])/d;
+  cPt[1].y = (m[0]*b[1] - m[2]*b[0])/d;
 
-    pPrim->iType = 5;
-    pPrim->cPt1 = pPoints[0];
-    pPrim->cPt2 = cPt[0];
-    pPrim->cPt3 = cPt[1];
-    pPrim->cPt4 = pPoints[n - 1];
+  pPrim->iType = 5;
+  pPrim->cPt1 = pPoints[0];
+  pPrim->cPt2 = cPt[0];
+  pPrim->cPt3 = cPt[1];
+  pPrim->cPt4 = pPoints[n - 1];
 
-	d = 0;
-	for(int i = 0; i < n - 2; i++)
-	{
-		cPt[0] = GetBezier(*pPrim, pt[i]) - pPoints[i + 1];
-		d += cPt[0]*cPt[0];
-	}
+  d = 0;
+  for(int i = 0; i < n - 2; i++)
+  {
+    cPt[0] = GetBezier(*pPrim, pt[i]) - pPoints[i + 1];
+    d += cPt[0]*cPt[0];
+  }
 
-	return(d);
+  return d;
 }
 
 double ApproxNptFixTDir(int n, PDPoint pPoints, CDPoint cStartDir,
-	CDPoint cEndDir, double *pt, PDPrimitive pPrim)
+  CDPoint cEndDir, double *pt, PDPrimitive pPrim)
 {
-	double b[2] = {0, 0};
-	double m[4] = {0, 0, 0, 0};
-	for(int i = 0; i < n - 2; i++)
-	{
-		b[0] += pt[i]*Power2(1 - pt[i])*(
-			cStartDir.x*(pPoints[i + 1].x -
-			pPoints[0].x*Power2(1 - pt[i])*(1.0 + 2.0*pt[i]) -
-			pPoints[n - 1].x*Power2(pt[i])*(3.0 - 2.0*pt[i])) +
-			cStartDir.y*(pPoints[i + 1].y -
-			pPoints[0].y*Power2(1 - pt[i])*(1.0 + 2.0*pt[i]) -
-			pPoints[n - 1].y*Power2(pt[i])*(3.0 - 2.0*pt[i]))
-			);
-		b[1] += Power2(pt[i])*(1 - pt[i])*(
-			cEndDir.x*(pPoints[i + 1].x -
-			pPoints[0].x*Power2(1 - pt[i])*(1.0 + 2.0*pt[i]) -
-			pPoints[n - 1].x*Power2(pt[i])*(3.0 - 2.0*pt[i])) +
-			cEndDir.y*(pPoints[i + 1].y -
-			pPoints[0].y*Power2(1 - pt[i])*(1.0 + 2.0*pt[i]) -
-			pPoints[n - 1].y*Power2(pt[i])*(3.0 - 2.0*pt[i])));
+  double b[2] = {0, 0};
+  double m[4] = {0, 0, 0, 0};
+  for(int i = 0; i < n - 2; i++)
+  {
+    b[0] += pt[i]*Power2(1 - pt[i])*(
+      cStartDir.x*(pPoints[i + 1].x -
+        pPoints[0].x*Power2(1 - pt[i])*(1.0 + 2.0*pt[i]) -
+        pPoints[n - 1].x*Power2(pt[i])*(3.0 - 2.0*pt[i])) +
+      cStartDir.y*(pPoints[i + 1].y -
+        pPoints[0].y*Power2(1 - pt[i])*(1.0 + 2.0*pt[i]) -
+        pPoints[n - 1].y*Power2(pt[i])*(3.0 - 2.0*pt[i]))
+    );
+    b[1] += Power2(pt[i])*(1 - pt[i])*(
+      cEndDir.x*(pPoints[i + 1].x -
+        pPoints[0].x*Power2(1 - pt[i])*(1.0 + 2.0*pt[i]) -
+        pPoints[n - 1].x*Power2(pt[i])*(3.0 - 2.0*pt[i])) +
+      cEndDir.y*(pPoints[i + 1].y -
+        pPoints[0].y*Power2(1 - pt[i])*(1.0 + 2.0*pt[i]) -
+        pPoints[n - 1].y*Power2(pt[i])*(3.0 - 2.0*pt[i])));
 
-		m[0] += Power2(pt[i])*Power4(1 - pt[i]);
-		m[1] += Power3(pt[i])*Power3(1 - pt[i]);
-		m[3] += Power4(pt[i])*Power2(1 - pt[i]);
-	}
-	m[0] *= 3.0*cStartDir*cStartDir;
-	m[1] *= 3.0*cStartDir*cEndDir;
-	m[3] *= 3.0*cEndDir*cEndDir;
-	m[2] = m[1];
+    m[0] += Power2(pt[i])*Power4(1 - pt[i]);
+    m[1] += Power3(pt[i])*Power3(1 - pt[i]);
+    m[3] += Power4(pt[i])*Power2(1 - pt[i]);
+  }
+  m[0] *= 3.0*cStartDir*cStartDir;
+  m[1] *= 3.0*cStartDir*cEndDir;
+  m[3] *= 3.0*cEndDir*cEndDir;
+  m[2] = m[1];
 
-	double d = m[0]*m[3] - m[1]*m[2];
-	if(fabs(d) < g_dCrossPrec) return(-1.0);
+  double d = m[0]*m[3] - m[1]*m[2];
+  if(fabs(d) < g_dCrossPrec) return -1.0;
 
-	CDPoint cPt[2];
-	double u = (m[3]*b[0] - m[1]*b[1])/d;
-	double v = (m[0]*b[1] - m[2]*b[0])/d;
-	cPt[0] = pPoints[0] + u*cStartDir;
-	cPt[1] = pPoints[n - 1] + v*cEndDir;
+  CDPoint cPt[2];
+  double u = (m[3]*b[0] - m[1]*b[1])/d;
+  double v = (m[0]*b[1] - m[2]*b[0])/d;
+  cPt[0] = pPoints[0] + u*cStartDir;
+  cPt[1] = pPoints[n - 1] + v*cEndDir;
 
-    pPrim->iType = 5;
-    pPrim->cPt1 = pPoints[0];
-    pPrim->cPt2 = cPt[0];
-    pPrim->cPt3 = cPt[1];
-    pPrim->cPt4 = pPoints[n - 1];
+  pPrim->iType = 5;
+  pPrim->cPt1 = pPoints[0];
+  pPrim->cPt2 = cPt[0];
+  pPrim->cPt3 = cPt[1];
+  pPrim->cPt4 = pPoints[n - 1];
 
-	d = 0;
-	for(int i = 0; i < n - 2; i++)
-	{
-		cPt[0] = GetBezier(*pPrim, pt[i]) - pPoints[i + 1];
-		d += cPt[0]*cPt[0];
-	}
+  d = 0;
+  for(int i = 0; i < n - 2; i++)
+  {
+    cPt[0] = GetBezier(*pPrim, pt[i]) - pPoints[i + 1];
+    d += cPt[0]*cPt[0];
+  }
 
-	return(d);
+  return d;
 }
 
 double ApproxNpt(int n, PDPoint pPoints, PDPoint pStartDir,
-	PDPoint pEndDir, PDPrimitive pPrim)
+  PDPoint pEndDir, PDPrimitive pPrim)
 {
-	double *pd = (double*)malloc((n - 1)*sizeof(double));
-	double d = 0;
-	for(int i = 0; i < n - 1; i++)
-	{
-		pd[i] = GetDist(pPoints[i], pPoints[i + 1]);
-		d += pd[i];
-	}
-	if(d < g_dPrec) return(-1.0);
+  double *pd = (double*)malloc((n - 1)*sizeof(double));
+  double d = 0;
+  for(int i = 0; i < n - 1; i++)
+  {
+    pd[i] = GetDist(pPoints[i], pPoints[i + 1]);
+    d += pd[i];
+  }
+  if(d < g_dPrec) return(-1.0);
 
-	double d1 = 0;
-	//double *pt = (double*)malloc((n - 2)*sizeof(double));
-	// use pd instead
-	double *pt = pd;
-	for(int i = 0; i < n - 2; i++)
-	{
-		d1 += pd[i];
-		pt[i] = d1/d;
-	}
+  double d1 = 0;
+  //double *pt = (double*)malloc((n - 2)*sizeof(double));
+  // use pd instead
+  double *pt = pd;
+  for(int i = 0; i < n - 2; i++)
+  {
+    d1 += pd[i];
+    pt[i] = d1/d;
+  }
 
-	if(pStartDir && pEndDir)
-		d = ApproxNptFixTDir(n, pPoints, *pStartDir, *pEndDir, pt, pPrim);
-	else d = ApproxNptFixT(n, pPoints, pt, pPrim);
+  if(pStartDir && pEndDir)
+    d = ApproxNptFixTDir(n, pPoints, *pStartDir, *pEndDir, pt, pPrim);
+  else d = ApproxNptFixT(n, pPoints, pt, pPrim);
 
-	int k = 0;
-	const int nIter = 4;//2;
-	double h1, h2;
-	CDPoint fPt, d1Pt, d2Pt;
+  int k = 0;
+  const int nIter = 4;//2;
+  double h1, h2;
+  CDPoint fPt, d1Pt, d2Pt;
 
-	while((d > g_dRootPrec) && (k < nIter))
-	{
-		for(int i = 0; i < n - 2; i++)
-		{
-			fPt = GetBezier(*pPrim, pt[i]);
-			d1Pt = GetBezierDeriv(*pPrim, pt[i]);
-			d2Pt = GetBezierDeriv2(*pPrim, pt[i]);
+  while((d > g_dRootPrec) && (k < nIter))
+  {
+    for(int i = 0; i < n - 2; i++)
+    {
+      fPt = GetBezier(*pPrim, pt[i]);
+      d1Pt = GetBezierDeriv(*pPrim, pt[i]);
+      d2Pt = GetBezierDeriv2(*pPrim, pt[i]);
 
-            h1 = (fPt - pPoints[i + 1])*d1Pt;
-            h2 = d1Pt*d1Pt + (fPt - pPoints[i + 1])*d2Pt;
+      h1 = (fPt - pPoints[i + 1])*d1Pt;
+      h2 = d1Pt*d1Pt + (fPt - pPoints[i + 1])*d2Pt;
 
-			if(fabs(h2) > g_dPrec) pt[i] -= h1/h2;
-			if(pt[i] < 0.0) pt[i] = 0.0;
-			if(pt[i] > 1.0) pt[i] = 1.0;
-		}
+      if(fabs(h2) > g_dPrec) pt[i] -= h1/h2;
+      if(pt[i] < 0.0) pt[i] = 0.0;
+      if(pt[i] > 1.0) pt[i] = 1.0;
+    }
 
-		if(pStartDir && pEndDir)
-			d = ApproxNptFixTDir(n, pPoints, *pStartDir, *pEndDir, pt, pPrim);
-		else
-			d = ApproxNptFixT(n, pPoints, pt, pPrim);
-		k++;
-	}
+    if(pStartDir && pEndDir)
+      d = ApproxNptFixTDir(n, pPoints, *pStartDir, *pEndDir, pt, pPrim);
+    else
+      d = ApproxNptFixT(n, pPoints, pt, pPrim);
+    k++;
+  }
 
-	free(pd);
+  free(pd);
 
-	return(d);
+  return d;
 }
 
 double ApproxLineSeg(int iPoints, PDPoint pPoints, PDPoint pStartDir,
-	PDPoint pEndDir, PDPrimitive pPrim)
+  PDPoint pEndDir, PDPrimitive pPrim)
 {
-	if(iPoints < 2) return(-1.0);
-	if(iPoints == 2)
+  if(iPoints < 2) return -1.0;
+  if(iPoints == 2)
+  {
+    pPrim->iType = 1;
+    pPrim->cPt1 = pPoints[0];
+    pPrim->cPt2 = pPoints[1];
+    pPrim->cPt3 = 0;
+    pPrim->cPt4 = 0;
+    return 0.0;
+  }
+
+  // first of all try whether the segment is not a straight line
+  double dDet = GetDist(pPoints[0], pPoints[iPoints - 1]);
+  if(dDet > g_dPrec)
+  {
+    double dSum = 0.0, t;
+    CDPoint cPt;
+    int i = 1;
+    int n = iPoints - 1;
+    double dnPrec = (double)n*g_dPrec*20.0;
+    while((dSum < dnPrec) && (i < n))
     {
-        pPrim->iType = 1;
-        pPrim->cPt1 = pPoints[0];
-        pPrim->cPt2 = pPoints[1];
-        pPrim->cPt3 = 0;
-        pPrim->cPt4 = 0;
-        return 0.0;
+      t = (pPoints[i] - pPoints[0])*(pPoints[n] - pPoints[0])/dDet;
+      cPt = (1.0 - t)*pPoints[0] + t*pPoints[n];
+      dSum += GetDist(cPt, pPoints[i]);
+      i++;
     }
 
-	// first of all try whether the segment is not a straight line
-	double dDet = GetDist(pPoints[0], pPoints[iPoints - 1]);
-	if(dDet > g_dPrec)
-	{
-		double dSum = 0.0, t;
-		CDPoint cPt;
-		int i = 1;
-		int n = iPoints - 1;
-		double dnPrec = (double)n*g_dPrec*20.0;
-		while((dSum < dnPrec) && (i < n))
-		{
-			t = (pPoints[i] - pPoints[0])*(pPoints[n] - pPoints[0])/dDet;
-			cPt = (1.0 - t)*pPoints[0] + t*pPoints[n];
-			dSum += GetDist(cPt, pPoints[i]);
-			i++;
-		}
+    if(dSum < dnPrec)
+    {
+      if(pStartDir && pEndDir)
+      {
+        cPt = pPoints[n] - pPoints[0];
+        if(!IsSameDir(*pStartDir, cPt) || !IsSameDir(*pEndDir, cPt)) dSum = 1.0;
+      }
+    }
 
-		if(dSum < dnPrec)
-		{
-			if(pStartDir && pEndDir)
-			{
-				cPt = pPoints[n] - pPoints[0];
-				if(!IsSameDir(*pStartDir, cPt) || !IsSameDir(*pEndDir, cPt))
-					dSum = 1.0;
-			}
-		}
+    if(dSum < dnPrec)
+    {
+      pPrim->iType = 1;
+      pPrim->cPt1 = pPoints[0];
+      pPrim->cPt2 = pPoints[n];
+      pPrim->cPt3 = 0;
+      pPrim->cPt4 = 0;
+      return dSum/n;
+    }
+  }
 
-		if(dSum < dnPrec)
-		{
-            pPrim->iType = 1;
-            pPrim->cPt1 = pPoints[0];
-            pPrim->cPt2 = pPoints[n];
-            pPrim->cPt3 = 0;
-            pPrim->cPt4 = 0;
-			return(dSum/n);
-		}
-	}
+  if(iPoints == 3)
+  {
+    return Approx3pt(pPoints, pStartDir, pEndDir, pPrim);
+  }
 
-	if(iPoints == 3)
-	{
-		return(Approx3pt(pPoints, pStartDir, pEndDir, pPrim));
-	}
+  if((iPoints == 4) && (!pStartDir || !pEndDir))
+  {
+    return Approx4pt(pPoints, pPrim);
+  }
 
-	if((iPoints == 4) && (!pStartDir || !pEndDir))
-	{
-		return(Approx4pt(pPoints, pPrim));
-	}
-
-	return(ApproxNpt(iPoints, pPoints, pStartDir, pEndDir, pPrim));
+  return ApproxNpt(iPoints, pPoints, pStartDir, pEndDir, pPrim);
 }
 
 bool PointInArc(CDPoint cPt, CDLine cStart, CDLine cEnd)
 {
-    CDPoint cOrig, cPt1, cPt2;
-    if(cStart.bIsSet && cEnd.bIsSet)
+  CDPoint cOrig, cPt1, cPt2;
+  if(cStart.bIsSet && cEnd.bIsSet)
+  {
+    int iX = LineXLine(cStart.cOrigin, cStart.cDirection,
+      cEnd.cOrigin, cEnd.cDirection, &cOrig);
+
+    if(iX < 1) // lines are parallel
     {
-        int iX = LineXLine(cStart.cOrigin, cStart.cDirection,
-            cEnd.cOrigin, cEnd.cDirection, &cOrig);
-
-        if(iX < 1) // lines are parallel
-        {
-            cPt2 = Rotate(cEnd.cDirection, cStart.cDirection, false);
-            if(cPt2.x > 0)
-            {
-                cPt1 = Rotate(cPt - cStart.cOrigin, cStart.cDirection, false);
-                if(cPt1.y > 0) return cPt1.y < cPt2.y;
-                return cPt1.y > cPt2.y;
-            }
-            else cOrig = (cStart.cOrigin + cEnd.cOrigin)/2.0;
-        }
-
-        double dt;
-        if(fabs(cStart.cDirection.x) > g_dPrec)
-            dt = (cOrig.x - cStart.cOrigin.x)/cStart.cDirection.x;
-        else
-            dt = (cOrig.y - cStart.cOrigin.y)/cStart.cDirection.y;
-
-        if(dt > 0)
-        {
-            CDLine cTmpLine = cStart;
-            cStart.cOrigin = cEnd.cOrigin;
-            cStart.cDirection = -1.0*cEnd.cDirection;
-            cEnd.cOrigin = cTmpLine.cOrigin;
-            cEnd.cDirection = -1.0*cTmpLine.cDirection;
-        }
-
-        cPt1 = Rotate(cPt - cOrig, cStart.cDirection, false);
-        cPt2 = Rotate(cEnd.cDirection, cStart.cDirection, false);
-
-        double d1 = GetNorm(cPt1);
-
-        if(d1 < g_dPrec) return true;
-
-        int iRes = CmpAngle(cPt1/d1, cPt2);
-        return (iRes <= 0);
-    }
-    else if(cStart.bIsSet)
-    {
+      cPt2 = Rotate(cEnd.cDirection, cStart.cDirection, false);
+      if(cPt2.x > 0)
+      {
         cPt1 = Rotate(cPt - cStart.cOrigin, cStart.cDirection, false);
-        return cPt1.y >= 0;
+        if(cPt1.y > 0) return cPt1.y < cPt2.y;
+        return cPt1.y > cPt2.y;
+      }
+      else cOrig = (cStart.cOrigin + cEnd.cOrigin)/2.0;
     }
-    else if(cEnd.bIsSet)
+
+    double dt;
+    if(fabs(cStart.cDirection.x) > g_dPrec)
+      dt = (cOrig.x - cStart.cOrigin.x)/cStart.cDirection.x;
+    else
+      dt = (cOrig.y - cStart.cOrigin.y)/cStart.cDirection.y;
+
+    if(dt > 0)
     {
-        cPt1 = Rotate(cPt - cEnd.cOrigin, cEnd.cDirection, false);
-        return cPt1.y <= 0;
+      CDLine cTmpLine = cStart;
+      cStart.cOrigin = cEnd.cOrigin;
+      cStart.cDirection = -1.0*cEnd.cDirection;
+      cEnd.cOrigin = cTmpLine.cOrigin;
+      cEnd.cDirection = -1.0*cTmpLine.cDirection;
     }
-    return true;
+
+    cPt1 = Rotate(cPt - cOrig, cStart.cDirection, false);
+    cPt2 = Rotate(cEnd.cDirection, cStart.cDirection, false);
+
+    double d1 = GetNorm(cPt1);
+
+    if(d1 < g_dPrec) return true;
+
+    int iRes = CmpAngle(cPt1/d1, cPt2);
+    return iRes <= 0;
+  }
+  else if(cStart.bIsSet)
+  {
+    cPt1 = Rotate(cPt - cStart.cOrigin, cStart.cDirection, false);
+    return cPt1.y >= 0;
+  }
+  else if(cEnd.bIsSet)
+  {
+    cPt1 = Rotate(cPt - cEnd.cOrigin, cEnd.cDirection, false);
+    return cPt1.y <= 0;
+  }
+  return true;
 }
 
 CDPoint GetQuadPoint(PDPrimitive pQuad, double dt)
 {
-	return Power2(1.0 - dt)*pQuad->cPt1 + 2.0*dt*(1.0 - dt)*pQuad->cPt2 + Power2(dt)*pQuad->cPt3;
+  return Power2(1.0 - dt)*pQuad->cPt1 + 2.0*dt*(1.0 - dt)*pQuad->cPt2 + Power2(dt)*pQuad->cPt3;
 }
 
 CDPoint GetQuadDir(PDPrimitive pQuad, double dt)
 {
-    CDPoint cRes = {0, 0};
-    CDPoint cDeriv = (1.0 - dt)*(pQuad->cPt2 - pQuad->cPt1) + dt*(pQuad->cPt3 - pQuad->cPt2);
-    double dNorm = GetNorm(cDeriv);
-    if(dNorm < g_dPrec)
-    {
-        cDeriv = pQuad->cPt2 - pQuad->cPt1;
-        dNorm = GetNorm(cDeriv);
-    }
-    if(dNorm < g_dPrec)
-    {
-        cDeriv = pQuad->cPt3 - pQuad->cPt2;
-        dNorm = GetNorm(cDeriv);
-    }
-    if(dNorm < g_dPrec) return cRes;
+  CDPoint cRes = {0, 0};
+  CDPoint cDeriv = (1.0 - dt)*(pQuad->cPt2 - pQuad->cPt1) + dt*(pQuad->cPt3 - pQuad->cPt2);
+  double dNorm = GetNorm(cDeriv);
+  if(dNorm < g_dPrec)
+  {
+    cDeriv = pQuad->cPt2 - pQuad->cPt1;
+    dNorm = GetNorm(cDeriv);
+  }
+  if(dNorm < g_dPrec)
+  {
+    cDeriv = pQuad->cPt3 - pQuad->cPt2;
+    dNorm = GetNorm(cDeriv);
+  }
+  if(dNorm < g_dPrec) return cRes;
 
-    cRes = cDeriv/dNorm;
-    return cRes;
+  cRes = cDeriv/dNorm;
+  return cRes;
 }
 
 CDPoint GetQuadNormal(PDPrimitive pQuad, double dt)
 {
-    CDPoint cRes = {0, 0};
-    CDPoint cDeriv = (1.0 - dt)*(pQuad->cPt2 - pQuad->cPt1) + dt*(pQuad->cPt3 - pQuad->cPt2);
-    double dNorm = GetNorm(cDeriv);
-    if(dNorm < g_dPrec)
-    {
-        cDeriv = pQuad->cPt2 - pQuad->cPt1;
-        dNorm = GetNorm(cDeriv);
-    }
-    if(dNorm < g_dPrec)
-    {
-        cDeriv = pQuad->cPt3 - pQuad->cPt2;
-        dNorm = GetNorm(cDeriv);
-    }
-    if(dNorm < g_dPrec) return cRes;
+  CDPoint cRes = {0, 0};
+  CDPoint cDeriv = (1.0 - dt)*(pQuad->cPt2 - pQuad->cPt1) + dt*(pQuad->cPt3 - pQuad->cPt2);
+  double dNorm = GetNorm(cDeriv);
+  if(dNorm < g_dPrec)
+  {
+    cDeriv = pQuad->cPt2 - pQuad->cPt1;
+    dNorm = GetNorm(cDeriv);
+  }
+  if(dNorm < g_dPrec)
+  {
+    cDeriv = pQuad->cPt3 - pQuad->cPt2;
+    dNorm = GetNorm(cDeriv);
+  }
+  if(dNorm < g_dPrec) return cRes;
 
-    cRes = GetNormal(cDeriv/dNorm);
-    return cRes;
+  cRes = GetNormal(cDeriv/dNorm);
+  return cRes;
 }
 
 double LenInt(double x)
 {
-	double y = sqrt(1 + x*x);
-	return log(x + y) + x*y;
+  double y = sqrt(1 + x*x);
+  return log(x + y) + x*y;
 }
 
 double GetQuadLength(PDPrimitive pQuad, double t1, double t2)
 {
-	CDPoint cPt1 = 2.0*(pQuad->cPt2 - pQuad->cPt1);
-	CDPoint cPt2 = 2.0*(pQuad->cPt3 - pQuad->cPt2);
-	CDPoint cA = cPt2 - cPt1;
-	CDPoint cB = cPt1;
+  CDPoint cPt1 = 2.0*(pQuad->cPt2 - pQuad->cPt1);
+  CDPoint cPt2 = 2.0*(pQuad->cPt3 - pQuad->cPt2);
+  CDPoint cA = cPt2 - cPt1;
+  CDPoint cB = cPt1;
 
-	double dx1 = cA*cA;
-	double dx2 = cB*cB;
-	double dx12 = cA*cB;
-	double dDet = dx1*dx2 - Power2(dx12); // always >= 0 from Schwarz inequality
+  double dx1 = cA*cA;
+  double dx2 = cB*cB;
+  double dx12 = cA*cB;
+  double dDet = dx1*dx2 - Power2(dx12); // always >= 0 from Schwarz inequality
 
-	double dRes = 0.0;
+  double dRes = 0.0;
 
-	if(dDet > g_dPrec)
-	{
-		double dA = sqrt(dDet);
-		double v1 = (dx1*t1 + dx12)/dA;
-		double v2 = (dx1*t2 + dx12)/dA;
-		dRes = (LenInt(v2) - LenInt(v1))*dDet/2.0/dx1/sqrt(dx1);
+  if(dDet > g_dPrec)
+  {
+    double dA = sqrt(dDet);
+    double v1 = (dx1*t1 + dx12)/dA;
+    double v2 = (dx1*t2 + dx12)/dA;
+    dRes = (LenInt(v2) - LenInt(v1))*dDet/2.0/dx1/sqrt(dx1);
     if(dRes < g_dPrec) dRes = 0.0;
-	}
-	else
-	{
-		if(dx1 < g_dPrec)
-		{
-			dRes = sqrt(dx2)*(t2 - t1);
-		}
-		else
-		{
-			dx2 = sqrt(dx1);
-			dRes = (t2 - t1)*(dx2*(t2 + t1)/2.0 + dx12/dx2);
+  }
+  else
+  {
+    if(dx1 < g_dPrec)
+    {
+      dRes = sqrt(dx2)*(t2 - t1);
+    }
+    else
+    {
+      dx2 = sqrt(dx1);
+      dRes = (t2 - t1)*(dx2*(t2 + t1)/2.0 + dx12/dx2);
       if(dRes < g_dPrec) dRes = 0.0;
-		}
-	}
+    }
+  }
 
-	return(dRes);
+  return(dRes);
 }
 
 double GetQuadLengthDeriv(PDPrimitive pQuad, double t2)
 {
-	CDPoint cPt1 = 2.0*(pQuad->cPt2 - pQuad->cPt1);
-	CDPoint cPt2 = 2.0*(pQuad->cPt3 - pQuad->cPt2);
-	CDPoint cPt3 = (1.0 - t2)*cPt1 + t2*cPt2;
-	return GetNorm(cPt3);
+  CDPoint cPt1 = 2.0*(pQuad->cPt2 - pQuad->cPt1);
+  CDPoint cPt2 = 2.0*(pQuad->cPt3 - pQuad->cPt2);
+  CDPoint cPt3 = (1.0 - t2)*cPt1 + t2*cPt2;
+  return GetNorm(cPt3);
 }
 
 double GetQuadPointAtDist(PDPrimitive pQuad, double t1, double dDist)
 {
-	CDPoint cPt1 = 2.0*(pQuad->cPt2 - pQuad->cPt1);
-	CDPoint cPt2 = 2.0*(pQuad->cPt3 - pQuad->cPt2);
-	CDPoint cA = cPt2 - cPt1;
-	CDPoint cB = cPt1;
+  CDPoint cPt1 = 2.0*(pQuad->cPt2 - pQuad->cPt1);
+  CDPoint cPt2 = 2.0*(pQuad->cPt3 - pQuad->cPt2);
+  CDPoint cA = cPt2 - cPt1;
+  CDPoint cB = cPt1;
 
-	double dx1 = cA*cA;
-	double dx2 = cB*cB;
-	double dx12 = cA*cB;
-	double dDet = dx1*dx2 - Power2(dx12); // always >= 0 from Schwarz inequality
+  double dx1 = cA*cA;
+  double dx2 = cB*cB;
+  double dx12 = cA*cB;
+  double dDet = dx1*dx2 - Power2(dx12); // always >= 0 from Schwarz inequality
 
-	double dRes = 0.0;
-    double a0, a1, a2; //, a3, a4;
+  double dRes = 0.0;
+  double a0, a1, a2; //, a3, a4;
 
-	double dCoefs[5];
-	double dRoots[4];
-	int iRoots;
+  double dCoefs[5];
+  double dRoots[4];
+  int iRoots;
 
-	if(dDet > g_dPrec)
-	{
-		double dA = sqrt(dDet);
-		double v1 = (dx1*t1 + dx12)/dA;
-		//double v2 = (dx1*t2 + dx12)/dA;
-		//dDist = (LenInt(v2) - LenInt(v1))*dDet/2.0/dx1/sqrt(dx1);
-		//LenInt(v2) = 2.0*dx1*sqrt(dx1)*dDist/dDet + LenInt(v1);
-		double dB = 2.0*dx1*sqrt(dx1)*dDist/dDet + LenInt(v1);
+  if(dDet > g_dPrec)
+  {
+    double dA = sqrt(dDet);
+    double v1 = (dx1*t1 + dx12)/dA;
+    //double v2 = (dx1*t2 + dx12)/dA;
+    //dDist = (LenInt(v2) - LenInt(v1))*dDet/2.0/dx1/sqrt(dx1);
+    //LenInt(v2) = 2.0*dx1*sqrt(dx1)*dDist/dDet + LenInt(v1);
+    double dB = 2.0*dx1*sqrt(dx1)*dDist/dDet + LenInt(v1);
 
-		dCoefs[0] = -Power2(dB);
-		dCoefs[1] = 2.0*dB;
-		dCoefs[2] = 0.0;
-		dCoefs[3] = 0.0;
-		dCoefs[4] = 1.0;
+    dCoefs[0] = -Power2(dB);
+    dCoefs[1] = 2.0*dB;
+    dCoefs[2] = 0.0;
+    dCoefs[3] = 0.0;
+    dCoefs[4] = 1.0;
 
-		iRoots = SolvePolynom(4, dCoefs, dRoots);
+    iRoots = SolvePolynom(4, dCoefs, dRoots);
 
-        a1 = GetQuadLength(pQuad, t1, 1.0);
-		dRes = t1 + dDist/a1;
-        for(int i = 0; i < iRoots; i++)
-		{
-            a0 = (dRoots[i]*dA - dx12)/dx1;
-            if(a0 > t1 - g_dPrec)
-            {
-			    a2 = GetQuadLength(pQuad, t1, a0);
-			    if(fabs(dDist - a2) < fabs(dDist - a1))
-			    {
-				    a1 = a2;
-				    dRes = a0;
-			    }
-            }
-		}
+    a1 = GetQuadLength(pQuad, t1, 1.0);
+    dRes = t1 + dDist/a1;
+    for(int i = 0; i < iRoots; i++)
+    {
+      a0 = (dRoots[i]*dA - dx12)/dx1;
+      if(a0 > t1 - g_dPrec)
+      {
+        a2 = GetQuadLength(pQuad, t1, a0);
+        if(fabs(dDist - a2) < fabs(dDist - a1))
+        {
+          a1 = a2;
+          dRes = a0;
+        }
+      }
+    }
 
-		// we believe we are pretty close to the solution at the moment
-		// so we only perform three iterations
-		for(int i = 0; i < 3; i++)
-		{
-			a1 = GetQuadLength(pQuad, t1, dRes) - dDist;
-			a2 = GetQuadLengthDeriv(pQuad, dRes);
-			if(fabs(a2) > g_dPrec)
-			{
-				dRes -= a1/a2;
-			}
-		}
-	}
-	else
-	{
-		if(dx1 < g_dPrec)
-		{
-			if(dx2 > g_dPrec) dRes = t1 + dDist/sqrt(dx2);
-		}
-		else
-		{
-			dx2 = sqrt(dx1);
-			//dRes = (t2 - t1)*(dx2*(t2 + t1)/2.0 + dx12/dx2);
+    // we believe we are pretty close to the solution at the moment
+    // so we only perform three iterations
+    for(int i = 0; i < 3; i++)
+    {
+      a1 = GetQuadLength(pQuad, t1, dRes) - dDist;
+      a2 = GetQuadLengthDeriv(pQuad, dRes);
+      if(fabs(a2) > g_dPrec)
+      {
+        dRes -= a1/a2;
+      }
+    }
+  }
+  else
+  {
+    if(dx1 < g_dPrec)
+    {
+      if(dx2 > g_dPrec) dRes = t1 + dDist/sqrt(dx2);
+    }
+    else
+    {
+      dx2 = sqrt(dx1);
+      //dRes = (t2 - t1)*(dx2*(t2 + t1)/2.0 + dx12/dx2);
 
-			a0 = dx2/2.0;
-			a1 = dx12/dx2;
-			a2 = -dDist - a0*t1*t1 - a1*t1;
+      a0 = dx2/2.0;
+      a1 = dx12/dx2;
+      a2 = -dDist - a0*t1*t1 - a1*t1;
 
-			dCoefs[2] = dx2/2.0;
-			dCoefs[1] = dx12/dx2;
-			dCoefs[0] = -dDist - a0*t1*t1 - a1*t1;
+      dCoefs[2] = dx2/2.0;
+      dCoefs[1] = dx12/dx2;
+      dCoefs[0] = -dDist - a0*t1*t1 - a1*t1;
 
-			iRoots = SolvePolynom(2, dCoefs, dRoots);
+      iRoots = SolvePolynom(2, dCoefs, dRoots);
 
-			if(iRoots > 0)
-			{
-				dRes = dRoots[0];
-				if(iRoots > 1)
-				{
-					a1 = GetQuadLength(pQuad, t1, dRes);
-					a2 = GetQuadLength(pQuad, t1, dRoots[1]);
-					if(fabs(dDist - a2) < fabs(dDist - a1))
-						dRes = dRoots[1];
-				}
-			}
-		}
-	}
+      if(iRoots > 0)
+      {
+        dRes = dRoots[0];
+        if(iRoots > 1)
+        {
+          a1 = GetQuadLength(pQuad, t1, dRes);
+          a2 = GetQuadLength(pQuad, t1, dRoots[1]);
+          if(fabs(dDist - a2) < fabs(dDist - a1)) dRes = dRoots[1];
+        }
+      }
+    }
+  }
 
-	return(dRes);
+  return dRes;
 }
 
 int RefInBounds(double da1, double da2, double dRef)
 {
-    bool bCycle = da2 < da1 - g_dPrec;
-    bool bInside;
+  bool bCycle = da2 < da1 - g_dPrec;
+  bool bInside;
 
-    if(bCycle) bInside = (da1 + g_dPrec < dRef) || (dRef < da2 - g_dPrec);
-    else bInside = (da1 + g_dPrec < dRef) && (dRef < da2 - g_dPrec);
+  if(bCycle) bInside = (da1 + g_dPrec < dRef) || (dRef < da2 - g_dPrec);
+  else bInside = (da1 + g_dPrec < dRef) && (dRef < da2 - g_dPrec);
 
-    if(bInside) return 3;
+  if(bInside) return 3;
 
-    if((da2 - g_dPrec < dRef) && (dRef < da2 + g_dPrec)) return 2;
-    if((da1 - g_dPrec < dRef) && (dRef < da1 + g_dPrec)) return 1;
+  if((da2 - g_dPrec < dRef) && (dRef < da2 + g_dPrec)) return 2;
+  if((da1 - g_dPrec < dRef) && (dRef < da1 + g_dPrec)) return 1;
 
-    return 0;
+  return 0;
 }
 
 int RefInOpenBounds(PDRefPoint pBounds, double dRef)
 {
-    if(pBounds[0].bIsSet && pBounds[1].bIsSet) return RefInBounds(pBounds[0].dRef, pBounds[1].dRef, dRef);
-    if(pBounds[0].bIsSet)
-    {
-        if(pBounds[0].dRef > dRef + g_dPrec) return 0;
-        if(pBounds[0].dRef > dRef - g_dPrec) return 1;
-        return 3;
-    }
-    if(pBounds[1].bIsSet)
-    {
-        if(pBounds[1].dRef < dRef - g_dPrec) return 0;
-        if(pBounds[1].dRef < dRef + g_dPrec) return 2;
-    }
+  if(pBounds[0].bIsSet && pBounds[1].bIsSet) return RefInBounds(pBounds[0].dRef, pBounds[1].dRef, dRef);
+  if(pBounds[0].bIsSet)
+  {
+    if(pBounds[0].dRef > dRef + g_dPrec) return 0;
+    if(pBounds[0].dRef > dRef - g_dPrec) return 1;
     return 3;
+  }
+  if(pBounds[1].bIsSet)
+  {
+    if(pBounds[1].dRef < dRef - g_dPrec) return 0;
+    if(pBounds[1].dRef < dRef + g_dPrec) return 2;
+  }
+  return 3;
 }
-
-/*int MergeBounds(double da1, double da2, double db1, double db2, bool bFullCycle, double *pdBnds)
-{
-    if(bFullCycle)
-    {
-        pdBnds[0] = db1;
-        pdBnds[1] = db2;
-        return 1;
-    }
-
-    int ia1 = RefInBounds(db1, db2, da1);
-    int ia2 = RefInBounds(db1, db2, da2);
-    int ib1 = RefInBounds(da1, da2, db1);
-    int ib2 = RefInBounds(da1, da2, db2);
-
-    int iSum = ia1 + ia2 + ib1 + ib2;
-    if(iSum < 4) return 0;
-    if(iSum > 10)
-    {
-        pdBnds[0] = da1;
-        pdBnds[1] = db2;
-        pdBnds[2] = db1;
-        pdBnds[3] = da2;
-        return 2;
-    }
-
-    if((ia1 < 3) && (ia2 < 3) && (ib1 < 3) && (ib2 < 3))
-    {
-        if(ia1 > 1) return 0;
-
-        pdBnds[0] = db1;
-        pdBnds[1] = db2;
-        return 1;
-    }
-
-    if(ia1 > 2) pdBnds[0] = da1;
-    if(ib1 > 2) pdBnds[0] = db1;
-    if(ia2 > 2) pdBnds[1] = da2;
-    if(ib2 > 2) pdBnds[1] = db2;
-
-    if(iSum == 5) pdBnds[0] = db1;
-    if(iSum == 7) pdBnds[1] = db2;
-
-    return 1;
-}*/
 
 double OpositeAngle(double dAng)
 {

@@ -3,28 +3,28 @@
 
 typedef struct CDUnit
 {
-    char sName[32];
-    char sAbbrev[8];
-    double dBaseToUnit;
-    char sAbbrev2[8];
-    int iUnitType; // 0 unknown, 1 length, 2 angle
-    char *psPos; // auxiliary value
+  char sName[32];
+  char sAbbrev[8];
+  double dBaseToUnit;
+  char sAbbrev2[8];
+  int iUnitType; // 0 unknown, 1 length, 2 angle
+  char *psPos; // auxiliary value
 } *PDUnit;
 
 typedef class CDUnitList
 {
 private:
-    int m_iDataLen;
-    int m_iDataSize;
-    PDUnit m_pData;
-    int FindPos(int iType, int iPos);
+  int m_iDataLen;
+  int m_iDataSize;
+  PDUnit m_pData;
+  int FindPos(int iType, int iPos);
 public:
-    CDUnitList();
-    ~CDUnitList();
-    int GetCount(int iType);
-    void AddUnit(CDUnit cUnit);
-    PDUnit GetUnit(int iType, int iPos);
-    PDUnit FindUnit(const char *psAbbrev);
+  CDUnitList();
+  ~CDUnitList();
+  int GetCount(int iType);
+  void AddUnit(CDUnit cUnit);
+  PDUnit GetUnit(int iType, int iPos);
+  PDUnit FindUnit(const char *psAbbrev);
 } *PDUnitList;
 
 #define IS_LENGTH_VAL(a) (((a)==0) || ((a)==1) || ((a)==3))
@@ -44,7 +44,7 @@ void CopyPlainMask(char *sDest, const char *sSrc);
 PDUnit GetUnitAtBuf(const char *sBuf, PDUnitList pUnits);
 int ValidateMask(const char *psMask, PDUnitList pUnits);
 int PreParseValue(char *psMask, PDUnitList pUnits, double dVal, double dScale,
-    char *psBuf, int iBufSize);
+  char *psBuf, int iBufSize);
 int GuessMaskUnitType(char *psMask, PDUnitList pUnits);
 
 #endif

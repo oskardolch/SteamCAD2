@@ -248,7 +248,6 @@ void AddCircleExtPrim(PDRect pRect, PDPointList pCache, PDPrimObject pPrimList)
   cPrimPt.cPt2 = cOrig;
   cPrimPt.cPt3 = 0;
   cPrimPt.cPt4 = 0;
-  //CropPrimitive(cPrimPt, pRect, pPrimList);
   CropPoints(cPrimPt, pRect, pPrimList);
 }
 

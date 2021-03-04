@@ -6,9 +6,6 @@
 bool AddSplinePoint(double x, double y, char iCtrl, double dRestrictVal, PDPointList pPoints);
 bool BuildSplineCache(CDLine cTmpPt, int iMode, PDPointList pPoints, PDPointList pCache,
   double *pdDist);
-//int BuildSplinePrimitives(CDLine cTmpPt, int iMode, PDRect pRect, PDPointList pPoints,
-//  PDPointList pCache, PDPrimObject pPrimList, PDRefPoint pBounds, double dOffset,
-//  double *pdDist, PDPoint pDrawBnds, bool bQuadsOnly = false);
 int GetSplineNumSegments(PDPointList pCache);
 double GetSplineOffset(PDPointList pCache);
 double GetSplineDistFromPt(CDPoint cPt, CDPoint cRefPt, int iSrchMask, PDPointList pCache, PDLine pPtX);

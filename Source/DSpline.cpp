@@ -555,7 +555,6 @@ int GetQuadAllBreaks(CDPrimitive cQuad, double dr, double *pdBreaks)
 
   CDPoint cDir1 = cU/dN1;
   CDPoint cDir2 = Rotate(cPt2, cDir1, false);
-  //if(cDir2.y*dr < g_dPrec) return 0;
   if(cDir2.y*dr > -g_dPrec) return 0;
 
   CDPoint cV = cQuad.cPt3 - 2.0*cQuad.cPt2 + cQuad.cPt1;
@@ -1466,7 +1465,6 @@ void AddSplineSegment(double d1, double d2, double dExt, bool bReverse, PDPointL
   bool bClosed = (nCtrls > 0);
   double dOff1 = 0.0;
   double dOff2 = 0.0;
-//printf("%f, %f\n", d1, d2);
 
   if(bClosed)
   {
@@ -1500,7 +1498,6 @@ void AddSplineSegment(double d1, double d2, double dExt, bool bReverse, PDPointL
 
   dt1 += dOff1;
   dt2 += dOff2;
-//printf("%f, %f - %f, %f - %d, %d - %f, %f\n", d1, d2, dt1, dt2, i1, i2, dStart, dEnd);
 
   CDPrimitive cQuad = GetSplineNthSegment(i1, pCache);
   if((i2 < i1) || ((i2 == i1) && ((dt2 < dt1) || (dt2 > (double)iSegs + g_dPrec))))

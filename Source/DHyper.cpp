@@ -326,16 +326,6 @@ bool BuildHyperCache(CDLine cTmpPt, int iMode, PDPointList pPoints, PDPointList 
   double dr = Power2(dr2)/dr1;
   pCache->AddPoint(dr1 + dr, 0.0, 3);
 
-  //if((iMode == 2) && (cTmpPt.cDirection.x > 0.5))
-  //{
-  //  dr = GetHyperBreakAngle(dr1, dr2, -cTmpPt.cDirection.y);
-  //  if(dr > -0.5) pCache->AddPoint(dr, 0.0, 4);
-  //
-  //  if(pdDist) *pdDist = cTmpPt.cDirection.y;
-  //  pCache->AddPoint(cTmpPt.cDirection.y, 0.0, 2);
-  //  return true;
-  //}
-
   int nOffs2 = pPoints->GetCount(2);
   int nOffs3 = pPoints->GetCount(3);
   int nOffs4 = pPoints->GetCount(4);
@@ -865,90 +855,6 @@ int AddHyperInterLine(CDPoint cPt1, CDPoint cPt2, double dOffset, PDPointList pC
   for(int i = 0; i < iRes; i++) pBounds->AddPoint(dRefs[i]);
   return iRes;
 }
-
-/*int GetHyperNumParts(PDPointList pCache, PDRefPoint pBounds)
-{
-  int iCnt = pCache->GetCount(0);
-  if(iCnt < 3) return 0;
-
-  int iBreaks = pCache->GetCount(4);
-  if(iBreaks < 1) return 0;
-
-  CDPoint cBreak = pCache->GetPoint(0, 4).cPoint;
-
-  double dAng = cBreak.x;
-
-  if(dAng < g_dPrec)
-  {
-      if(pBounds[0].bIsSet && (pBounds[0].dRef > -g_dPrec)) return 0;
-      if(pBounds[1].bIsSet && (pBounds[1].dRef < g_dPrec)) return 0;
-      return 1;
-  }
-
-  int iRes = 0;
-  if(RefInOpenBounds(pBounds, -dAng) > 2) iRes++;
-  if(RefInOpenBounds(pBounds, dAng) > 2) iRes++;
-
-  return iRes;
-}
-
-bool HyperRemovePart(bool bDown, PDPointList pCache, PDRefPoint pBounds)
-{
-  int iCnt = pCache->GetCount(0);
-  if(iCnt < 3) return false;
-
-  int iBreaks = pCache->GetCount(4);
-  if(iBreaks < 1) return false;
-
-  CDPoint cBreak = pCache->GetPoint(0, 4).cPoint;
-
-  double dAng = cBreak.x;
-
-  if(dAng < g_dPrec)
-  {
-    if(bDown)
-    {
-      pBounds[0].bIsSet = true;
-      pBounds[0].dRef = 0.0;
-    }
-    else
-    {
-      pBounds[1].bIsSet = true;
-      pBounds[1].dRef = 0.0;
-    }
-    return true;
-  }
-
-  if(bDown)
-  {
-    if(RefInOpenBounds(pBounds, -dAng) > 2)
-    {
-      pBounds[1].bIsSet = true;
-      pBounds[1].dRef = -dAng;
-    }
-    else if(RefInOpenBounds(pBounds, dAng) > 2)
-    {
-      pBounds[1].bIsSet = true;
-      pBounds[1].dRef = dAng;
-    }
-    else return false;
-  }
-  else
-  {
-    if(RefInOpenBounds(pBounds, -dAng) > 2)
-    {
-      pBounds[0].bIsSet = true;
-      pBounds[0].dRef = -dAng;
-    }
-    else if(RefInOpenBounds(pBounds, dAng) > 2)
-    {
-      pBounds[0].bIsSet = true;
-      pBounds[0].dRef = dAng;
-    }
-    else return false;
-  }
-  return true;
-}*/
 
 int GetHyperSnapPoints(PDPointList pCache, double *pdRefs)
 {

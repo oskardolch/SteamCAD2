@@ -871,9 +871,6 @@ bool GetEvolvReference(double dDist, PDPointList pCache, double *pdRef)
   if(nOffs > 0) dr = pCache->GetPoint(0, 2).cPoint.x;
 
   double dRef1 = dr/dr1;
-  /*if(dr > g_dPrec) *pdDist = dr1*(Power2(dRef + dRef1) - Power2(dRef1))/2.0;
-  else if(dRef > -dRef1) *pdDist = dr1*(Power2(dRef + dRef1) + Power2(dRef1))/2.0;
-  else *pdDist = dr1*(Power2(dRef1) - Power2(dRef + dRef1))/2.0;*/
   if(dr > g_dPrec) *pdRef = sqrt(Power2(dRef1) + 2.0*dDist/dr1) - dRef1;
   else if(dDist > dr1*Power2(dRef1)/2.0) *pdRef = sqrt(2.0*dDist/dr1 - Power2(dRef1)) - dRef1;
   else *pdRef = -dRef1 - sqrt(Power2(dRef1) - 2.0*dDist/dr1);
