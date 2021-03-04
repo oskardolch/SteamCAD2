@@ -466,7 +466,6 @@ bool CDObject::BuildSubCache(CDLine cTmpPt, int iMode)
       CDLine cSnap;
       m_dMovedDist = GetPathDistFromPt(cTmpPt.cOrigin, cTmpPt.cOrigin, false, &cSnap);
     }
-printf("cache: %f, %d\n", m_dMovedDist, iMode);
   }
   else if(m_iType == dtGroup)
   {
@@ -488,7 +487,6 @@ bool CDObject::BuildCache(CDLine cTmpPt, int iMode)
   case dtLine:
     return BuildLineCache(cTmpPt, iMode, m_pInputPoints, m_pCachePoints, &m_dMovedDist);
   case dtCircle:
-printf("BuildCache Circle: %d\n", iMode);
     return BuildCircCache(cTmpPt, iMode, m_pInputPoints, m_pCachePoints, m_cLines, &m_dMovedDist);
   case dtEllipse:
     return BuildEllipseCache(cTmpPt, iMode, m_pInputPoints, m_pCachePoints, m_cLines, &m_dMovedDist);
@@ -504,7 +502,6 @@ printf("BuildCache Circle: %d\n", iMode);
     return BuildEvolvCache(cTmpPt, iMode, m_pInputPoints, m_pCachePoints, m_cLines, &m_dMovedDist);
   case dtPath:
   case dtGroup:
-printf("BuildCache: %d\n", iMode);
     return BuildSubCache(cTmpPt, iMode);
   default:
     return true;
@@ -1472,7 +1469,6 @@ int CDObject::GetPathViewBounds(CDLine cTmpPt, int iMode, PDRect pRect, PDRefLis
   {
     CDLine cSnap;
     m_dMovedDist = GetPathDistFromPt(cTmpPt.cOrigin, cTmpPt.cOrigin, false, &cSnap);
-printf("View bounds: %f\n", m_dMovedDist);
   }
 
   double dExt = m_cLineStyle.dWidth/2.0;
