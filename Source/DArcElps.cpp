@@ -13,28 +13,8 @@
 extern HWND g_hStatus;*/
 // -----
 
-bool AddArcElpsPoint(double x, double y, char iCtrl, double dRestrictVal, PDPointList pPoints, int iInputLines)
+bool AddArcElpsPoint(double x, double y, char iCtrl, PDPointList pPoints, int iInputLines)
 {
-  int nOffs2 = pPoints->GetCount(2);
-  int nOffs3 = pPoints->GetCount(3);
-  int nOffs4 = pPoints->GetCount(4);
-
-  if((iCtrl == 2) || (iCtrl == 3) || (iCtrl == 4))
-  {
-    CDPoint cNewPt = {x, y};
-    if(iCtrl == 4)
-    {
-      cNewPt.x = dRestrictVal;
-      cNewPt.y = 0.0;
-    }
-
-    if(nOffs2 > 0) pPoints->SetPoint(0, 2, cNewPt.x, cNewPt.y, iCtrl);
-    else if(nOffs3 > 0) pPoints->SetPoint(0, 3, cNewPt.x, cNewPt.y, iCtrl);
-    else if(nOffs4 > 0) pPoints->SetPoint(0, 4, cNewPt.x, cNewPt.y, iCtrl);
-    else pPoints->AddPoint(cNewPt.x, cNewPt.y, iCtrl);
-    return true;
-  }
-
   bool bRes = false;
   int nNorm = pPoints->GetCount(0);
 
@@ -89,68 +69,7 @@ CDPoint DAEFuncY(CDPoint cPt1, CDPoint cPt2, CDPoint cPtSol)
   return cRes;
 }
 
-void UpdateOffsets(int iMode, int nOffs2, int nOffs3, int nOffs4, CDLine cTmpPt,
-  PDPointList pPoints, PDPointList pCache, double *pdMovedDist)
-{
-  if((iMode == 2) || (nOffs2 > 0) || (nOffs3 > 0) || (nOffs4 > 0))
-  {
-    CDLine cPtX;
-    CDPoint cPt1;
-    double dDist = 0.0;
-    double dDistOld = 0.0;
-    int iSrchMask = 0;
-
-    if(iMode == 2)
-    {
-      cPt1 = cTmpPt.cOrigin;
-      if(cTmpPt.cDirection.x < -0.5) iSrchMask = 2;
-    }
-    else if(nOffs2 > 0) cPt1 = pPoints->GetPoint(0, 2).cPoint;
-    else if(nOffs3 > 0)
-    {
-      cPt1 = pPoints->GetPoint(0, 3).cPoint;
-      iSrchMask = 2;
-    }
-
-    if((iMode == 2) || (nOffs4 == 0))
-      dDist = GetArcElpsDistFromPt(cPt1, cPt1, iSrchMask, pCache, &cPtX);
-
-    if(iMode == 2)
-    {
-      if(nOffs4 > 0)
-        dDistOld = pPoints->GetPoint(0, 4).cPoint.x;
-      else if(nOffs2 > 0)
-      {
-        cPt1 = pPoints->GetPoint(0, 2).cPoint;
-        dDistOld = GetArcElpsDistFromPt(cPt1, cPt1, 0, pCache, &cPtX);
-      }
-      else if(nOffs3 > 0)
-      {
-        cPt1 = pPoints->GetPoint(0, 3).cPoint;
-        dDistOld = GetArcElpsDistFromPt(cPt1, cPt1, 2, pCache, &cPtX);
-      }
-      if(cTmpPt.cDirection.x > 0.5) dDist = dDistOld + cTmpPt.cDirection.y;
-    }
-    else if(nOffs4 > 0) dDist = pPoints->GetPoint(0, 4).cPoint.x;
-
-    if(pdMovedDist) *pdMovedDist = dDist - dDistOld;
-    if((fabs(dDist) > g_dPrec) || (fabs(dDistOld) > g_dPrec)) pCache->AddPoint(dDist, dDistOld, 2);
-
-    double dr = -1.0;
-    int nNorm = pCache->GetCount(0);
-    if(nNorm > 3)
-    {
-      CDPoint cRad = pCache->GetPoint(1, 0).cPoint;
-      CDPoint cCentr = pCache->GetPoint(3, 0).cPoint;
-      if((cRad.x + dDist < g_dPrec) && (cRad.y + dDist > -g_dPrec)) dr = asin(cCentr.y/cCentr.x);
-    }
-    pCache->AddPoint(dr, 0.0, 4);
-  }
-  else pCache->AddPoint(-1.0, 0.0, 4);
-}
-
-bool BuildArcElpsCache(CDLine cTmpPt, int iMode, PDPointList pPoints, PDPointList pCache,
-  PDLine pLines, double *pdMovedDist)
+bool BuildArcElpsCache(CDLine cTmpPt, int iMode, PDPointList pPoints, PDPointList pCache, PDLine pLines)
 {
 /*wchar_t buf[128];
 swprintf(buf, L"%d %d", iNorm, iCtrl);
@@ -158,9 +77,6 @@ SendMessage(g_hStatus, SB_SETTEXT, 2, (LPARAM)buf);*/
   pCache->ClearAll();
 
   int nNorm = pPoints->GetCount(0);
-  int nOffs2 = pPoints->GetCount(2);
-  int nOffs3 = pPoints->GetCount(3);
-  int nOffs4 = pPoints->GetCount(4);
 
   CDInputPoint cInPt1, cInPt2;
   CDPoint cOrig, cPt1, cPt2, cMainDir;
@@ -273,7 +189,6 @@ SendMessage(g_hStatus, SB_SETTEXT, 2, (LPARAM)buf);*/
   {
     pCache->AddPoint(cOrig.x, cOrig.y, 0);
     pCache->AddPoint(da, da, 0);
-    UpdateOffsets(iMode, nOffs2, nOffs3, nOffs4, cTmpPt, pPoints, pCache, pdMovedDist);
     return true;
   }
 
@@ -328,7 +243,6 @@ SendMessage(g_hStatus, SB_SETTEXT, 2, (LPARAM)buf);*/
         pCache->AddPoint(cMainDir.x, cMainDir.y, 0);
         pCache->AddPoint(cDir1.x, cDir1.y, 0);
         pCache->AddPoint(cInter.x, cInter.y, 0);
-        UpdateOffsets(iMode, nOffs2, nOffs3, nOffs4, cTmpPt, pPoints, pCache, pdMovedDist);
         return true;
       }
     }
@@ -374,7 +288,6 @@ SendMessage(g_hStatus, SB_SETTEXT, 2, (LPARAM)buf);*/
       pCache->AddPoint(cMainDir.x, cMainDir.y, 0);
       pCache->AddPoint(cDir1.x, cDir1.y, 0);
       pCache->AddPoint(cInter.x, cInter.y, 0);
-      UpdateOffsets(iMode, nOffs2, nOffs3, nOffs4, cTmpPt, pPoints, pCache, pdMovedDist);
     }
     return true;
   }
@@ -436,9 +349,27 @@ SendMessage(g_hStatus, SB_SETTEXT, 2, (LPARAM)buf);*/
   pCache->AddPoint(cMainDir.x, cMainDir.y, 0);
   pCache->AddPoint(cSol.x, cSol.y, 0);
   pCache->AddPoint(cInter.x, cInter.y, 0);
-
-  UpdateOffsets(iMode, nOffs2, nOffs3, nOffs4, cTmpPt, pPoints, pCache, pdMovedDist);
   return true;
+}
+
+void UpdateArcElpsCache(PDPointList pCache)
+{
+  int nNorm = pCache->GetCount(0);
+  if(nNorm < 3) return;
+
+  double dr = -1.0;
+  int nOffs = pCache->GetCount(2);
+  if((nOffs > 0) && (nNorm > 3))
+  {
+    //CDPoint cOrig = pCache->GetPoint(0, 0).cPoint;
+    CDPoint cRad = pCache->GetPoint(1, 0).cPoint;
+    CDPoint cCentr = pCache->GetPoint(3, 0).cPoint;
+
+    double dDist = pCache->GetPoint(0, 2).cPoint.x;
+
+    if((cRad.x + dDist < g_dPrec) && (cRad.y + dDist > -g_dPrec)) dr = atan2(cCentr.y, cCentr.x);
+  }
+  pCache->AddPoint(dr, 0.0, 4);
 }
 
 int AddArcElpsInterLine(CDPoint cPt1, CDPoint cPt2, double dOffset, PDPointList pCache, PDRefList pBounds)
@@ -594,13 +525,6 @@ int AddArcElpsInterLine(CDPoint cPt1, CDPoint cPt2, double dOffset, PDPointList 
     }
   }
   return iRes;
-}
-
-double GetArcElpsOffset(PDPointList pCache)
-{
-  int nOffs = pCache->GetCount(2);
-  if(nOffs < 1) return 0.0;
-  return pCache->GetPoint(0, 2).cPoint.x;
 }
 
 CDPrimitive GetArcPrimitive(double dRad, CDPoint cCenter, bool bReverse, double da1, double da2)
@@ -1133,7 +1057,7 @@ double GetArcElpsRadiusAtPt(CDPoint cPt, PDPointList pCache, PDLine pPtR, bool b
   if(bNewPt)
   {
     pLocCache = new CDPointList();
-    BuildArcElpsCache(cLn, 1, pPoints, pLocCache, pLines, NULL);
+    BuildArcElpsCache(cLn, 1, pPoints, pLocCache, pLines);
   }
 
   int iCnt = pLocCache->GetCount(0);

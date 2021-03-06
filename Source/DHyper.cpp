@@ -221,27 +221,8 @@ double GetHyperBoundProj(double da, double db, double dOffset, CDPoint cPt, CDPo
   return pProjs[i0];
 }
 
-bool AddHyperPoint(double x, double y, char iCtrl, double dRestrictVal, PDPointList pPoints, int iInputLines)
+bool AddHyperPoint(double x, double y, char iCtrl, PDPointList pPoints, int iInputLines)
 {
-  if((iCtrl == 2) || (iCtrl == 3) || (iCtrl == 4))
-  {
-    CDPoint cNewPt = {x, y};
-    if(iCtrl == 4)
-    {
-      cNewPt.x = dRestrictVal;
-      cNewPt.y = 0.0;
-    }
-
-    int nOffs2 = pPoints->GetCount(2);
-    int nOffs3 = pPoints->GetCount(3);
-    int nOffs4 = pPoints->GetCount(4);
-    if(nOffs2 > 0) pPoints->SetPoint(0, 2, cNewPt.x, cNewPt.y, iCtrl);
-    else if(nOffs3 > 0) pPoints->SetPoint(0, 3, cNewPt.x, cNewPt.y, iCtrl);
-    else if(nOffs4 > 0) pPoints->SetPoint(0, 4, cNewPt.x, cNewPt.y, iCtrl);
-    else pPoints->AddPoint(cNewPt.x, cNewPt.y, iCtrl);
-    return true;
-  }
-
   bool bRes = false;
   int nNorm = pPoints->GetCount(0);
 
@@ -257,8 +238,7 @@ bool AddHyperPoint(double x, double y, char iCtrl, double dRestrictVal, PDPointL
   return bRes;
 }
 
-bool BuildHyperCache(CDLine cTmpPt, int iMode, PDPointList pPoints, PDPointList pCache,
-  PDLine pLines, double *pdDist)
+bool BuildHyperCache(CDLine cTmpPt, int iMode, PDPointList pPoints, PDPointList pCache, PDLine pLines)
 {
   pCache->ClearAll();
 
@@ -325,57 +305,21 @@ bool BuildHyperCache(CDLine cTmpPt, int iMode, PDPointList pPoints, PDPointList 
 
   double dr = Power2(dr2)/dr1;
   pCache->AddPoint(dr1 + dr, 0.0, 3);
+  return true;
+}
 
-  int nOffs2 = pPoints->GetCount(2);
-  int nOffs3 = pPoints->GetCount(3);
-  int nOffs4 = pPoints->GetCount(4);
-  if((iMode == 2) || (nOffs2 > 0) || (nOffs3 > 0) || (nOffs4 > 0))
+void UpdateHyperCache(PDPointList pCache)
+{
+  if(pCache->GetCount(4) > 0) pCache->Remove(0, 4);
+  int nNorm = pCache->GetCount(0);
+  int nOffs = pCache->GetCount(2);
+  if((nNorm > 1) && (nOffs > 0))
   {
-    CDLine cPtX;
-    double dDist = 0.0;
-    double dDistOld = 0.0;
-    int iSrchMask = 0;
-
-    if(iMode == 2)
-    {
-      cPt1 = cTmpPt.cOrigin;
-      if(cTmpPt.cDirection.x < -0.5) iSrchMask = 2;
-    }
-    else if(nOffs2) cPt1 = pPoints->GetPoint(0, 2).cPoint;
-    else if(nOffs3 > 0)
-    {
-      cPt1 = pPoints->GetPoint(0, 3).cPoint;
-      iSrchMask = 2;
-    }
-
-    if((iMode == 2) || (nOffs4 == 0))
-      dDist = GetHyperDistFromPt(cPt1, cPt1, iSrchMask, pCache, &cPtX);
-
-    if(iMode == 2)
-    {
-      if(nOffs4 > 0)
-        dDistOld = pPoints->GetPoint(0, 4).cPoint.x;
-      else if(nOffs2 > 0)
-      {
-        cPt1 = pPoints->GetPoint(0, 2).cPoint;
-        dDistOld = GetHyperDistFromPt(cPt1, cPt1, 0, pCache, &cPtX);
-      }
-      else if(nOffs3 > 0)
-      {
-        cPt1 = pPoints->GetPoint(0, 3).cPoint;
-        dDistOld = GetHyperDistFromPt(cPt1, cPt1, 2, pCache, &cPtX);
-      }
-      if(cTmpPt.cDirection.x > 0.5) dDist = dDistOld + cTmpPt.cDirection.y;
-    }
-    else if(nOffs4 > 0) dDist = pPoints->GetPoint(0, 4).cPoint.x;
-
-    if(pdDist) *pdDist = dDist - dDistOld;
-    if((fabs(dDist) > g_dPrec) || (fabs(dDistOld) > g_dPrec)) pCache->AddPoint(dDist, dDistOld, 2);
-
-    dr = GetHyperBreakAngle(dr1, dr2, -dDist);
+    CDPoint cRad = pCache->GetPoint(1, 0).cPoint;
+    double dDist = pCache->GetPoint(0, 2).cPoint.x;
+    double dr = GetHyperBreakAngle(cRad.x, cRad.y, -dDist);
     if(dr > -0.5) pCache->AddPoint(dr, 0.0, 4);
   }
-  return true;
 }
 
 CDPoint GetHyperPointDir(double da, double db, double dOffset, double dx, PDPoint pDir)
@@ -674,13 +618,6 @@ bool GetHyperRestrictPoint(CDPoint cPt, int iMode, double dRestrictValue, PDPoin
   cPt2.y = cRad.y*dy + dRad*cDir.x/dNorm;
   *pSnapPt = cOrig + Rotate(cPt2, cMainDir, true);
   return true;
-}
-
-double GetHyperOffset(PDPointList pCache)
-{
-  int nOffs = pCache->GetCount(2);
-  if(nOffs < 1) return 0.0;
-  return pCache->GetPoint(0, 2).cPoint.x;
 }
 
 bool GetHyperRefDir(double dRef, PDPointList pCache, PDPoint pPt)

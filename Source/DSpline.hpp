@@ -3,11 +3,9 @@
 
 #include "DDataTypes.hpp"
 
-bool AddSplinePoint(double x, double y, char iCtrl, double dRestrictVal, PDPointList pPoints);
-bool BuildSplineCache(CDLine cTmpPt, int iMode, PDPointList pPoints, PDPointList pCache,
-  double *pdDist);
+bool AddSplinePoint(double x, double y, char iCtrl, PDPointList pPoints);
+bool BuildSplineCache(CDLine cTmpPt, int iMode, PDPointList pPoints, PDPointList pCache);
 int GetSplineNumSegments(PDPointList pCache);
-double GetSplineOffset(PDPointList pCache);
 double GetSplineDistFromPt(CDPoint cPt, CDPoint cRefPt, int iSrchMask, PDPointList pCache, PDLine pPtX);
 int GetSplineAttractors(CDPoint cPt, PDPointList pCache, double dScale, PDPointList pPoints);
 bool HasSplineEnoughPoints(PDPointList pPoints);

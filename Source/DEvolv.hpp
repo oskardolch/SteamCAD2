@@ -3,10 +3,8 @@
 
 #include "DDataTypes.hpp"
 
-bool AddEvolvPoint(double x, double y, char iCtrl, double dRestrictVal, PDPointList pPoints, int iInputLines);
-bool BuildEvolvCache(CDLine cTmpPt, int iMode, PDPointList pPoints, PDPointList pCache,
-  PDLine pCircle, double *pdDist);
-double GetEvolvOffset(PDPointList pCache);
+bool AddEvolvPoint(double x, double y, char iCtrl, PDPointList pPoints, int iInputLines);
+bool BuildEvolvCache(CDLine cTmpPt, int iMode, PDPointList pPoints, PDPointList pCache, PDLine pCircle);
 int AddEvolvInterLine(CDPoint cPt1, CDPoint cPt2, double dOffset, PDPointList pCache, PDRefList pBounds);
 double GetEvolvDistFromPt(CDPoint cPt, CDPoint cRefPt, PDPointList pCache, PDLine pPtX);
 bool HasEvolvEnoughPoints(PDPointList pPoints, int iInputLines);

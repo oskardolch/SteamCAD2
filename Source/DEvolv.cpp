@@ -11,28 +11,8 @@
 extern HWND g_hStatus;*/
 // -----
 
-bool AddEvolvPoint(double x, double y, char iCtrl, double dRestrictVal, PDPointList pPoints, int iInputLines)
+bool AddEvolvPoint(double x, double y, char iCtrl, PDPointList pPoints, int iInputLines)
 {
-  if((iCtrl == 2) || (iCtrl == 3) || (iCtrl == 4))
-  {
-    int nOffs2 = pPoints->GetCount(2);
-    int nOffs3 = pPoints->GetCount(3);
-    int nOffs4 = pPoints->GetCount(4);
-
-    CDPoint cNewPt = {x, y};
-    if(iCtrl == 4)
-    {
-      cNewPt.x = dRestrictVal;
-      cNewPt.y = 0.0;
-    }
-
-    if(nOffs2 > 0) pPoints->SetPoint(0, 2, cNewPt.x, cNewPt.y, iCtrl);
-    else if(nOffs3 > 0) pPoints->SetPoint(0, 3, cNewPt.x, cNewPt.y, iCtrl);
-    else if(nOffs4 > 0) pPoints->SetPoint(0, 4, cNewPt.x, cNewPt.y, iCtrl);
-    else pPoints->AddPoint(cNewPt.x, cNewPt.y, iCtrl);
-    return true;
-  }
-
   bool bRes = false;
 
   int nNorm = pPoints->GetCount(0);
@@ -48,8 +28,7 @@ bool AddEvolvPoint(double x, double y, char iCtrl, double dRestrictVal, PDPointL
   return bRes;
 }
 
-bool BuildEvolvCache(CDLine cTmpPt, int iMode, PDPointList pPoints, PDPointList pCache,
-  PDLine pCircle, double *pdDist)
+bool BuildEvolvCache(CDLine cTmpPt, int iMode, PDPointList pPoints, PDPointList pCache, PDLine pCircle)
 {
   pCache->ClearAll();
 
@@ -102,44 +81,6 @@ bool BuildEvolvCache(CDLine cTmpPt, int iMode, PDPointList pPoints, PDPointList 
   pCache->AddPoint(cOrig.x, cOrig.y, 0);
   pCache->AddPoint(cN1.x, cN1.y, 0);
   pCache->AddPoint(dr1, dDir, 0);
-
-  int nOffs2 = pPoints->GetCount(2);
-  int nOffs3 = pPoints->GetCount(3);
-  int nOffs4 = pPoints->GetCount(4);
-  if((iMode == 2) || (nOffs2 > 0) || (nOffs3 > 0) || (nOffs4 > 0))
-  {
-    CDLine cPtX;
-    double dDist = 0.0;
-    double dDistOld = 0.0;
-
-    if(iMode == 2) cPt1 = cTmpPt.cOrigin;
-    else if(nOffs2 > 0) cPt1 = pPoints->GetPoint(0, 2).cPoint;
-    else if(nOffs3 > 0) cPt1 = pPoints->GetPoint(0, 3).cPoint;
-
-    if((iMode == 2) || (nOffs4 == 0))
-      dDist = GetEvolvDistFromPt(cPt1, cPt1, pCache, &cPtX);
-
-    if(iMode == 2)
-    {
-      if(nOffs4 > 0)
-        dDistOld = pPoints->GetPoint(0, 4).cPoint.x;
-      else if(nOffs2 > 0)
-      {
-        cPt1 = pPoints->GetPoint(0, 2).cPoint;
-        dDistOld = GetEvolvDistFromPt(cPt1, cPt1, pCache, &cPtX);
-      }
-      else if(nOffs3 > 0)
-      {
-        cPt1 = pPoints->GetPoint(0, 3).cPoint;
-        dDistOld = GetEvolvDistFromPt(cPt1, cPt1, pCache, &cPtX);
-      }
-      if(cTmpPt.cDirection.x > 0.5) dDist = dDistOld + cTmpPt.cDirection.y;
-    }
-    else if(nOffs4 > 0) dDist = pPoints->GetPoint(0, 4).cPoint.x;
-
-    if(pdDist) *pdDist = dDist - dDistOld;
-    if((fabs(dDist) > g_dPrec) || (fabs(dDistOld) > g_dPrec)) pCache->AddPoint(dDist, dDistOld, 2);
-  }
   return true;
 }
 
@@ -389,13 +330,6 @@ bool GetEvolvPointRefDist(double dRef, PDPointList pCache, double *pdDist)
   else *pdDist = dr1*(Power2(dRef1) - Power2(dRef + dRef1))/2.0;
 
   return true;
-}
-
-double GetEvolvOffset(PDPointList pCache)
-{
-  int nOffs = pCache->GetCount(2);
-  if(nOffs < 1) return 0.0;
-  return pCache->GetPoint(0, 2).cPoint.x;
 }
 
 int GetEvolvInterLineForK(int k, double dOffset, double dr, double ds1, double ds2, PDPoint pRes)

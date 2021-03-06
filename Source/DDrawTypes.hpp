@@ -134,10 +134,11 @@ private:
   void AddPathSegment(double d1, double d2, double dExt, PDPrimObject pPrimList);
   int GetPointReferences(CDPoint cPt, PDRefList pRefs);
   CDObject* SplitByRef(double dRef, PDPtrList pRegions);
+  double GetMovedDist(CDLine cTmpPt, int iMode);
 public:
   CDObject(CDDrawType iType, double dWidth);
   ~CDObject();
-  bool AddPoint(double x, double y, char iCtrl, double dRestrictVal, bool bFromGui); // returns true if the point is the last point
+  bool AddPoint(double x, double y, char iCtrl, double dRestrictVal); // returns true if the point is the last point
   void RemoveLastPoint();
   void Undo();
   void Redo();
@@ -163,7 +164,7 @@ public:
   bool GetPoint(int iIndex, char iCtrl, PDInputPoint pPoint);
   void SetPoint(int iIndex, char iCtrl, CDInputPoint cPoint);
   double GetOffset();
-  double GetDistFromPt(CDPoint cPt, CDPoint cRefPt, bool bSnapCenters, PDLine pPtX, int *piDimen);
+  double GetDistFromPt(CDPoint cPt, CDPoint cRefPt, int iSearchMask, PDLine pPtX, int *piDimen);
   CDLineStyle GetLineStyle();
   void SetLineStyle(int iMask, CDLineStyle cStyle);
   bool GetRestrictPoint(CDPoint cPt, int iMode, bool bRestrictSet, double dRestrictValue,

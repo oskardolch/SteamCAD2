@@ -12,28 +12,8 @@
 extern HWND g_hStatus;*/
 // -----
 
-bool AddSplinePoint(double x, double y, char iCtrl, double dRestrictVal, PDPointList pPoints)
+bool AddSplinePoint(double x, double y, char iCtrl, PDPointList pPoints)
 {
-  int nOffs2 = pPoints->GetCount(2);
-  int nOffs3 = pPoints->GetCount(3);
-  int nOffs4 = pPoints->GetCount(4);
-
-  if((iCtrl == 2) || (iCtrl == 3) || (iCtrl == 4))
-  {
-    CDPoint cNewPt = {x, y};
-    if(iCtrl == 4)
-    {
-      cNewPt.x = dRestrictVal;
-      cNewPt.y = 0.0;
-    }
-
-    if(nOffs2 > 0) pPoints->SetPoint(0, 2, cNewPt.x, cNewPt.y, iCtrl);
-    else if(nOffs3 > 0) pPoints->SetPoint(0, 3, cNewPt.x, cNewPt.y, iCtrl);
-    else if(nOffs4 > 0) pPoints->SetPoint(0, 4, cNewPt.x, cNewPt.y, iCtrl);
-    else pPoints->AddPoint(cNewPt.x, cNewPt.y, iCtrl);
-    return true;
-  }
-
   if(iCtrl == 1)
   {
     int nCtrl = pPoints->GetCount(1);
@@ -207,62 +187,7 @@ void GetMatrix(int iCount, bool bClosed, double *pdt, double *pdRes)
   return;
 }
 
-double AddOffset(CDLine cTmpPt, int iMode, PDPointList pPoints, PDPointList pCache)
-{
-  double dRes = 0.0;
-  int nOffs2 = pPoints->GetCount(2);
-  int nOffs3 = pPoints->GetCount(3);
-  int nOffs4 = pPoints->GetCount(4);
-
-  if((iMode == 2) || (nOffs2 > 0) || (nOffs3 > 0) || (nOffs4 > 0))
-  {
-    CDLine cPtX;
-    CDPoint cPt1;
-    int iSrchMask = 0;
-    double dDist = 0.0;
-    double dDistOld = 0.0;
-
-    if(iMode == 2)
-    {
-      cPt1 = cTmpPt.cOrigin;
-      if(cTmpPt.cDirection.x < -0.5) iSrchMask = 2;
-    }
-    else if(nOffs2 > 0) cPt1 = pPoints->GetPoint(0, 2).cPoint;
-    else
-    {
-      cPt1 = pPoints->GetPoint(0, 3).cPoint;
-      iSrchMask = 2;
-    }
-
-    if((iMode == 2) || (nOffs4 == 0))
-      dDist = GetSplineDistFromPt(cPt1, cPt1, iSrchMask, pCache, &cPtX);
-
-    if(iMode == 2)
-    {
-      if(nOffs4 > 0)
-        dDistOld = pPoints->GetPoint(0, 4).cPoint.x;
-      else if(nOffs2 > 0)
-      {
-        cPt1 = pPoints->GetPoint(0, 2).cPoint;
-        dDistOld = GetSplineDistFromPt(cPt1, cPt1, 0, pCache, &cPtX);
-      }
-      else if(nOffs3 > 0)
-      {
-        cPt1 = pPoints->GetPoint(0, 3).cPoint;
-        dDistOld = GetSplineDistFromPt(cPt1, cPt1, 2, pCache, &cPtX);
-      }
-      if(cTmpPt.cDirection.x > 0.5) dDist = dDistOld + cTmpPt.cDirection.y;
-    }
-    else if(nOffs4 > 0) dDist = pPoints->GetPoint(0, 4).cPoint.x;
-
-    dRes = dDist - dDistOld;
-    if((fabs(dDist) > g_dPrec) || (fabs(dDistOld) > g_dPrec)) pCache->AddPoint(dDist, dDistOld, 2);
-  }
-  return dRes;
-}
-
-bool BuildSplineCache(CDLine cTmpPt, int iMode, PDPointList pPoints, PDPointList pCache,
-  double *pdDist)
+bool BuildSplineCache(CDLine cTmpPt, int iMode, PDPointList pPoints, PDPointList pCache)
 {
   pCache->ClearAll();
 
@@ -296,7 +221,6 @@ bool BuildSplineCache(CDLine cTmpPt, int iMode, PDPointList pPoints, PDPointList
       pCache->AddPoint(cInPt.cPoint.x, cInPt.cPoint.y, 0);
     }
     if(iMode == 1) pCache->AddPoint(cTmpPt.cOrigin.x, cTmpPt.cOrigin.y, 0);
-    *pdDist = AddOffset(cTmpPt, iMode, pPoints, pCache);
     return true;
   }
 
@@ -338,8 +262,6 @@ bool BuildSplineCache(CDLine cTmpPt, int iMode, PDPointList pPoints, PDPointList
       cInPt = pPoints->GetPoint(nNorm - 1, 0);
       pCache->AddPoint(cInPt.cPoint.x, cInPt.cPoint.y, 0);
     }
-
-    *pdDist = AddOffset(cTmpPt, iMode, pPoints, pCache);
     return true;
   }
 
@@ -515,17 +437,7 @@ bool BuildSplineCache(CDLine cTmpPt, int iMode, PDPointList pPoints, PDPointList
   free(dx2);
   free(dy);
   free(dx);
-
-  double dNewDist = AddOffset(cTmpPt, iMode, pPoints, pCache);
-  if(pdDist) *pdDist = dNewDist;
   return true;
-}
-
-double GetSplineOffset(PDPointList pCache)
-{
-  int nOffs = pCache->GetCount(2);
-  if(nOffs < 1) return 0.0;
-  return pCache->GetPoint(0, 2).cPoint.x;
 }
 
 CDPrimitive SubQuad(double dt1, double dt2, CDPrimitive cQuad)

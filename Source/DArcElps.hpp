@@ -3,11 +3,10 @@
 
 #include "DDataTypes.hpp"
 
-bool AddArcElpsPoint(double x, double y, char iCtrl, double dRestrictVal, PDPointList pPoints, int iInputLines);
-bool BuildArcElpsCache(CDLine cTmpPt, int iMode, PDPointList pPoints, PDPointList pCache,
-  PDLine pLines, double *pdMovedDist);
+bool AddArcElpsPoint(double x, double y, char iCtrl, PDPointList pPoints, int iInputLines);
+bool BuildArcElpsCache(CDLine cTmpPt, int iMode, PDPointList pPoints, PDPointList pCache, PDLine pLines);
+void UpdateArcElpsCache(PDPointList pCache);
 int AddArcElpsInterLine(CDPoint cPt1, CDPoint cPt2, double dOffset, PDPointList pCache, PDRefList pBounds);
-double GetArcElpsOffset(PDPointList pCache);
 double GetArcElpsDistFromPt(CDPoint cPt, CDPoint cRefPt, int iSrchMask, PDPointList pCache, PDLine pPtX);
 bool HasArcElpsEnoughPoints(PDPointList pPoints, int iInputLines);
 bool GetArcElpsRestrictPoint(CDPoint cPt, int iMode, double dRestrictValue, PDPoint pSnapPt,

@@ -4024,7 +4024,7 @@ void CDApplication::MouseLButtonUp(GtkWidget *widget, GdkEventButton *event)
         cInPt.cPoint = m_cLastDynPt.cOrigin;
         m_pActiveObject->SetPoint(0, 0, cInPt);
       }
-      if(m_pActiveObject->AddPoint(m_cLastDrawPt.x, m_cLastDrawPt.y, iCtrl, dOffset, true))
+      if(m_pActiveObject->AddPoint(m_cLastDrawPt.x, m_cLastDrawPt.y, iCtrl, dOffset))
       {
         m_pActiveObject->AddRegions(pRegions, -1);
         m_pDrawObjects->Add(m_pActiveObject);
@@ -4169,7 +4169,7 @@ void CDApplication::MouseRButtonUp(GtkWidget *widget, GdkEventButton *event)
       cInPt.cPoint = m_cLastDynPt.cOrigin;
       m_pActiveObject->SetPoint(0, 0, cInPt);
     }
-    if(m_pActiveObject->AddPoint(m_cLastDrawPt.x, m_cLastDrawPt.y, 1, 0.0, true))
+    if(m_pActiveObject->AddPoint(m_cLastDrawPt.x, m_cLastDrawPt.y, 1, 0.0))
     {
       m_pActiveObject->AddRegions(pRegions, -1);
       m_pDrawObjects->Add(m_pActiveObject);

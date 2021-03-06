@@ -3,11 +3,10 @@
 
 #include "DDataTypes.hpp"
 
-bool AddEllipsePoint(double x, double y, char iCtrl, double dRestrictVal, PDPointList pPoints, int iInputLines);
-bool BuildEllipseCache(CDLine cTmpPt, int iMode, PDPointList pPoints, PDPointList pCache,
-  PDLine pLines, double *pdDist);
+bool AddEllipsePoint(double x, double y, char iCtrl, PDPointList pPoints, int iInputLines);
+bool BuildEllipseCache(CDLine cTmpPt, int iMode, PDPointList pPoints, PDPointList pCache, PDLine pLines);
+void UpdateEllipseCache(PDPointList pCache);
 int AddEllipseInterLine(CDPoint cPt1, CDPoint cPt2, double dOffset, PDPointList pCache, PDRefList pBounds);
-double GetElpsOffset(PDPointList pCache);
 double GetElpsDistFromPt(CDPoint cPt, CDPoint cRefPt, int iSrchMask, PDPointList pCache, PDLine pPtX);
 int GetEllipseAttractors(CDPoint cPt, PDPointList pCache, PDPoint pPoints);
 bool GetElpsRestrictPoint(CDPoint cPt, int iMode, double dRestrictValue, PDPoint pSnapPt, PDPointList pCache);

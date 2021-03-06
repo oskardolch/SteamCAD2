@@ -413,28 +413,8 @@ CDPoint GetElpsProjInSeg(double da, double db, double dr, CDPoint cPt, double dt
   return pProjs[iMin];
 }
 
-bool AddEllipsePoint(double x, double y, char iCtrl, double dRestrictVal, PDPointList pPoints, int iInputLines)
+bool AddEllipsePoint(double x, double y, char iCtrl, PDPointList pPoints, int iInputLines)
 {
-  int nOffs2 = pPoints->GetCount(2);
-  int nOffs3 = pPoints->GetCount(3);
-  int nOffs4 = pPoints->GetCount(4);
-
-  if((iCtrl == 2) || (iCtrl == 3) || (iCtrl == 4))
-  {
-    CDPoint cNewPt = {x, y};
-    if(iCtrl == 4)
-    {
-      cNewPt.x = dRestrictVal;
-      cNewPt.y = 0.0;
-    }
-
-    if(nOffs2 > 0) pPoints->SetPoint(0, 2, cNewPt.x, cNewPt.y, iCtrl);
-    else if(nOffs3 > 0) pPoints->SetPoint(0, 3, cNewPt.x, cNewPt.y, iCtrl);
-    else if(nOffs4 > 0) pPoints->SetPoint(0, 4, cNewPt.x, cNewPt.y, iCtrl);
-    else pPoints->AddPoint(cNewPt.x, cNewPt.y, iCtrl);
-    return true;
-  }
-
   bool bRes = false;
   int nNorm = pPoints->GetCount(0);
   int nCtrl = pPoints->GetCount(1);
@@ -474,8 +454,7 @@ bool AddEllipsePoint(double x, double y, char iCtrl, double dRestrictVal, PDPoin
   return bRes;
 }
 
-bool BuildEllipseCache(CDLine cTmpPt, int iMode, PDPointList pPoints, PDPointList pCache,
-  PDLine pLines, double *pdDist)
+bool BuildEllipseCache(CDLine cTmpPt, int iMode, PDPointList pPoints, PDPointList pCache, PDLine pLines)
 {
   pCache->ClearAll();
 
@@ -624,62 +603,35 @@ bool BuildEllipseCache(CDLine cTmpPt, int iMode, PDPointList pPoints, PDPointLis
     dr1 = Power2(db)/da;
     dr2 = Power2(da)/db;
     pCache->AddPoint(dr1, dr2, 3);
-
-    double dr = -1.0;
-
-    int nOffs2 = pPoints->GetCount(2);
-    int nOffs3 = pPoints->GetCount(3);
-    int nOffs4 = pPoints->GetCount(4);
-    int iSrchMask = 0;
-    if((iMode == 2) || (nOffs2 > 0) || (nOffs3 > 0) || (nOffs4 > 0))
-    {
-      CDLine cPtX;
-      double dDist = 0.0;
-      double dDistOld = 0.0;
-
-      if(iMode == 2)
-      {
-        cPt1 = cTmpPt.cOrigin;
-        if(cTmpPt.cDirection.x < -0.5) iSrchMask = 2;
-      }
-      else if(nOffs2 > 0) cPt1 = pPoints->GetPoint(0, 2).cPoint;
-      else if(nOffs3 > 0)
-      {
-        cPt1 = pPoints->GetPoint(0, 3).cPoint;
-        iSrchMask = 2;
-      }
-
-      if((iMode == 2) || (nOffs4 == 0))
-        dDist = GetElpsDistFromPt(cPt1, cPt1, iSrchMask, pCache, &cPtX);
-
-      if(iMode == 2)
-      {
-        if(nOffs4 > 0)
-          dDistOld = pPoints->GetPoint(0, 4).cPoint.x;
-        else if(nOffs2 > 0)
-        {
-          cPt1 = pPoints->GetPoint(0, 2).cPoint;
-          dDistOld = GetElpsDistFromPt(cPt1, cPt1, 0, pCache, &cPtX);
-        }
-        else if(nOffs3 > 0)
-        {
-          cPt1 = pPoints->GetPoint(0, 3).cPoint;
-          dDistOld = GetElpsDistFromPt(cPt1, cPt1, 2, pCache, &cPtX);
-        }
-        if(cTmpPt.cDirection.x > 0.5) dDist = dDistOld + cTmpPt.cDirection.y;
-      }
-      else if(nOffs4 > 0) dDist = pPoints->GetPoint(0, 4).cPoint.x;
-
-      if(pdDist) *pdDist = dDist - dDistOld;
-      if((fabs(dDist) > g_dPrec) || (fabs(dDistOld) > g_dPrec)) pCache->AddPoint(dDist, dDistOld, 2);
-
-      dr = GetElspBreakAngle(da, db, -dDist, dr1, dr2);
-      pCache->AddPoint(dr, 0.0, 4);
-    }
-    else pCache->AddPoint(-1.0, 0.0, 4);
   }
 
   return true;
+}
+
+void UpdateEllipseCache(PDPointList pCache)
+{
+  int iCnt = pCache->GetCount(0);
+  if(iCnt < 3) return;
+
+  if(pCache->GetCount(4) > 0) pCache->Remove(0, 4);
+  if(pCache->GetCount(3) < 1) return;
+
+  //CDPoint cOrig = pCache->GetPoint(0, 0).cPoint;
+  CDPoint cRad = pCache->GetPoint(1, 0).cPoint;
+  //CDPoint cMainDir = pCache->GetPoint(2, 0).cPoint;
+
+  CDPoint cCenters = pCache->GetPoint(1, 0).cPoint;
+
+  int nOffs = pCache->GetCount(2);
+  if(nOffs < 1) 
+  {
+    pCache->AddPoint(-1.0, 0.0, 4);
+    return;
+  }
+
+  double dDist = pCache->GetPoint(0, 2).cPoint.x;
+  double dr = GetElspBreakAngle(cRad.x, cRad.y, -dDist, cCenters.x, cCenters.y);
+  pCache->AddPoint(dr, 0.0, 4);
 }
 
 double ElpsProjFunc(void *pvData, double dOffset, CDPoint cPt, CDPoint cStart, CDPoint cEnd)
@@ -779,13 +731,6 @@ int AddEllipseInterLine(CDPoint cPt1, CDPoint cPt2, double dOffset, PDPointList 
   for(int i = 0; i < iRes; i++) pBounds->AddPoint(dRefs[i]);
 
   return iRes;
-}
-
-double GetElpsOffset(PDPointList pCache)
-{
-  int nOffs = pCache->GetCount(2);
-  if(nOffs < 1) return 0.0;
-  return pCache->GetPoint(0, 2).cPoint.x;
 }
 
 double GetElpsDistFromPt(CDPoint cPt, CDPoint cRefPt, int iSrchMask, PDPointList pCache, PDLine pPtX)
@@ -977,8 +922,7 @@ double GetElpsRadiusAtPt(CDPoint cPt, PDPointList pCache, PDLine pPtR, bool bNew
     CDLine cPtX;
     cPtX.bIsSet = false;
     cPtX.cOrigin = cPt;
-    double dOff;
-    BuildEllipseCache(cPtX, 1, pPoints, pLocCache, pLines, &dOff);
+    BuildEllipseCache(cPtX, 1, pPoints, pLocCache, pLines);
   }
 
   int iCnt = pLocCache->GetCount(0);
