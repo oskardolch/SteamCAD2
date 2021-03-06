@@ -1308,6 +1308,46 @@ void RotatePrimitives(PDPrimObject pSrcList, PDPrimObject pDestList, CDPoint cOr
   }
 }
 
+void ReversePrimitives(PDPrimObject pSrcList, PDPrimObject pDestList)
+{
+  CDPrimitive cSrc, cDest;
+  for(int i = pSrcList->GetCount() - 1; i >= 0; i++)
+  {
+    cSrc = pSrcList->GetPrimitive(i);
+    cDest.iType = cSrc.iType;
+    switch(cSrc.iType)
+    {
+    case 1:
+      cDest.cPt1 = cSrc.cPt2;
+      cDest.cPt2 = cSrc.cPt1;
+      break;
+    case 2:
+      cDest.cPt1 = cSrc.cPt1;
+      cDest.cPt2 = cSrc.cPt2;
+      cDest.cPt3.x = cSrc.cPt3.y;
+      cDest.cPt3.y = cSrc.cPt3.x;
+      cDest.cPt4 = 0;
+      cDest.cPt4.x = 1.0 - cSrc.cPt4.x;
+      break;
+    case 3:
+      cDest = cSrc;
+      break;
+    case 4:
+      cDest.cPt1 = cSrc.cPt3;
+      cDest.cPt2 = cSrc.cPt2;
+      cDest.cPt3 = cSrc.cPt1;
+      break;
+    case 5:
+      cDest.cPt1 = cSrc.cPt4;
+      cDest.cPt2 = cSrc.cPt3;
+      cDest.cPt3 = cSrc.cPt2;
+      cDest.cPt4 = cSrc.cPt1;
+      break;
+    }
+    pDestList->AddPrimitive(cDest);
+  }
+}
+
 bool PtInDblList(double du, int iSize, double *pdList)
 {
   int i = 0;

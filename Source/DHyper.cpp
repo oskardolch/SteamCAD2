@@ -537,21 +537,24 @@ void AddHyperSegment(double d1, double d2, double dExt, bool bReverse, PDPointLi
   cRad = pCache->GetPoint(1, 0).cPoint;
   cNorm = pCache->GetPoint(2, 0).cPoint;
 
-  double dr = 0.0;
+  double dr = dExt;
   int nOffs = pCache->GetCount(2);
-  if(nOffs > 0) dr = pCache->GetPoint(0, 2).cPoint.x;
+  if(nOffs > 0) dr += pCache->GetPoint(0, 2).cPoint.x;
 
-  double dBreak = -1.0;
-  if(pCache->GetCount(4) > 0) dBreak = pCache->GetPoint(0, 4).cPoint.x;
-
+  double dBreak = GetHyperBreakAngle(cRad.x, cRad.y, -dr);
   double dy1 = GetHyperPointAtDist(cRad.x, cRad.y, dr, dBreak, d1);
   double dy2 = GetHyperPointAtDist(cRad.x, cRad.y, dr, dBreak, d2);
-
-  dr += dExt;
 
   PDPrimObject pTmpPrim = new CDPrimObject();
   AddCurveSegment(&cRad, dr, {dBreak, -1.0}, HyperFunc, HyperFuncDer, dy1, dy2, 0.5, 1, pTmpPrim);
   RotatePrimitives(pTmpPrim, pPrimList, cOrig, cNorm);
+  if(bReverse)
+  {
+    pTmpPrim->Clear();
+    ReversePrimitives(pPrimList, pTmpPrim);
+    pPrimList->Clear();
+    pPrimList->CopyFrom(pTmpPrim);
+  }
   delete pTmpPrim;
 }
 
@@ -641,10 +644,16 @@ bool GetHyperRefDir(double dRef, PDPointList pCache, PDPoint pPt)
 
   CDPoint cPt1 = cDir/dN1;
   *pPt = Rotate(cPt1, cNorm, true);
+
+  if(pCache->GetCount(4) > 0)
+  {
+    double dBreak = pCache->GetPoint(0, 4).cPoint.x;
+    if((dBreak > -0.5) && (dRef > -dBreak) && (dRef < dBreak)) *pPt *= -1.0;
+  }
   return true;
 }
 
-bool GetHyperReference(double dDist, PDPointList pCache, double *pdRef)
+bool GetHyperReference(double dDist, double dOffset, PDPointList pCache, double *pdRef)
 {
   int iCnt = pCache->GetCount(0);
 
@@ -654,13 +663,11 @@ bool GetHyperReference(double dDist, PDPointList pCache, double *pdRef)
   CDPoint cRad = pCache->GetPoint(1, 0).cPoint;
   //CDPoint cNorm = pCache->GetPoint(2, 0).cPoint;
 
-  double dr = 0.0;
+  double dr = dOffset;
   int nOffs = pCache->GetCount(2);
-  if(nOffs > 0) dr = pCache->GetPoint(0, 2).cPoint.x;
+  if(nOffs > 0) dr += pCache->GetPoint(0, 2).cPoint.x;
 
-  double dBreak = -1.0;
-  if(pCache->GetCount(4) > 0) dBreak = pCache->GetPoint(0, 4).cPoint.x;
-
+  double dBreak = GetHyperBreakAngle(cRad.x, cRad.y, -dr);
   *pdRef = GetHyperPointAtDist(cRad.x, cRad.y, dr, dBreak, dDist);
   return true;
 }
@@ -744,8 +751,7 @@ int AddHyperInterLine(CDPoint cPt1, CDPoint cPt2, double dOffset, PDPointList pC
   int nOffs = pCache->GetCount(2);
   if(nOffs > 0) dr += pCache->GetPoint(0, 2).cPoint.x;
 
-  double dBreak = -1.0;
-  if(pCache->GetCount(4) > 0) dBreak = pCache->GetPoint(0, 4).cPoint.x;
+  double dBreak = GetHyperBreakAngle(cRad.x, cRad.y, -dr);
 
   CDPoint cLn1, cLn2;
   cLn1 = Rotate(cPt1 - cOrig, cNorm, false);

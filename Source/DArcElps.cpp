@@ -1225,11 +1225,10 @@ double GetArcElpsRefAtDist(double dDist, CDPoint cRad, double dAng)
   }
 
   dDist -= d1;
-  //d1 = rx*dAng;
   return dDir*(M_PI - dAng + dDist/rx + dOffs);
 }
 
-void AddArcElpsSegment(double d1, double d2, double dExt, bool bReverse, PDPointList pCache, PDPrimObject pPrimList) //, PDRect pRect)
+void AddArcElpsSegment(double d1, double d2, double dExt, bool bReverse, PDPointList pCache, PDPrimObject pPrimList)
 {
   int iCnt = pCache->GetCount(0);
   if(iCnt < 2) return;
@@ -1365,7 +1364,7 @@ bool GetArcElpsRefDir(double dRef, PDPointList pCache, PDPoint pPt)
   return true;
 }
 
-bool GetArcElpsReference(double dDist, PDPointList pCache, double *pdRef)
+bool GetArcElpsReference(double dDist, double dOffset, PDPointList pCache, double *pdRef)
 {
   int iCnt = pCache->GetCount(0);
   if(iCnt < 2) return false;
@@ -1373,13 +1372,11 @@ bool GetArcElpsReference(double dDist, PDPointList pCache, double *pdRef)
   //CDPoint cOrig = pCache->GetPoint(0, 0).cPoint;
   CDPoint cRad = pCache->GetPoint(1, 0).cPoint;
 
+  double dOff = dOffset;
   int nOffs = pCache->GetCount(2);
-  if(nOffs > 0)
-  {
-    double dOff = pCache->GetPoint(0, 2).cPoint.x;
-    cRad.x += dOff;
-    cRad.y += dOff;
-  }
+  if(nOffs > 0) dOff += pCache->GetPoint(0, 2).cPoint.x;
+  cRad.x += dOff;
+  cRad.y += dOff;
 
   if(iCnt < 3)
   {

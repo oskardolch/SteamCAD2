@@ -2681,17 +2681,17 @@ bool CDObject::GetNativeReference(double dDist, double dOffset, double *pdRef)
   case dtCircle:
     return GetCircReference(dDist, dOffset, m_pCachePoints, pdRef);
   case dtEllipse:
-    return GetElpsReference(dDist, m_pCachePoints, pdRef);
+    return GetElpsReference(dDist, dOffset, m_pCachePoints, pdRef);
   case dtArcEllipse:
-    return GetArcElpsReference(dDist, m_pCachePoints, pdRef);
+    return GetArcElpsReference(dDist, dOffset, m_pCachePoints, pdRef);
   case dtHyperbola:
-    return GetHyperReference(dDist, m_pCachePoints, pdRef);
+    return GetHyperReference(dDist, dOffset, m_pCachePoints, pdRef);
   case dtParabola:
-    return GetParabReference(dDist, m_pCachePoints, pdRef);
+    return GetParabReference(dDist, dOffset, m_pCachePoints, pdRef);
   case dtSpline:
-    return GetSplineReference(dDist, m_pCachePoints, pdRef);
+    return GetSplineReference(dDist, dOffset, m_pCachePoints, pdRef);
   case dtEvolvent:
-    return GetEvolvReference(dDist, m_pCachePoints, pdRef);
+    return GetEvolvReference(dDist, dOffset, m_pCachePoints, pdRef);
   case dtPath:
     *pdRef = dDist;
     return true;

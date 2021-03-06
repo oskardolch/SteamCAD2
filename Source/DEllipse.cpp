@@ -620,7 +620,6 @@ void UpdateEllipseCache(PDPointList pCache)
   CDPoint cRad = pCache->GetPoint(1, 0).cPoint;
   //CDPoint cMainDir = pCache->GetPoint(2, 0).cPoint;
 
-  CDPoint cCenters = pCache->GetPoint(1, 0).cPoint;
 
   int nOffs = pCache->GetCount(2);
   if(nOffs < 1) 
@@ -629,8 +628,13 @@ void UpdateEllipseCache(PDPointList pCache)
     return;
   }
 
-  double dDist = pCache->GetPoint(0, 2).cPoint.x;
-  double dr = GetElspBreakAngle(cRad.x, cRad.y, -dDist, cCenters.x, cCenters.y);
+  double dr = -1.0;
+  if(pCache->GetCount(3) > 0)
+  {
+    CDPoint cCenters = pCache->GetPoint(0, 3).cPoint;
+    double dDist = pCache->GetPoint(0, 2).cPoint.x;
+    dr = GetElspBreakAngle(cRad.x, cRad.y, -dDist, cCenters.x, cCenters.y);
+  }
   pCache->AddPoint(dr, 0.0, 4);
 }
 
@@ -1125,15 +1129,21 @@ void AddElpsSegment(double d1, double d2, double dExt, bool bReverse, PDPointLis
 
   CDPoint cMainDir = pCache->GetPoint(2, 0).cPoint;
 
-  int iBreaks = pCache->GetCount(4);
-  CDPoint cBreak = {-1.0, 0.0};
-  if(iBreaks > 0) cBreak = pCache->GetPoint(0, 4).cPoint;
-  if(cBreak.x > -0.5) cBreak.y = M_PI - cBreak.x;
-  else cBreak.y = -1.0;
+  CDPoint cBreak = {-1.0, -1.0};
+  if(pCache->GetCount(3) > 0)
+  {
+    CDPoint cCenters = pCache->GetPoint(0, 3).cPoint;
+    double dBreak = GetElspBreakAngle(cRad.x, cRad.y, -dr, cCenters.x, cCenters.y);
+    if(dBreak > -0.5)
+    {
+      cBreak.x = dBreak;
+      cBreak.y = M_PI - dBreak;
+    }
+  }
 
   double dt1, dt2;
-  GetElpsReference(d1, pCache, &dt1);
-  GetElpsReference(d2, pCache, &dt2);
+  GetElpsReference(d1, dExt, pCache, &dt1);
+  GetElpsReference(d2, dExt, pCache, &dt2);
 
   PDPrimObject pTmpPrim = new CDPrimObject();
   if(dt1 > dt2)
@@ -1161,6 +1171,13 @@ void AddElpsSegment(double d1, double d2, double dExt, bool bReverse, PDPointLis
     AddCurveSegment(&cRad, dr, cBreak, ElpsFunc, ElpsFuncDer,
       dt1, dt2, M_PI/4.0, 0, pTmpPrim);
     RotatePrimitives(pTmpPrim, pPrimList, cOrig, cMainDir);
+  }
+  if(bReverse)
+  {
+    pTmpPrim->Clear();
+    ReversePrimitives(pPrimList, pTmpPrim);
+    pPrimList->Clear();
+    pPrimList->CopyFrom(pTmpPrim);
   }
   delete pTmpPrim;
 }
@@ -1300,10 +1317,31 @@ bool GetElpsRefDir(double dRef, PDPointList pCache, PDPoint pPt)
   cPt1.x = cNorm.x/dN1;
   cPt1.y = cNorm.y/dN1;
   *pPt = Rotate(cPt1, cMainDir, true);
+
+  if((pCache->GetCount(2) > 0) && (pCache->GetCount(3) > 0) && (pCache->GetCount(4) > 0))
+  {
+    double dDist = pCache->GetPoint(0, 2).cPoint.x;
+    CDPoint cCenters = pCache->GetPoint(0, 3).cPoint;
+    bool bReverse = false;
+    CDPoint cBreak = pCache->GetPoint(0, 4).cPoint;
+    if(cBreak.x > -0.5)
+    {
+      if(((dRef > cBreak.x - M_PI) && (dRef < -cBreak.x)) || ((dRef > cBreak.x) && (dRef < M_PI - cBreak.x)))
+      {
+        bReverse = cRad.y + cCenters.y + dDist < 0.0;
+      }
+      else
+      {
+        bReverse = cRad.x - cCenters.x + dDist < 0.0;
+      }
+    }
+    else bReverse = cRad.y + cCenters.y + dDist < 0.0;
+    if(bReverse) *pPt *= -1.0;
+  }
   return true;
 }
 
-bool GetElpsReference(double dDist, PDPointList pCache, double *pdRef)
+bool GetElpsReference(double dDist, double dOffset, PDPointList pCache, double *pdRef)
 {
   int iCnt = pCache->GetCount(0);
 
@@ -1321,9 +1359,9 @@ bool GetElpsReference(double dDist, PDPointList pCache, double *pdRef)
     return true;
   }
 
-  double dr = 0.0;
+  double dr = dOffset;
   int nOffs = pCache->GetCount(2);
-  if(nOffs > 0) dr = pCache->GetPoint(0, 2).cPoint.x;
+  if(nOffs > 0) dr += pCache->GetPoint(0, 2).cPoint.x;
 
   if(fabs(cRad.x - cRad.y) < g_dPrec)
   {
@@ -1333,11 +1371,17 @@ bool GetElpsReference(double dDist, PDPointList pCache, double *pdRef)
     return true;
   }
 
-  int iBreaks = pCache->GetCount(4);
-  CDPoint cBreak = {-1.0, 0.0};
-  if(iBreaks > 0) cBreak = pCache->GetPoint(0, 4).cPoint;
-  if(cBreak.x > -0.5) cBreak.y = M_PI - cBreak.x;
-  else cBreak.y = -1.0;
+  CDPoint cBreak = {-1.0, -1.0};
+  if(pCache->GetCount(3) > 0)
+  {
+    CDPoint cCenters = pCache->GetPoint(0, 3).cPoint;
+    double dBreak = GetElspBreakAngle(cRad.x, cRad.y, -dr, cCenters.x, cCenters.y);
+    if(dBreak > -0.5)
+    {
+      cBreak.x = dBreak;
+      cBreak.y = M_PI - dBreak;
+    }
+  }
 
   double dDir = 1.0;
   double dDist1 = dDist;
@@ -1349,11 +1393,11 @@ bool GetElpsReference(double dDist, PDPointList pCache, double *pdRef)
 
   double dHalfLen = 2.0*GetCurveDistAtRef(&cRad, dr, cBreak, M_PI/2.0,
     ElpsFunc, ElpsFuncDer, M_PI/4.0, 0, {1.0, M_PI});
-  double dOffset = 0.0;
+  double dExtra = 0.0;
   while(dDist1 > dHalfLen + g_dPrec)
   {
     dDist1 -= 2.0*dHalfLen;
-    dOffset = 2.0*M_PI;
+    dExtra = 2.0*M_PI;
   }
 
   CDPoint cPt = GetCurveRefAtDist(&cRad, dr, cBreak, dDist1,
@@ -1372,8 +1416,8 @@ bool GetElpsReference(double dDist, PDPointList pCache, double *pdRef)
     double dblDist = 2.0*g_dPrec;
     if(dDist2 < dblDist)
     {
-      if(dDist < 0.0) *pdRef = -cBreak.x + dOffset;
-      else *pdRef = cBreak.x + dOffset;
+      if(dDist < 0.0) *pdRef = -cBreak.x + dExtra;
+      else *pdRef = cBreak.x + dExtra;
       return true;
     }
     cPt2.x *= -1.0;
@@ -1381,8 +1425,8 @@ bool GetElpsReference(double dDist, PDPointList pCache, double *pdRef)
     dDist2 = GetDist(cPt, cPt2 + dr*cNorm);
     if(dDist2 < dblDist)
     {
-      if(dDist < 0.0) *pdRef = -cBreak.y + dOffset;
-      else *pdRef = cBreak.y + dOffset;
+      if(dDist < 0.0) *pdRef = -cBreak.y + dExtra;
+      else *pdRef = cBreak.y + dExtra;
       return true;
     }
 
@@ -1419,8 +1463,8 @@ bool GetElpsReference(double dDist, PDPointList pCache, double *pdRef)
       dDist2 = GetDist(cPt, cPt2 + dr*cNorm);
       if(dDist2 < 0.1)
       {
-        if(dDist < 0.0) *pdRef = -dt + dOffset;
-        else *pdRef = dt + dOffset;
+        if(dDist < 0.0) *pdRef = -dt + dExtra;
+        else *pdRef = dt + dExtra;
         return true;
       }
       cPt2.x *= -1.0;
@@ -1428,15 +1472,15 @@ bool GetElpsReference(double dDist, PDPointList pCache, double *pdRef)
       dDist2 = GetDist(cPt, cPt2 + dr*cNorm);
       if(dDist2 < 0.1)
       {
-        if(dDist < 0.0) *pdRef = dt - M_PI + dOffset;
-        else *pdRef = M_PI - dt + dOffset;
+        if(dDist < 0.0) *pdRef = dt - M_PI + dExtra;
+        else *pdRef = M_PI - dt + dExtra;
         return true;
       }
     }
   }
 
   CDPoint cPt2 = GetElpsBoundProj(cRad.x, cRad.y, dr, cPt, cPt, false);
-  *pdRef = dDir*(atan2(cPt2.y, cPt2.x) + dOffset);
+  *pdRef = dDir*(atan2(cPt2.y, cPt2.x) + dExtra);
   return true;
 }
 

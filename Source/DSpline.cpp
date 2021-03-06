@@ -1378,9 +1378,13 @@ void AddSplineSegment(double d1, double d2, double dExt, bool bReverse, PDPointL
   double dOff1 = 0.0;
   double dOff2 = 0.0;
 
+  double dr = dExt;
+  int nOffs = pCache->GetCount(2);
+  if(nOffs > 0) dr += pCache->GetPoint(0, 2).cPoint.x;
+
   if(bClosed)
   {
-    double dWhole = GetSplineDistAtRef((double)iSegs, dExt, pCache);
+    double dWhole = GetSplineDistAtRef((double)iSegs, dr, pCache);
     if(d1 > dWhole + g_dPrec)
     {
       d1 -= dWhole;
@@ -1395,14 +1399,10 @@ void AddSplineSegment(double d1, double d2, double dExt, bool bReverse, PDPointL
     else if(d2 > dWhole - g_dPrec) d2 = dWhole;
   }
 
-  double dt1 = GetSplineRefAtDist(d1, dExt, pCache);
-  double dt2 = GetSplineRefAtDist(d2, dExt, pCache);
+  double dt1 = GetSplineRefAtDist(d1, dr, pCache);
+  double dt2 = GetSplineRefAtDist(d2, dr, pCache);
 
   if((dt1 < -0.5) || (dt2 < -0.5)) return;
-
-  double dr = dExt;
-  int nOffs = pCache->GetCount(2);
-  if(nOffs > 0) dr += pCache->GetPoint(0, 2).cPoint.x;
 
   double dStart, dEnd;
   int i1 = GetRefIndex(dt1, &dStart);
@@ -1444,6 +1444,14 @@ void AddSplineSegment(double d1, double d2, double dExt, bool bReverse, PDPointL
   }
   cQuad = GetSplineNthSegment(i2, pCache);
   AddQuadBufPrimitive(cQuad, dr, 0.0, dEnd, pPrimList);
+  if(bReverse)
+  {
+    PDPrimObject pList1 = new CDPrimObject();
+    ReversePrimitives(pPrimList, pList1);
+    pPrimList->Clear();
+    pPrimList->CopyFrom(pList1);
+    delete pList1;
+  }
   return;
 }
 
@@ -1508,9 +1516,9 @@ bool GetSplineRefDir(double dRef, PDPointList pCache, PDPoint pPt)
   return true;
 }
 
-bool GetSplineReference(double dDist, PDPointList pCache, double *pdRef)
+bool GetSplineReference(double dDist, double dOffset, PDPointList pCache, double *pdRef)
 {
-  double dRef = GetSplineRefAtDist(dDist, 0.0, pCache);
+  double dRef = GetSplineRefAtDist(dDist, dOffset, pCache);
   if(dRef < -0.5) return false;
   *pdRef = dRef;
   return true;

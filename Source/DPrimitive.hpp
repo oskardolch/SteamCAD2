@@ -38,6 +38,7 @@ int AddCurveInterLine(void *pvData, double dr, CurveFunc pFunc, CurveFunc pFuncD
   CDPoint cLn1, CDPoint cLn2, double *pdRefs);
 
 void RotatePrimitives(PDPrimObject pSrcList, PDPrimObject pDestList, CDPoint cOrig, CDPoint cMainDir);
+void ReversePrimitives(PDPrimObject pSrcList, PDPrimObject pDestList);
 
 CDPoint GetPrimRegion(CDPrimitive cPrim, double dLineWidth, double dScale,
   PDPoint pPoints1, PDPoint pPoints2);

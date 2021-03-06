@@ -15,7 +15,7 @@ bool GetEvolvRefPoint(double dRef, double dExt, PDPointList pCache, PDPoint pPt)
 bool GetEvolvRestrictPoint(CDPoint cPt, int iMode, double dRestrictValue, PDPoint pSnapPt,
   PDPointList pCache);
 bool GetEvolvRefDir(double dRef, PDPointList pCache, PDPoint pPt);
-bool GetEvolvReference(double dDist, PDPointList pCache, double *pdRef);
+bool GetEvolvReference(double dDist, double dOffset, PDPointList pCache, double *pdRef);
 int GetEvolvSnapPoints(PDPointList pCache, double *pdRefs);
 
 #endif

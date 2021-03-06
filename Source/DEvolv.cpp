@@ -688,6 +688,13 @@ void AddEvolvSegment(double d1, double d2, double dExt, bool bReverse, PDPointLi
   PDPrimObject pTmpPrim = new CDPrimObject();
   AddCurveSegment(cEvPts, 0.0, cBreak, EvolvFunc, EvolvFuncDer, dt1, dt2, M_PI/8.0, 0, pTmpPrim);
   RotatePrimitives(pTmpPrim, pPrimList, cOrig, cN1);
+  if(bReverse)
+  {
+    pTmpPrim->Clear();
+    ReversePrimitives(pPrimList, pTmpPrim);
+    pPrimList->Clear();
+    pPrimList->CopyFrom(pTmpPrim);
+  }
   delete pTmpPrim;
 }
 
@@ -786,7 +793,7 @@ bool GetEvolvRefDir(double dRef, PDPointList pCache, PDPoint pPt)
   return true;
 }
 
-bool GetEvolvReference(double dDist, PDPointList pCache, double *pdRef)
+bool GetEvolvReference(double dDist, double dOffset, PDPointList pCache, double *pdRef)
 {
   if(dDist < -g_dPrec) return false;
   if(dDist < g_dPrec) dDist = 0.0;
@@ -800,9 +807,9 @@ bool GetEvolvReference(double dDist, PDPointList pCache, double *pdRef)
   double dr1 = cRad.x;
   //double dDir = cRad.y;
 
-  double dr = 0.0;
+  double dr = dOffset;
   int nOffs = pCache->GetCount(2);
-  if(nOffs > 0) dr = pCache->GetPoint(0, 2).cPoint.x;
+  if(nOffs > 0) dr += pCache->GetPoint(0, 2).cPoint.x;
 
   double dRef1 = dr/dr1;
   if(dr > g_dPrec) *pdRef = sqrt(Power2(dRef1) + 2.0*dDist/dr1) - dRef1;
