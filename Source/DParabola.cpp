@@ -29,7 +29,7 @@ bool AddParabPoint(double x, double y, char iCtrl, PDPointList pPoints, int iInp
   return bRes;
 }
 
-double GetParabBreakAngle(double dr, double da, double dr1)
+double GetParabBreakAngle(double dr, double da)
 {
   double dRes = -1.0;
   double d1 = 2.0*da;
@@ -95,13 +95,11 @@ void UpdateParabCache(PDPointList pCache)
   if(pCache->GetCount(4) > 0) pCache->Remove(0, 4);
   int nNorm = pCache->GetCount(0);
   int nOffs = pCache->GetCount(2);
-  int nRads = pCache->GetCount(3);
-  if((nNorm > 1) && (nOffs > 0) && (nRads > 0))
+  if((nNorm > 1) && (nOffs > 0))
   {
     CDPoint cRad = pCache->GetPoint(1, 0).cPoint;
     double dDist = pCache->GetPoint(0, 2).cPoint.x;
-    double dr1 = pCache->GetPoint(0, 3).cPoint.y;
-    double dr = GetParabBreakAngle(-dDist, cRad.x, dr1);
+    double dr = GetParabBreakAngle(-dDist, cRad.x);
     if(dr > -0.5) pCache->AddPoint(dr, 0.0, 4);
   }
 }
@@ -415,13 +413,7 @@ bool GetParabPointRefDist(double dRef, double dOffset, PDPointList pCache, doubl
   int nOffs = pCache->GetCount(2);
   if(nOffs > 0) dr += pCache->GetPoint(0, 2).cPoint.x;
 
-  double dBreak = -1.0;
-  if(pCache->GetCount(3) > 0)
-  {
-    double dr1 = pCache->GetPoint(0, 3).cPoint.y;
-    dBreak = GetParabBreakAngle(-dr, cRad.x, dr1);
-  }
-
+  double dBreak = GetParabBreakAngle(-dr, cRad.x);
   *pdDist = GetCurveDistAtRef(&cRad.x, dr, {dBreak, -1.0}, fabs(dRef),
     ParabFunc, ParabFuncDer, 0.5/cRad.x, 1, {0.0, 0.0});
   if(dRef < 0.0) *pdDist *= -1.0;
@@ -489,13 +481,7 @@ void AddParabSegment(double d1, double d2, double dExt, bool bReverse, PDPointLi
   int nOffs = pCache->GetCount(2);
   if(nOffs > 0) dr += pCache->GetPoint(0, 2).cPoint.x;
 
-  double dBreak = -1.0;
-  if(pCache->GetCount(3) > 0)
-  {
-    double dr1 = pCache->GetPoint(0, 3).cPoint.y;
-    dBreak = GetParabBreakAngle(-dr, cRad.x, dr1);
-  }
-
+  double dBreak = GetParabBreakAngle(-dr, cRad.x);
   double dx1 = GetParabPointAtDist(cRad.x, dr, dBreak, d1);
   double dx2 = GetParabPointAtDist(cRad.x, dr, dBreak, d2);
 
@@ -614,13 +600,7 @@ bool GetParabReference(double dDist, double dOffset, PDPointList pCache, double 
   int nOffs = pCache->GetCount(2);
   if(nOffs > 0) dr += pCache->GetPoint(0, 2).cPoint.x;
 
-  double dBreak = -1.0;
-  if(pCache->GetCount(3) > 0)
-  {
-    double dr1 = pCache->GetPoint(0, 3).cPoint.y;
-    dBreak = GetParabBreakAngle(-dr, cRad.x, dr1);
-  }
-
+  double dBreak = GetParabBreakAngle(-dr, cRad.x);
   *pdRef = GetParabPointAtDist(cRad.x, dr, dBreak, dDist);
   return true;
 }
@@ -703,12 +683,7 @@ int AddParabInterLine(CDPoint cPt1, CDPoint cPt2, double dOffset, PDPointList pC
   int nOffs = pCache->GetCount(2);
   if(nOffs > 0) dr += pCache->GetPoint(0, 2).cPoint.x;
 
-  double dBreak = -1.0;
-  if(pCache->GetCount(3) > 0)
-  {
-    double dr1 = pCache->GetPoint(0, 3).cPoint.y;
-    dBreak = GetParabBreakAngle(-dr, cRad.x, dr1);
-  }
+  double dBreak = GetParabBreakAngle(-dr, cRad.x);
 
   CDPoint cLn1, cLn2;
   cLn1 = Rotate(cPt1 - cOrig, cNorm, false);

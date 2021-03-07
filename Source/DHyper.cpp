@@ -33,7 +33,7 @@ CDPoint HyperFunc(void *pvData, double dt)
   double dv = sqrt(1.0 + Power2(dt));
   CDPoint cRes;
   cRes.x = pPt->x*dv;
-  cRes.y = pPt->y*dt;
+  cRes.y = -pPt->y*dt;
   return cRes;
 }
 
@@ -42,7 +42,7 @@ CDPoint HyperFuncDer(void *pvData, double dt)
   PDPoint pPt = (PDPoint)pvData;
   double dv = sqrt(1.0 + Power2(dt));
   CDPoint cRes;
-  cRes.x = -pPt->x*dt/dv;
+  cRes.x = pPt->x*dt/dv;
   cRes.y = -pPt->y;
   return cRes;
 }
@@ -50,14 +50,14 @@ CDPoint HyperFuncDer(void *pvData, double dt)
 double HypProjFn(double da, double db, double dx, double dy, double du)
 {
   double dv = sqrt(1.0 + Power2(du));
-  return du*(Power2(da) + Power2(db)) - da*dx*du/dv - db*dy;
+  return -du*(Power2(da) + Power2(db)) + da*dx*du/dv - db*dy;
 }
 
 double HypProjFnDer(double da, double db, double dx, double dy, double du)
 {
   double da1 = 1.0 + Power2(du);
   double dv = sqrt(da1);
-  return Power2(da) + Power2(db) - da*dx/da1/dv;
+  return -(Power2(da) + Power2(db)) + da*dx/da1/dv;
 }
 
 bool GetHyperPtProjFromU(double da, double db, double dStart, CDPoint cPt, double *pdRes)
@@ -89,7 +89,7 @@ int GetHyperPtProj(double da, double db, CDPoint cPt, double *pdRoots)
   double dU = db*cPt.y/d1;
   double dV = da*cPt.x/d1;
   dPoly[0] = Power2(dU);
-  dPoly[1] = -2.0*dU;
+  dPoly[1] = 2.0*dU;
   dPoly[2] = 1.0 + dPoly[0] - Power2(dV);
   dPoly[3] = dPoly[1];
   dPoly[4] = 1.0;
@@ -140,13 +140,13 @@ int GetHyperAttractors(CDPoint cPt, PDPointList pCache, PDPoint pPoints)
     du = dProjs[i];
     d1 = sqrt(1.0 + Power2(du));
 
-    cPtNorm.x = -cRad.y;
+    cPtNorm.x = cRad.y;
     cPtNorm.y = cRad.x*du/d1;
     dNorm = GetNorm(cPtNorm);
     cPtNorm /= dNorm;
 
-    cPt1.x = cRad.x*d1 + dr*cPtNorm.x;
-    cPt1.y = cRad.y*du + dr*cPtNorm.y;
+    cPt1.x = cRad.x*d1 - dr*cPtNorm.x;
+    cPt1.y = -cRad.y*du - dr*cPtNorm.y;
     pPoints[i] = cOrig + Rotate(cPt1, cMainDir, true);
   }
   return iRes;
@@ -165,22 +165,22 @@ double GetHyperBoundProj(double da, double db, double dOffset, CDPoint cPt, CDPo
   double du = pProjs[i];
   double dc = sqrt(1.0 + Power2(du));
   cProjPt.x = da*dc;
-  cProjPt.y = db*du;
-  cNorm.x = -db;
+  cProjPt.y = -db*du;
+  cNorm.x = db;
   cNorm.y = da*du/dc;
   double dNorm = GetNorm(cNorm);
-  pDists[0] = GetDist(cRefPt, cProjPt + dOffset*cNorm/dNorm);
+  pDists[0] = GetDist(cRefPt, cProjPt - dOffset*cNorm/dNorm);
   i++;
 
   int i0 = 0, i1 = 0;
   du = pProjs[i];
   dc = sqrt(1.0 + Power2(du));
   cProjPt.x = da*dc;
-  cProjPt.y = db*du;
-  cNorm.x = -db;
+  cProjPt.y = -db*du;
+  cNorm.x = db;
   cNorm.y = da*du/dc;
   dNorm = GetNorm(cNorm);
-  double dMin = GetDist(cRefPt, cProjPt + dOffset*cNorm/dNorm);
+  double dMin = GetDist(cRefPt, cProjPt - dOffset*cNorm/dNorm);
   if(dMin < pDists[0])
   {
     pDists[1] = pDists[0];
@@ -198,11 +198,11 @@ double GetHyperBoundProj(double da, double db, double dOffset, CDPoint cPt, CDPo
     du = pProjs[i];
     dc = sqrt(1.0 + Power2(du));
     cProjPt.x = da*dc;
-    cProjPt.y = db*du;
-    cNorm.x = -db;
+    cProjPt.y = -db*du;
+    cNorm.x = db;
     cNorm.y = da*du/dc;
     dNorm = GetNorm(cNorm);
-    dMin = GetDist(cRefPt, cProjPt + dOffset*cNorm/dNorm);
+    dMin = GetDist(cRefPt, cProjPt - dOffset*cNorm/dNorm);
     if(dMin < pDists[0])
     {
       pDists[1] = pDists[0];
@@ -326,15 +326,15 @@ CDPoint GetHyperPointDir(double da, double db, double dOffset, double dx, PDPoin
 {
   CDPoint cRes, cDir;
   double dv = sqrt(1.0 + Power2(dx));
-  cDir.x = -db;
+  cDir.x = db;
   cDir.y = da*dx/dv;
   double dNorm = GetNorm(cDir);
   cDir /= dNorm;
   cRes.x = da*dv;
-  cRes.y = db*dx;
-  pDir->x = -cDir.y;
-  pDir->y = cDir.x;
-  return cRes + dOffset*cDir;
+  cRes.y = -db*dx;
+  pDir->x = cDir.y;
+  pDir->y = -cDir.x;
+  return cRes - dOffset*cDir;
 }
 
 double GetHyperDistFromPt(CDPoint cPt, CDPoint cRefPt, int iSrchMask, PDPointList pCache, PDLine pPtX)
@@ -372,13 +372,13 @@ double GetHyperDistFromPt(CDPoint cPt, CDPoint cRefPt, int iSrchMask, PDPointLis
   double d1 = sqrt(1.0 + Power2(du));
 
   CDPoint cDir;
-  cDir.x = -cRad.y;
+  cDir.x = cRad.y;
   cDir.y = cRad.x*du/d1;
   double dNorm = GetNorm(cDir);
   cDir /= dNorm;
 
-  cPt2.x = cRad.x*d1 + dr*cDir.x;
-  cPt2.y = cRad.y*du + dr*cDir.y;
+  cPt2.x = cRad.x*d1 - dr*cDir.x;
+  cPt2.y = -cRad.y*du - dr*cDir.y;
   double dDir = 1.0;
 
   double dMin = GetDist(cRefPt1, cPt2);
@@ -438,7 +438,7 @@ double GetHyperRadiusAtPt(CDPoint cPt, PDPointList pCache, PDLine pPtR, bool bNe
   double dab = Power2(cRad.y/cRad.x);
 
   cPt2.x = cRad.x*sqrt(dx2)*(1.0 + dy2 + dab*dx2);
-  cPt2.y = cRad.y*du*(1.0 - dx2 - dy2/dab);
+  cPt2.y = -cRad.y*du*(1.0 - dx2 - dy2/dab);
 
   pPtR->bIsSet = true;
   pPtR->cOrigin = cOrig + Rotate(cPt2, cNorm, true);
@@ -468,7 +468,7 @@ bool GetHyperPointRefDist(double dRef, double dOffset, PDPointList pCache, doubl
   if(pCache->GetCount(4) > 0) dBreak = pCache->GetPoint(0, 4).cPoint.x;
 
   *pdDist = GetCurveDistAtRef(&cRad, dr, {dBreak, -1.0}, fabs(dRef),
-    HyperFunc, HyperFuncDer, 0.5, 1, {0.0, 0.0});
+    HyperFunc, HyperFuncDer, Power2(cRad.y)/cRad.x/8.0, 1, {0.0, 0.0});
   if(dRef < 0.0) *pdDist *= -1.0;
   return true;
 }
@@ -477,13 +477,13 @@ double GetHyperPointAtDist(double da, double db, double dr, double dBreak, doubl
 {
   CDPoint cRad = {da, db};
   CDPoint cPt1 = GetCurveRefAtDist(&cRad, dr, {dBreak, -1.0}, fabs(dDist),
-    HyperFunc, HyperFuncDer, 0.5, 1, {0.0, 0.0});
+    HyperFunc, HyperFuncDer, Power2(cRad.y)/cRad.x/8.0, 1, {0.0, 0.0});
 
   if(dBreak > -0.5)
   {
     double dv = sqrt(1.0 + Power2(dBreak));
-    CDPoint cPt2 = {cRad.x*dv, cRad.y*dBreak};
-    CDPoint cNorm = {-cRad.y, cRad.x*dBreak/dv};
+    CDPoint cPt2 = {cRad.x*dv, -cRad.y*dBreak};
+    CDPoint cNorm = {cRad.y, cRad.x*dBreak/dv};
     double dNorm = GetNorm(cNorm);
     cNorm /= dNorm;
 
@@ -491,8 +491,8 @@ double GetHyperPointAtDist(double da, double db, double dr, double dBreak, doubl
     double dblDist = 2.0*g_dPrec;
     if(dDist2 < dblDist)
     {
-      if(dDist < 0.0) return -dBreak;
-      return dBreak;
+      if(dDist < 0.0) return dBreak;
+      return -dBreak;
     }
 
     double a2 = Power2(cRad.x);
@@ -505,13 +505,13 @@ double GetHyperPointAtDist(double da, double db, double dr, double dBreak, doubl
       dv = sqrt(1.0 + dDisc);
 
       cPt2.x = cRad.x*dv;
-      cPt2.y = cRad.y*du;
-      cNorm.x = -cRad.y;
+      cPt2.y = -cRad.y*du;
+      cNorm.x = cRad.y;
       cNorm.y = cRad.x*du/dv;
       dNorm = GetNorm(cNorm);
       cNorm /= dNorm;
 
-      dDist2 = GetDist(cPt1, cPt2 + dr*cNorm);
+      dDist2 = GetDist(cPt1, cPt2 - dr*cNorm);
       if(dDist2 < 0.1)
       {
         if(dDist < 0.0) return -du;
@@ -547,7 +547,7 @@ void AddHyperSegment(double d1, double d2, double dExt, bool bReverse, PDPointLi
 
   PDPrimObject pTmpPrim = new CDPrimObject();
   PDPrimObject pRotPrim = new CDPrimObject();
-  AddCurveSegment(&cRad, dr, {dBreak, -1.0}, HyperFunc, HyperFuncDer, dy1, dy2, 0.5, 1, pTmpPrim);
+  AddCurveSegment(&cRad, dr, {dBreak, -1.0}, HyperFunc, HyperFuncDer, dy1, dy2, Power2(cRad.y)/cRad.x/8.0, 1, pTmpPrim);
   RotatePrimitives(pTmpPrim, pRotPrim, cOrig, cNorm);
   if(bReverse)
   {
@@ -578,14 +578,14 @@ bool GetHyperRefPoint(double dRef, double dExt, PDPointList pCache, PDPoint pPt)
 
   double dv = sqrt(1.0 + Power2(dRef));
   CDPoint cDir;
-  cDir.x = -cRad.y;
+  cDir.x = cRad.y;
   cDir.y = cRad.x*dRef/dv;
   double dN1 = GetNorm(cDir);
   if(dN1 < g_dPrec) return false;
 
   CDPoint cPt1;
-  cPt1.x = cRad.x*dv + dr*cDir.x/dN1;
-  cPt1.y = cRad.y*dRef + dr*cDir.y/dN1;
+  cPt1.x = cRad.x*dv - dr*cDir.x/dN1;
+  cPt1.y = -cRad.y*dRef - dr*cDir.y/dN1;
   *pPt = cOrig + Rotate(cPt1, cNorm, true);
   return true;
 }
@@ -614,13 +614,13 @@ bool GetHyperRestrictPoint(CDPoint cPt, int iMode, double dRestrictValue, PDPoin
 
   CDPoint cDir;
   cDir.x = cRad.x*dy/dv;
-  cDir.y = cRad.y;
+  cDir.y = -cRad.y;
   double dNorm = GetNorm(cDir);
   if(dNorm < g_dPrec) return false;
 
   CDPoint cPt2;
-  cPt2.x = cRad.x*dv - dRad*cDir.y/dNorm;
-  cPt2.y = cRad.y*dy + dRad*cDir.x/dNorm;
+  cPt2.x = cRad.x*dv + dRad*cDir.y/dNorm;
+  cPt2.y = -cRad.y*dy - dRad*cDir.x/dNorm;
   *pSnapPt = cOrig + Rotate(cPt2, cMainDir, true);
   return true;
 }
@@ -640,7 +640,7 @@ bool GetHyperRefDir(double dRef, PDPointList pCache, PDPoint pPt)
   double dv = sqrt(1.0 + Power2(dRef));
   CDPoint cDir;
   cDir.x = cRad.x*dRef/dv;
-  cDir.y = cRad.y;
+  cDir.y = -cRad.y;
   double dN1 = GetNorm(cDir);
   if(dN1 < g_dPrec) return false;
 
@@ -692,8 +692,8 @@ double HyperPtProjFunc(void *pvData, double dOffset, CDPoint cPt, CDPoint cStart
     pValid[i] = GetRefInUboundSeg(du, cStart, cEnd);
     dc = sqrt(1.0 + Power2(du));
     cProjPt.x = pPt->x*dc;
-    cProjPt.y = pPt->y*du;
-    cNorm.x = -pPt->y;
+    cProjPt.y = -pPt->y*du;
+    cNorm.x = pPt->y;
     cNorm.y = pPt->x*du/dc;
     dNorm = GetNorm(cNorm);
     pDists[i] = GetDist(cPt, cProjPt + dOffset*cNorm/dNorm);
