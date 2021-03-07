@@ -978,7 +978,7 @@ double GetElpsRadiusAtPt(CDPoint cPt, PDPointList pCache, PDLine pPtR, bool bNew
   return fabs(dRad + dDist);
 }
 
-bool GetElpsPointRefDist(double dRef, PDPointList pCache, double *pdDist)
+bool GetElpsPointRefDist(double dRef, double dOffset, PDPointList pCache, double *pdDist)
 {
   int iCnt = pCache->GetCount(0);
 
@@ -987,7 +987,7 @@ bool GetElpsPointRefDist(double dRef, PDPointList pCache, double *pdDist)
   CDPoint cOrig = pCache->GetPoint(0, 0).cPoint;
   CDPoint cRad = pCache->GetPoint(1, 0).cPoint;
 
-  double dDist = 0.0;
+  double dDist = dOffset;
 
   if(iCnt < 3)
   {
@@ -998,7 +998,7 @@ bool GetElpsPointRefDist(double dRef, PDPointList pCache, double *pdDist)
 
   //CDPoint cMainDir = pCache->GetPoint(2, 0).cPoint;
   int nOffs = pCache->GetCount(2);
-  if(nOffs > 0) dDist = pCache->GetPoint(0, 2).cPoint.x;
+  if(nOffs > 0) dDist += pCache->GetPoint(0, 2).cPoint.x;
 
   if(fabs(cRad.x - cRad.y) < g_dPrec)
   {
@@ -1146,39 +1146,41 @@ void AddElpsSegment(double d1, double d2, double dExt, bool bReverse, PDPointLis
   GetElpsReference(d2, dExt, pCache, &dt2);
 
   PDPrimObject pTmpPrim = new CDPrimObject();
+  PDPrimObject pRotPrim = new CDPrimObject();
   if(dt1 > dt2)
   {
     AddCurveSegment(&cRad, dr, cBreak, ElpsFunc, ElpsFuncDer,
       dt1, M_PI, M_PI/4.0, 0, pTmpPrim);
-    RotatePrimitives(pTmpPrim, pPrimList, cOrig, cMainDir);
+    RotatePrimitives(pTmpPrim, pRotPrim, cOrig, cMainDir);
     pTmpPrim->Clear();
     AddCurveSegment(&cRad, dr, cBreak, ElpsFunc, ElpsFuncDer,
       -M_PI, dt2, M_PI/4.0, 0, pTmpPrim);
-    RotatePrimitives(pTmpPrim, pPrimList, cOrig, cMainDir);
+    RotatePrimitives(pTmpPrim, pRotPrim, cOrig, cMainDir);
   }
   else if(dt2 > M_PI + g_dPrec)
   {
     AddCurveSegment(&cRad, dr, cBreak, ElpsFunc, ElpsFuncDer,
       dt1, M_PI, M_PI/4.0, 0, pTmpPrim);
-    RotatePrimitives(pTmpPrim, pPrimList, cOrig, cMainDir);
+    RotatePrimitives(pTmpPrim, pRotPrim, cOrig, cMainDir);
     pTmpPrim->Clear();
     AddCurveSegment(&cRad, dr, cBreak, ElpsFunc, ElpsFuncDer,
       -M_PI, dt2 - 2.0*M_PI, M_PI/4.0, 0, pTmpPrim);
-    RotatePrimitives(pTmpPrim, pPrimList, cOrig, cMainDir);
+    RotatePrimitives(pTmpPrim, pRotPrim, cOrig, cMainDir);
   }
   else
   {
     AddCurveSegment(&cRad, dr, cBreak, ElpsFunc, ElpsFuncDer,
       dt1, dt2, M_PI/4.0, 0, pTmpPrim);
-    RotatePrimitives(pTmpPrim, pPrimList, cOrig, cMainDir);
+    RotatePrimitives(pTmpPrim, pRotPrim, cOrig, cMainDir);
   }
   if(bReverse)
   {
     pTmpPrim->Clear();
-    ReversePrimitives(pPrimList, pTmpPrim);
-    pPrimList->Clear();
+    ReversePrimitives(pRotPrim, pTmpPrim);
     pPrimList->CopyFrom(pTmpPrim);
   }
+  else pPrimList->CopyFrom(pRotPrim);
+  delete pRotPrim;
   delete pTmpPrim;
 }
 

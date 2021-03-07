@@ -308,7 +308,7 @@ double GetEvolvRadiusAtPt(CDLine cPtX, PDPointList pCache, PDLine pPtR, bool bNe
   return dr1*dt + dr;
 }
 
-bool GetEvolvPointRefDist(double dRef, PDPointList pCache, double *pdDist)
+bool GetEvolvPointRefDist(double dRef, double dOffset, PDPointList pCache, double *pdDist)
 {
   if(dRef < 0) return false;
 
@@ -320,9 +320,9 @@ bool GetEvolvPointRefDist(double dRef, PDPointList pCache, double *pdDist)
   //cN1 = pCache->GetPoint(1, 0).cPoint;
   double dr1 = pCache->GetPoint(2, 0).cPoint.x;
 
-  double dr = 0.0;
+  double dr = dOffset;
   int nOffs = pCache->GetCount(2);
-  if(nOffs > 0) dr = pCache->GetPoint(0, 2).cPoint.x;
+  if(nOffs > 0) dr += pCache->GetPoint(0, 2).cPoint.x;
 
   double dRef1 = dr/dr1;
   if(dr > g_dPrec) *pdDist = dr1*(Power2(dRef + dRef1) - Power2(dRef1))/2.0;
@@ -685,16 +685,19 @@ void AddEvolvSegment(double d1, double d2, double dExt, bool bReverse, PDPointLi
   cEvPts[0] = cRad;
   cEvPts[1].x = dRef1;
   cEvPts[1].y = dExt/dr1;
+
   PDPrimObject pTmpPrim = new CDPrimObject();
+  PDPrimObject pRotPrim = new CDPrimObject();
   AddCurveSegment(cEvPts, 0.0, cBreak, EvolvFunc, EvolvFuncDer, dt1, dt2, M_PI/8.0, 0, pTmpPrim);
-  RotatePrimitives(pTmpPrim, pPrimList, cOrig, cN1);
+  RotatePrimitives(pTmpPrim, pRotPrim, cOrig, cN1);
   if(bReverse)
   {
     pTmpPrim->Clear();
-    ReversePrimitives(pPrimList, pTmpPrim);
-    pPrimList->Clear();
+    ReversePrimitives(pRotPrim, pTmpPrim);
     pPrimList->CopyFrom(pTmpPrim);
   }
+  else pPrimList->CopyFrom(pRotPrim);
+  delete pRotPrim;
   delete pTmpPrim;
 }
 

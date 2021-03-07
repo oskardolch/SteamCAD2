@@ -32,14 +32,15 @@ bool AddParabPoint(double x, double y, char iCtrl, PDPointList pPoints, int iInp
 double GetParabBreakAngle(double dr, double da, double dr1)
 {
   double dRes = -1.0;
-  if(dr > dr1 - g_dPrec)
+  double d1 = 2.0*da;
+  double dr0 = 1.0/d1;
+  if(dr > dr0 - g_dPrec)
   {
-    if(dr < dr1 + g_dPrec) dRes = 0.0;
+    if(dr < dr0 + g_dPrec) dRes = 0.0;
     else
     {
-      double d1 = 2.0*da;
       double d2 = cbrt(Power2(d1*dr));
-      dRes = sqrt(d2 - 1.0)/d1;
+      dRes = dr0*sqrt(d2 - 1.0);
     }
   }
   return dRes;
@@ -400,7 +401,7 @@ double GetParabRadiusAtPt(CDPoint cPt, PDPointList pCache, PDLine pPtR, bool bNe
   return dNorm + dr;
 }
 
-bool GetParabPointRefDist(double dRef, PDPointList pCache, double *pdDist)
+bool GetParabPointRefDist(double dRef, double dOffset, PDPointList pCache, double *pdDist)
 {
   int iCnt = pCache->GetCount(0);
 
@@ -410,15 +411,19 @@ bool GetParabPointRefDist(double dRef, PDPointList pCache, double *pdDist)
   CDPoint cRad = pCache->GetPoint(1, 0).cPoint;
   //CDPoint cNorm = pCache->GetPoint(2, 0).cPoint;
 
-  double dr = 0.0;
+  double dr = dOffset;
   int nOffs = pCache->GetCount(2);
-  if(nOffs > 0) dr = pCache->GetPoint(0, 2).cPoint.x;
+  if(nOffs > 0) dr += pCache->GetPoint(0, 2).cPoint.x;
 
   double dBreak = -1.0;
-  if(pCache->GetCount(4) > 0) dBreak = pCache->GetPoint(0, 4).cPoint.x;
+  if(pCache->GetCount(3) > 0)
+  {
+    double dr1 = pCache->GetPoint(0, 3).cPoint.y;
+    dBreak = GetParabBreakAngle(-dr, cRad.x, dr1);
+  }
 
   *pdDist = GetCurveDistAtRef(&cRad.x, dr, {dBreak, -1.0}, fabs(dRef),
-    ParabFunc, ParabFuncDer, 0.5, 1, {0.0, 0.0});
+    ParabFunc, ParabFuncDer, 0.5/cRad.x, 1, {0.0, 0.0});
   if(dRef < 0.0) *pdDist *= -1.0;
   return true;
 }
@@ -426,7 +431,7 @@ bool GetParabPointRefDist(double dRef, PDPointList pCache, double *pdDist)
 double GetParabPointAtDist(double da, double dr, double dBreak, double dDist)
 {
   CDPoint cPt1 = GetCurveRefAtDist(&da, dr, {dBreak, -1.0}, fabs(dDist),
-    ParabFunc, ParabFuncDer, 0.5, 1, {0.0, 0.0});
+    ParabFunc, ParabFuncDer, 0.5/da, 1, {0.0, 0.0});
 
   if(dBreak > -0.5)
   {
@@ -495,15 +500,17 @@ void AddParabSegment(double d1, double d2, double dExt, bool bReverse, PDPointLi
   double dx2 = GetParabPointAtDist(cRad.x, dr, dBreak, d2);
 
   PDPrimObject pTmpPrim = new CDPrimObject();
-  AddCurveSegment(&cRad.x, dr, {dBreak, -1.0}, ParabFunc, ParabFuncDer, dx1, dx2, 0.5, 1, pTmpPrim);
-  RotatePrimitives(pTmpPrim, pPrimList, cOrig, cNorm);
+  PDPrimObject pRotPrim = new CDPrimObject();
+  AddCurveSegment(&cRad.x, dr, {dBreak, -1.0}, ParabFunc, ParabFuncDer, dx1, dx2, 0.5/cRad.x, 1, pTmpPrim);
+  RotatePrimitives(pTmpPrim, pRotPrim, cOrig, cNorm);
   if(bReverse)
   {
     pTmpPrim->Clear();
-    ReversePrimitives(pPrimList, pTmpPrim);
-    pPrimList->Clear();
+    ReversePrimitives(pRotPrim, pTmpPrim);
     pPrimList->CopyFrom(pTmpPrim);
   }
+  else pPrimList->CopyFrom(pRotPrim);
+  delete pRotPrim;
   delete pTmpPrim;
 }
 

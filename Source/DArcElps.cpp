@@ -1117,7 +1117,7 @@ double GetArcElpsRadiusAtPt(CDPoint cPt, PDPointList pCache, PDLine pPtR, bool b
   return dRes;
 }
 
-bool GetArcElpsPointRefDist(double dRef, PDPointList pCache, double *pdDist)
+bool GetArcElpsPointRefDist(double dRef, double dOffset, PDPointList pCache, double *pdDist)
 {
   int iCnt = pCache->GetCount(0);
   if(iCnt < 2) return false;
@@ -1125,13 +1125,11 @@ bool GetArcElpsPointRefDist(double dRef, PDPointList pCache, double *pdDist)
   //CDPoint cOrig = pCache->GetPoint(0, 0).cPoint;
   CDPoint cRad = pCache->GetPoint(1, 0).cPoint;
 
+  double dExt = dOffset;
   int nOffs = pCache->GetCount(2);
-  if(nOffs > 0)
-  {
-    double dOff = pCache->GetPoint(0, 2).cPoint.x;
-    cRad.x += dOff;
-    cRad.y += dOff;
-  }
+  if(nOffs > 0) dExt += pCache->GetPoint(0, 2).cPoint.x;
+  cRad.x += dExt;
+  cRad.y += dExt;
 
   double rx = fabs(cRad.x);
 

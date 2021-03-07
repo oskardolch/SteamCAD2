@@ -1360,9 +1360,9 @@ double GetSplineRadiusAtPt(CDLine cPtX, PDPointList pCache, PDLine pPtR, bool bN
   return dNorm;
 }
 
-bool GetSplinePointRefDist(double dRef, PDPointList pCache, double *pdDist)
+bool GetSplinePointRefDist(double dRef, double dOffset, PDPointList pCache, double *pdDist)
 {
-  double dDist = GetSplineDistAtRef(dRef, 0.0, pCache);
+  double dDist = GetSplineDistAtRef(dRef, dOffset, pCache);
   if(dDist < -0.5) return false;
   *pdDist = dDist;
   return true;
@@ -1404,6 +1404,8 @@ void AddSplineSegment(double d1, double d2, double dExt, bool bReverse, PDPointL
 
   if((dt1 < -0.5) || (dt2 < -0.5)) return;
 
+  PDPrimObject pTmpList = new CDPrimObject();
+
   double dStart, dEnd;
   int i1 = GetRefIndex(dt1, &dStart);
   int i2 = GetRefIndex(dt2, &dEnd);
@@ -1414,44 +1416,63 @@ void AddSplineSegment(double d1, double d2, double dExt, bool bReverse, PDPointL
   CDPrimitive cQuad = GetSplineNthSegment(i1, pCache);
   if((i2 < i1) || ((i2 == i1) && ((dt2 < dt1) || (dt2 > (double)iSegs + g_dPrec))))
   {
-    AddQuadBufPrimitive(cQuad, dr, dStart, 1.0, pPrimList);
+    AddQuadBufPrimitive(cQuad, dr, dStart, 1.0, pTmpList);
     for(int i = i1 + 1; i < iSegs; i++)
     {
       cQuad = GetSplineNthSegment(i, pCache);
-      AddQuadBufPrimitive(cQuad, dr, 0.0, 1.0, pPrimList);
+      AddQuadBufPrimitive(cQuad, dr, 0.0, 1.0, pTmpList);
     }
     for(int i = 0; i < i2; i++)
     {
       cQuad = GetSplineNthSegment(i, pCache);
-      AddQuadBufPrimitive(cQuad, dr, 0.0, 1.0, pPrimList);
+      AddQuadBufPrimitive(cQuad, dr, 0.0, 1.0, pTmpList);
     }
     cQuad = GetSplineNthSegment(i2, pCache);
-    AddQuadBufPrimitive(cQuad, dr, 0.0, dEnd, pPrimList);
+    AddQuadBufPrimitive(cQuad, dr, 0.0, dEnd, pTmpList);
+    if(bReverse)
+    {
+      PDPrimObject pList1 = new CDPrimObject();
+      ReversePrimitives(pTmpList, pList1);
+      pPrimList->CopyFrom(pList1);
+      delete pList1;
+    }
+    else pPrimList->CopyFrom(pTmpList);
+    delete pTmpList;
     return;
   }
 
   if(i1 == i2)
   {
-    AddQuadBufPrimitive(cQuad, dr, dStart, dEnd, pPrimList);
+    AddQuadBufPrimitive(cQuad, dr, dStart, dEnd, pTmpList);
+    if(bReverse)
+    {
+      PDPrimObject pList1 = new CDPrimObject();
+      ReversePrimitives(pTmpList, pList1);
+      pPrimList->CopyFrom(pList1);
+      delete pList1;
+    }
+    else pPrimList->CopyFrom(pTmpList);
+    delete pTmpList;
     return;
   }
 
-  AddQuadBufPrimitive(cQuad, dr, dStart, 1.0, pPrimList);
+  AddQuadBufPrimitive(cQuad, dr, dStart, 1.0, pTmpList);
   for(int i = i1 + 1; i < i2; i++)
   {
     cQuad = GetSplineNthSegment(i, pCache);
-    AddQuadBufPrimitive(cQuad, dr, 0.0, 1.0, pPrimList);
+    AddQuadBufPrimitive(cQuad, dr, 0.0, 1.0, pTmpList);
   }
   cQuad = GetSplineNthSegment(i2, pCache);
-  AddQuadBufPrimitive(cQuad, dr, 0.0, dEnd, pPrimList);
+  AddQuadBufPrimitive(cQuad, dr, 0.0, dEnd, pTmpList);
   if(bReverse)
   {
     PDPrimObject pList1 = new CDPrimObject();
-    ReversePrimitives(pPrimList, pList1);
-    pPrimList->Clear();
+    ReversePrimitives(pTmpList, pList1);
     pPrimList->CopyFrom(pList1);
     delete pList1;
   }
+  else pPrimList->CopyFrom(pTmpList);
+  delete pTmpList;
   return;
 }
 

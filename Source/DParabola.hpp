@@ -11,7 +11,7 @@ double GetParabDistFromPt(CDPoint cPt, CDPoint cRefPt, int iSrchMask, PDPointLis
 int GetParabAttractors(CDPoint cPt, PDPointList pCache, PDPoint pPoints);
 bool HasParabEnoughPoints(PDPointList pPoints, int iInputLines);
 double GetParabRadiusAtPt(CDPoint cPt, PDPointList pCache, PDLine pPtR, bool bNewPt);
-bool GetParabPointRefDist(double dRef, PDPointList pCache, double *pdDist);
+bool GetParabPointRefDist(double dRef, double dOffset, PDPointList pCache, double *pdDist);
 void AddParabSegment(double d1, double d2, double dExt, bool bReverse, PDPointList pCache, PDPrimObject pPrimList);
 bool GetParabRefPoint(double dRef, double dExt, PDPointList pCache, PDPoint pPt);
 bool GetParabRestrictPoint(CDPoint cPt, int iMode, double dRestrictValue, PDPoint pSnapPt,

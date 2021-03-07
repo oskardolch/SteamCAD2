@@ -450,7 +450,7 @@ double GetHyperRadiusAtPt(CDPoint cPt, PDPointList pCache, PDLine pPtR, bool bNe
   return dNorm + dr;
 }
 
-bool GetHyperPointRefDist(double dRef, PDPointList pCache, double *pdDist)
+bool GetHyperPointRefDist(double dRef, double dOffset, PDPointList pCache, double *pdDist)
 {
   int iCnt = pCache->GetCount(0);
 
@@ -460,9 +460,9 @@ bool GetHyperPointRefDist(double dRef, PDPointList pCache, double *pdDist)
   CDPoint cRad = pCache->GetPoint(1, 0).cPoint;
   //CDPoint cNorm = pCache->GetPoint(2, 0).cPoint;
 
-  double dr = 0.0;
+  double dr = dOffset;
   int nOffs = pCache->GetCount(2);
-  if(nOffs > 0) dr = pCache->GetPoint(0, 2).cPoint.x;
+  if(nOffs > 0) dr += pCache->GetPoint(0, 2).cPoint.x;
 
   double dBreak = -1.0;
   if(pCache->GetCount(4) > 0) dBreak = pCache->GetPoint(0, 4).cPoint.x;
@@ -546,15 +546,17 @@ void AddHyperSegment(double d1, double d2, double dExt, bool bReverse, PDPointLi
   double dy2 = GetHyperPointAtDist(cRad.x, cRad.y, dr, dBreak, d2);
 
   PDPrimObject pTmpPrim = new CDPrimObject();
+  PDPrimObject pRotPrim = new CDPrimObject();
   AddCurveSegment(&cRad, dr, {dBreak, -1.0}, HyperFunc, HyperFuncDer, dy1, dy2, 0.5, 1, pTmpPrim);
-  RotatePrimitives(pTmpPrim, pPrimList, cOrig, cNorm);
+  RotatePrimitives(pTmpPrim, pRotPrim, cOrig, cNorm);
   if(bReverse)
   {
     pTmpPrim->Clear();
-    ReversePrimitives(pPrimList, pTmpPrim);
-    pPrimList->Clear();
+    ReversePrimitives(pRotPrim, pTmpPrim);
     pPrimList->CopyFrom(pTmpPrim);
   }
+  else pPrimList->CopyFrom(pRotPrim);
+  delete pRotPrim;
   delete pTmpPrim;
 }
 

@@ -1311,7 +1311,7 @@ void RotatePrimitives(PDPrimObject pSrcList, PDPrimObject pDestList, CDPoint cOr
 void ReversePrimitives(PDPrimObject pSrcList, PDPrimObject pDestList)
 {
   CDPrimitive cSrc, cDest;
-  for(int i = pSrcList->GetCount() - 1; i >= 0; i++)
+  for(int i = pSrcList->GetCount() - 1; i >= 0; i--)
   {
     cSrc = pSrcList->GetPrimitive(i);
     cDest.iType = cSrc.iType;

@@ -13,7 +13,7 @@ bool GetElpsRestrictPoint(CDPoint cPt, int iMode, double dRestrictValue, PDPoint
 bool HasElpsEnoughPoints(PDPointList pPoints, int iInputLines);
 double GetElpsRadiusAtPt(CDPoint cPt, PDPointList pCache, PDLine pPtR, bool bNewPt,
   PDPointList pPoints, PDLine pLines);
-bool GetElpsPointRefDist(double dRef, PDPointList pCache, double *pdDist);
+bool GetElpsPointRefDist(double dRef, double dOffset, PDPointList pCache, double *pdDist);
 void AddElpsSegment(double d1, double d2, double dExt, bool bReverse, PDPointList pCache, PDPrimObject pPrimList);
 void AddElpsExtPrim(PDRect pRect, PDPointList pCache, PDPrimObject pPrimList);
 bool GetElpsRefPoint(double dRef, double dExt, PDPointList pCache, PDPoint pPt);

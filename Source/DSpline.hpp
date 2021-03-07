@@ -10,7 +10,7 @@ double GetSplineDistFromPt(CDPoint cPt, CDPoint cRefPt, int iSrchMask, PDPointLi
 int GetSplineAttractors(CDPoint cPt, PDPointList pCache, double dScale, PDPointList pPoints);
 bool HasSplineEnoughPoints(PDPointList pPoints);
 double GetSplineRadiusAtPt(CDLine cPtX, PDPointList pCache, PDLine pPtR, bool bNewPt);
-bool GetSplinePointRefDist(double dRef, PDPointList pCache, double *pdDist);
+bool GetSplinePointRefDist(double dRef, double dOffset, PDPointList pCache, double *pdDist);
 void AddSplineSegment(double d1, double d2, double dExt, bool bReverse, PDPointList pCache, PDPrimObject pPrimList);
 bool GetSplineRefPoint(double dRef, double dExt, PDPointList pCache, PDPoint pPt);
 bool GetSplineRestrictPoint(CDPoint cPt, int iMode, double dRestrictValue, PDPoint pSnapPt,

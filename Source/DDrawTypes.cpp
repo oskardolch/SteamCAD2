@@ -4885,17 +4885,17 @@ bool CDObject::GetPointRefDist(double dRef, double dOffset, double *pdDist)
   case dtCircle:
     return GetCircPointRefDist(dRef, dOffset, m_pCachePoints, pdDist);
   case dtEllipse:
-    return GetElpsPointRefDist(dRef, m_pCachePoints, pdDist);
+    return GetElpsPointRefDist(dRef, dOffset, m_pCachePoints, pdDist);
   case dtArcEllipse:
-    return GetArcElpsPointRefDist(dRef, m_pCachePoints, pdDist);
+    return GetArcElpsPointRefDist(dRef, dOffset, m_pCachePoints, pdDist);
   case dtHyperbola:
-    return GetHyperPointRefDist(dRef, m_pCachePoints, pdDist);
+    return GetHyperPointRefDist(dRef, dOffset, m_pCachePoints, pdDist);
   case dtParabola:
-    return GetParabPointRefDist(dRef, m_pCachePoints, pdDist);
+    return GetParabPointRefDist(dRef, dOffset, m_pCachePoints, pdDist);
   case dtSpline:
-    return GetSplinePointRefDist(dRef, m_pCachePoints, pdDist);
+    return GetSplinePointRefDist(dRef, dOffset, m_pCachePoints, pdDist);
   case dtEvolvent:
-    return GetEvolvPointRefDist(dRef, m_pCachePoints, pdDist);
+    return GetEvolvPointRefDist(dRef, dOffset, m_pCachePoints, pdDist);
   case dtPath:
     *pdDist = dRef;
     return true;

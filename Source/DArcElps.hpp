@@ -13,7 +13,7 @@ bool GetArcElpsRestrictPoint(CDPoint cPt, int iMode, double dRestrictValue, PDPo
   PDPointList pCache);
 double GetArcElpsRadiusAtPt(CDPoint cPt, PDPointList pCache, PDLine pPtR, bool bNewPt,
   PDPointList pPoints, PDLine pLines);
-bool GetArcElpsPointRefDist(double dRef, PDPointList pCache, double *pdDist);
+bool GetArcElpsPointRefDist(double dRef, double dOffset, PDPointList pCache, double *pdDist);
 void AddArcElpsSegment(double d1, double d2, double dExt, bool bReverse, PDPointList pCache, PDPrimObject pPrimList);
 bool GetArcElpsRefPoint(double dRef, double dExt, PDPointList pCache, PDPoint pPt);
 bool GetArcElpsRefDir(double dRef, PDPointList pCache, PDPoint pPt);
