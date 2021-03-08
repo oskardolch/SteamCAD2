@@ -1274,9 +1274,11 @@ void CDApplication::DrawPrimitive(cairo_t *cr, PDPrimitive pPrim)
     break;
   case 3:
     dr = (pPrim->cPt2.x - pPrim->cPt1.x);
+    //cairo_stroke(cr);
     //cairo_new_path(cr);
     cairo_arc(cr, m_cViewOrigin.x + pPrim->cPt1.x, m_cViewOrigin.y + pPrim->cPt1.y, dr, 0.0, 2.0*M_PI);
     //cairo_stroke(cr);
+    //cairo_new_path(cr);
     break;
   case 4:
     cStartPt = (pPrim->cPt1 + 2.0*pPrim->cPt2)/3.0;

@@ -968,16 +968,14 @@ int AddCurvePart(void *pvData, double dr, CurveFunc pFunc, CurveFunc pFuncDer,
 
   if(iSampleStrategy > 0)
   {
-    double dLog = 0.0;
-    if(dt1 < -g_dPrec) dLog = (1.0 - dt1/dInterval)/(1.0 - dt2/dInterval);
-    else dLog = (1.0 + dt2/dInterval)/(1.0 + dt1/dInterval);
+    double dLog = 1.0 + (dt2 - dt1)/dInterval;
     double dScale = 2.0;
     iRes = 1 + (int)log(dLog)/log(2.0);
     dStep = (dt2 - dt1)/(exp((double)iRes*log(2.0)) - 1.0);
     if(dt1 < -g_dPrec)
     {
       dScale = 0.5;
-      dStep *= exp((double)(iRes - 1)*log(2.0));
+      dStep *= exp(((double)iRes - 1.0)*log(2.0));
     }
     for(int i = 0; i < iRes; i++) 
     {
@@ -1008,7 +1006,7 @@ int AddCurveSegment(void *pvData, double dr, CDPoint cBreak, CurveFunc pFunc, Cu
   int iRes = 0;
   for(int i = 0; i < iNumParts - 1; i++)
   {
-    iRes += AddCurvePart(pvData, dr, pFunc, pFuncDer, dParts[i], dParts[i + 1], dInterval, iSampleStrategy, pPrimList);
+    iRes += AddCurvePart(pvData, dr, pFunc, pFuncDer, dParts[i], dParts[i + 1], dInterval/10.0, iSampleStrategy, pPrimList);
   }
   return iRes;
 }
@@ -1055,7 +1053,7 @@ CDPoint GetCurveRefAtDist(void *pvData, double dr, CDPoint cBreak, double dDist,
       if(d1 < dDist - g_dPrec) dDist -= d1;
       else bFound = true;
     }
-    if(iSampleStrategy > 0) dBase += dt;
+    if(iSampleStrategy > 0) dBase = dt + dInterval/2.0;
     else dBase = dt + dInterval;
   }
 
@@ -1188,7 +1186,7 @@ double GetCurveDistAtRef(void *pvData, double dr, CDPoint cBreak, double dRef,
       if(dt < dRef + g_dPrec) dRes += GetQuadLength(&cQuad, 0.0, 1.0);
       else bFound = true;
     }
-    if(iSampleStrategy > 0) dBase += dt;
+    if(iSampleStrategy > 0) dBase = dt + dInterval/2.0;
     else dBase = dt + dInterval;
   }
 
@@ -1293,14 +1291,21 @@ double GetCurveDistAtRef(void *pvData, double dr, CDPoint cBreak, double dRef,
 void RotatePrimitives(PDPrimObject pSrcList, PDPrimObject pDestList, CDPoint cOrig, CDPoint cMainDir)
 {
   CDPrimitive cSrc, cDest;
+  double dr;
   for(int i = 0; i < pSrcList->GetCount(); i++)
   {
     cSrc = pSrcList->GetPrimitive(i);
     cDest.iType = cSrc.iType;
-    if(cSrc.iType > 0)
+    if(cSrc.iType != 2)
     {
       cDest.cPt1 = cOrig + Rotate(cSrc.cPt1, cMainDir, true);
       cDest.cPt2 = cOrig + Rotate(cSrc.cPt2, cMainDir, true);
+    }
+    else
+    {
+      dr = cSrc.cPt2.x - cSrc.cPt1.x;
+      cDest.cPt1 = cOrig + Rotate(cSrc.cPt1, cMainDir, true);
+      cDest.cPt2.x = cDest.cPt1.x + dr;
     }
     if(cSrc.iType > 3) cDest.cPt3 = cOrig + Rotate(cSrc.cPt3, cMainDir, true);
     if(cSrc.iType > 4) cDest.cPt4 = cOrig + Rotate(cSrc.cPt4, cMainDir, true);

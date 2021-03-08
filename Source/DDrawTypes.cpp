@@ -3876,459 +3876,473 @@ bool CDObject::Split(CDPoint cPt, PDPtrList pNewObjects, PDRect pRect, PDPtrList
 
 bool CDObject::Extend(CDPoint cPt, double dDist, PDRect pRect, PDPtrList pRegions)
 {
-    double d1;
-    bool bRes = false;
-    CDPoint cPt1;
-    if(m_cBounds[0].bIsSet)
+  double d1;
+  bool bRes = false;
+  CDPoint cPt1;
+  if(m_cBounds[0].bIsSet)
+  {
+    GetNativeRefPoint(m_cBounds[0].dRef, 0.0, &cPt1);
+    d1 = GetDist(cPt1, cPt);
+    if(d1 < dDist)
     {
-        GetNativeRefPoint(m_cBounds[0].dRef, 0.0, &cPt1);
-        d1 = GetDist(cPt1, cPt);
-        if(d1 < dDist)
-        {
-            m_cBounds[0].bIsSet = false;
-            bRes = true;
-        }
+      m_cBounds[0].bIsSet = false;
+      bRes = true;
     }
-    if(m_cBounds[1].bIsSet)
+  }
+  if(m_cBounds[1].bIsSet)
+  {
+    GetNativeRefPoint(m_cBounds[1].dRef, 0.0, &cPt1);
+    d1 = GetDist(cPt1, cPt);
+    if(d1 < dDist)
     {
-        GetNativeRefPoint(m_cBounds[1].dRef, 0.0, &cPt1);
-        d1 = GetDist(cPt1, cPt);
-        if(d1 < dDist)
-        {
-            m_cBounds[1].bIsSet = false;
-            bRes = true;
-        }
+      m_cBounds[1].bIsSet = false;
+      bRes = true;
     }
-    if(bRes)
+  }
+  if(bRes)
+  {
+    if(IsClosedShape() && !m_cBounds[0].bIsSet && m_cBounds[1].bIsSet)
     {
-        if(IsClosedShape() && !m_cBounds[0].bIsSet && m_cBounds[1].bIsSet)
-        {
-            m_cBounds[0] = m_cBounds[1];
-            m_cBounds[1].bIsSet = false;
-        }
-        CDLine cLn;
-        cLn.bIsSet = false;
-        BuildPrimitives(cLn, 0, pRect, 0, NULL);
-        AddRegions(pRegions, -1);
+      m_cBounds[0] = m_cBounds[1];
+      m_cBounds[1].bIsSet = false;
     }
-    return bRes;
+    CDLine cLn;
+    cLn.bIsSet = false;
+    BuildPrimitives(cLn, 0, pRect, 0, NULL);
+    AddRegions(pRegions, -1);
+  }
+  return bRes;
 }
 
 void CDObject::SavePoint(FILE *pf, bool bSwapBytes, CDPoint cPoint)
 {
-    unsigned char buf[16], *pbuf;
+  unsigned char buf[16], *pbuf;
 
-    pbuf = (unsigned char*)&cPoint.x;
-    SwapBytes(buf, pbuf, 8, bSwapBytes);
-    fwrite(buf, 1, 8, pf);
+  pbuf = (unsigned char*)&cPoint.x;
+  SwapBytes(buf, pbuf, 8, bSwapBytes);
+  fwrite(buf, 1, 8, pf);
 
-    pbuf = (unsigned char*)&cPoint.y;
-    SwapBytes(buf, pbuf, 8, bSwapBytes);
-    fwrite(buf, 1, 8, pf);
+  pbuf = (unsigned char*)&cPoint.y;
+  SwapBytes(buf, pbuf, 8, bSwapBytes);
+  fwrite(buf, 1, 8, pf);
 }
 
 void CDObject::SaveInputPoint(FILE *pf, bool bSwapBytes, CDInputPoint cInPoint)
 {
-    unsigned char buf = cInPoint.iCtrl;
-    fwrite(&buf, 1, 1, pf);
-    SavePoint(pf, bSwapBytes, cInPoint.cPoint);
+  unsigned char buf = cInPoint.iCtrl;
+  fwrite(&buf, 1, 1, pf);
+  SavePoint(pf, bSwapBytes, cInPoint.cPoint);
 }
 
 void CDObject::SaveReference(FILE *pf, bool bSwapBytes, double dRef)
 {
-    unsigned char buf[16], *pbuf;
-    pbuf = (unsigned char*)&dRef;
-    SwapBytes(buf, pbuf, 8, bSwapBytes);
-    fwrite(buf, 1, 8, pf);
+  unsigned char buf[16], *pbuf;
+  pbuf = (unsigned char*)&dRef;
+  SwapBytes(buf, pbuf, 8, bSwapBytes);
+  fwrite(buf, 1, 8, pf);
 }
 
 void CDObject::SaveRefPoint(FILE *pf, bool bSwapBytes, CDRefPoint cRefPoint)
 {
-    unsigned char buf = cRefPoint.bIsSet;
-    fwrite(&buf, 1, 1, pf);
-    SaveReference(pf, bSwapBytes, cRefPoint.dRef);
+  unsigned char buf = cRefPoint.bIsSet;
+  fwrite(&buf, 1, 1, pf);
+  SaveReference(pf, bSwapBytes, cRefPoint.dRef);
 }
 
 void CDObject::SaveLine(FILE *pf, bool bSwapBytes, CDLine cLine)
 {
-    unsigned char buf[16], *pbuf;
+  unsigned char buf[16], *pbuf;
 
-    buf[0] = cLine.bIsSet;
-    fwrite(buf, 1, 1, pf);
-    SavePoint(pf, bSwapBytes, cLine.cOrigin);
-    SavePoint(pf, bSwapBytes, cLine.cDirection);
+  buf[0] = cLine.bIsSet;
+  fwrite(buf, 1, 1, pf);
+  SavePoint(pf, bSwapBytes, cLine.cOrigin);
+  SavePoint(pf, bSwapBytes, cLine.cDirection);
 
-    pbuf = (unsigned char*)&cLine.dRef;
-    SwapBytes(buf, pbuf, 8, bSwapBytes);
-    fwrite(buf, 1, 8, pf);
+  pbuf = (unsigned char*)&cLine.dRef;
+  SwapBytes(buf, pbuf, 8, bSwapBytes);
+  fwrite(buf, 1, 8, pf);
 }
 
 void CDObject::SaveLineStyle(FILE *pf, bool bSwapBytes, CDLineStyle cLineStyle, unsigned char cVersion)
 {
-    unsigned char buf[16], *pbuf;
+  unsigned char buf[16], *pbuf;
 
-    pbuf = (unsigned char*)&cLineStyle.dWidth;
+  pbuf = (unsigned char*)&cLineStyle.dWidth;
+  SwapBytes(buf, pbuf, 8, bSwapBytes);
+  fwrite(buf, 1, 8, pf);
+
+  pbuf = (unsigned char*)&cLineStyle.dPercent;
+  SwapBytes(buf, pbuf, 8, bSwapBytes);
+  fwrite(buf, 1, 8, pf);
+
+  unsigned long ulVal = cLineStyle.iSegments;
+  pbuf = (unsigned char*)&ulVal;
+  SwapBytes(buf, pbuf, 4, bSwapBytes);
+  fwrite(buf, 1, 4, pf);
+
+  for(int i = 0; i < 6; i++)
+  {
+    pbuf = (unsigned char*)&cLineStyle.dPattern[i];
     SwapBytes(buf, pbuf, 8, bSwapBytes);
     fwrite(buf, 1, 8, pf);
+  }
 
-    pbuf = (unsigned char*)&cLineStyle.dPercent;
-    SwapBytes(buf, pbuf, 8, bSwapBytes);
-    fwrite(buf, 1, 8, pf);
-
-    unsigned long ulVal = cLineStyle.iSegments;
-    pbuf = (unsigned char*)&ulVal;
-    SwapBytes(buf, pbuf, 4, bSwapBytes);
-    fwrite(buf, 1, 4, pf);
-
-    for(int i = 0; i < 6; i++)
-    {
-        pbuf = (unsigned char*)&cLineStyle.dPattern[i];
-        SwapBytes(buf, pbuf, 8, bSwapBytes);
-        fwrite(buf, 1, 8, pf);
-    }
-
-    if(cVersion > 1)
-    {
-        buf[0] = cLineStyle.cCapType;
-        buf[1] = cLineStyle.cJoinType;
-        fwrite(buf, 1, 2, pf);
-        fwrite(cLineStyle.cColor, 1, 4, pf);
-    }
+  if(cVersion > 1)
+  {
+    buf[0] = cLineStyle.cCapType;
+    buf[1] = cLineStyle.cJoinType;
+    fwrite(buf, 1, 2, pf);
+    fwrite(cLineStyle.cColor, 1, 4, pf);
+  }
 }
 
 void CDObject::SaveDimension(FILE *pf, bool bSwapBytes, PDDimension pDim, unsigned char cVersion)
 {
-    unsigned char buf[16], *pbuf;
+  unsigned char buf[16], *pbuf;
 
-    pbuf = (unsigned char*)&pDim->dRef1;
-    SwapBytes(buf, pbuf, 8, bSwapBytes);
-    fwrite(buf, 1, 8, pf);
+  pbuf = (unsigned char*)&pDim->dRef1;
+  SwapBytes(buf, pbuf, 8, bSwapBytes);
+  fwrite(buf, 1, 8, pf);
 
-    pbuf = (unsigned char*)&pDim->dRef2;
-    SwapBytes(buf, pbuf, 8, bSwapBytes);
-    fwrite(buf, 1, 8, pf);
+  pbuf = (unsigned char*)&pDim->dRef2;
+  SwapBytes(buf, pbuf, 8, bSwapBytes);
+  fwrite(buf, 1, 8, pf);
 
-    if(cVersion > 1)
-    {
-      buf[0] = (unsigned char)pDim->iRefDir;
-      fwrite(buf, 1, 1, pf);
-    }
-
-    buf[0] = (unsigned char)pDim->iArrowType1;
+  if(cVersion > 1)
+  {
+    buf[0] = (unsigned char)pDim->iRefDir;
     fwrite(buf, 1, 1, pf);
+  }
 
-    buf[0] = (unsigned char)pDim->iArrowType2;
-    fwrite(buf, 1, 1, pf);
+  buf[0] = (unsigned char)pDim->iArrowType1;
+  fwrite(buf, 1, 1, pf);
 
-    SavePoint(pf, bSwapBytes, pDim->cArrowDim1);
-    SavePoint(pf, bSwapBytes, pDim->cArrowDim2);
+  buf[0] = (unsigned char)pDim->iArrowType2;
+  fwrite(buf, 1, 1, pf);
 
-    pbuf = (unsigned char*)&pDim->dFontSize;
-    SwapBytes(buf, pbuf, 8, bSwapBytes);
-    fwrite(buf, 1, 8, pf);
+  SavePoint(pf, bSwapBytes, pDim->cArrowDim1);
+  SavePoint(pf, bSwapBytes, pDim->cArrowDim2);
 
-    buf[0] = pDim->bFontAttrs;
-    fwrite(buf, 1, 1, pf);
+  pbuf = (unsigned char*)&pDim->dFontSize;
+  SwapBytes(buf, pbuf, 8, bSwapBytes);
+  fwrite(buf, 1, 8, pf);
 
-    buf[0] = (unsigned char)strlen(pDim->psFontFace);
-    fwrite(buf, 1, 1, pf);
-    fwrite(pDim->psFontFace, 1, buf[0], pf);
+  buf[0] = pDim->bFontAttrs;
+  fwrite(buf, 1, 1, pf);
 
-    SavePoint(pf, bSwapBytes, pDim->cLabelPos.cPoint);
+  buf[0] = (unsigned char)strlen(pDim->psFontFace);
+  fwrite(buf, 1, 1, pf);
+  fwrite(pDim->psFontFace, 1, buf[0], pf);
 
-    pbuf = (unsigned char*)&pDim->cLabelPos.dOrientation;
-    SwapBytes(buf, pbuf, 8, bSwapBytes);
-    fwrite(buf, 1, 8, pf);
+  SavePoint(pf, bSwapBytes, pDim->cLabelPos.cPoint);
 
-    unsigned long ulVal = 0;
-    if(pDim->psLab) ulVal = strlen(pDim->psLab);
-    pbuf = (unsigned char*)&ulVal;
-    SwapBytes(buf, pbuf, 4, bSwapBytes);
-    fwrite(buf, 1, 4, pf);
-    if(pDim->psLab) fwrite(pDim->psLab, 1, ulVal, pf);
+  pbuf = (unsigned char*)&pDim->cLabelPos.dOrientation;
+  SwapBytes(buf, pbuf, 8, bSwapBytes);
+  fwrite(buf, 1, 8, pf);
+
+  unsigned long ulVal = 0;
+  if(pDim->psLab) ulVal = strlen(pDim->psLab);
+  pbuf = (unsigned char*)&ulVal;
+  SwapBytes(buf, pbuf, 4, bSwapBytes);
+  fwrite(buf, 1, 4, pf);
+  if(pDim->psLab) fwrite(pDim->psLab, 1, ulVal, pf);
 }
 
 void CDObject::SaveToFile(FILE *pf, bool bSwapBytes, unsigned char cVersion)
 {
-    unsigned char buf[16], *pbuf;
-    unsigned long lCnt;
+  unsigned char buf[16], *pbuf;
+  unsigned long lCnt;
 
-    if((cVersion > 1) || (m_iType < dtPath))
+  if((cVersion > 1) || (m_iType < dtPath))
+  {
+    buf[0] = m_iType;
+    fwrite(buf, 1, 1, pf);
+
+    SaveLine(pf, bSwapBytes, m_cLines[0]);
+    SaveLine(pf, bSwapBytes, m_cLines[1]);
+    if((cVersion == 1) && ((m_iType == dtHyperbola)))
     {
-        buf[0] = m_iType;
+      // for backward compatibility, we have changed hyperbola direction to be compatible with paths
+      CDRefPoint cLocBnds[2];
+      cLocBnds[0] = m_cBounds[1];
+      cLocBnds[1] = m_cBounds[0];
+      if(cLocBnds[0].bIsSet) cLocBnds[0].dRef *= -1.0;
+      if(cLocBnds[1].bIsSet) cLocBnds[1].dRef *= -1.0;
+      SaveRefPoint(pf, bSwapBytes, cLocBnds[0]);
+      SaveRefPoint(pf, bSwapBytes, cLocBnds[1]);
+    }
+    else
+    {
+      SaveRefPoint(pf, bSwapBytes, m_cBounds[0]);
+      SaveRefPoint(pf, bSwapBytes, m_cBounds[1]);
+    }
+
+    SaveLineStyle(pf, bSwapBytes, m_cLineStyle, cVersion);
+
+    lCnt = m_pInputPoints->GetCount(-1);
+    pbuf = (unsigned char*)&lCnt;
+    SwapBytes(buf, pbuf, 4, bSwapBytes);
+    fwrite(buf, 1, 4, pf);
+
+    CDInputPoint cInPt;
+    for(unsigned int i = 0; i < lCnt; i++)
+    {
+      cInPt = m_pInputPoints->GetPoint(i, -1);
+      SaveInputPoint(pf, bSwapBytes, cInPt);
+    }
+
+    lCnt = m_pCrossPoints->GetCount();
+    pbuf = (unsigned char*)&lCnt;
+    SwapBytes(buf, pbuf, 4, bSwapBytes);
+    fwrite(buf, 1, 4, pf);
+
+    double dRef;
+    for(unsigned int i = 0; i < lCnt; i++)
+    {
+      dRef = m_pCrossPoints->GetPoint(i);
+      SaveReference(pf, bSwapBytes, dRef);
+    }
+
+    lCnt = m_pDimens->GetCount();
+    pbuf = (unsigned char*)&lCnt;
+    SwapBytes(buf, pbuf, 4, bSwapBytes);
+    fwrite(buf, 1, 4, pf);
+
+    PDDimension pDim;
+    for(unsigned int i = 0; i < lCnt; i++)
+    {
+      pDim = (PDDimension)m_pDimens->GetItem(i);
+      SaveDimension(pf, bSwapBytes, pDim, cVersion);
+    }
+  }
+
+  lCnt = m_pSubObjects->GetCount();
+  PDObject pObj;
+  PDPathSeg pSeg;
+
+  if(cVersion > 1)
+  {
+    pbuf = (unsigned char*)&lCnt;
+    SwapBytes(buf, pbuf, 4, bSwapBytes);
+    fwrite(buf, 1, 4, pf);
+
+    if(m_iType < dtBorder)
+    {
+      for(unsigned int i = 0; i < lCnt; i++)
+      {
+        pSeg = (PDPathSeg)m_pSubObjects->GetItem(i);
+        buf[0] = (unsigned char)pSeg->bReverse;
         fwrite(buf, 1, 1, pf);
-
-        SaveLine(pf, bSwapBytes, m_cLines[0]);
-        SaveLine(pf, bSwapBytes, m_cLines[1]);
-        SaveRefPoint(pf, bSwapBytes, m_cBounds[0]);
-        SaveRefPoint(pf, bSwapBytes, m_cBounds[1]);
-
-        SaveLineStyle(pf, bSwapBytes, m_cLineStyle, cVersion);
-
-        lCnt = m_pInputPoints->GetCount(-1);
-        pbuf = (unsigned char*)&lCnt;
-        SwapBytes(buf, pbuf, 4, bSwapBytes);
-        fwrite(buf, 1, 4, pf);
-
-        CDInputPoint cInPt;
-        for(unsigned int i = 0; i < lCnt; i++)
-        {
-            cInPt = m_pInputPoints->GetPoint(i, -1);
-            SaveInputPoint(pf, bSwapBytes, cInPt);
-        }
-
-        lCnt = m_pCrossPoints->GetCount();
-        pbuf = (unsigned char*)&lCnt;
-        SwapBytes(buf, pbuf, 4, bSwapBytes);
-        fwrite(buf, 1, 4, pf);
-
-        double dRef;
-        for(unsigned int i = 0; i < lCnt; i++)
-        {
-            dRef = m_pCrossPoints->GetPoint(i);
-            SaveReference(pf, bSwapBytes, dRef);
-        }
-
-        lCnt = m_pDimens->GetCount();
-        pbuf = (unsigned char*)&lCnt;
-        SwapBytes(buf, pbuf, 4, bSwapBytes);
-        fwrite(buf, 1, 4, pf);
-
-        PDDimension pDim;
-        for(unsigned int i = 0; i < lCnt; i++)
-        {
-            pDim = (PDDimension)m_pDimens->GetItem(i);
-            SaveDimension(pf, bSwapBytes, pDim, cVersion);
-        }
+        pSeg->pSegment->SaveToFile(pf, bSwapBytes, cVersion);
+      }
     }
-
-    lCnt = m_pSubObjects->GetCount();
-    PDObject pObj;
-    PDPathSeg pSeg;
-
-    if(cVersion > 1)
+    else
     {
-        pbuf = (unsigned char*)&lCnt;
-        SwapBytes(buf, pbuf, 4, bSwapBytes);
-        fwrite(buf, 1, 4, pf);
-
-        if(m_iType < dtBorder)
-        {
-            for(unsigned int i = 0; i < lCnt; i++)
-            {
-                pSeg = (PDPathSeg)m_pSubObjects->GetItem(i);
-                buf[0] = (unsigned char)pSeg->bReverse;
-                fwrite(buf, 1, 1, pf);
-                pSeg->pSegment->SaveToFile(pf, bSwapBytes, cVersion);
-            }
-        }
-        else
-        {
-            for(unsigned int i = 0; i < lCnt; i++)
-            {
-                pObj = (PDObject)m_pSubObjects->GetItem(i);
-                pObj->SaveToFile(pf, bSwapBytes, cVersion);
-            }
-        }
+      for(unsigned int i = 0; i < lCnt; i++)
+      {
+        pObj = (PDObject)m_pSubObjects->GetItem(i);
+        pObj->SaveToFile(pf, bSwapBytes, cVersion);
+      }
     }
-    else if(m_iType < dtBorder)
+  }
+  else if(m_iType < dtBorder)
+  {
+    for(unsigned int i = 0; i < lCnt; i++)
     {
-        for(unsigned int i = 0; i < lCnt; i++)
-        {
-            pSeg = (PDPathSeg)m_pSubObjects->GetItem(i);
-            buf[0] = (unsigned char)pSeg->bReverse;
-            fwrite(buf, 1, 1, pf);
-            pSeg->pSegment->SaveToFile(pf, bSwapBytes, cVersion);
-        }
+      pSeg = (PDPathSeg)m_pSubObjects->GetItem(i);
+      buf[0] = (unsigned char)pSeg->bReverse;
+      fwrite(buf, 1, 1, pf);
+      pSeg->pSegment->SaveToFile(pf, bSwapBytes, cVersion);
     }
+  }
 }
 
 void CDObject::LoadPoint(FILE *pf, bool bSwapBytes, PDPoint pPoint)
 {
-    unsigned char buf[16], *pbuf;
+  unsigned char buf[16], *pbuf;
 
-    pPoint->x = 0.0;
-    fread(buf, 1, 8, pf);
-    pbuf = (unsigned char*)&pPoint->x;
-    SwapBytes(pbuf, buf, 8, bSwapBytes);
+  pPoint->x = 0.0;
+  fread(buf, 1, 8, pf);
+  pbuf = (unsigned char*)&pPoint->x;
+  SwapBytes(pbuf, buf, 8, bSwapBytes);
 
-    pPoint->y = 0.0;
-    fread(buf, 1, 8, pf);
-    pbuf = (unsigned char*)&pPoint->y;
-    SwapBytes(pbuf, buf, 8, bSwapBytes);
+  pPoint->y = 0.0;
+  fread(buf, 1, 8, pf);
+  pbuf = (unsigned char*)&pPoint->y;
+  SwapBytes(pbuf, buf, 8, bSwapBytes);
 }
 
 void CDObject::LoadInputPoint(FILE *pf, bool bSwapBytes, PDInputPoint pInPoint)
 {
-    unsigned char buf;
-    fread(&buf, 1, 1, pf);
-    pInPoint->iCtrl = buf;
-    LoadPoint(pf, bSwapBytes, &pInPoint->cPoint);
+  unsigned char buf;
+  fread(&buf, 1, 1, pf);
+  pInPoint->iCtrl = buf;
+  LoadPoint(pf, bSwapBytes, &pInPoint->cPoint);
 }
 
 void CDObject::LoadReference(FILE *pf, bool bSwapBytes, double *pdRef)
 {
-    unsigned char buf[16], *pbuf;
+  unsigned char buf[16], *pbuf;
 
-    fread(buf, 1, 8, pf);
-    pbuf = (unsigned char*)pdRef;
-    SwapBytes(pbuf, buf, 8, bSwapBytes);
+  fread(buf, 1, 8, pf);
+  pbuf = (unsigned char*)pdRef;
+  SwapBytes(pbuf, buf, 8, bSwapBytes);
 }
 
 void CDObject::LoadRefPoint(FILE *pf, bool bSwapBytes, PDRefPoint pRefPoint)
 {
-    unsigned char buf;
-    fread(&buf, 1, 1, pf);
-    pRefPoint->bIsSet = buf;
-    pRefPoint->dRef = 0.0;
-    LoadReference(pf, bSwapBytes, &pRefPoint->dRef);
+  unsigned char buf;
+  fread(&buf, 1, 1, pf);
+  pRefPoint->bIsSet = buf;
+  pRefPoint->dRef = 0.0;
+  LoadReference(pf, bSwapBytes, &pRefPoint->dRef);
 }
 
 void CDObject::LoadLine(FILE *pf, bool bSwapBytes, PDLine pLine)
 {
-    unsigned char buf[16], *pbuf;
+  unsigned char buf[16], *pbuf;
 
-    fread(buf, 1, 1, pf);
-    pLine->bIsSet = buf[0];
-    pLine->cOrigin.x = 0.0;
-    pLine->cOrigin.y = 0.0;
-    LoadPoint(pf, bSwapBytes, &pLine->cOrigin);
-    pLine->cDirection.x = 0.0;
-    pLine->cDirection.y = 0.0;
-    LoadPoint(pf, bSwapBytes, &pLine->cDirection);
+  fread(buf, 1, 1, pf);
+  pLine->bIsSet = buf[0];
+  pLine->cOrigin.x = 0.0;
+  pLine->cOrigin.y = 0.0;
+  LoadPoint(pf, bSwapBytes, &pLine->cOrigin);
+  pLine->cDirection.x = 0.0;
+  pLine->cDirection.y = 0.0;
+  LoadPoint(pf, bSwapBytes, &pLine->cDirection);
 
-    pLine->dRef = 0.0;
-    fread(buf, 1, 8, pf);
-    pbuf = (unsigned char*)&pLine->dRef;
-    SwapBytes(pbuf, buf, 8, bSwapBytes);
+  pLine->dRef = 0.0;
+  fread(buf, 1, 8, pf);
+  pbuf = (unsigned char*)&pLine->dRef;
+  SwapBytes(pbuf, buf, 8, bSwapBytes);
 }
 
 void CDObject::LoadLineStyle(FILE *pf, bool bSwapBytes, PDLineStyle pLineStyle, unsigned char cVersion)
 {
-    unsigned char buf[16], *pbuf;
+  unsigned char buf[16], *pbuf;
 
-    pLineStyle->dWidth = 0.0;
+  pLineStyle->dWidth = 0.0;
+  fread(buf, 1, 8, pf);
+  pbuf = (unsigned char*)&pLineStyle->dWidth;
+  SwapBytes(pbuf, buf, 8, bSwapBytes);
+
+  pLineStyle->dPercent = 0.0;
+  fread(buf, 1, 8, pf);
+  pbuf = (unsigned char*)&pLineStyle->dPercent;
+  SwapBytes(pbuf, buf, 8, bSwapBytes);
+
+  fread(buf, 1, 4, pf);
+  unsigned long ulVal = 0;
+  pbuf = (unsigned char*)&ulVal;
+  SwapBytes(pbuf, buf, 4, bSwapBytes);
+  pLineStyle->iSegments = ulVal;
+
+  for(int i = 0; i < 6; i++)
+  {
+    pLineStyle->dPattern[i] = 0.0;
     fread(buf, 1, 8, pf);
-    pbuf = (unsigned char*)&pLineStyle->dWidth;
+    pbuf = (unsigned char*)&pLineStyle->dPattern[i];
     SwapBytes(pbuf, buf, 8, bSwapBytes);
+  }
 
-    pLineStyle->dPercent = 0.0;
-    fread(buf, 1, 8, pf);
-    pbuf = (unsigned char*)&pLineStyle->dPercent;
-    SwapBytes(pbuf, buf, 8, bSwapBytes);
-
-    fread(buf, 1, 4, pf);
-    unsigned long ulVal = 0;
-    pbuf = (unsigned char*)&ulVal;
-    SwapBytes(pbuf, buf, 4, bSwapBytes);
-    pLineStyle->iSegments = ulVal;
-
-    for(int i = 0; i < 6; i++)
-    {
-        pLineStyle->dPattern[i] = 0.0;
-        fread(buf, 1, 8, pf);
-        pbuf = (unsigned char*)&pLineStyle->dPattern[i];
-        SwapBytes(pbuf, buf, 8, bSwapBytes);
-    }
-
-    if(cVersion > 1)
-    {
-        fread(buf, 1, 2, pf);
-        pLineStyle->cCapType = buf[0];
-        pLineStyle->cJoinType = buf[1];
-        fread(pLineStyle->cColor, 1, 4, pf);
-    }
-    else
-    {
-        pLineStyle->cCapType = 1;
-        pLineStyle->cJoinType = 1;
-        pLineStyle->cColor[0] = 0;
-        pLineStyle->cColor[1] = 0;
-        pLineStyle->cColor[2] = 0;
-        pLineStyle->cColor[3] = 255;
-    }
+  if(cVersion > 1)
+  {
+    fread(buf, 1, 2, pf);
+    pLineStyle->cCapType = buf[0];
+    pLineStyle->cJoinType = buf[1];
+    fread(pLineStyle->cColor, 1, 4, pf);
+  }
+  else
+  {
+    pLineStyle->cCapType = 1;
+    pLineStyle->cJoinType = 1;
+    pLineStyle->cColor[0] = 0;
+    pLineStyle->cColor[1] = 0;
+    pLineStyle->cColor[2] = 0;
+    pLineStyle->cColor[3] = 255;
+  }
 }
 
 void CDObject::LoadDimension(FILE *pf, bool bSwapBytes, PDDimension pDim, unsigned char cVersion)
 {
-    unsigned char buf[16], *pbuf;
+  unsigned char buf[16], *pbuf;
 
-    pDim->dRef1 = 0.0;
-    fread(buf, 1, 8, pf);
-    pbuf = (unsigned char*)&pDim->dRef1;
-    SwapBytes(pbuf, buf, 8, bSwapBytes);
+  pDim->dRef1 = 0.0;
+  fread(buf, 1, 8, pf);
+  pbuf = (unsigned char*)&pDim->dRef1;
+  SwapBytes(pbuf, buf, 8, bSwapBytes);
 
-    pDim->dRef2 = 0.0;
-    fread(buf, 1, 8, pf);
-    pbuf = (unsigned char*)&pDim->dRef2;
-    SwapBytes(pbuf, buf, 8, bSwapBytes);
+  pDim->dRef2 = 0.0;
+  fread(buf, 1, 8, pf);
+  pbuf = (unsigned char*)&pDim->dRef2;
+  SwapBytes(pbuf, buf, 8, bSwapBytes);
 
-    if(cVersion > 1)
+  if(cVersion > 1)
+  {
+    fread(buf, 1, 1, pf);
+    pDim->iRefDir = buf[0];
+  }
+  else
+  {
+    if(pDim->dRef1 > pDim->dRef2 + g_dPrec)
     {
-      fread(buf, 1, 1, pf);
-      pDim->iRefDir = buf[0];
+      double d1 = pDim->dRef1;
+      pDim->dRef1 = pDim->dRef2;
+      pDim->dRef2 = d1;
     }
-    else
-    {
-      if(pDim->dRef1 > pDim->dRef2 + g_dPrec)
-      {
-        double d1 = pDim->dRef1;
-        pDim->dRef1 = pDim->dRef2;
-        pDim->dRef2 = d1;
-      }
-      pDim->iRefDir = 1;
-    }
+    pDim->iRefDir = 1;
+  }
 
-    fread(buf, 1, 1, pf);
-    pDim->iArrowType1 = buf[0];
+  fread(buf, 1, 1, pf);
+  pDim->iArrowType1 = buf[0];
 
-    fread(buf, 1, 1, pf);
-    pDim->iArrowType2 = buf[0];
+  fread(buf, 1, 1, pf);
+  pDim->iArrowType2 = buf[0];
 
-    pDim->cArrowDim1.x = 0.0;
-    pDim->cArrowDim1.y = 0.0;
-    LoadPoint(pf, bSwapBytes, &pDim->cArrowDim1);
-    pDim->cArrowDim2.x = 0.0;
-    pDim->cArrowDim2.y = 0.0;
-    LoadPoint(pf, bSwapBytes, &pDim->cArrowDim2);
+  pDim->cArrowDim1.x = 0.0;
+  pDim->cArrowDim1.y = 0.0;
+  LoadPoint(pf, bSwapBytes, &pDim->cArrowDim1);
+  pDim->cArrowDim2.x = 0.0;
+  pDim->cArrowDim2.y = 0.0;
+  LoadPoint(pf, bSwapBytes, &pDim->cArrowDim2);
 
-    pDim->dFontSize = 0.0;
-    fread(buf, 1, 8, pf);
-    pbuf = (unsigned char*)&pDim->dFontSize;
-    SwapBytes(pbuf, buf, 8, bSwapBytes);
+  pDim->dFontSize = 0.0;
+  fread(buf, 1, 8, pf);
+  pbuf = (unsigned char*)&pDim->dFontSize;
+  SwapBytes(pbuf, buf, 8, bSwapBytes);
 
-    fread(buf, 1, 1, pf);
-    pDim->bFontAttrs = buf[0];
+  fread(buf, 1, 1, pf);
+  pDim->bFontAttrs = buf[0];
 
-    fread(buf, 1, 1, pf);
-    fread(pDim->psFontFace, 1, buf[0], pf);
-    pDim->psFontFace[buf[0]] = 0;
+  fread(buf, 1, 1, pf);
+  fread(pDim->psFontFace, 1, buf[0], pf);
+  pDim->psFontFace[buf[0]] = 0;
 
-    pDim->cLabelPos.cPoint.x = 0.0;
-    pDim->cLabelPos.cPoint.y = 0.0;
-    LoadPoint(pf, bSwapBytes, &pDim->cLabelPos.cPoint);
+  pDim->cLabelPos.cPoint.x = 0.0;
+  pDim->cLabelPos.cPoint.y = 0.0;
+  LoadPoint(pf, bSwapBytes, &pDim->cLabelPos.cPoint);
 
-    pDim->cLabelPos.dOrientation = 0.0;
-    fread(buf, 1, 8, pf);
-    pbuf = (unsigned char*)&pDim->cLabelPos.dOrientation;
-    SwapBytes(pbuf, buf, 8, bSwapBytes);
+  pDim->cLabelPos.dOrientation = 0.0;
+  fread(buf, 1, 8, pf);
+  pbuf = (unsigned char*)&pDim->cLabelPos.dOrientation;
+  SwapBytes(pbuf, buf, 8, bSwapBytes);
 
-    unsigned long ulVal = 0;
-    fread(buf, 1, 4, pf);
-    pbuf = (unsigned char*)&ulVal;
-    SwapBytes(pbuf, buf, 4, bSwapBytes);
+  unsigned long ulVal = 0;
+  fread(buf, 1, 4, pf);
+  pbuf = (unsigned char*)&ulVal;
+  SwapBytes(pbuf, buf, 4, bSwapBytes);
 
-    pDim->psLab = NULL;
-    if(ulVal > 0)
-    {
-        pDim->psLab = (char*)malloc((ulVal + 1)*sizeof(char));
-        fread(pDim->psLab, 1, ulVal, pf);
-        pDim->psLab[ulVal] = 0;
-    }
+  pDim->psLab = NULL;
+  if(ulVal > 0)
+  {
+    pDim->psLab = (char*)malloc((ulVal + 1)*sizeof(char));
+    fread(pDim->psLab, 1, ulVal, pf);
+    pDim->psLab[ulVal] = 0;
+  }
 
-    pDim->bSelected = false;
-    pDim->cExt.cPt1 = 0;
-    pDim->cExt.cPt2 = 0;
+  pDim->bSelected = false;
+  pDim->cExt.cPt1 = 0;
+  pDim->cExt.cPt2 = 0;
 }
 
 bool CDObject::ReadFromFile(FILE *pf, bool bSwapBytes, unsigned char cVersion)
@@ -4337,8 +4351,21 @@ bool CDObject::ReadFromFile(FILE *pf, bool bSwapBytes, unsigned char cVersion)
 
   LoadLine(pf, bSwapBytes, &m_cLines[0]);
   LoadLine(pf, bSwapBytes, &m_cLines[1]);
-  LoadRefPoint(pf, bSwapBytes, &m_cBounds[0]);
-  LoadRefPoint(pf, bSwapBytes, &m_cBounds[1]);
+  if((cVersion == 1) && ((m_iType == dtHyperbola)))
+  {
+    CDRefPoint cLocBnds[2];
+    LoadRefPoint(pf, bSwapBytes, &cLocBnds[0]);
+    LoadRefPoint(pf, bSwapBytes, &cLocBnds[1]);
+    m_cBounds[0] = cLocBnds[1];
+    m_cBounds[1] = cLocBnds[0];
+    if(m_cBounds[0].bIsSet) m_cBounds[0].dRef *= -1.0;
+    if(m_cBounds[1].bIsSet) m_cBounds[1].dRef *= -1.0;
+  }
+  else
+  {
+    LoadRefPoint(pf, bSwapBytes, &m_cBounds[0]);
+    LoadRefPoint(pf, bSwapBytes, &m_cBounds[1]);
+  }
 
   LoadLineStyle(pf, bSwapBytes, &m_cLineStyle, cVersion);
 
