@@ -525,7 +525,7 @@ double GetHyperPointAtDist(double da, double db, double dr, double dBreak, doubl
   return dRes;
 }
 
-void AddHyperSegment(double d1, double d2, double dExt, bool bReverse, PDPointList pCache, PDPrimObject pPrimList)
+void AddHyperSegment(double dt1, double dt2, double dExt, bool bReverse, PDPointList pCache, PDPrimObject pPrimList)
 {
   int iCnt = pCache->GetCount(0);
 
@@ -542,12 +542,10 @@ void AddHyperSegment(double d1, double d2, double dExt, bool bReverse, PDPointLi
   if(nOffs > 0) dr += pCache->GetPoint(0, 2).cPoint.x;
 
   double dBreak = GetHyperBreakAngle(cRad.x, cRad.y, -dr);
-  double dy1 = GetHyperPointAtDist(cRad.x, cRad.y, dr, dBreak, d1);
-  double dy2 = GetHyperPointAtDist(cRad.x, cRad.y, dr, dBreak, d2);
 
   PDPrimObject pTmpPrim = new CDPrimObject();
   PDPrimObject pRotPrim = new CDPrimObject();
-  AddCurveSegment(&cRad, dr, {dBreak, -1.0}, HyperFunc, HyperFuncDer, dy1, dy2, Power2(cRad.y)/cRad.x/8.0, 1, pTmpPrim);
+  AddCurveSegment(&cRad, dr, {dBreak, -1.0}, HyperFunc, HyperFuncDer, dt1, dt2, Power2(cRad.y)/cRad.x/8.0, 1, pTmpPrim);
   RotatePrimitives(pTmpPrim, pRotPrim, cOrig, cNorm);
   if(bReverse)
   {

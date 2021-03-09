@@ -82,7 +82,6 @@ private:
   void LoadLine(FILE *pf, bool bSwapBytes, PDLine pLine);
   void LoadLineStyle(FILE *pf, bool bSwapBytes, PDLineStyle pLineStyle, unsigned char cVersion);
   void LoadDimension(FILE *pf, bool bSwapBytes, PDDimension pDim, unsigned char cVersion);
-  //void AddCurveSegment(double dStart, double dEnd, PDRect pRect);
   // cAddMode:
   //   iType: mask: 0 - do not insert path marks, 1 - insert path marks, 2 - cPt1.x contains lower bound,
   //     4 - cPt1.y contains upper bound, 8 - move current point
@@ -94,9 +93,6 @@ private:
   //   cPt4.x - 0 : 1 = open : closed
   //   cPt4.y - length of the closed curve
   void AddCurveSegment(CDPrimitive cAddMode, PDPrimObject pPrimitive, PDRefList pBounds);
-  //void AddPatSegment(double dStart, int iStart, double dEnd, int iEnd,
-  //  PDPoint pBnds, PDRect pRect);
-  // iBoundMode - mask: 1 closed, 2 move point
   void AddPatSegment(double dStart, int iStart, double dEnd, int iEnd,
     int iBoundMode, PDRefList pViewBnds, PDPoint pBnds);
   int GetRefBounds(PDPoint pPoint);
@@ -105,6 +101,7 @@ private:
   bool GetNativeReference(double dDist, double dOffset, double *pdRef);
   // GetBounds = mask: 1 .. pBounds->x is set, 2 .. pBounds->y is set
   int GetBounds(PDPoint pBounds, double dOffset, bool bAdvancePeriod);
+  int GetBoundsRef(PDPoint pBounds, double dOffset, bool bAdvancePeriod);
   double GetLength(double dOffset);
   PDPathSeg GetPathRefSegment(double dRef, double dOffset, double *pdSegRef, int *piPos);
   bool GetPathRefPoint(double dRef, double dOffset, PDPoint pPt);
@@ -122,15 +119,11 @@ private:
   int GetRectangleIntersects(PDRect pRect, double dOffset, int iBndMode, PDPoint pRefBnds, PDRefList pBounds);
   // returns: 0 - nothing is visible, 1 - part is visible, 2 - whole curve is visible and is closed
   void AddExtraPrimitives(PDRect pRect, PDPrimObject pPrimList);
-  //int BuildPurePrimitives(CDLine cTmpPt, int iMode, PDRect pRect, int iTemp, PDPrimObject plPrimitive,
-  //  double dExt, double *pdMovedDist, PDPoint pBnds);
-  //int BuildPathPrimitives(CDLine cTmpPt, int iMode, PDRect pRect, int iTemp, PDPrimObject plPrimitive,
-  //  double dExt, double *pdMovedDist, PDPoint pBnds);
   double GetPathDistFromPt(CDPoint cPt, CDPoint cRefPt, bool bSnapCenters, PDLine pPtX);
-  int GetSimpleViewBounds(CDLine cTmpPt, int iMode, double dOffset, double dLineHalfWidth, PDRect pRect,
-    PDRefList pBounds, PDPoint pDrawBnds, bool bMergeWithBounds);
+  int GetSimpleViewBounds(CDLine cTmpPt, int iMode, double dOffset, double dLineHalfWidth,
+    PDRect pRect, PDRefList pBounds, PDPoint pDrawBnds, bool bMergeWithBounds);
   int GetPathViewBounds(CDLine cTmpPt, int iMode, PDRect pRect, PDRefList pBounds, PDPoint pDrawBnds);
-  void AddSimpleSegment(double d1, double d2, double dExt, bool bReverse, PDPrimObject pPrimList);
+  void AddSimpleSegment(double dt1, double dt2, double dExt, bool bReverse, PDPrimObject pPrimList);
   void AddPathSegment(double d1, double d2, double dExt, PDPrimObject pPrimList);
   int GetPointReferences(CDPoint cPt, PDRefList pRefs);
   CDObject* SplitByRef(double dRef, PDPtrList pRegions);
@@ -167,8 +160,7 @@ public:
   double GetDistFromPt(CDPoint cPt, CDPoint cRefPt, int iSearchMask, PDLine pPtX, int *piDimen);
   CDLineStyle GetLineStyle();
   void SetLineStyle(int iMask, CDLineStyle cStyle);
-  bool GetRestrictPoint(CDPoint cPt, int iMode, bool bRestrictSet, double dRestrictValue,
-      PDPoint pSnapPt);
+  bool GetRestrictPoint(CDPoint cPt, int iMode, bool bRestrictSet, double dRestrictValue, PDPoint pSnapPt);
   CDObject* Copy();
   bool Split(CDPoint cPt, PDPtrList pNewObjects, PDRect pRect, PDPtrList pRegions);
   bool Extend(CDPoint cPt, double dDist, PDRect pRect, PDPtrList pRegions);
@@ -208,8 +200,6 @@ public:
   CDPoint GetPointToDir(CDPoint cPoint, double dAngle, CDPoint cPtTarget);
   void SetAuxInt(int iVal);
   int GetAuxInt();
-  //int GetNumParts();
-  //CDObject* SplitPart(PDRect pRect, PDPtrList pRegions);
   int IsClosed();
   bool IsBoundShape();
   bool GetStartPoint(PDPoint pPt, double dOffset);

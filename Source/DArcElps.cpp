@@ -1226,7 +1226,7 @@ double GetArcElpsRefAtDist(double dDist, CDPoint cRad, double dAng)
   return dDir*(M_PI - dAng + dDist/rx + dOffs);
 }
 
-void AddArcElpsSegment(double d1, double d2, double dExt, bool bReverse, PDPointList pCache, PDPrimObject pPrimList)
+void AddArcElpsSegment(double dt1, double dt2, double dExt, bool bReverse, PDPointList pCache, PDPrimObject pPrimList)
 {
   int iCnt = pCache->GetCount(0);
   if(iCnt < 2) return;
@@ -1241,27 +1241,26 @@ void AddArcElpsSegment(double d1, double d2, double dExt, bool bReverse, PDPoint
   cRad.y += dOff;
 
   CDPrimitive cPrim;
-  double dAng1, dAng2;
 
   if(iCnt < 3)
   {
     double dr = fabs(cRad.x);
     if(dr < g_dPrec) return;
 
-    dAng1 = d1/dr;
-    dAng2 = d2/dr;
-    if(cRad.x < 0.0)
-    {
-      dAng1 = OpositeAngle(dAng1);
-      dAng2 = OpositeAngle(dAng2);
-    }
-
     cPrim.iType = 2;
     cPrim.cPt1 = cOrig;
     cPrim.cPt2.x = dr;
     cPrim.cPt2.y = 0.0;
-    cPrim.cPt3.x = dAng1;
-    cPrim.cPt3.y = dAng2;
+    if(cRad.x < 0.0)
+    {
+      cPrim.cPt3.x = OpositeAngle(dt1);
+      cPrim.cPt3.y = OpositeAngle(dt2);
+    }
+    else
+    {
+      cPrim.cPt3.x = dt1;
+      cPrim.cPt3.y = dt2;
+    }
     cPrim.cPt4 = 0;
     if(bReverse) cPrim.cPt4.x = 1.0;
 
@@ -1274,9 +1273,6 @@ void AddArcElpsSegment(double d1, double d2, double dExt, bool bReverse, PDPoint
   CDPoint cMainDir = pCache->GetPoint(2, 0).cPoint;
   CDPoint cSol = pCache->GetPoint(3, 0).cPoint;
 
-  double dAng = atan2(cSol.y, cSol.x);
-  double dt1 = GetArcElpsRefAtDist(d1, cRad, dAng);
-  double dt2 = GetArcElpsRefAtDist(d2, cRad, dAng);
   bool bFullCycle = fabs(dt2 - dt1 - 2.0*M_PI) < g_dPrec;
   AddArcPrimitive(cRad, cOrig, cMainDir, cSol, bReverse, pPrimList, dt1, dt2, bFullCycle);
 }

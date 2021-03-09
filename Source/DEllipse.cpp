@@ -1007,25 +1007,29 @@ bool GetElpsPointRefDist(double dRef, double dOffset, PDPointList pCache, double
     return true;
   }
 
-  int iBreaks = pCache->GetCount(4);
   CDPoint cBreak = {-1.0, 0.0};
-  if(iBreaks > 0)
+  if(pCache->GetCount(3) > 0)
   {
-    cBreak = pCache->GetPoint(0, 4).cPoint;
+    CDPoint cCenters = pCache->GetPoint(0, 3).cPoint;
+    double dBreak = GetElspBreakAngle(cRad.x, cRad.y, -dDist, cCenters.x, cCenters.y);
+    if(dBreak > -0.5)
+    {
+      cBreak.x = dBreak;
+      cBreak.y = M_PI - dBreak;
+    }
   }
-  if(cBreak.x > -0.5) cBreak.y = M_PI - cBreak.x;
-  else cBreak.y = -1.0;
 
   double dLen = 4.0*GetCurveDistAtRef(&cRad, dDist, cBreak, M_PI/2.0,
     ElpsFunc, ElpsFuncDer, M_PI/4.0, 0, {1.0, M_PI});
 
   double dDir = 1.0;
-  double dOffs = 0.0;
   if(dRef < 0.0)
   {
     dDir = -1.0;
-    dRef *= dDir;
+    dRef *= -1.0;
   }
+
+  double dOffs = 0.0;
   double d2pi = 2.0*M_PI;
   while(dRef > M_PI + g_dPrec)
   {
@@ -1033,8 +1037,20 @@ bool GetElpsPointRefDist(double dRef, double dOffset, PDPointList pCache, double
     dOffs += dLen;
   }
 
-  *pdDist = dDir*(GetCurveDistAtRef(&cRad, dDist, cBreak, dRef,
-    ElpsFunc, ElpsFuncDer, M_PI/4.0, 0, {1.0, M_PI}) + dOffs);
+  if(dRef < 0.0)
+  {
+    dOffs *= dDir;
+    dDir *= -1.0;
+    dRef *= -1.0;
+  }
+
+  bool bSecQuad = dRef > M_PI/2.0;
+  if(bSecQuad) dRef = M_PI - dRef;
+
+  double dDist1 = GetCurveDistAtRef(&cRad, dDist, cBreak, dRef,
+    ElpsFunc, ElpsFuncDer, M_PI/4.0, 0, {1.0, M_PI});
+  if(bSecQuad) dDist1 = dLen/2.0 - dDist1;
+  *pdDist = dDir*dDist1 + dOffs;
   return true;
 }
 
@@ -1063,7 +1079,7 @@ double ElpsNormalize(double d1, double dHalf, double *pdRes)
   return dRes;
 }
 
-void AddElpsSegment(double d1, double d2, double dExt, bool bReverse, PDPointList pCache, PDPrimObject pPrimList)
+void AddElpsSegment(double dt1, double dt2, double dExt, bool bReverse, PDPointList pCache, PDPrimObject pPrimList)
 {
   int iCnt = pCache->GetCount(0);
 
@@ -1075,25 +1091,21 @@ void AddElpsSegment(double d1, double d2, double dExt, bool bReverse, PDPointLis
   if(iCnt < 3)
   {
     CDPrimitive cPrim;
-    CDPoint cPt1;
     CDPoint cDir = cRad - cOrig;
     double dNorm = GetNorm(cDir);
     if(dNorm < g_dPrec) return;
 
     cDir /= dNorm;
-    cPt1.x = d1;
-    cPt1.y = 0.0;
     CDPoint cNorm = GetNormal(cDir);
 
     cPrim.iType = 1;
-    cPrim.cPt1 = cOrig + Rotate(cPt1 + dExt*cNorm, cDir, true);
-    cPt1.x = d2;
-    cPrim.cPt2 = cOrig + Rotate(cPt1 + dExt*cNorm, cDir, true);
+    cPrim.cPt1 = (1.0 - dt1)*cOrig + dt1*cRad + dExt*cNorm;
+    cPrim.cPt2 = (1.0 - dt2)*cOrig + dt2*cRad + dExt*cNorm;
     cPrim.cPt3 = 0;
     cPrim.cPt4 = 0;
     if(bReverse)
     {
-      cPt1 = cPrim.cPt2;
+      CDPoint cPt1 = cPrim.cPt2;
       cPrim.cPt2 = cPrim.cPt1;
       cPrim.cPt1 = cPt1;
     }
@@ -1110,17 +1122,21 @@ void AddElpsSegment(double d1, double d2, double dExt, bool bReverse, PDPointLis
     double dRad = cRad.x + dr;
     if(fabs(dRad) < g_dPrec) return;
 
-    double dAng1, dAng2;
-    dAng1 = d1/dRad;
-    dAng2 = d2/dRad;
-
     CDPrimitive cPrim;
     cPrim.iType = 2;
     cPrim.cPt1 = cOrig;
-    cPrim.cPt2.x = dRad;
+    cPrim.cPt2.x = fabs(dRad);
     cPrim.cPt2.y = 0.0;
-    cPrim.cPt3.x = dAng1;
-    cPrim.cPt3.y = dAng2;
+    if(dRad < 0.0)
+    {
+      cPrim.cPt3.x = OpositeAngle(dt1);
+      cPrim.cPt3.y = OpositeAngle(dt2);
+    }
+    else
+    {
+      cPrim.cPt3.x = dt1;
+      cPrim.cPt3.y = dt2;
+    }
     cPrim.cPt4 = 0;
     if(bReverse) cPrim.cPt4.x = 1.0;
     pPrimList->AddPrimitive(cPrim);
@@ -1140,10 +1156,6 @@ void AddElpsSegment(double d1, double d2, double dExt, bool bReverse, PDPointLis
       cBreak.y = M_PI - dBreak;
     }
   }
-
-  double dt1, dt2;
-  GetElpsReference(d1, dExt, pCache, &dt1);
-  GetElpsReference(d2, dExt, pCache, &dt2);
 
   PDPrimObject pTmpPrim = new CDPrimObject();
   PDPrimObject pRotPrim = new CDPrimObject();
@@ -1385,12 +1397,12 @@ bool GetElpsReference(double dDist, double dOffset, PDPointList pCache, double *
     }
   }
 
-  double dDir = 1.0;
   double dDist1 = dDist;
+  double dDir = 1.0;
   if(dDist1 < 0.0)
   {
     dDir = -1.0;
-    dDist1 *= dDir;
+    dDist1 *= -1.0;
   }
 
   double dHalfLen = 2.0*GetCurveDistAtRef(&cRad, dr, cBreak, M_PI/2.0,
@@ -1399,8 +1411,18 @@ bool GetElpsReference(double dDist, double dOffset, PDPointList pCache, double *
   while(dDist1 > dHalfLen + g_dPrec)
   {
     dDist1 -= 2.0*dHalfLen;
-    dExtra = 2.0*M_PI;
+    dExtra += 2.0*M_PI;
   }
+
+  if(dDist1 < 0.0)
+  {
+    dExtra *= dDir;
+    dDir *= -1.0;
+    dDist1 *= -1.0;
+  }
+
+  bool bSecQuad = dDist1 > dHalfLen/2.0;
+  if(bSecQuad) dDist1 = dHalfLen - dDist1;
 
   CDPoint cPt = GetCurveRefAtDist(&cRad, dr, cBreak, dDist1,
     ElpsFunc, ElpsFuncDer, M_PI/4.0, 0, {1.0, M_PI});
@@ -1482,7 +1504,9 @@ bool GetElpsReference(double dDist, double dOffset, PDPointList pCache, double *
   }
 
   CDPoint cPt2 = GetElpsBoundProj(cRad.x, cRad.y, dr, cPt, cPt, false);
-  *pdRef = dDir*(atan2(cPt2.y, cPt2.x) + dExtra);
+  double dRef1 = atan2(cPt2.y, cPt2.x);
+  if(bSecQuad) dRef1 = M_PI - dRef1;
+  *pdRef = dDir*dRef1 + dExtra;
   return true;
 }
 

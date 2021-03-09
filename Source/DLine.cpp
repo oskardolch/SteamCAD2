@@ -105,7 +105,7 @@ int AddLineInterLine(CDPoint cPt1, CDPoint cPt2, double dOffset, PDPointList pCa
   return 1;
 }
 
-void AddLineSegment(double d1, double d2, double dExt, bool bReverse, PDPointList pCache, PDPrimObject pPrimList)
+void AddLineSegment(double dt1, double dt2, double dExt, bool bReverse, PDPointList pCache, PDPrimObject pPrimList)
 {
   int iCnt = pCache->GetCount(0);
 
@@ -120,8 +120,8 @@ void AddLineSegment(double d1, double d2, double dExt, bool bReverse, PDPointLis
   if(nOffs > 0) dr += pCache->GetPoint(0, 2).cPoint.x;
   cOrig += dr*cNorm;
 
-  CDPoint cPt1 = {d1, 0.0};
-  CDPoint cPt2 = {d2, 0.0};
+  CDPoint cPt1 = {dt1, 0.0};
+  CDPoint cPt2 = {dt2, 0.0};
 
   CDPrimitive cPrim;
   cPrim.iType = 1;

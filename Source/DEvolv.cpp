@@ -631,7 +631,7 @@ CDPoint EvolvFuncDer(void *pvData, double dt)
   return cRad.x*cRes;
 }
 
-void AddEvolvSegment(double d1, double d2, double dExt, bool bReverse, PDPointList pCache, PDPrimObject pPrimList)
+void AddEvolvSegment(double dt1, double dt2, double dExt, bool bReverse, PDPointList pCache, PDPrimObject pPrimList)
 {
   int iCnt = pCache->GetCount(0);
   if(iCnt < 3) return;
@@ -662,23 +662,6 @@ void AddEvolvSegment(double d1, double d2, double dExt, bool bReverse, PDPointLi
     cPt1.y = -cRad.y*sin(dRef1);
     cN1 = Rotate(cN1, cPt1, true);
     //dRef += dRef1;
-  }
-
-  double dt1, dt2;
-
-  if(dr > g_dPrec)
-  {
-    dt1 = sqrt(Power2(dRef1) + 2.0*d1/dr1) - dRef1;
-    dt2 = sqrt(Power2(dRef1) + 2.0*d2/dr1) - dRef1;
-  }
-  else
-  {
-    if(d1 > dr1*Power2(dRef1)/2.0)
-      dt1 = sqrt(2.0*d1/dr1 - Power2(dRef1)) - dRef1;
-    else dt1 = -dRef1 - sqrt(Power2(dRef1) - 2.0*d1/dr1);
-    if(d2 > dr1*Power2(dRef1)/2.0)
-      dt2 = sqrt(2.0*d2/dr1 - Power2(dRef1)) - dRef1;
-    else dt2 = -dRef1 - sqrt(Power2(dRef1) - 2.0*d2/dr1);
   }
 
   CDPoint cEvPts[2];

@@ -203,7 +203,7 @@ int AddCircleInterLine(CDPoint cPt1, CDPoint cPt2, double dOffset, PDPointList p
   return iRes;
 }
 
-void AddCircSegment(double d1, double d2, double dExt, bool bReverse, PDPointList pCache, PDPrimObject pPrimList)
+void AddCircSegment(double dt1, double dt2, double dExt, bool bReverse, PDPointList pCache, PDPrimObject pPrimList)
 {
   int iCnt = pCache->GetCount(0);
 
@@ -218,10 +218,6 @@ void AddCircSegment(double d1, double d2, double dExt, bool bReverse, PDPointLis
   double dr = fabs(cRad.x);
   if(dr < g_dPrec) return;
 
-  double dAng1, dAng2;
-  dAng1 = d1/dr;
-  dAng2 = d2/dr;
-
   CDPrimitive cPrim;
   cPrim.iType = 2;
   cPrim.cPt1 = cOrig;
@@ -229,13 +225,13 @@ void AddCircSegment(double d1, double d2, double dExt, bool bReverse, PDPointLis
   cPrim.cPt2.y = 0.0;
   if(cRad.x < 0.0)
   {
-    cPrim.cPt3.x = OpositeAngle(dAng1);
-    cPrim.cPt3.y = OpositeAngle(dAng2);
+    cPrim.cPt3.x = OpositeAngle(dt1);
+    cPrim.cPt3.y = OpositeAngle(dt2);
   }
   else
   {
-    cPrim.cPt3.x = dAng1;
-    cPrim.cPt3.y = dAng2;
+    cPrim.cPt3.x = dt1;
+    cPrim.cPt3.y = dt2;
   }
   cPrim.cPt4 = 0;
   if(bReverse) cPrim.cPt4.x = 1.0;

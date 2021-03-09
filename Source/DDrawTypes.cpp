@@ -617,36 +617,36 @@ bool CDObject::BuildCache(CDLine cTmpPt, int iMode)
   return bRes;
 }
 
-void CDObject::AddSimpleSegment(double d1, double d2, double dExt, bool bReverse, PDPrimObject pPrimList)
+void CDObject::AddSimpleSegment(double dt1, double dt2, double dExt, bool bReverse, PDPrimObject pPrimList)
 {
   switch(m_iType)
   {
   case dtLine:
-    AddLineSegment(d1, d2, dExt, bReverse, m_pCachePoints, pPrimList);
+    AddLineSegment(dt1, dt2, dExt, bReverse, m_pCachePoints, pPrimList);
     break;
   case dtCircle:
-    AddCircSegment(d1, d2, dExt, bReverse, m_pCachePoints, pPrimList);
+    AddCircSegment(dt1, dt2, dExt, bReverse, m_pCachePoints, pPrimList);
     break;
   case dtEllipse:
-    AddElpsSegment(d1, d2, dExt, bReverse, m_pCachePoints, pPrimList);
+    AddElpsSegment(dt1, dt2, dExt, bReverse, m_pCachePoints, pPrimList);
     break;
   case dtArcEllipse:
-    AddArcElpsSegment(d1, d2, dExt, bReverse, m_pCachePoints, pPrimList);
+    AddArcElpsSegment(dt1, dt2, dExt, bReverse, m_pCachePoints, pPrimList);
     break;
   case dtHyperbola:
-    AddHyperSegment(d1, d2, dExt, bReverse, m_pCachePoints, pPrimList);
+    AddHyperSegment(dt1, dt2, dExt, bReverse, m_pCachePoints, pPrimList);
     break;
   case dtParabola:
-    AddParabSegment(d1, d2, dExt, bReverse, m_pCachePoints, pPrimList);
+    AddParabSegment(dt1, dt2, dExt, bReverse, m_pCachePoints, pPrimList);
     break;
   case dtSpline:
-    AddSplineSegment(d1, d2, dExt, bReverse, m_pCachePoints, pPrimList);
+    AddSplineSegment(dt1, dt2, dExt, bReverse, m_pCachePoints, pPrimList);
     break;
   case dtEvolvent:
-    AddEvolvSegment(d1, d2, dExt, bReverse, m_pCachePoints, pPrimList);
+    AddEvolvSegment(dt1, dt2, dExt, bReverse, m_pCachePoints, pPrimList);
     break;
   case dtPath:
-    AddPathSegment(d1, d2, dExt, pPrimList);
+    AddPathSegment(dt1, dt2, dExt, pPrimList);
     break;
   default:
     break;
@@ -663,7 +663,6 @@ void CDObject::AddPathSegment(double d1, double d2, double dExt, PDPrimObject pP
   GetPathRefSegment(d2, dExt, &dRef2, &i2);
 
   PDObject pObj = pSeg->pSegment;
-  double dd1, dd2;
   double dCurExt;
 
   if((i1 == i2) && (d1 < d2 - g_dPrec))
@@ -672,12 +671,10 @@ void CDObject::AddPathSegment(double d1, double d2, double dExt, PDPrimObject pP
     else dCurExt = dExt;
     if(d2 - d1 < pObj->GetLength(dCurExt) + g_dPrec)
     {
-      pObj->GetPointRefDist(dRef1, dCurExt, &dd1);
-      pObj->GetPointRefDist(dRef2, dCurExt, &dd2);
       if(pSeg->bReverse)
-        pObj->AddSimpleSegment(dd2, dd1, dCurExt, true, pPrimList);
+        pObj->AddSimpleSegment(dRef2, dRef1, dCurExt, true, pPrimList);
       else
-        pObj->AddSimpleSegment(dd1, dd2, dCurExt, false, pPrimList);
+        pObj->AddSimpleSegment(dRef1, dRef2, dCurExt, false, pPrimList);
       return;
     }
   }
@@ -685,13 +682,12 @@ void CDObject::AddPathSegment(double d1, double d2, double dExt, PDPrimObject pP
   CDPoint cBounds;
   if(pSeg->bReverse) dCurExt = -dExt;
   else dCurExt = dExt;
-  if(pObj->GetBounds(&cBounds, dCurExt, true) > 2)
+  if(pObj->GetBoundsRef(&cBounds, dCurExt, true) > 2)
   {
-    pObj->GetPointRefDist(dRef1, dCurExt, &dd1);
     if(pSeg->bReverse)
-      pObj->AddSimpleSegment(cBounds.x, dd1, dCurExt, true, pPrimList);
+      pObj->AddSimpleSegment(cBounds.x, dRef1, dCurExt, true, pPrimList);
     else
-      pObj->AddSimpleSegment(dd1, cBounds.y, dCurExt, false, pPrimList);
+      pObj->AddSimpleSegment(dRef1, cBounds.y, dCurExt, false, pPrimList);
   }
 
   if(i1 < i2)
@@ -702,7 +698,7 @@ void CDObject::AddPathSegment(double d1, double d2, double dExt, PDPrimObject pP
       if(pSeg->bReverse) dCurExt = -dExt;
       else dCurExt = dExt;
       pObj = pSeg->pSegment;
-      if(pObj->GetBounds(&cBounds, dCurExt, true) > 2)
+      if(pObj->GetBoundsRef(&cBounds, dCurExt, true) > 2)
         pObj->AddSimpleSegment(cBounds.x, cBounds.y, dCurExt, pSeg->bReverse, pPrimList);
     }
   }
@@ -715,7 +711,7 @@ void CDObject::AddPathSegment(double d1, double d2, double dExt, PDPrimObject pP
       if(pSeg->bReverse) dCurExt = -dExt;
       else dCurExt = dExt;
       pObj = pSeg->pSegment;
-      if(pObj->GetBounds(&cBounds, dCurExt, true) > 2)
+      if(pObj->GetBoundsRef(&cBounds, dCurExt, true) > 2)
         pObj->AddSimpleSegment(cBounds.x, cBounds.y, dCurExt, pSeg->bReverse, pPrimList);
     }
     for(int i = 0; i < i2; i++)
@@ -724,7 +720,7 @@ void CDObject::AddPathSegment(double d1, double d2, double dExt, PDPrimObject pP
       if(pSeg->bReverse) dCurExt = -dExt;
       else dCurExt = dExt;
       pObj = pSeg->pSegment;
-      if(pObj->GetBounds(&cBounds, dCurExt, true) > 2)
+      if(pObj->GetBoundsRef(&cBounds, dCurExt, true) > 2)
         pObj->AddSimpleSegment(cBounds.x, cBounds.y, dCurExt, pSeg->bReverse, pPrimList);
     }
   }
@@ -733,13 +729,12 @@ void CDObject::AddPathSegment(double d1, double d2, double dExt, PDPrimObject pP
   if(pSeg->bReverse) dCurExt = -dExt;
   else dCurExt = dExt;
   pObj = pSeg->pSegment;
-  if(pObj->GetBounds(&cBounds, dCurExt, true) > 2)
+  if(pObj->GetBoundsRef(&cBounds, dCurExt, true) > 2)
   {
-    pObj->GetPointRefDist(dRef2, dCurExt, &dd2);
     if(pSeg->bReverse)
-      pObj->AddSimpleSegment(dd2, cBounds.y, dCurExt, true, pPrimList);
+      pObj->AddSimpleSegment(dRef2, cBounds.y, dCurExt, true, pPrimList);
     else
-      pObj->AddSimpleSegment(cBounds.x, dd2, dCurExt, false, pPrimList);
+      pObj->AddSimpleSegment(cBounds.x, dRef2, dCurExt, false, pPrimList);
   }
 }
 
@@ -753,7 +748,7 @@ void CDObject::AddCurveSegment(CDPrimitive cAddMode, PDPrimObject pPrimitive, PD
   cPath.cPt1 = 0;
   cPath.cPt2 = 0;
   cPath.cPt3 = 0;
-  double dDist = 0.0;
+  double d1, dDist = 0.0;
   CDPoint cBnds2, pBnds[2];
   int iInterMode = cAddMode.iType & ~8;
   if(cAddMode.cPt4.x > 0.5) iInterMode |= 8;
@@ -776,7 +771,7 @@ void CDObject::AddCurveSegment(CDPrimitive cAddMode, PDPrimObject pPrimitive, PD
         if(cAddMode.iType & 8)
         {
           cPath.cPt2.x = 1;
-          GetNativeReference(pBnds[j].x, dExt, &cPath.cPt2.y);
+          cPath.cPt2.y = pBnds[j].x;
           GetNativeRefPoint(cPath.cPt2.y, dExt, &cPath.cPt3);
         }
         pPrimitive->AddPrimitive(cPath);
@@ -791,7 +786,8 @@ void CDObject::AddCurveSegment(CDPrimitive cAddMode, PDPrimObject pPrimitive, PD
         cPath.cPt2.x = cAddMode.cPt2.x;
         if(cAddMode.cPt2.x > g_dPrec)
         {
-          dDist = cAddMode.cPt3.y - pBnds[j].x - cAddMode.cPt3.x*cAddMode.cPt2.x;
+          GetPointRefDist(pBnds[j].x, dExt, &d1);
+          dDist = cAddMode.cPt3.y - d1 - cAddMode.cPt3.x*cAddMode.cPt2.x;
           if(cAddMode.cPt1.x > pBnds[j].x) dDist -= cAddMode.cPt4.y;
           int n = (int)dDist/cAddMode.cPt2.y/cAddMode.cPt2.x;
           cPath.cPt2.y = n*cAddMode.cPt2.y*cAddMode.cPt2.x - dDist;
@@ -895,6 +891,8 @@ void CDObject::AddCurveSegment(CDPrimitive cAddMode, PDPrimObject pPrimitive, PD
 void CDObject::AddPatSegment(double dStart, int iStart, double dEnd, int iEnd,
   int iBoundMode, PDRefList pViewBnds, PDPoint pBnds)
 {
+  double dExt = m_cLineStyle.dPercent*m_cLineStyle.dWidth/200.0;
+
   CDPrimitive cAdd;
   cAdd.iType = 1;
   cAdd.cPt4.x = 0.0;
@@ -913,9 +911,12 @@ void CDObject::AddPatSegment(double dStart, int iStart, double dEnd, int iEnd,
   double dPatStart2 = dSegLen/2.0;
 //  int iRep;
 
-  double dDist = dEnd - dStart;
-  double dPatLen = 0;
-  double dPerLen = 0;
+  double d1, d2;
+  GetPointRefDist(dStart, dExt, &d1);
+  GetPointRefDist(dEnd, dExt, &d2);
+  double dDist = d2 - d1;
+  double dPatLen = 0.0;
+  double dPerLen = 0.0;
   for(int i = 0; i < m_cLineStyle.iSegments; i++)
   {
     dSegLen = m_cLineStyle.dPattern[i];
@@ -925,8 +926,11 @@ void CDObject::AddPatSegment(double dStart, int iStart, double dEnd, int iEnd,
 
   if(dStart > dEnd)
   {
-    dPerLen = pBnds->y - pBnds->x;
-    dDist = dPerLen - dStart + dEnd;
+    double dd1, dd2;
+    GetPointRefDist(pBnds->x, dExt, &dd1);
+    GetPointRefDist(pBnds->y, dExt, &dd2);
+    dPerLen = dd2 - dd1;
+    dDist = dPerLen - d1 + d2;
   }
 
   if((iStart > 0) && (iEnd > 0))
@@ -946,8 +950,8 @@ void CDObject::AddPatSegment(double dStart, int iStart, double dEnd, int iEnd,
     }
 
     int iRep = (int)Round(dRep);
-    if(dStart > dEnd) dDist = dPerLen - dStart + dEnd;
-    else dDist = dEnd - dStart;
+    if(dStart > dEnd) dDist = dPerLen - d1 + d2;
+    else dDist = d2 - d1;
     double dStretchDist = iRep*dPatLen;
     if(iStart > 1) dStretchDist += dPatStart2;
     if(iEnd > 1) dStretchDist += dPatStart2;
@@ -967,8 +971,8 @@ void CDObject::AddPatSegment(double dStart, int iStart, double dEnd, int iEnd,
   else if(iStart > 0) cAdd.cPt3.x = dPatStart2;
   else if(iEnd > 1) cAdd.cPt3.x = 2.0*dPatStart2;
   else cAdd.cPt3.x = dPatStart2;
-  if(iStart > 0) cAdd.cPt3.y = dStart;
-  else cAdd.cPt3.y = dEnd;
+  if(iStart > 0) cAdd.cPt3.y = d1;
+  else cAdd.cPt3.y = d2;
   AddCurveSegment(cAdd, m_pPrimitive, pViewBnds);
 
 /*  double d1, d2;
@@ -1085,68 +1089,6 @@ int CDObject::AddDimenPrimitive(int iPos, PDDimension pDim, PDPrimObject pPrimit
   pPrimitive->AddPrimitive(cPrim);
   return 0;
 }
-
-/*int CDObject::BuildPathPrimitives(CDLine cTmpPt, int iMode, PDRect pRect, int iTemp, PDPrimObject plPrimitive,
-  double dExt, double *pdMovedDist, PDPoint pBnds)
-{
-  PDPathSeg pSeg;
-  int n = m_pSubObjects->GetCount();
-  int iType, iCurRes;
-  int iRes = 0;
-
-  for(int i = 0; i < n; i++)
-  {
-    pSeg = (PDPathSeg)m_pSubObjects->GetItem(i);
-    iCurRes = pSeg->pSegment->BuildPurePrimitives(cTmpPt, iMode, pRect, iTemp, plPrimitive, dExt, pdMovedDist, pBnds);
-    if((iRes < 1) || ((iCurRes > 0) && (iCurRes < iRes))) iRes = iCurRes;
-  }
-  return iRes;
-}
-
-int CDObject::BuildPurePrimitives(CDLine cTmpPt, int iMode, PDRect pRect, int iTemp,
-  PDPrimObject plPrimitive, double dExt, double *pdMovedDist, PDPoint pBnds)
-{
-  int iRes = 0;
-  switch(m_iType)
-  {
-  case dtLine:
-    iRes = BuildLinePrimitives(cTmpPt, iMode, pRect, m_pInputPoints, m_pCachePoints,
-      plPrimitive, m_cBounds, dExt, pdMovedDist, pBnds);
-    break;
-  case dtCircle:
-    iRes = BuildCircPrimitives(cTmpPt, iMode, pRect, m_pInputPoints, m_pCachePoints,
-      plPrimitive, m_cLines, m_cBounds, dExt, pdMovedDist, pBnds);
-    break;
-  case dtEllipse:
-    iRes = BuildEllipsePrimitives(cTmpPt, iMode, pRect, m_pInputPoints, m_pCachePoints,
-      plPrimitive, m_cLines, m_cBounds, dExt, pdMovedDist, pBnds, iTemp == 1);
-    break;
-  case dtArcEllipse:
-    iRes = BuildArcElpsPrimitives(cTmpPt, iMode, pRect, m_pInputPoints, m_pCachePoints,
-      plPrimitive, m_cLines, m_cBounds, dExt, pdMovedDist, pBnds);
-    break;
-  case dtHyperbola:
-    iRes = BuildHyperPrimitives(cTmpPt, iMode, pRect, m_pInputPoints, m_pCachePoints,
-      plPrimitive, m_cLines, m_cBounds, dExt, pdMovedDist, pBnds, iTemp == 1);
-    break;
-  case dtParabola:
-    iRes = BuildParabPrimitives(cTmpPt, iMode, pRect, m_pInputPoints, m_pCachePoints,
-      plPrimitive, m_cLines, m_cBounds, dExt, pdMovedDist, pBnds, iTemp == 1);
-    break;
-  case dtSpline:
-    iRes = BuildSplinePrimitives(cTmpPt, iMode, pRect, m_pInputPoints, m_pCachePoints,
-      plPrimitive, m_cBounds, dExt, pdMovedDist, pBnds, iTemp == 1);
-    break;
-  case dtEvolvent:
-    iRes = BuildEvolvPrimitives(cTmpPt, iMode, pRect, m_pInputPoints, m_pCachePoints,
-      plPrimitive, m_cLines, m_cBounds, dExt, pdMovedDist, pBnds, iTemp == 1);
-    break;
-  case dtPath:
-    iRes = BuildPathPrimitives(cTmpPt, iMode, pRect, iTemp, plPrimitive, dExt, pdMovedDist, pBnds);
-    break;
-  }
-  return iRes;
-}*/
 
 int CDObject::AddSubIntersects(CDPoint cPt1, CDPoint cPt2, double dOffset, PDRefList pBounds)
 {
@@ -1335,43 +1277,35 @@ int CDObject::GetSimpleViewBounds(CDLine cTmpPt, int iMode, double dOffset, doub
     dCornerRefs[3] = cPtX.dRef;
   }
 
-  CDPoint cLocBnds = {0.0, 0.0};
-  pDrawBnds->x = 0.0;
-  pDrawBnds->y = 0.0;
-  int iBndType = GetRefBounds(&cLocBnds);
-  if(iBndType > 0)
-  {
-    GetPointRefDist(cLocBnds.x, dMid, &pDrawBnds->x);
-    if(iBndType > 1) GetPointRefDist(cLocBnds.y, dMid, &pDrawBnds->y);
-  }
+  int iBndType = GetRefBounds(pDrawBnds);
 
   if(iRectFlag == 15)
   {
     std::sort(dCornerRefs, &dCornerRefs[4]);
-    GetPointRefDist(dCornerRefs[0], dMid, &d1);
-    GetPointRefDist(dCornerRefs[3], dMid, &d2);
+    d1 = dCornerRefs[0];
+    d2 = dCornerRefs[3];
     if(IsClosedShape())
     {
-      double dSpan = (cLocBnds.y - cLocBnds.x)/2.0;
+      double dSpan = (pDrawBnds->y - pDrawBnds->x)/2.0;
       if(dCornerRefs[3] - dCornerRefs[0] > dSpan)
       {
         if(dCornerRefs[2] - dCornerRefs[0] > dSpan)
         {
           if(dCornerRefs[1] - dCornerRefs[0] > dSpan)
           {
-            GetPointRefDist(dCornerRefs[1], dMid, &d1);
-            GetPointRefDist(dCornerRefs[0], dMid, &d2);
+            d1 = dCornerRefs[1];
+            d2 = dCornerRefs[0];
           }
           else
           {
-            GetPointRefDist(dCornerRefs[2], dMid, &d1);
-            GetPointRefDist(dCornerRefs[1], dMid, &d2);
+            d1 = dCornerRefs[2];
+            d2 = dCornerRefs[1];
           }
         }
         else
         {
-          GetPointRefDist(dCornerRefs[3], dMid, &d1);
-          GetPointRefDist(dCornerRefs[2], dMid, &d2);
+          d1 = dCornerRefs[3];
+          d2 = dCornerRefs[2];
         }
       }
     }
@@ -1383,8 +1317,8 @@ int CDObject::GetSimpleViewBounds(CDLine cTmpPt, int iMode, double dOffset, doub
   CDPoint cProbe;
   PDRefList pInt1 = new CDRefList();
   PDRefList pInt2 = new CDRefList();
-  int iCnt1 = GetRectangleIntersects(pRect, dMid - dExt, iBndType, &cLocBnds, pInt1);
-  int iCnt2 = GetRectangleIntersects(pRect, dMid + dExt, iBndType, &cLocBnds, pInt2);
+  int iCnt1 = GetRectangleIntersects(pRect, dMid - dExt, iBndType, pDrawBnds, pInt1);
+  int iCnt2 = GetRectangleIntersects(pRect, dMid + dExt, iBndType, pDrawBnds, pInt2);
 
   if((iCnt1 < 1) || (iCnt2 < 1))
   {
@@ -1411,19 +1345,18 @@ int CDObject::GetSimpleViewBounds(CDLine cTmpPt, int iMode, double dOffset, doub
     return 0;
   }
 
-  int iRes = UnionBounds(pInt1, pInt2, iBndType, &cLocBnds);
+  int iRes = UnionBounds(pInt1, pInt2, iBndType, pDrawBnds);
   delete pInt2;
 
   if(IsClosedShape())
-    MergeCornerRefs(pInt1, &cLocBnds, iRectFlag, dCornerRefs);
+    MergeCornerRefs(pInt1, pDrawBnds, iRectFlag, dCornerRefs);
   else
     MergeCornerRefs(pInt1, NULL, iRectFlag, dCornerRefs);
 
   int iLen = pInt1->GetCount();
   for(int i = 0; i < iLen; i++)
   {
-    GetPointRefDist((*pInt1)[i], dMid, &d1);
-    pBounds->AddPoint(d1);
+    pBounds->AddPoint((*pInt1)[i]);
   }
 
   if(bMergeWithBounds && (iRes == 1))
@@ -1660,13 +1593,6 @@ int CDObject::BuildPrimitives(CDLine cTmpPt, int iMode, PDRect pRect, int iTemp,
 
   int nCrs = m_pCrossPoints->GetCount();
 
-  /*for(int = 0; i < nBnds; i++)
-  {
-    cBnds.x = pBounds->GetPoint(2*i);
-    cBnds.y = pBounds->GetPoint(2*i + 1);
-  }
-
-  int iRes = BuildPurePrimitives(cTmpPt, iMode, &cRect, iTemp, plPrimitive, dExt, &m_dMovedDist, &cBnds);*/
   int iClosed = IsClosed();
   bool bClosed = IsClosedShape();
 
@@ -1675,7 +1601,6 @@ int CDObject::BuildPrimitives(CDLine cTmpPt, int iMode, PDRect pRect, int iTemp,
   cAdd.cPt2.x = 0.0;
   cAdd.cPt4.x = 0.0;
   cAdd.cPt4.y = 0.0;
-  //if((iClosed > 1) && (m_iType == dtPath))
   if(iClosed > 0)
   {
     cAdd.cPt4.x = 1.0;
@@ -1703,7 +1628,7 @@ int CDObject::BuildPrimitives(CDLine cTmpPt, int iMode, PDRect pRect, int iTemp,
 
     if(m_cBounds[0].bIsSet)
     {
-      if(!GetPointRefDist(m_cBounds[0].dRef, dMid, &d1)) return iRes;
+      d1 = m_cBounds[0].dRef;
 
       dStart = d1;
       dEnd = d1;
@@ -1715,7 +1640,7 @@ int CDObject::BuildPrimitives(CDLine cTmpPt, int iMode, PDRect pRect, int iTemp,
       int iFirst = 0;
       if(m_cBounds[1].bIsSet)
       {
-        if(!GetPointRefDist(m_cBounds[1].dRef, dMid, &d2)) return iRes;
+        d2 = m_cBounds[1].dRef;
         if(d1 > d2) iFirst = m_pCrossPoints->GetIndex(m_cBounds[0].dRef);
         if(iFirst < 0) iFirst = 0;
       }
@@ -1728,7 +1653,7 @@ int CDObject::BuildPrimitives(CDLine cTmpPt, int iMode, PDRect pRect, int iTemp,
       if(nCrs > 0)
       {
         iStart = 1;
-        GetPointRefDist(m_pCrossPoints->GetPoint(iFirst), dMid, &dEnd);
+        dEnd = m_pCrossPoints->GetPoint(iFirst);
         if(fabs(dEnd - d1) > g_dPrec)
         {
           AddPatSegment(d1, 2, dEnd, 1, iBoundMode, pBounds, &cBnds);
@@ -1744,7 +1669,7 @@ int CDObject::BuildPrimitives(CDLine cTmpPt, int iMode, PDRect pRect, int iTemp,
         for(int i = iFirst + 1; i < nCrs; i++)
         {
           dStart = dEnd;
-          GetPointRefDist(m_pCrossPoints->GetPoint(i), dMid, &dEnd);
+          dEnd = m_pCrossPoints->GetPoint(i);
           AddPatSegment(dStart, 1, dEnd, 1, iBoundMode, pBounds, &cBnds);
         }
 
@@ -1753,7 +1678,7 @@ int CDObject::BuildPrimitives(CDLine cTmpPt, int iMode, PDRect pRect, int iTemp,
           for(int i = 0; i < iFirst; i++)
           {
             dStart = dEnd;
-            GetPointRefDist(m_pCrossPoints->GetPoint(i), dMid, &dEnd);
+            dEnd = m_pCrossPoints->GetPoint(i);
             AddPatSegment(dStart, 1, dEnd, 1, iBoundMode, pBounds, &cBnds);
           }
         }
@@ -1778,7 +1703,7 @@ int CDObject::BuildPrimitives(CDLine cTmpPt, int iMode, PDRect pRect, int iTemp,
           dEnd = d1;
           d2 = d1 - 1.0;
           if(nCrs < 1) dEnd += cAdd.cPt4.y;
-          else GetPointRefDist(m_pCrossPoints->GetPoint(iFirst), dMid, &d2);
+          else d2 = m_pCrossPoints->GetPoint(iFirst);
           if(fabs(dEnd - d2) < g_dPrec) iEnd = 1;
           AddPatSegment(dStart, iStart, dEnd, iEnd, iBoundMode, pBounds, &cBnds);
         }
@@ -1788,20 +1713,20 @@ int CDObject::BuildPrimitives(CDLine cTmpPt, int iMode, PDRect pRect, int iTemp,
     }
     else if(m_cBounds[1].bIsSet)
     {
-      if(!GetPointRefDist(m_cBounds[1].dRef, dMid, &d2)) return iRes;
+      d2 = m_cBounds[1].dRef;
 
       iStart = 0;
       if(m_iType > dtParabola) iStart = 2;
 
       if(nCrs > 0)
       {
-        GetPointRefDist(m_pCrossPoints->GetPoint(0), dMid, &dEnd);
+        dEnd = m_pCrossPoints->GetPoint(0);
         AddPatSegment(cBnds.x, iStart, dEnd, 1, iBoundMode, pBounds, &cBnds);
 
         for(int i = 1; i < nCrs; i++)
         {
           dStart = dEnd;
-          GetPointRefDist(m_pCrossPoints->GetPoint(i), dMid, &dEnd);
+          dEnd = m_pCrossPoints->GetPoint(i);
           AddPatSegment(dStart, 1, dEnd, 1, iBoundMode, pBounds, &cBnds);
         }
         iStart = 1;
@@ -1818,14 +1743,14 @@ int CDObject::BuildPrimitives(CDLine cTmpPt, int iMode, PDRect pRect, int iTemp,
     {
       if(nCrs > 0)
       {
-        GetPointRefDist(m_pCrossPoints->GetPoint(0), dMid, &dStart);
+        dStart = m_pCrossPoints->GetPoint(0);
         for(int i = 1; i < nCrs; i++)
         {
-          GetPointRefDist(m_pCrossPoints->GetPoint(i), dMid, &dEnd);
+          dEnd = m_pCrossPoints->GetPoint(i);
           AddPatSegment(dStart, 1, dEnd, 1, iBoundMode, pBounds, &cBnds);
           dStart = dEnd;
         }
-        GetPointRefDist(m_pCrossPoints->GetPoint(0), dMid, &dEnd);
+        dEnd = m_pCrossPoints->GetPoint(0);
         if(nCrs < 2) dEnd += (cBnds.y - cBnds.x);
       }
       else
@@ -1853,14 +1778,14 @@ int CDObject::BuildPrimitives(CDLine cTmpPt, int iMode, PDRect pRect, int iTemp,
         int i = 0;
         int iTmpEnd = 1;
         dStart = 0.0;
-        GetPointRefDist(m_pCrossPoints->GetPoint(i++), dMid, &dEnd);
+        dEnd = m_pCrossPoints->GetPoint(i++);
         if(iStart > 0)
         {
           dStart = cBnds.x;
           if(dEnd < dStart + g_dPrec)
           {
             iStart = 1;
-            if(nCrs > 1) GetPointRefDist(m_pCrossPoints->GetPoint(i++), dMid, &dEnd);
+            if(nCrs > 1) dEnd = m_pCrossPoints->GetPoint(i++);
             else
             {
               dEnd = cBnds.y;
@@ -1873,7 +1798,7 @@ int CDObject::BuildPrimitives(CDLine cTmpPt, int iMode, PDRect pRect, int iTemp,
         while(i < nCrs)
         {
           dStart = dEnd;
-          GetPointRefDist(m_pCrossPoints->GetPoint(i++), dMid, &dEnd);
+          dEnd = m_pCrossPoints->GetPoint(i++);
           AddPatSegment(dStart, 1, dEnd, 1, iBoundMode, pBounds, &cBnds);
         }
         dStart = dEnd;
@@ -1886,7 +1811,14 @@ int CDObject::BuildPrimitives(CDLine cTmpPt, int iMode, PDRect pRect, int iTemp,
   }
   else if(iRes > 0)
   {
-    int iBndType = GetBounds(&cAdd.cPt1, dMid, iClosed > 0);
+    if(bClosed)
+    {
+      cAdd.cPt4.x = 1.0;
+      cAdd.cPt4.y = cBnds.y - cBnds.x;
+    }
+    if((iClosed > 1) && (iRes > 1)) cAdd.cPt4.x = 2.0;
+
+    int iBndType = GetBoundsRef(&cAdd.cPt1, dMid, iClosed > 0);
     if(iBndType & 1) cAdd.iType |= 2;
     if(iBndType & 2) cAdd.iType |= 4;
     if((nCrs > 0) && (iClosed > 1))
@@ -2747,6 +2679,61 @@ int CDObject::GetBounds(PDPoint pBounds, double dOffset, bool bAdvancePeriod)
       if(!GetPointRefDist(cLocBnds.x, dOffset, &pBounds->x)) return 0;
       if(iRefBounds < 2) return 1;
       if(!GetPointRefDist(cLocBnds.y, dOffset, &pBounds->y)) return 0;
+      return 3;
+    }
+    return 0;
+  }
+
+  if(m_iType == dtPath)
+  {
+    pBounds->x = 0.0;
+    pBounds->y = GetLength(dOffset + m_dMovedDist);
+    return 3;
+  }
+  return 0;
+}
+
+int CDObject::GetBoundsRef(PDPoint pBounds, double dOffset, bool bAdvancePeriod)
+{
+  if(m_iType < dtPath)
+  {
+    CDPoint cLocBnds = {0.0, 0.0};
+    int iRefBounds = GetRefBounds(&cLocBnds);
+
+    if(m_cBounds[0].bIsSet && m_cBounds[1].bIsSet)
+    {
+      pBounds->x = m_cBounds[0].dRef;
+      pBounds->y = m_cBounds[1].dRef;
+      if(m_cBounds[1].dRef < m_cBounds[0].dRef - g_dPrec)
+      {
+        if(iRefBounds < 1) return 1;
+        if(bAdvancePeriod) pBounds->y += (cLocBnds.y - cLocBnds.x);
+      }
+      return 3;
+    }
+
+    if(m_cBounds[0].bIsSet)
+    {
+      pBounds->x = m_cBounds[0].dRef;
+      if(iRefBounds < 2) return 1;
+      pBounds->y = cLocBnds.y;
+      if(bAdvancePeriod) pBounds->y = m_cBounds[0].dRef + cLocBnds.y - cLocBnds.x;
+      return 3;
+    }
+
+    if(m_cBounds[1].bIsSet)
+    {
+      pBounds->y = m_cBounds[1].dRef;
+      if(iRefBounds < 1) return 2;
+      pBounds->x = cLocBnds.x;
+      return 3;
+    }
+
+    if(iRefBounds > 0)
+    {
+      pBounds->x = cLocBnds.x;
+      if(iRefBounds < 2) return 1;
+      pBounds->y = cLocBnds.y;
       return 3;
     }
     return 0;

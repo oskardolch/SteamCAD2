@@ -466,7 +466,7 @@ double GetParabPointAtDist(double da, double dr, double dBreak, double dDist)
   return dRes;
 }
 
-void AddParabSegment(double d1, double d2, double dExt, bool bReverse, PDPointList pCache, PDPrimObject pPrimList)
+void AddParabSegment(double dt1, double dt2, double dExt, bool bReverse, PDPointList pCache, PDPrimObject pPrimList)
 {
   int iCnt = pCache->GetCount(0);
   if(iCnt < 3) return;
@@ -482,12 +482,10 @@ void AddParabSegment(double d1, double d2, double dExt, bool bReverse, PDPointLi
   if(nOffs > 0) dr += pCache->GetPoint(0, 2).cPoint.x;
 
   double dBreak = GetParabBreakAngle(-dr, cRad.x);
-  double dx1 = GetParabPointAtDist(cRad.x, dr, dBreak, d1);
-  double dx2 = GetParabPointAtDist(cRad.x, dr, dBreak, d2);
 
   PDPrimObject pTmpPrim = new CDPrimObject();
   PDPrimObject pRotPrim = new CDPrimObject();
-  AddCurveSegment(&cRad.x, dr, {dBreak, -1.0}, ParabFunc, ParabFuncDer, dx1, dx2, 0.5/cRad.x, 1, pTmpPrim);
+  AddCurveSegment(&cRad.x, dr, {dBreak, -1.0}, ParabFunc, ParabFuncDer, dt1, dt2, 0.5/cRad.x, 1, pTmpPrim);
   RotatePrimitives(pTmpPrim, pRotPrim, cOrig, cNorm);
   if(bReverse)
   {
