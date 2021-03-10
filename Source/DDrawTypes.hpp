@@ -128,6 +128,7 @@ private:
   int GetPointReferences(CDPoint cPt, PDRefList pRefs);
   CDObject* SplitByRef(double dRef, PDPtrList pRegions);
   double GetMovedDist(CDLine cTmpPt, int iMode);
+  void AddSegmentToPath(PDPathSeg pNewSeg, bool bInsert);
 public:
   CDObject(CDDrawType iType, double dWidth);
   ~CDObject();

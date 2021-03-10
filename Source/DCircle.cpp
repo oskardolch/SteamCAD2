@@ -156,7 +156,6 @@ bool BuildCircCache(CDLine cTmpPt, int iMode, PDPointList pPoints, PDPointList p
   else bFound = GetCircOrigAndRad(NULL, pPoints, pLines, &cOrig, &dRad);
 
   if(!bFound) return false;
-  if(dRad < g_dPrec) return false;
 
   if(iMode == 2)
   {
@@ -174,13 +173,10 @@ bool BuildCircCache(CDLine cTmpPt, int iMode, PDPointList pPoints, PDPointList p
     *pdMovedDist = dOffs;
   }
 
-  if(dRad > g_dPrec)
-  {
-    pCache->AddPoint(cOrig.x, cOrig.y, 0);
-    pCache->AddPoint(dRad, dRad, 0);
+  pCache->AddPoint(cOrig.x, cOrig.y, 0);
+  pCache->AddPoint(dRad, dRad, 0);
 
-    if(fabs(dOffs) > g_dPrec) pCache->AddPoint(dOffs, 0, 2);
-  }
+  if(fabs(dOffs) > g_dPrec) pCache->AddPoint(dOffs, 0, 2);
   return true;
 }
 
@@ -331,6 +327,7 @@ double GetCircDistFromPt(CDPoint cPt, CDPoint cRefPt, bool bSnapCenters, PDPoint
     pPtX->cDirection = 0;
   }
 
+  if(dr < g_dPrec) return fabs(dRes);
   return dRes;
 }
 

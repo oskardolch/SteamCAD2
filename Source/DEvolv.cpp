@@ -245,7 +245,7 @@ double GetEvolvDistFromPtOff(CDPoint cPt, CDPoint cRefPt, double dOffset, PDPoin
     pPtX->cDirection = Rotate(cDir, cN1, true);
   }
 
-  return d1;
+  return dDir*d1;
 }
 
 double GetEvolvDistFromPt(CDPoint cPt, CDPoint cRefPt, PDPointList pCache, PDLine pPtX)
@@ -651,6 +651,7 @@ void AddEvolvSegment(double dt1, double dt2, double dExt, bool bReverse, PDPoint
     if(dr < -g_dPrec) cBreak.x = -dr/dr1;
   }
   dr += dExt;
+  dr *= cRad.y;
 
   double dRef1 = 0.0;
 

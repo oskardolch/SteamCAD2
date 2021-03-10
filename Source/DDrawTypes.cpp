@@ -2774,7 +2774,6 @@ double CDObject::GetLength(double dOffset)
         dTotLen += pSeg->pSegment->GetLength(dOffset);
     }
   }
-
   return dTotLen;
 }
 
@@ -5681,6 +5680,91 @@ bool CDObject::GetEndPoint(PDPoint pPt, double dOffset)
   return false;
 }
 
+void CDObject::AddSegmentToPath(PDPathSeg pNewSeg, bool bInsert)
+{
+  int iCnt = m_pSubObjects->GetCount();
+  if(iCnt < 1)
+  {
+    if(bInsert) m_pSubObjects->Add(pNewSeg);
+    return;
+  }
+
+  PDPathSeg pLastSeg = (PDPathSeg)m_pSubObjects->GetItem(iCnt - 1);
+  PDObject pObj = pLastSeg->pSegment;
+  CDPoint cBounds;
+  if(pObj->GetBoundsRef(&cBounds, 0.0, false) < 3)
+  {
+    if(bInsert) m_pSubObjects->Add(pNewSeg);
+    return;
+  }
+
+  CDPoint cLastDir;
+  bool bHasLastDir = false;
+  if(pLastSeg->bReverse)
+  {
+    bHasLastDir = pObj->GetNativeRefDir(cBounds.x, &cLastDir);
+    if(bHasLastDir) cLastDir *= -1.0;
+  }
+  else bHasLastDir = pObj->GetNativeRefDir(cBounds.y, &cLastDir);
+  if(!bHasLastDir)
+  {
+    if(bInsert) m_pSubObjects->Add(pNewSeg);
+    return;
+  }
+
+  pObj = pNewSeg->pSegment;
+  if(pObj->GetBoundsRef(&cBounds, 0.0, false) < 3)
+  {
+    if(bInsert) m_pSubObjects->Add(pNewSeg);
+    return;
+  }
+
+  CDPoint cNewDir;
+  bool bHasNewDir = false;
+  if(pNewSeg->bReverse)
+  {
+    bHasNewDir = pObj->GetNativeRefDir(cBounds.y, &cNewDir);
+    if(bHasNewDir) cNewDir *= -1.0;
+  }
+  else bHasNewDir = pObj->GetNativeRefDir(cBounds.x, &cNewDir);
+  if(!bHasNewDir)
+  {
+    if(bInsert) m_pSubObjects->Add(pNewSeg);
+    return;
+  }
+
+  double dDirProd = cLastDir*cNewDir;
+  if(dDirProd > 1.0 - g_dPrec)
+  {
+    if(bInsert) m_pSubObjects->Add(pNewSeg);
+    return;
+  }
+
+  CDPoint cOrig;
+  if(pNewSeg->bReverse) pObj->GetNativeRefPoint(cBounds.y, 0.0, &cOrig);
+  else pObj->GetNativeRefPoint(cBounds.x, 0.0, &cOrig);
+
+  PDObject pMidCirc = new CDObject(dtCircle, m_cLineStyle.dWidth);
+  pMidCirc->AddPoint(cOrig.x, cOrig.y, 1, 0.0);
+  pMidCirc->AddPoint(cOrig.x, cOrig.y, 0, 0.0);
+  cOrig = GetNormal(cLastDir);
+  CDRefPoint cBnd = {true, atan2(cOrig.y, cOrig.x)};
+  pMidCirc->SetBound(0, cBnd);
+  cOrig = GetNormal(cNewDir);
+  cBnd.dRef = atan2(cOrig.y, cOrig.x);
+  pMidCirc->SetBound(1, cBnd);
+  CDLine cTmpPt;
+  pMidCirc->BuildCache(cTmpPt, 0);
+
+  PDPathSeg pMidSeg = (PDPathSeg)malloc(sizeof(CDPathSeg));
+  cOrig = Rotate(cNewDir, cLastDir, false);
+  pMidSeg->bReverse = (cOrig.y < 0.0);
+  pMidSeg->pSegment = pMidCirc;
+
+  m_pSubObjects->Add(pMidSeg);
+  if(bInsert) m_pSubObjects->Add(pNewSeg);
+}
+
 void CDObject::BuildPath(CDObject **ppObjects, PDIntList pPath)
 {
   int n = pPath->GetCount();
@@ -5697,7 +5781,7 @@ void CDObject::BuildPath(CDObject **ppObjects, PDIntList pPath)
       pSeg = (PDPathSeg)malloc(sizeof(CDPathSeg));
       pSeg->bReverse = iIdx < 0;
       pSeg->pSegment = pObj;
-      m_pSubObjects->Add(pSeg);
+      AddSegmentToPath(pSeg, true);
     }
     else if(iType == dtPath)
     {
@@ -5707,7 +5791,7 @@ void CDObject::BuildPath(CDObject **ppObjects, PDIntList pPath)
         {
           pSeg = (PDPathSeg)pObj->m_pSubObjects->GetItem(j);
           pSeg->bReverse = !pSeg->bReverse;
-          m_pSubObjects->Add(pSeg);
+          AddSegmentToPath(pSeg, true);
         }
       }
       else
@@ -5715,12 +5799,17 @@ void CDObject::BuildPath(CDObject **ppObjects, PDIntList pPath)
         for(int j = 0; j < pObj->m_pSubObjects->GetCount(); j++)
         {
           pSeg = (PDPathSeg)pObj->m_pSubObjects->GetItem(j);
-          m_pSubObjects->Add(pSeg);
+          AddSegmentToPath(pSeg, true);
         }
       }
       pObj->m_pSubObjects->Clear();
       delete pObj;
     }
+  }
+  if(IsClosedPath())
+  {
+    pSeg = (PDPathSeg)m_pSubObjects->GetItem(0);
+    AddSegmentToPath(pSeg, false);
   }
 }
 
