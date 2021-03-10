@@ -5741,24 +5741,42 @@ void CDObject::AddSegmentToPath(PDPathSeg pNewSeg, bool bInsert)
   }
 
   CDPoint cOrig;
+
+  PDPathSeg pMidSeg = (PDPathSeg)malloc(sizeof(CDPathSeg));
+  cOrig = Rotate(cNewDir, cLastDir, false);
+  pMidSeg->bReverse = (cOrig.y < 0.0);
+
   if(pNewSeg->bReverse) pObj->GetNativeRefPoint(cBounds.y, 0.0, &cOrig);
   else pObj->GetNativeRefPoint(cBounds.x, 0.0, &cOrig);
 
   PDObject pMidCirc = new CDObject(dtCircle, m_cLineStyle.dWidth);
   pMidCirc->AddPoint(cOrig.x, cOrig.y, 1, 0.0);
   pMidCirc->AddPoint(cOrig.x, cOrig.y, 0, 0.0);
-  cOrig = GetNormal(cLastDir);
-  CDRefPoint cBnd = {true, atan2(cOrig.y, cOrig.x)};
-  pMidCirc->SetBound(0, cBnd);
-  cOrig = GetNormal(cNewDir);
-  cBnd.dRef = atan2(cOrig.y, cOrig.x);
-  pMidCirc->SetBound(1, cBnd);
+
+  CDRefPoint cBnd;
+  cBnd.bIsSet = true;
+  if(pMidSeg->bReverse)
+  {
+    cOrig = GetNormal(cNewDir);
+    cBnd.dRef = OpositeAngle(atan2(cOrig.y, cOrig.x));
+    pMidCirc->SetBound(0, cBnd);
+
+    cOrig = GetNormal(cLastDir);
+    cBnd.dRef = OpositeAngle(atan2(cOrig.y, cOrig.x));
+    pMidCirc->SetBound(1, cBnd);
+  }
+  else
+  {
+    cOrig = GetNormal(cLastDir);
+    cBnd.dRef = atan2(cOrig.y, cOrig.x);
+    pMidCirc->SetBound(0, cBnd);
+
+    cOrig = GetNormal(cNewDir);
+    cBnd.dRef = atan2(cOrig.y, cOrig.x);
+    pMidCirc->SetBound(1, cBnd);
+  }
   CDLine cTmpPt;
   pMidCirc->BuildCache(cTmpPt, 0);
-
-  PDPathSeg pMidSeg = (PDPathSeg)malloc(sizeof(CDPathSeg));
-  cOrig = Rotate(cNewDir, cLastDir, false);
-  pMidSeg->bReverse = (cOrig.y < 0.0);
   pMidSeg->pSegment = pMidCirc;
 
   m_pSubObjects->Add(pMidSeg);
