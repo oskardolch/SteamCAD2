@@ -129,6 +129,7 @@ private:
   CDObject* SplitByRef(double dRef, PDPtrList pRegions);
   double GetMovedDist(CDLine cTmpPt, int iMode);
   void AddSegmentToPath(PDPathSeg pNewSeg, bool bInsert);
+  void UpdatePathCache();
 public:
   CDObject(CDDrawType iType, double dWidth);
   ~CDObject();

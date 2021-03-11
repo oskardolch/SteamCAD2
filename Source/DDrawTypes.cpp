@@ -373,7 +373,6 @@ CDObject::~CDObject()
 
 bool CDObject::AddPoint(double x, double y, char iCtrl, double dRestrictVal)
 {
-  // we have to maintain this ugly code for backward compatibility
   if(m_iType > dtCircle)
   {
     int nOffs2 = m_pInputPoints->GetCount(2);
@@ -504,6 +503,33 @@ bool CDObject::BuildSubCache(CDLine cTmpPt, int iMode)
   return bRes;
 }
 
+void CDObject::UpdatePathCache()
+{
+  if(m_pCachePoints->GetCount(2) > 0)
+  {
+    CDPoint cOffset = m_pCachePoints->GetPoint(0, 2).cPoint;
+    double dMovedDist = cOffset.x - cOffset.y;
+
+    int n = m_pSubObjects->GetCount();
+    PDPathSeg pSeg;
+    PDObject pObj;
+    CDLine cTmpPt;
+    for(int i = 0; i < n; i++)
+    {
+      pSeg = (PDPathSeg)m_pSubObjects->GetItem(i);
+      pObj = pSeg->pSegment;
+      pObj->AddPoint(0.0, 0.0, 4, dMovedDist);
+      if(pObj->GetType() <= dtCircle) pObj->BuildCache(cTmpPt, 0);
+      else pObj->GetMovedDist(cTmpPt, 0);
+    }
+    m_pCachePoints->Remove(0, 2);
+    if(m_pInputPoints->GetCount(2) > 0) m_pInputPoints->Remove(0, 2);
+    if(m_pInputPoints->GetCount(3) > 0) m_pInputPoints->Remove(0, 3);
+    if(m_pInputPoints->GetCount(4) > 0) m_pInputPoints->Remove(0, 4);
+  }
+  m_dMovedDist = 0.0;
+}
+
 double CDObject::GetMovedDist(CDLine cTmpPt, int iMode)
 {
   double dRes = 0.0;
@@ -571,6 +597,9 @@ double CDObject::GetMovedDist(CDLine cTmpPt, int iMode)
     break;
   case dtParabola:
     UpdateParabCache(m_pCachePoints);
+    break;
+  case dtPath:
+    UpdatePathCache();
     break;
   default:
     break;
