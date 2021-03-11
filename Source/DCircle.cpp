@@ -291,6 +291,14 @@ double GetCircDistFromPt(CDPoint cPt, CDPoint cRefPt, bool bSnapCenters, PDPoint
   double dr = fabs(cRad.x);
   double dRes = dr2 - dr;
 
+  if(dr < g_dPrec)
+  {
+    pPtX->bIsSet = true;
+    pPtX->cOrigin = cOrig;
+    pPtX->cDirection = 0;
+    return dRes;
+  }
+
   double dDir = 1.0;
   if(dRes < 0) dDir = -1.0;
 
@@ -327,7 +335,6 @@ double GetCircDistFromPt(CDPoint cPt, CDPoint cRefPt, bool bSnapCenters, PDPoint
     pPtX->cDirection = 0;
   }
 
-  if(dr < g_dPrec) return fabs(dRes);
   return dRes;
 }
 

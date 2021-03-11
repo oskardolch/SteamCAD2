@@ -3194,6 +3194,7 @@ double CDObject::GetPathDistFromPt(CDPoint cPt, CDPoint cRefPt, bool bSnapCenter
   double dMinAbs = -1.0;
   double dMin;
   double dCur;
+  double dNorm, dNormMin;
   PDPathSeg pSeg;
   CDLine cMin, cCur;
   int iMin = -1;
@@ -3204,21 +3205,16 @@ double CDObject::GetPathDistFromPt(CDPoint cPt, CDPoint cRefPt, bool bSnapCenter
   {
     pSeg = (PDPathSeg)m_pSubObjects->GetItem(i);
     dCur = pSeg->pSegment->GetDistFromPt(cPt, cRefPt, iSrchMask, &cCur, NULL);
-    if((iMin < 0) || (fabs(dCur) < dMinAbs))
+    dNorm = GetNorm(cCur.cDirection);
+    if((iMin < 0) || (fabs(dCur) < dMinAbs) || ((fabs(dCur) < dMinAbs + g_dPrec) && (dNorm < g_dPrec)))
     {
       iMin = i;
       dMinAbs = fabs(dCur);
       cMin = cCur;
       dMin = dCur;
+      dNormMin = dNorm;
       if(pSeg->bReverse) dMin *= -1.0;
     }
-  }
-
-  double dNorm = GetNorm(cMin.cDirection);
-  if(dNorm < g_dPrec)
-  {
-    *pPtX = cMin;
-    return dMin;
   }
 
   *pPtX = cMin;
@@ -3228,6 +3224,8 @@ double CDObject::GetPathDistFromPt(CDPoint cPt, CDPoint cRefPt, bool bSnapCenter
     pSeg = (PDPathSeg)m_pSubObjects->GetItem(i);
     pPtX->dRef += pSeg->pSegment->GetLength(0.0);
   }
+
+  if(dNormMin < g_dPrec) return dMin;
 
   pSeg = (PDPathSeg)m_pSubObjects->GetItem(iMin);
   PDObject pObj = pSeg->pSegment;
