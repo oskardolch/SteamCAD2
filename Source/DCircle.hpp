@@ -4,8 +4,8 @@
 #include "DDataTypes.hpp"
 
 bool AddCirclePoint(double x, double y, char iCtrl, PDPointList pPoints, PDLine pLines);
-bool BuildCircCache(CDLine cTmpPt, int iMode, PDPointList pPoints, PDPointList pCache, PDLine pLines,
-  double *pdMovedDist);
+bool BuildCircCache(CDLine cTmpPt, int iMode, PDPointList pPoints, PDPointList pCache, PDLine pLines, double *pdMovedDist);
+void UpdateCircleCache(PDPointList pPoints, PDPointList pCache);
 int AddCircleInterLine(CDPoint cPt1, CDPoint cPt2, double dOffset, PDPointList pCache, PDRefList pBounds);
 double GetCircDistFromPt(CDPoint cPt, CDPoint cRefPt, bool bSnapCenters, PDPointList pCache, PDLine pPtX);
 bool HasCircEnoughPoints(PDPointList pPoints, int iInputLines);

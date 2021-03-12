@@ -81,6 +81,35 @@ bool BuildLineCache(CDLine cTmpPt, int iMode, PDPointList pPoints, PDPointList p
   return true;
 }
 
+void UpdateLineCache(CDLine cTmpPt, PDPointList pPoints, PDPointList pCache)
+{
+  if(pCache->GetCount(0) < 2) return;
+  if(pCache->GetCount(2) > 0)
+  {
+    CDPoint cOrig = pCache->GetPoint(0, 0).cPoint;
+    CDPoint cDir = pCache->GetPoint(1, 0).cPoint;
+    CDPoint cDist = pCache->GetPoint(0, 2).cPoint;
+    double dDist = cDist.x - cDist.y;
+
+    if(cTmpPt.bIsSet)
+    {
+      CDPoint cPt1 = Rotate(cTmpPt.cOrigin - cOrig, cDir, false);
+      if(cPt1.y > 0.0) dDist *= -1.0;
+    }
+
+    CDPoint cNorm = dDist*GetNormal(cDir);
+
+    CDPoint cPt1 = cOrig + cNorm;
+    pCache->SetPoint(0, 0, cPt1.x, cPt1.y, 0);
+
+    pPoints->ClearAll();
+    pPoints->AddPoint(cPt1.x, cPt1.y, 0);
+    pPoints->AddPoint(cPt1.x + cDir.x, cPt1.y + cDir.y, 0);
+
+    pCache->Remove(0, 2);
+  }
+}
+
 int AddLineInterLine(CDPoint cPt1, CDPoint cPt2, double dOffset, PDPointList pCache, PDRefList pBounds)
 {
   int iCnt = pCache->GetCount(0);

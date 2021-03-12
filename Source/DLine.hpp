@@ -4,8 +4,8 @@
 #include "DDataTypes.hpp"
 
 bool AddLinePoint(double x, double y, char iCtrl, PDPointList pPoints);
-bool BuildLineCache(CDLine cTmpPt, int iMode, PDPointList pPoints, PDPointList pCache,
-  double *pdMovedDist);
+bool BuildLineCache(CDLine cTmpPt, int iMode, PDPointList pPoints, PDPointList pCache, double *pdMovedDist);
+void UpdateLineCache(CDLine cTmpPt, PDPointList pPoints, PDPointList pCache);
 int AddLineInterLine(CDPoint cPt1, CDPoint cPt2, double dOffset, PDPointList pCache, PDRefList pBounds);
 double GetLineDistFromPt(CDPoint cPt, PDPointList pCache, PDLine pPtX);
 bool HasLineEnoughPoints(PDPointList pPoints);

@@ -373,7 +373,7 @@ CDObject::~CDObject()
 
 bool CDObject::AddPoint(double x, double y, char iCtrl, double dRestrictVal)
 {
-  if(m_iType > dtCircle)
+  //if(m_iType > dtCircle)
   {
     int nOffs2 = m_pInputPoints->GetCount(2);
     int nOffs3 = m_pInputPoints->GetCount(3);
@@ -392,6 +392,16 @@ bool CDObject::AddPoint(double x, double y, char iCtrl, double dRestrictVal)
       else if(nOffs3 > 0) m_pInputPoints->SetPoint(0, 3, cNewPt.x, cNewPt.y, iCtrl);
       else if(nOffs4 > 0) m_pInputPoints->SetPoint(0, 4, cNewPt.x, cNewPt.y, iCtrl);
       else m_pInputPoints->AddPoint(cNewPt.x, cNewPt.y, iCtrl);
+
+      if(m_iType <= dtCircle)
+      {
+        CDLine cTmpPt;
+        cTmpPt.bIsSet = true;
+        cTmpPt.cOrigin.x = x;
+        cTmpPt.cOrigin.y = y;
+        GetMovedDist(cTmpPt, 0);
+      }
+
       return true;
     }
   }
@@ -509,18 +519,23 @@ void CDObject::UpdatePathCache()
   {
     CDPoint cOffset = m_pCachePoints->GetPoint(0, 2).cPoint;
     double dMovedDist = cOffset.x - cOffset.y;
+    double dCurDist;
 
     int n = m_pSubObjects->GetCount();
     PDPathSeg pSeg;
     PDObject pObj;
     CDLine cTmpPt;
+    cTmpPt.bIsSet = false;
     for(int i = 0; i < n; i++)
     {
       pSeg = (PDPathSeg)m_pSubObjects->GetItem(i);
+      if(pSeg->bReverse) dCurDist = -dMovedDist;
+      else dCurDist = dMovedDist;
       pObj = pSeg->pSegment;
-      pObj->AddPoint(0.0, 0.0, 4, dMovedDist);
-      if(pObj->GetType() <= dtCircle) pObj->BuildCache(cTmpPt, 0);
-      else pObj->GetMovedDist(cTmpPt, 0);
+      pObj->AddPoint(0.0, 0.0, 4, dCurDist);
+      //if(pObj->GetType() <= dtCircle) pObj->BuildCache(cTmpPt, 0);
+      //else 
+      pObj->GetMovedDist(cTmpPt, 0);
     }
     m_pCachePoints->Remove(0, 2);
     if(m_pInputPoints->GetCount(2) > 0) m_pInputPoints->Remove(0, 2);
@@ -581,11 +596,22 @@ double CDObject::GetMovedDist(CDLine cTmpPt, int iMode)
     else if(nOffs4 > 0) dDist = m_pInputPoints->GetPoint(0, 4).cPoint.x;
 
     dRes = dDist - dDistOld;
+    if((m_iType <= dtCircle) && (iMode == 0))
+    {
+      dDist = 0.0;
+      dDistOld = 0.0;
+    }
     if((fabs(dDist) > g_dPrec) || (fabs(dDistOld) > g_dPrec))
       m_pCachePoints->AddPoint(dDist, dDistOld, 2);
   }
   switch(m_iType)
   {
+  case dtLine:
+    if(iMode == 0) UpdateLineCache(cTmpPt, m_pInputPoints, m_pCachePoints);
+    break;
+  case dtCircle:
+    if(iMode == 0) UpdateCircleCache(m_pInputPoints, m_pCachePoints);
+    break;
   case dtEllipse:
     UpdateEllipseCache(m_pCachePoints);
     break;

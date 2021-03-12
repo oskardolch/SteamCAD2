@@ -180,6 +180,27 @@ bool BuildCircCache(CDLine cTmpPt, int iMode, PDPointList pPoints, PDPointList p
   return true;
 }
 
+void UpdateCircleCache(PDPointList pPoints, PDPointList pCache)
+{
+  if(pCache->GetCount(0) < 2) return;
+  if(pCache->GetCount(2) > 0)
+  {
+printf("Dobry 1\n");
+    CDPoint cOrig = pCache->GetPoint(0, 0).cPoint;
+    CDPoint cRad = pCache->GetPoint(1, 0).cPoint;
+    CDPoint cDist = pCache->GetPoint(0, 2).cPoint;
+    double dDist = cDist.x + cRad.x;
+    pCache->SetPoint(1, 0, dDist, dDist, 0);
+
+    pPoints->ClearAll();
+    pPoints->AddPoint(cOrig.x, cOrig.y, 1);
+    pPoints->AddPoint(cOrig.x + dDist, cOrig.y, 0);
+
+    pCache->Remove(0, 2);
+printf("Dobry 2\n");
+  }
+}
+
 int AddCircleInterLine(CDPoint cPt1, CDPoint cPt2, double dOffset, PDPointList pCache, PDRefList pBounds)
 {
   int iCnt = pCache->GetCount(0);
