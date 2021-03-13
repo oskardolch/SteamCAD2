@@ -533,8 +533,6 @@ void CDObject::UpdatePathCache()
       else dCurDist = dMovedDist;
       pObj = pSeg->pSegment;
       pObj->AddPoint(0.0, 0.0, 4, dCurDist);
-      //if(pObj->GetType() <= dtCircle) pObj->BuildCache(cTmpPt, 0);
-      //else 
       pObj->GetMovedDist(cTmpPt, 0);
     }
     m_pCachePoints->Remove(0, 2);
@@ -596,11 +594,6 @@ double CDObject::GetMovedDist(CDLine cTmpPt, int iMode)
     else if(nOffs4 > 0) dDist = m_pInputPoints->GetPoint(0, 4).cPoint.x;
 
     dRes = dDist - dDistOld;
-    if((m_iType <= dtCircle) && (iMode == 0))
-    {
-      dDist = 0.0;
-      dDistOld = 0.0;
-    }
     if((fabs(dDist) > g_dPrec) || (fabs(dDistOld) > g_dPrec))
       m_pCachePoints->AddPoint(dDist, dDistOld, 2);
   }
@@ -668,7 +661,11 @@ bool CDObject::BuildCache(CDLine cTmpPt, int iMode)
     return true;
   }
 
-  if(bRes) m_dMovedDist = GetMovedDist(cTmpPt, iMode);
+  if(bRes)
+  {
+    double dDist = GetMovedDist(cTmpPt, iMode);
+    if(iMode == 2) m_dMovedDist = dDist;
+  }
   return bRes;
 }
 
@@ -3472,6 +3469,23 @@ void CDObject::SetLineStyle(int iMask, CDLineStyle cStyle)
   }
 }
 
+bool CDObject::GetPathRestrictPoint(CDPoint cPt, int iMode, double dRestrictValue, PDPoint pSnapPt)
+{
+  CDLine cPtX;
+  double d1 = GetPathDistFromPt(cPt, cPt, false, &cPtX);
+  CDPoint cDir = cPt - cPtX.cOrigin;
+  double dNorm = GetNorm(cDir);
+  if(dNorm < g_dPrec)
+  {
+    GetNativeRefDir(cPtX.dRef, &cDir);
+    CDPoint cNormal = GetNormal(cDir);
+    *pSnapPt = cPtX.cOrigin + dRestrictValue*cNormal;
+    return true;
+  }
+  *pSnapPt = cPtX.cOrigin + dRestrictValue*cDir/d1;
+  return true;
+}
+
 bool CDObject::GetRestrictPoint(CDPoint cPt, int iMode, bool bRestrictSet, double dRestrictValue,
   PDPoint pSnapPt)
 {
@@ -3498,6 +3512,8 @@ bool CDObject::GetRestrictPoint(CDPoint cPt, int iMode, bool bRestrictSet, doubl
     return GetSplineRestrictPoint(cPt, iMode, dRestrictValue, pSnapPt, m_pCachePoints);
   case dtEvolvent:
     return GetEvolvRestrictPoint(cPt, iMode, dRestrictValue, pSnapPt, m_pCachePoints);
+  case dtPath:
+    return GetPathRestrictPoint(cPt, iMode, dRestrictValue, pSnapPt);
   default:
     return false;
   }
@@ -4883,31 +4899,10 @@ int CDObject::GetPointReferences(CDPoint cPt, PDRefList pRefs)
     if(iCnt > 0) return iCnt;
   }
 
-  /*if(m_iType == dtPath)
-  {
-    PDPtrList pList = new CDPtrList();
-    PDPathSeg pSeg;
-    for(int i = 0; i < m_pSubObjects->GetCount(); i++)
-    {
-      pSeg = (PDPathSeg)m_pSubObjects->GetItem(i);
-      pList->Add(pSeg->pSegment);
-    }
-    int iRes = GetSnapPointFromList(iSnapMask, cPt, dDist, pSnapPt, pDynObj,
-      (PDObject*)pList->GetList(), pList->GetCount(), false);
-    delete pList;
-    if(iRes > 1)
-    {
-      CDLine cLnRef;
-      GetPathDistFromPt(pSnapPt->cOrigin, pSnapPt->cOrigin, false, &cLnRef);
-      pSnapPt->dRef = cLnRef.dRef;
-      return iRes;
-    }
-  }*/
-
   CDLine cPtX;
   double d1 = GetDistFromPt(cPt, cPt, 0, &cPtX, NULL);
   if(!cPtX.bIsSet || fabs(d1) > dblDist) return 0;
-  if(GetNorm(cPtX.cDirection) < 0.5) return 0;
+  //if(GetNorm(cPtX.cDirection) < 0.5) return 0;
   pRefs->AddPoint(cPtX.dRef);
   return pRefs->GetCount();
 }
@@ -5712,11 +5707,9 @@ bool CDObject::IsBoundShape()
 bool CDObject::GetStartPoint(PDPoint pPt, double dOffset)
 {
   CDPoint cBnds;
-  if(GetBounds(&cBnds, dOffset, true) & 1)
+  if(GetBoundsRef(&cBnds, dOffset, true) & 1)
   {
-    double dRef;
-    GetNativeReference(cBnds.x, dOffset, &dRef);
-    return GetNativeRefPoint(dRef, dOffset, pPt);
+    return GetNativeRefPoint(cBnds.x, dOffset, pPt);
   }
   return false;
 }
@@ -5724,11 +5717,9 @@ bool CDObject::GetStartPoint(PDPoint pPt, double dOffset)
 bool CDObject::GetEndPoint(PDPoint pPt, double dOffset)
 {
   CDPoint cBnds;
-  if(GetBounds(&cBnds, dOffset, true) & 2)
+  if(GetBoundsRef(&cBnds, dOffset, true) & 2)
   {
-    double dRef;
-    GetNativeReference(cBnds.y, dOffset, &dRef);
-    return GetNativeRefPoint(dRef, dOffset, pPt);
+    return GetNativeRefPoint(cBnds.y, dOffset, pPt);
   }
   return false;
 }

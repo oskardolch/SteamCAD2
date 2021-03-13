@@ -130,6 +130,7 @@ private:
   double GetMovedDist(CDLine cTmpPt, int iMode);
   void AddSegmentToPath(PDPathSeg pNewSeg, bool bInsert);
   void UpdatePathCache();
+  bool GetPathRestrictPoint(CDPoint cPt, int iMode, double dRestrictValue, PDPoint pSnapPt);
 public:
   CDObject(CDDrawType iType, double dWidth);
   ~CDObject();

@@ -185,7 +185,6 @@ void UpdateCircleCache(PDPointList pPoints, PDPointList pCache)
   if(pCache->GetCount(0) < 2) return;
   if(pCache->GetCount(2) > 0)
   {
-printf("Dobry 1\n");
     CDPoint cOrig = pCache->GetPoint(0, 0).cPoint;
     CDPoint cRad = pCache->GetPoint(1, 0).cPoint;
     CDPoint cDist = pCache->GetPoint(0, 2).cPoint;
@@ -197,7 +196,6 @@ printf("Dobry 1\n");
     pPoints->AddPoint(cOrig.x + dDist, cOrig.y, 0);
 
     pCache->Remove(0, 2);
-printf("Dobry 2\n");
   }
 }
 
@@ -564,7 +562,11 @@ bool GetCircRefPoint(double dRef, double dOffset, PDPointList pCache, PDPoint pP
   if(nOffs > 0) cRad.x += pCache->GetPoint(0, 2).cPoint.x;
   cRad.x += dOffset;
   double dr = fabs(cRad.x);
-  if(dr < g_dPrec) return false;
+  if(dr < g_dPrec)
+  {
+    *pPt = cOrig;
+    return true;
+  }
   if(cRad.x < 0.0) dRef = OpositeAngle(dRef);
   pPt->x = cOrig.x + dr*cos(dRef);
   pPt->y = cOrig.y + dr*sin(dRef);
