@@ -4899,6 +4899,38 @@ int CDObject::GetPointReferences(CDPoint cPt, PDRefList pRefs)
     if(iCnt > 0) return iCnt;
   }
 
+  if(m_iType == dtPath)
+  {
+    PDRefList pList = new CDRefList();
+    PDPathSeg pSeg;
+    PDObject pObj;
+    double dCurLen, dTotLen = 0.0;
+    double d1, t1;
+    CDPoint cBnds;
+    int iCnt;
+    for(int i = 0; i < m_pSubObjects->GetCount(); i++)
+    {
+      pSeg = (PDPathSeg)m_pSubObjects->GetItem(i);
+      pObj = pSeg->pSegment;
+      pObj->GetBounds(&cBnds, 0.0, true);
+      iCnt = pObj->GetPointReferences(cPt, pList);
+
+      for(int j = 0; j < iCnt; j++)
+      {
+        t1 = pList->GetPoint(j);
+        pObj->GetPointRefDist(t1, 0.0, &d1);
+        if(pSeg->bReverse) dCurLen = dTotLen + cBnds.y - d1;
+        else dCurLen = dTotLen + d1 - cBnds.x;
+        if(IsValidRef(dCurLen)) pRefs->AddPoint(dCurLen);
+      }
+      dTotLen += (cBnds.y - cBnds.x); //pObj->GetLength(0.0);
+      pList->Clear();
+    }
+    delete pList;
+    iCnt = pRefs->GetCount();
+    if(iCnt > 0) return iCnt;
+  }
+
   CDLine cPtX;
   double d1 = GetDistFromPt(cPt, cPt, 0, &cPtX, NULL);
   if(!cPtX.bIsSet || fabs(d1) > dblDist) return 0;

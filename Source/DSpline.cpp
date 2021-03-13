@@ -1368,7 +1368,7 @@ bool GetSplinePointRefDist(double dRef, double dOffset, PDPointList pCache, doub
   return true;
 }
 
-void AddSplineSegment(double d1, double d2, double dExt, bool bReverse, PDPointList pCache, PDPrimObject pPrimList)
+void AddSplineSegment(double dt1, double dt2, double dExt, bool bReverse, PDPointList pCache, PDPrimObject pPrimList)
 {
   int iSegs = GetSplineNumSegments(pCache);
   if(iSegs < 1) return;
@@ -1384,23 +1384,20 @@ void AddSplineSegment(double d1, double d2, double dExt, bool bReverse, PDPointL
 
   if(bClosed)
   {
-    double dWhole = GetSplineDistAtRef((double)iSegs, dr, pCache);
-    if(d1 > dWhole + g_dPrec)
+    double dWhole = (double)iSegs;
+    if(dt1 > dWhole + g_dPrec)
     {
-      d1 -= dWhole;
-      dOff1 = (double)iSegs;
+      dt1 -= dWhole;
+      dOff1 = dWhole;
     }
-    else if(d1 > dWhole - g_dPrec) d1 = dWhole;
-    if(d2 > dWhole + g_dPrec)
+    else if(dt1 > dWhole - g_dPrec) dt1 = dWhole;
+    if(dt2 > dWhole + g_dPrec)
     {
-      d2 -= dWhole;
-      dOff2 = (double)iSegs;
+      dt2 -= dWhole;
+      dOff2 = dWhole;
     }
-    else if(d2 > dWhole - g_dPrec) d2 = dWhole;
+    else if(dt2 > dWhole - g_dPrec) dt2 = dWhole;
   }
-
-  double dt1 = GetSplineRefAtDist(d1, dr, pCache);
-  double dt2 = GetSplineRefAtDist(d2, dr, pCache);
 
   if((dt1 < -0.5) || (dt2 < -0.5)) return;
 
