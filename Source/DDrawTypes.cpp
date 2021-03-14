@@ -373,37 +373,37 @@ CDObject::~CDObject()
 
 bool CDObject::AddPoint(double x, double y, char iCtrl, double dRestrictVal)
 {
-  //if(m_iType > dtCircle)
+  bool bUpdateLine = iCtrl < 5;
+  if(!bUpdateLine) iCtrl = 4;
+
+  int nOffs2 = m_pInputPoints->GetCount(2);
+  int nOffs3 = m_pInputPoints->GetCount(3);
+  int nOffs4 = m_pInputPoints->GetCount(4);
+
+  if((iCtrl == 2) || (iCtrl == 3) || (iCtrl == 4))
   {
-    int nOffs2 = m_pInputPoints->GetCount(2);
-    int nOffs3 = m_pInputPoints->GetCount(3);
-    int nOffs4 = m_pInputPoints->GetCount(4);
-
-    if((iCtrl == 2) || (iCtrl == 3) || (iCtrl == 4))
+    CDPoint cNewPt = {x, y};
+    if(iCtrl == 4)
     {
-      CDPoint cNewPt = {x, y};
-      if(iCtrl == 4)
-      {
-        cNewPt.x = dRestrictVal;
-        cNewPt.y = 0.0;
-      }
-
-      if(nOffs2 > 0) m_pInputPoints->SetPoint(0, 2, cNewPt.x, cNewPt.y, iCtrl);
-      else if(nOffs3 > 0) m_pInputPoints->SetPoint(0, 3, cNewPt.x, cNewPt.y, iCtrl);
-      else if(nOffs4 > 0) m_pInputPoints->SetPoint(0, 4, cNewPt.x, cNewPt.y, iCtrl);
-      else m_pInputPoints->AddPoint(cNewPt.x, cNewPt.y, iCtrl);
-
-      if(m_iType <= dtCircle)
-      {
-        CDLine cTmpPt;
-        cTmpPt.bIsSet = true;
-        cTmpPt.cOrigin.x = x;
-        cTmpPt.cOrigin.y = y;
-        GetMovedDist(cTmpPt, 0);
-      }
-
-      return true;
+      cNewPt.x = dRestrictVal;
+      cNewPt.y = 0.0;
     }
+
+    if(nOffs2 > 0) m_pInputPoints->SetPoint(0, 2, cNewPt.x, cNewPt.y, iCtrl);
+    else if(nOffs3 > 0) m_pInputPoints->SetPoint(0, 3, cNewPt.x, cNewPt.y, iCtrl);
+    else if(nOffs4 > 0) m_pInputPoints->SetPoint(0, 4, cNewPt.x, cNewPt.y, iCtrl);
+    else m_pInputPoints->AddPoint(cNewPt.x, cNewPt.y, iCtrl);
+
+    if(bUpdateLine && (m_iType <= dtCircle))
+    {
+      CDLine cTmpPt;
+      cTmpPt.bIsSet = true;
+      cTmpPt.cOrigin.x = x;
+      cTmpPt.cOrigin.y = y;
+      GetMovedDist(cTmpPt, 0);
+    }
+
+    return true;
   }
 
   bool bRes = false;
@@ -532,7 +532,7 @@ void CDObject::UpdatePathCache()
       if(pSeg->bReverse) dCurDist = -dMovedDist;
       else dCurDist = dMovedDist;
       pObj = pSeg->pSegment;
-      pObj->AddPoint(0.0, 0.0, 4, dCurDist);
+      pObj->AddPoint(0.0, 0.0, 5, dCurDist);
       pObj->GetMovedDist(cTmpPt, 0);
     }
     m_pCachePoints->Remove(0, 2);
@@ -4905,8 +4905,8 @@ int CDObject::GetPointReferences(CDPoint cPt, PDRefList pRefs)
     PDPathSeg pSeg;
     PDObject pObj;
     double dCurLen, dTotLen = 0.0;
-    double d1, t1;
-    CDPoint cBnds;
+    double d1, t1, t2;
+    CDPoint cBnds, cBndRefs;
     int iCnt;
     for(int i = 0; i < m_pSubObjects->GetCount(); i++)
     {
@@ -4919,11 +4919,18 @@ int CDObject::GetPointReferences(CDPoint cPt, PDRefList pRefs)
       {
         t1 = pList->GetPoint(j);
         pObj->GetPointRefDist(t1, 0.0, &d1);
+        if(pObj->IsClosedShape() && (d1 < cBnds.x))
+        {
+          pObj->GetRefBounds(&cBndRefs);
+          pObj->GetPointRefDist(cBndRefs.x, 0.0, &t1);
+          pObj->GetPointRefDist(cBndRefs.y, 0.0, &t2);
+          d1 += (t2 - t1);
+        }
         if(pSeg->bReverse) dCurLen = dTotLen + cBnds.y - d1;
         else dCurLen = dTotLen + d1 - cBnds.x;
-        if(IsValidRef(dCurLen)) pRefs->AddPoint(dCurLen);
+        if(IsValidRef(dCurLen) && !pRefs->HasPoint(dCurLen)) pRefs->AddPoint(dCurLen);
       }
-      dTotLen += (cBnds.y - cBnds.x); //pObj->GetLength(0.0);
+      dTotLen += (cBnds.y - cBnds.x);
       pList->Clear();
     }
     delete pList;

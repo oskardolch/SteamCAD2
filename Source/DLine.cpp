@@ -94,7 +94,7 @@ void UpdateLineCache(CDLine cTmpPt, PDPointList pPoints, PDPointList pCache)
     if(cTmpPt.bIsSet)
     {
       CDPoint cPt1 = Rotate(cTmpPt.cOrigin - cOrig, cDir, false);
-      if(cPt1.y > 0.0) dDist *= -1.0;
+      if(cPt1.y*dDist > 0.0) dDist *= -1.0;
     }
 
     CDPoint cNorm = dDist*GetNormal(cDir);
