@@ -74,6 +74,8 @@ bool GetCircOrigAndRad(PDPoint pTmpPt, PDPointList pPoints, PDLine pLines,
   return true;
 }
 
+
+// -- needs to be modified
 bool AddCirclePoint(double x, double y, char iCtrl, PDPointList pPoints, PDLine pLines)
 {
   int nNorm = pPoints->GetCount(0);
