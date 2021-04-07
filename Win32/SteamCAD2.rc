@@ -152,7 +152,7 @@ BEGIN
     END
     POPUP "&Paths"
     BEGIN
-        MENUITEM "Create &path\tAlt+P", IDM_PATHCREATE
+        MENUITEM "Create &path\tAlt+H", IDM_PATHCREATE
         MENUITEM "&Break apart\tAlt+B", IDM_PATHBREAK
         MENUITEM "Create &area\tCtrl+A", IDM_PATHAREA
         MENUITEM "&Group\tG", IDM_PATHGROUP
@@ -163,10 +163,10 @@ BEGIN
         MENUITEM "Move &top\tPage Up", IDM_PATHMOVETOP
         MENUITEM "Move &bottom\tPage Down", IDM_PATHMOVEBOTTOM
     END
-    POPUP "&Help" HELP
-    BEGIN
-        MENUITEM "&Content", IDM_HELPCONTENT
-    END
+    //POPUP "&Help" HELP
+    //BEGIN
+    //    MENUITEM "&Content", IDM_HELPCONTENT
+    //END
 END
 
 POPUPMENU MENU
@@ -205,7 +205,7 @@ BEGIN
     "^E", IDM_TOOLSEXTEND
     "^F", IDM_TOOLSCONFLICTS
     "D", IDM_TOOLSMEASURE, ALT, VIRTKEY
-    "P", IDM_PATHCREATE, ALT, VIRTKEY
+    "H", IDM_PATHCREATE, ALT, VIRTKEY
     "B", IDM_PATHBREAK, ALT, VIRTKEY
     "A", IDM_PATHAREA, CONTROL, VIRTKEY
     "^G", IDM_PATHGROUP

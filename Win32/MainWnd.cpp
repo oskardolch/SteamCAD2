@@ -4436,6 +4436,21 @@ LRESULT CMainWnd::PathCreateCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl)
 
 LRESULT CMainWnd::PathBreakCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl)
 {
+  PDPtrList pRegions = new CDPtrList();
+  pRegions->SetDblVal(m_dUnitScale);
+  if(m_pDrawObjects->BreakSelObjects(NULL, pRegions))
+  {
+    HRGN hRgn = GetUpdateRegion(pRegions);
+    //InvalidateRect(hwnd, NULL, true);
+    if(hRgn)
+    {
+      InvalidateRgn(hwnd, hRgn, TRUE);
+      DeleteObject(hRgn);
+    }
+    SetTitle(hwnd, false);
+  }
+  ClearPolygonList(pRegions);
+  delete pRegions;
   return 0;
 }
 
