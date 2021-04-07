@@ -4263,7 +4263,7 @@ LRESULT CMainWnd::Edit1Cmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl)
         WideCharToMultiByte(CP_UTF8, 0, wBuf, -1, sBuf, 64, NULL, NULL);
         m_iRestrictSet = ParseInputString(sBuf, m_pFileSetupDlg->GetUnitList(), &m_dRestrictValue);
 
-        WMMouseMove(hwnd, 0, m_cLastMovePt.x, m_cLastMovePt.y);
+        WMMouseMove(hwnd, 0, m_cLastSnapPt.x, m_cLastSnapPt.y);
 
         if((m_iToolMode == tolMove) && !m_cMeasPoint1.bIsSet && (iOldRest != m_iRestrictSet))
         {

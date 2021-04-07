@@ -82,7 +82,7 @@ bool AddCirclePoint(double x, double y, char iCtrl, PDPointList pPoints, PDLine 
 
   if(iCtrl > 1)
   {
-    CDPoint cOrig;
+    /*CDPoint cOrig;
     double dRad;
     if(!GetCircOrigAndRad(NULL, pPoints, pLines, &cOrig, &dRad)) return false;
     if(dRad < g_dPrec) return false;
@@ -99,7 +99,9 @@ bool AddCirclePoint(double x, double y, char iCtrl, PDPointList pPoints, PDLine 
       cDir = cInPt1.cPoint - cOrig;
       cPt1 = cOrig + dNewRad*cDir/dRad;
       pPoints->SetPoint(i, 0, cPt1.x, cPt1.y, 0);
-    }
+    }*/
+printf("%d\n", iCtrl);
+    pPoints->AddPoint(x, y, iCtrl);
     return true;
   }
 
@@ -143,15 +145,13 @@ bool AddCirclePoint(double x, double y, char iCtrl, PDPointList pPoints, PDLine 
   return bRes;
 }
 
-bool BuildCircCache(CDLine cTmpPt, int iMode, PDPointList pPoints, PDPointList pCache,
-  PDLine pLines, double *pdMovedDist)
+bool BuildCircCache(CDLine cTmpPt, int iMode, PDPointList pPoints, PDPointList pCache, PDLine pLines)
 {
   pCache->ClearAll();
 
   bool bFound = false;
   CDPoint cOrig;
   double dRad;
-  double dOffs = 0.0;
 
   if(iMode == 1)
     bFound = GetCircOrigAndRad(&cTmpPt.cOrigin, pPoints, pLines, &cOrig, &dRad);
@@ -159,46 +159,13 @@ bool BuildCircCache(CDLine cTmpPt, int iMode, PDPointList pPoints, PDPointList p
 
   if(!bFound) return false;
 
-  if(iMode == 2)
-  {
-    if(cTmpPt.cDirection.x > 0.5) dOffs = cTmpPt.cDirection.y;
-    else
-    {
-      dOffs = GetDist(cTmpPt.cOrigin, cOrig);
-      if(cTmpPt.cDirection.x < -0.5)
-      {
-        dOffs += dRad;
-        dOffs *= -1.0;
-      }
-      else dOffs -= dRad;
-    }
-    *pdMovedDist = dOffs;
-  }
-
   pCache->AddPoint(cOrig.x, cOrig.y, 0);
   pCache->AddPoint(dRad, dRad, 0);
-
-  if(fabs(dOffs) > g_dPrec) pCache->AddPoint(dOffs, 0, 2);
   return true;
 }
 
-void UpdateCircleCache(PDPointList pPoints, PDPointList pCache)
+void UpdateCircleCache(PDPointList pCache)
 {
-  if(pCache->GetCount(0) < 2) return;
-  if(pCache->GetCount(2) > 0)
-  {
-    CDPoint cOrig = pCache->GetPoint(0, 0).cPoint;
-    CDPoint cRad = pCache->GetPoint(1, 0).cPoint;
-    CDPoint cDist = pCache->GetPoint(0, 2).cPoint;
-    double dDist = cDist.x + cRad.x;
-    pCache->SetPoint(1, 0, dDist, dDist, 0);
-
-    pPoints->ClearAll();
-    pPoints->AddPoint(cOrig.x, cOrig.y, 1);
-    pPoints->AddPoint(cOrig.x + dDist, cOrig.y, 0);
-
-    pCache->Remove(0, 2);
-  }
 }
 
 int AddCircleInterLine(CDPoint cPt1, CDPoint cPt2, double dOffset, PDPointList pCache, PDRefList pBounds)
@@ -309,10 +276,10 @@ double GetCircDistFromPt(CDPoint cPt, CDPoint cRefPt, bool bSnapCenters, PDPoint
 
   CDPoint cPt1, cPt2;
 
-  double dr = fabs(cRad.x);
-  double dRes = dr2 - dr;
+  //double dr = fabs(cRad.x);
+  double dRes = dr2 - cRad.x;
 
-  if(dr < g_dPrec)
+  if(fabs(dr2) < g_dPrec)
   {
     pPtX->bIsSet = true;
     pPtX->cOrigin = cOrig;
@@ -386,6 +353,11 @@ bool GetCircleRestrictPoint(CDPoint cPt, int iMode, double dRestrictValue, PDPoi
     if(iCnt < 2) return false;
     CDPoint cRad = pCache->GetPoint(1, 0).cPoint;
     dRad += cRad.x;
+
+    double dDist = 0.0;
+    int nOffs = pCache->GetCount(2);
+    if(nOffs > 0) dDist = pCache->GetPoint(0, 2).cPoint.y;
+    dRad += dDist;
   }
 
   if(pLines[0].bIsSet && (iMode != 2))
@@ -463,8 +435,8 @@ bool GetCircleRestrictPoint(CDPoint cPt, int iMode, double dRestrictValue, PDPoi
 
   if(dNorm < g_dPrec)
   {
-    pSnapPt->x = dRad;
-    pSnapPt->y = 0.0;
+    pSnapPt->x = cOrig.x + dRad;
+    pSnapPt->y = cOrig.y;
     return true;
   }
 

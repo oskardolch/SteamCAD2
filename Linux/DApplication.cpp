@@ -4263,8 +4263,8 @@ void CDApplication::Edit1Changed(GtkEntry *entry)
   GdkEventMotion event;
   GtkWidget *draw = GetDrawing();
   event.window = draw->window;
-  event.x = m_cLastMovePt.x;
-  event.y = m_cLastMovePt.y;
+  event.x = m_cLastSnapPt.x;
+  event.y = m_cLastSnapPt.y;
   event.state = 0;
   MouseMove(draw, &event, TRUE);
 

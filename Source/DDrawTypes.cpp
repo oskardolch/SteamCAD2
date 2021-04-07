@@ -394,7 +394,7 @@ bool CDObject::AddPoint(double x, double y, char iCtrl, double dRestrictVal)
     else if(nOffs4 > 0) m_pInputPoints->SetPoint(0, 4, cNewPt.x, cNewPt.y, iCtrl);
     else m_pInputPoints->AddPoint(cNewPt.x, cNewPt.y, iCtrl);
 
-    if(bUpdateLine && (m_iType <= dtCircle))
+    if(bUpdateLine && (m_iType < dtCircle))
     {
       CDLine cTmpPt;
       cTmpPt.bIsSet = true;
@@ -603,7 +603,7 @@ double CDObject::GetMovedDist(CDLine cTmpPt, int iMode)
     if(iMode == 0) UpdateLineCache(cTmpPt, m_pInputPoints, m_pCachePoints);
     break;
   case dtCircle:
-    if(iMode == 0) UpdateCircleCache(m_pInputPoints, m_pCachePoints);
+    UpdateCircleCache(m_pCachePoints);
     break;
   case dtEllipse:
     UpdateEllipseCache(m_pCachePoints);
@@ -634,7 +634,8 @@ bool CDObject::BuildCache(CDLine cTmpPt, int iMode)
   case dtLine:
     return BuildLineCache(cTmpPt, iMode, m_pInputPoints, m_pCachePoints, &m_dMovedDist);
   case dtCircle:
-    return BuildCircCache(cTmpPt, iMode, m_pInputPoints, m_pCachePoints, m_cLines, &m_dMovedDist);
+    bRes = BuildCircCache(cTmpPt, iMode, m_pInputPoints, m_pCachePoints, m_cLines);
+    break;
   case dtEllipse:
     bRes = BuildEllipseCache(cTmpPt, iMode, m_pInputPoints, m_pCachePoints, m_cLines);
     break;
@@ -1283,7 +1284,7 @@ int CDObject::GetSimpleViewBounds(CDLine cTmpPt, int iMode, double dOffset, doub
   if(iMode == 1) BuildCache(cTmpPt, iMode);
   else if(iMode == 2)
   {
-    if(m_iType > dtCircle)
+    if(m_iType > dtLine)
       m_dMovedDist = GetMovedDist(cTmpPt, iMode);
     else BuildCache(cTmpPt, iMode);
   }
@@ -3347,7 +3348,7 @@ double CDObject::GetDistFromPt(CDPoint cPt, CDPoint cRefPt, int iSearchMask, PDL
     break;
   case dtLogSpiral:
   case dtArchSpiral:
-  break;
+    break;
   case dtPath:
     dRes = GetPathDistFromPt(cPt, cRefPt, iSearchMask & 1, &cPtX);
     break;
@@ -4600,9 +4601,8 @@ void CDObject::BuildRound(CDObject *pObj1, CDObject *pObj2, CDPoint cPt, bool bR
     m_pInputPoints->AddPoint(cX.x, cX.y, 1);
     m_pInputPoints->AddPoint(cX.x + dr, cX.y, 0);
 
-    double dDist;
     CDLine cPtX;
-    BuildCircCache(cPtX, 0, m_pInputPoints, m_pCachePoints, m_cLines, &dDist);
+    BuildCircCache(cPtX, 0, m_pInputPoints, m_pCachePoints, m_cLines);
 
     cPt2 = cPtX1.cOrigin;
     GetCircDistFromPt(cPt2, cPt2, false, m_pCachePoints, &cPtX1);
