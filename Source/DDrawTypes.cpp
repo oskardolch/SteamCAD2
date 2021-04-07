@@ -387,6 +387,10 @@ bool CDObject::AddPoint(double x, double y, char iCtrl, double dRestrictVal)
     {
       cNewPt.x = dRestrictVal;
       cNewPt.y = 0.0;
+      if(!bUpdateLine && (nOffs4 > 0))
+      {
+        cNewPt.x += m_pInputPoints->GetPoint(0, 2).cPoint.x;
+      }
     }
 
     if(nOffs2 > 0) m_pInputPoints->SetPoint(0, 2, cNewPt.x, cNewPt.y, iCtrl);
