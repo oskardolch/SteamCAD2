@@ -208,11 +208,14 @@ public:
   bool GetStartPoint(PDPoint pPt, double dOffset);
   bool GetEndPoint(PDPoint pPt, double dOffset);
   void BuildPath(CDObject **ppObjects, PDIntList pPath);
-  int GetSubObjectCount();
+  int GetSubObjectCount(bool bCountSubObjects);
   // returns: 0 - no snap point, 1 - on the curve, 2 - on the edge, 3 - on the cross point, 4 - on self intersection,
   // 5 - on a control point
   // pSnapPt must be array of two
   int GetSnapPoint(int iSnapMask, CDPoint cPt, double dDist, PDLine pSnapPt, CDObject* pDynObj, bool bHonorSnapTo);
+  double GetCircleRadius();
+  CDObject* GetPathObject(int iIndex);
+  void ClearPath(bool bFreeSubObjects);
 } *PDObject;
 
 typedef class CDataList

@@ -126,7 +126,7 @@ void CreatePathMenu(void *pPtr, GtkMenuShell *pMenuBar, GtkAccelGroup *pAccel)
   gtk_menu_shell_append(GTK_MENU_SHELL(menu), menu_item);
 
   pClos = g_cclosure_new_swap(G_CALLBACK(path_create_accel), pApp, NULL);
-  gtk_accel_group_connect(pAccel, GDK_P, GDK_MOD1_MASK, GTK_ACCEL_MASK, pClos);
+  gtk_accel_group_connect(pAccel, GDK_H, GDK_MOD1_MASK, GTK_ACCEL_MASK, pClos);
   menu_label = gtk_bin_get_child(GTK_BIN(menu_item));
   gtk_accel_label_set_accel_closure(GTK_ACCEL_LABEL(menu_label), pClos);
   g_signal_connect_swapped(G_OBJECT(menu_item), "activate", G_CALLBACK(path_create_click), pApp);
