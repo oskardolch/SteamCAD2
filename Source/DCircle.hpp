@@ -5,7 +5,6 @@
 
 bool AddCirclePoint(double x, double y, char iCtrl, PDPointList pPoints, PDLine pLines);
 bool BuildCircCache(CDLine cTmpPt, int iMode, PDPointList pPoints, PDPointList pCache, PDLine pLines);
-void UpdateCircleCache(PDPointList pCache);
 int AddCircleInterLine(CDPoint cPt1, CDPoint cPt2, double dOffset, PDPointList pCache, PDRefList pBounds);
 double GetCircDistFromPt(CDPoint cPt, CDPoint cRefPt, bool bSnapCenters, PDPointList pCache, PDLine pPtX);
 bool HasCircEnoughPoints(PDPointList pPoints, int iInputLines);

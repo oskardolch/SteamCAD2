@@ -602,9 +602,6 @@ double CDObject::GetMovedDist(CDLine cTmpPt, int iMode)
   case dtLine:
     if(iMode == 0) UpdateLineCache(cTmpPt, m_pInputPoints, m_pCachePoints);
     break;
-  case dtCircle:
-    UpdateCircleCache(m_pCachePoints);
-    break;
   case dtEllipse:
     UpdateEllipseCache(m_pCachePoints);
     break;
@@ -3308,7 +3305,7 @@ double CDObject::GetPathDistFromPt(CDPoint cPt, CDPoint cRefPt, bool bSnapCenter
 
 double CDObject::GetOffset()
 {
-  if(m_iType < dtEllipse) return 0.0;
+  if(m_iType < dtCircle) return 0.0;
 
   int nOffs = m_pCachePoints->GetCount(2);
   if(nOffs < 1) return 0.0;
