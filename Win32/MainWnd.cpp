@@ -1172,7 +1172,7 @@ bool CMainWnd::LoadFile(HWND hWnd, LPWSTR wsFile, bool bClear)
             rc.top += m_iToolBarHeight;
             rc.bottom -= m_iStatusHeight;
 
-            InvalidateRect(hWnd, &rc, TRUE);
+            InvalidateRect(hWnd, &rc, FALSE);
             SetTitle(hWnd, true);
           }
           bRes = bRead;
@@ -1204,7 +1204,7 @@ LRESULT CMainWnd::FileNewCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl)
   FilePropsToData(&cFAttrs);
   m_pDrawObjects->SetFileAttrs(&cFAttrs, true);
 
-  InvalidateRect(hwnd, NULL, true);
+  InvalidateRect(hwnd, NULL, FALSE);
   SetTitle(hwnd, true);
   return 0;
 }
@@ -1420,7 +1420,7 @@ LRESULT CMainWnd::FilePropsCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl)
     cdr.cPt2.y = (rc.bottom - m_cViewOrigin.y)/m_dUnitScale;
 
     m_pDrawObjects->BuildAllPrimitives(&cdr);
-    InvalidateRect(hwnd, &rc, TRUE);
+    InvalidateRect(hwnd, &rc, FALSE);
     SetTitle(hwnd, false);
   }
   return 0;
@@ -1619,7 +1619,7 @@ LRESULT CMainWnd::EditDeleteCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl)
 
   if(m_pDrawObjects->DeleteSelected(m_pUndoObjects, &cdr))
   {
-    InvalidateRect(hwnd, NULL, true);
+    InvalidateRect(hwnd, NULL, FALSE);
     SetTitle(hwnd, false);
   }
 
@@ -1777,7 +1777,7 @@ LRESULT CMainWnd::EditLineStyleCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl)
         cdr.cPt2.y = (rc.bottom - m_cViewOrigin.y)/m_dUnitScale;
 
         m_pDrawObjects->BuildAllPrimitives(&cdr);
-        InvalidateRect(hwnd, NULL, true);
+        InvalidateRect(hwnd, NULL, FALSE);
         SetTitle(hwnd, false);
       }
     }
@@ -1801,7 +1801,7 @@ LRESULT CMainWnd::EditLineStyleCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl)
         cdr.cPt2.y = (rc.bottom - m_cViewOrigin.y)/m_dUnitScale;
 
         m_pDrawObjects->BuildAllPrimitives(&cdr);
-        InvalidateRect(hwnd, NULL, true);
+        InvalidateRect(hwnd, NULL, FALSE);
         SetTitle(hwnd, false);
       }
     }
@@ -1853,7 +1853,7 @@ LRESULT CMainWnd::EditUndoCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl)
     m_pDrawObjects->SetChanged();
     SetTitle(hwnd, false);
 
-    InvalidateRect(hwnd, NULL, true);
+    InvalidateRect(hwnd, NULL, FALSE);
   }
 
   return 0;
@@ -1872,7 +1872,7 @@ LRESULT CMainWnd::EditRedoCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl)
   if(m_pDrawObjects->DeleteSelected(m_pUndoObjects, NULL))
   {
     m_iRedoCount--;
-    InvalidateRect(hwnd, NULL, true);
+    InvalidateRect(hwnd, NULL, FALSE);
     SetTitle(hwnd, false);
   }
 
@@ -1939,7 +1939,7 @@ LRESULT CMainWnd::ViewFitCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl)
     m_cViewOrigin.y = 10 + m_iToolBarHeight;
   }
 
-  InvalidateRect(hwnd, &rc, TRUE);
+  InvalidateRect(hwnd, &rc, FALSE);
   return 0;
 }
 
@@ -1961,7 +1961,7 @@ LRESULT CMainWnd::ViewActSizeCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl)
   m_cViewOrigin.x = (int)(idx - cOrigOff.x*m_dUnitScale);
   m_cViewOrigin.y = (int)(idy - cOrigOff.y*m_dUnitScale);
 
-  InvalidateRect(hwnd, &rc, TRUE);
+  InvalidateRect(hwnd, &rc, FALSE);
   return 0;
 }
 
@@ -1981,7 +1981,7 @@ LRESULT CMainWnd::ViewGridCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl, int iTy
     uiCheck |= MF_CHECKED;
   }
   CheckMenuItem(hMnu, IDM_VIEWGRIDPTS + iType - 1, uiCheck);
-  InvalidateRect(hwnd, NULL, TRUE);
+  InvalidateRect(hwnd, NULL, FALSE);
   return 0;
 }
 
@@ -2113,7 +2113,7 @@ LRESULT CMainWnd::WMMButtonUp(HWND hwnd, WPARAM fwKeys, int xPos, int yPos)
     GetClientRect(hwnd, &rc);
     rc.top += m_iToolBarHeight;
     rc.bottom -= m_iStatusHeight;
-    InvalidateRect(hwnd, &rc, TRUE);
+    InvalidateRect(hwnd, &rc, FALSE);
   }
   m_iButton = 0;
   return 0;
@@ -2184,7 +2184,7 @@ LRESULT CMainWnd::WMLButtonUp(HWND hwnd, WPARAM fwKeys, int xPos, int yPos)
     case tolKnife:
       if(m_pDrawObjects->CutSelected(m_cLastDrawPt, dTol, &cdr))
       {
-        InvalidateRect(hwnd, &rc, TRUE);
+        InvalidateRect(hwnd, &rc, FALSE);
         SetTitle(hwnd, false);
       }
       break;
@@ -2386,7 +2386,7 @@ LRESULT CMainWnd::WMLButtonUp(HWND hwnd, WPARAM fwKeys, int xPos, int yPos)
     {
       if(m_pDrawObjects->AddDimen(m_pSelForDimen, m_cLastDrawPt, dTol, &cdr))
       {
-        InvalidateRect(hwnd, &rc, TRUE);
+        InvalidateRect(hwnd, &rc, FALSE);
         SetTitle(hwnd, false);
       }
     }
@@ -3786,7 +3786,7 @@ LRESULT CMainWnd::WMMouseWheel(HWND hwnd, WORD fwKeys, int zDelta, int xPos, int
     GetClientRect(hwnd, &rc);
     rc.top += m_iToolBarHeight;
     rc.bottom -= m_iStatusHeight;
-    InvalidateRect(hwnd, &rc, TRUE);
+    InvalidateRect(hwnd, &rc, FALSE);
   }
   return 0;
 }
@@ -3810,7 +3810,7 @@ LRESULT CMainWnd::WMLButtonDblClk(HWND hwnd, WPARAM fwKeys, int xPos, int yPos)
         SetTitle(hwnd, false);
         m_pActiveObject = NULL;
 
-        InvalidateRect(hwnd, &rc, TRUE);
+        InvalidateRect(hwnd, &rc, FALSE);
         StartNewObject(hwnd);
       }
     }
@@ -4186,7 +4186,7 @@ LRESULT CMainWnd::ToolsScaleCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl)
             WideCharToMultiByte(CP_UTF8, 0, cSR.wsAngMask, -1, sMaskBuf, 64, NULL, NULL);
             m_pDrawObjects->ChangeUnitMask(2, sMaskBuf, m_pFileSetupDlg->GetUnitList());
         }
-        if(bRedraw) InvalidateRect(hwnd, NULL, TRUE);
+        if(bRedraw) InvalidateRect(hwnd, NULL, FALSE);
     }
     return 0;
 }
@@ -4217,7 +4217,7 @@ LRESULT CMainWnd::PathCreateCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl)
 {
   if(m_pDrawObjects->CreatePath())
   {
-    InvalidateRect(hwnd, NULL, true);
+    InvalidateRect(hwnd, NULL, FALSE);
     SetTitle(hwnd, false);
   }
   return 0;
@@ -4227,7 +4227,7 @@ LRESULT CMainWnd::PathBreakCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl)
 {
   if(m_pDrawObjects->BreakSelObjects(NULL))
   {
-    InvalidateRect(hwnd, NULL, true);
+    InvalidateRect(hwnd, NULL, FALSE);
     SetTitle(hwnd, false);
   }
   return 0;
