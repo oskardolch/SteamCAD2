@@ -157,7 +157,6 @@ private:
   void DrawCross(cairo_t *cr);
 
   int GetDynMode();
-  //gboolean GetUpdateRegion(PDPtrList pPolygons, GdkRectangle *pRect);
   void DrawSizeRectClip(cairo_t *cr, double x, double y);
 
   void StartNewObject(gboolean bShowEdit);

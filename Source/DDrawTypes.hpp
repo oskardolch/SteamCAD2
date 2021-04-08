@@ -112,7 +112,6 @@ private:
   bool BoundPoint(CDPoint cRefPt, PDLine pPtX, double *pdDist);
   int AddDimenPrimitive(int iPos, PDDimension pDim, PDPrimObject pPrimitive, PDRect pRect);
   void SwapBounds();
-  //bool RemovePart(bool bDown, PDRefPoint pBounds);
   bool IsClosedPath();
   int AddSubIntersects(CDPoint cPt1, CDPoint cPt2, double dOffset, PDRefList pBounds);
   int AddLineIntersects(CDPoint cPt1, CDPoint cPt2, double dOffset, PDRefList pBounds);
@@ -126,7 +125,7 @@ private:
   void AddSimpleSegment(double dt1, double dt2, double dExt, bool bReverse, PDPrimObject pPrimList);
   void AddPathSegment(double d1, double d2, double dExt, PDPrimObject pPrimList);
   int GetPointReferences(CDPoint cPt, PDRefList pRefs);
-  CDObject* SplitByRef(double dRef); //, PDPtrList pRegions);
+  CDObject* SplitByRef(double dRef);
   double GetMovedDist(CDLine cTmpPt, int iMode);
   void AddSegmentToPath(PDPathSeg pNewSeg, bool bInsert);
   void UpdatePathCache();
@@ -151,7 +150,7 @@ public:
   bool GetBSplines(int iParts, double dScale, int *piCtrls, double **ppdKnots, PDPoint *ppPoints);
   bool IsNearPoint(CDPoint cPt, double dTolerance, int *piDimen);
   bool GetSelected();
-  void SetSelected(bool bSelect, bool bInvert, int iDimen); //, PDPtrList pRegions);
+  void SetSelected(bool bSelect, bool bInvert, int iDimen);
   int GetType();
   CDLine GetLine();
   CDLine GetCircle();
@@ -165,8 +164,8 @@ public:
   void SetLineStyle(int iMask, CDLineStyle cStyle);
   bool GetRestrictPoint(CDPoint cPt, int iMode, bool bRestrictSet, double dRestrictValue, PDPoint pSnapPt);
   CDObject* Copy();
-  bool Split(CDPoint cPt, PDPtrList pNewObjects, PDRect pRect); //, PDPtrList pRegions);
-  bool Extend(CDPoint cPt, double dDist, PDRect pRect); //, PDPtrList pRegions);
+  bool Split(CDPoint cPt, PDPtrList pNewObjects, PDRect pRect);
+  bool Extend(CDPoint cPt, double dDist, PDRect pRect);
   void SetBound(int iIndex, CDLine cBound);
   void SetBound(int iIndex, CDRefPoint cBound);
   void SaveToFile(FILE *pf, bool bSwapBytes, unsigned char cVersion);
@@ -191,12 +190,11 @@ public:
   PDDimension GetDimen(int iPos);
   int PreParseDimText(int iPos, char *sBuf, int iBufLen, double dScale, PDUnitList pUnits);
   void GetDimFontAttrs(int iPos, PDFileAttrs pAttrs);
-  bool DeleteSelDimens(PDRect pRect); //, PDPtrList pRegions);
+  bool DeleteSelDimens(PDRect pRect);
   bool GetSelectedDimen(PDDimension pDimen);
-  bool SetSelectedDimen(PDDimension pDimen); //, PDPtrList pRegions);
+  bool SetSelectedDimen(PDDimension pDimen);
   bool GetSnapTo();
   void SetSnapTo(bool bSnap);
-  //void AddRegions(PDPtrList pRegions, int iPrimType);
   int GetUnitMask(int iUnitType, char *psBuf, PDUnitList pUnits);
   bool ChangeUnitMask(int iUnitType, char *psMask, PDUnitList pUnits);
   void Rescale(double dRatio, bool bWidths, bool bPatterns, bool bArrows, bool bLabels);
@@ -239,35 +237,34 @@ public:
   void BuildAllPrimitives(PDRect pRect, bool bResolvePatterns = true);
   PDObject SelectByPoint(CDPoint cPt, double dDist, int *piDimen);
   PDObject SelectLineByPoint(CDPoint cPt, double dDist);
-  void ClearSelection(); //PDPtrList pRegions);
+  void ClearSelection();
   int GetNumOfSelectedLines();
   PDObject GetSelectedLine(int iIndex);
   int GetNumOfSelectedCircles();
   PDObject GetSelectedCircle(int iIndex);
   int GetSnapPoint(int iSnapMask, CDPoint cPt, double dDist, PDLine pSnapPt, PDObject pDynObj);
-  bool DeleteSelected(CDataList *pUndoList, PDRect pRect); //, PDPtrList pRegions);
+  bool DeleteSelected(CDataList *pUndoList, PDRect pRect);
   int GetSelectCount(unsigned char cVersion);
   PDObject GetSelected(int iIndex);
-  bool CutSelected(CDPoint cPt, double dDist, PDRect pRect); //, PDPtrList pRegions);
-  bool ExtendSelected(CDPoint cPt, double dDist, PDRect pRect); //, PDPtrList pRegions);
+  bool CutSelected(CDPoint cPt, double dDist, PDRect pRect);
+  bool ExtendSelected(CDPoint cPt, double dDist, PDRect pRect);
   void ClearAll();
   void SaveToFile(FILE *pf, bool bSwapBytes, bool bSelectOnly, unsigned char cVersion);
   bool ReadFromFile(FILE *pf, bool bSwapBytes, bool bClear);
-  void SelectByRectangle(PDRect pRect, int iMode); //, PDPtrList pRegions);
-  bool RotateSelected(CDPoint cOrig, double dRot, int iCop, PDRect pRect); //, PDPtrList pRegions);
-  bool MoveSelected(CDLine cLine, double dDist, int iCop, PDRect pRect,
-      bool bPreserveDir); //, PDPtrList pRegions);
-  bool MirrorSelected(CDLine cLine, PDRect pRect); //, PDPtrList pRegions);
+  void SelectByRectangle(PDRect pRect, int iMode);
+  bool RotateSelected(CDPoint cOrig, double dRot, int iCop, PDRect pRect);
+  bool MoveSelected(CDLine cLine, double dDist, int iCop, PDRect pRect, bool bPreserveDir);
+  bool MirrorSelected(CDLine cLine, PDRect pRect);
   int GetSelectedLineStyle(PDLineStyle pStyle);
-  bool SetSelectedLineStyle(int iMask, PDLineStyle pStyle); //, PDPtrList pRegions);
-  bool SetCrossSelected(CDPoint cPt, double dDist, PDRect pRect); //, PDPtrList pRegions);
-  bool AddDimen(PDObject pSelForDiment, CDPoint cPt, double dDist, PDRect pRect); //, PDPtrList pRegions);
+  bool SetSelectedLineStyle(int iMask, PDLineStyle pStyle);
+  bool SetCrossSelected(CDPoint cPt, double dDist, PDRect pRect);
+  bool AddDimen(PDObject pSelForDiment, CDPoint cPt, double dDist, PDRect pRect);
   bool GetChanged();
   void SetChanged();
   void SetFileAttrs(PDFileAttrs pFileAttrs, bool bNewFile);
   void GetFileAttrs(PDFileAttrs pFileAttrs);
   bool GetSelectedDimen(PDDimension pDimen);
-  bool SetSelectedDimen(PDDimension pDimen); //, PDPtrList pRegions);
+  bool SetSelectedDimen(PDDimension pDimen);
   void GetStatistics(int *piStats);
   // returns:
   // 0 - success, -1 - no mask found
@@ -277,8 +274,8 @@ public:
       bool bArrows, bool bLabels);
   bool GetSelSnapEnabled();
   void SetSelSnapEnabled(bool bEnable);
-  int CreatePath(); //PDPtrList pRegions);
-  bool BreakSelObjects(PDRect pRect); //, PDPtrList pRegions);
+  int CreatePath();
+  bool BreakSelObjects(PDRect pRect);
 } *PDataList;
 
 #endif

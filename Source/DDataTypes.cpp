@@ -656,17 +656,6 @@ void CopyDimenAttrs(PDDimension pDimDst, PDDimension pDimSrc)
   }
 }
 
-/*void ClearPolygonList(PDPtrList pPolygons)
-{
-  PDPolygon pPoly;
-  for(int i = 0; i < pPolygons->GetCount(); i++)
-  {
-    pPoly = (PDPolygon)pPolygons->GetItem(i);
-    free(pPoly->pPoints);
-    free(pPoly);
-  }
-}*/
-
 int IntersectBounds(CDPoint cBnds1, CDPoint cBnds2, int iBndMode, double dLength, PDPoint pRes)
 {
   bool b1Closed = false;

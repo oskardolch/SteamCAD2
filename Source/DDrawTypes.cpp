@@ -3047,10 +3047,9 @@ bool CDObject::GetSelected()
   return m_bSelected;
 }
 
-void CDObject::SetSelected(bool bSelect, bool bInvert, int iDimen) //, PDPtrList pRegions)
+void CDObject::SetSelected(bool bSelect, bool bInvert, int iDimen)
 {
   PDDimension pDim;
-  //bool bChanged = false;
   if(bInvert)
   {
     if(iDimen > -1)
@@ -3061,29 +3060,24 @@ void CDObject::SetSelected(bool bSelect, bool bInvert, int iDimen) //, PDPtrList
     }
     else if(m_bSelected == bSelect) m_bSelected = !bSelect;
     else m_bSelected = bSelect;
-    //bChanged = true;
   }
   else
   {
     if(iDimen > -1)
     {
       pDim = (PDDimension)m_pDimens->GetItem(iDimen);
-      //bChanged = (pDim->bSelected != bSelect);
       pDim->bSelected = bSelect;
     }
     else
     {
-      //bChanged = (m_bSelected != bSelect);
       m_bSelected = bSelect;
       for(int i = 0; i < m_pDimens->GetCount(); i++)
       {
         pDim = (PDDimension)m_pDimens->GetItem(i);
-        //bChanged |= pDim->bSelected;
         pDim->bSelected = false;
       }
     }
   }
-  //if(bChanged) AddRegions(pRegions, -1);
 }
 
 int CDObject::GetType()
@@ -3701,7 +3695,7 @@ void CDObject::SetBound(int iIndex, CDRefPoint cBound)
   }
 }
 
-PDObject CDObject::SplitByRef(double dRef) //, PDPtrList pRegions)
+PDObject CDObject::SplitByRef(double dRef)
 {
   CDRefPoint cBnd;
   cBnd.bIsSet = true;
@@ -3711,7 +3705,6 @@ PDObject CDObject::SplitByRef(double dRef) //, PDPtrList pRegions)
   if(iClosed == 2)
   {
     SetBound(0, cBnd);
-    //AddRegions(pRegions, -1);
     return NULL;
   }
 
@@ -3795,13 +3788,12 @@ PDObject CDObject::SplitByRef(double dRef) //, PDPtrList pRegions)
 
   //CDLine cPtX;
   //cPtX.bIsSet = false;
-  //AddRegions(pRegions, -1);
   //pNewObj->BuildCache(cPtX, 0);
-  pNewObj->SetSelected(true, false, -1); //, pRegions);
+  pNewObj->SetSelected(true, false, -1);
   return pNewObj;
 }
 
-bool CDObject::Split(CDPoint cPt, PDPtrList pNewObjects, PDRect pRect) //, PDPtrList pRegions)
+bool CDObject::Split(CDPoint cPt, PDPtrList pNewObjects, PDRect pRect)
 {
   // new version should be based on reference list:
   PDRefList pRefs = new CDRefList();
@@ -3815,9 +3807,9 @@ bool CDObject::Split(CDPoint cPt, PDPtrList pNewObjects, PDRect pRect) //, PDPtr
     if(pNewObj)
     {
       pNewObjects->Add(pNewObj);
-      pNewObj = pNewObj->SplitByRef(dRef); //, pRegions);
+      pNewObj = pNewObj->SplitByRef(dRef);
     }
-    else pNewObj = SplitByRef(dRef); //, pRegions);
+    else pNewObj = SplitByRef(dRef);
   }
   if(pNewObj) pNewObjects->Add(pNewObj);
   delete pRefs;
@@ -3922,16 +3914,15 @@ bool CDObject::Split(CDPoint cPt, PDPtrList pNewObjects, PDRect pRect) //, PDPtr
 
   cPtX.bIsSet = false;
   BuildPrimitives(cLn, 0, pRect, 0, NULL);
-  AddRegions(pRegions, -1);
   pNewObj->BuildCache(cPtX, 0);
   pNewObj->BuildPrimitives(cLn, 0, pRect, 0, NULL);
-  pNewObj->SetSelected(true, false, -1, pRegions);
+  pNewObj->SetSelected(true, false, -1);
 
   *ppNewObj = pNewObj;
   return true;*/
 }
 
-bool CDObject::Extend(CDPoint cPt, double dDist, PDRect pRect) //, PDPtrList pRegions)
+bool CDObject::Extend(CDPoint cPt, double dDist, PDRect pRect)
 {
   double d1;
   bool bRes = false;
@@ -3966,7 +3957,6 @@ bool CDObject::Extend(CDPoint cPt, double dDist, PDRect pRect) //, PDPtrList pRe
     CDLine cLn;
     cLn.bIsSet = false;
     BuildPrimitives(cLn, 0, pRect, 0, NULL);
-    //AddRegions(pRegions, -1);
   }
   return bRes;
 }
@@ -5520,7 +5510,7 @@ void CDObject::GetDimFontAttrs(int iPos, PDFileAttrs pAttrs)
   strcpy(pAttrs->sFontFace, pDim->psFontFace);
 }
 
-bool CDObject::DeleteSelDimens(PDRect pRect) //, PDPtrList pRegions)
+bool CDObject::DeleteSelDimens(PDRect pRect)
 {
   bool bRes = false;
   PDDimension pDim;
@@ -5534,8 +5524,6 @@ bool CDObject::DeleteSelDimens(PDRect pRect) //, PDPtrList pRegions)
       if(pDim->psLab) free(pDim->psLab);
       free(pDim);
       m_pDimens->Remove(i);
-      //AddRegions(pRegions, 9);
-      //AddRegions(pRegions, 10);
     }
   }
   if(bRes && pRect)
@@ -5562,7 +5550,7 @@ bool CDObject::GetSelectedDimen(PDDimension pDimen)
   return bFound;
 }
 
-bool CDObject::SetSelectedDimen(PDDimension pDimen) //, PDPtrList pRegions)
+bool CDObject::SetSelectedDimen(PDDimension pDimen)
 {
   bool bRes = false;
   int n = m_pDimens->GetCount();
@@ -5573,8 +5561,6 @@ bool CDObject::SetSelectedDimen(PDDimension pDimen) //, PDPtrList pRegions)
     if(pDim1->bSelected)
     {
       CopyDimenAttrs(pDim1, pDimen);
-      //AddRegions(pRegions, 9);
-      //AddRegions(pRegions, 10);
       bRes = true;
     }
   }
@@ -5590,53 +5576,6 @@ void CDObject::SetSnapTo(bool bSnap)
 {
   m_bSnapTo = bSnap;
 }
-
-/*void CDObject::AddRegions(PDPtrList pRegions, int iPrimType)
-{
-  PDPoint pPts1, pPts2;
-  CDPoint cDim;
-  int i1, i2;
-  CDPrimitive cPrim;
-  PDPolygon pPoly;
-  double dScale = pRegions->GetDblVal();
-  double dLWidth = fabs(m_cLineStyle.dWidth);
-  if(dLWidth < 1.0) dLWidth = 1.0;
-
-  for(int i = 0; i < m_pPrimitive->GetCount(); i++)
-  {
-    cPrim = m_pPrimitive->GetPrimitive(i);
-    if((iPrimType < 0) || (iPrimType == cPrim.iType))
-    {
-      cDim = GetPrimRegion(cPrim, dLWidth, dScale, NULL, NULL);
-      i1 = cDim.x;
-      i2 = cDim.y;
-      pPts1 = NULL;
-      pPts2 = NULL;
-      if(i1 > 0) pPts1 = (PDPoint)malloc(i1*sizeof(CDPoint));
-      if(i2 > 0) pPts2 = (PDPoint)malloc(i2*sizeof(CDPoint));
-
-      cDim = GetPrimRegion(cPrim, dLWidth, dScale, pPts1, pPts2);
-      i1 = cDim.x;
-      i2 = cDim.y;
-      if(i1 > 0)
-      {
-        pPoly = (PDPolygon)malloc(sizeof(CDPolygon));
-        pPoly->iPoints = i1;
-        pPoly->pPoints = pPts1;
-        pRegions->Add(pPoly);
-      }
-      else if(pPts1) free(pPts1);
-      if(i2 > 0)
-      {
-        pPoly = (PDPolygon)malloc(sizeof(CDPolygon));
-        pPoly->iPoints = i2;
-        pPoly->pPoints = pPts2;
-        pRegions->Add(pPoly);
-      }
-      else if(pPts2) free(pPts2);
-    }
-  }
-}*/
 
 void CDObject::SetAuxInt(int iVal)
 {
@@ -6174,11 +6113,11 @@ PDObject CDataList::SelectLineByPoint(CDPoint cPt, double dDist)
   return bFound ? pObj : NULL;
 }
 
-void CDataList::ClearSelection() //PDPtrList pRegions)
+void CDataList::ClearSelection()
 {
   for(int i = 0; i < m_iDataLen; i++)
   {
-    m_ppObjects[i]->SetSelected(false, false, -1); //, pRegions);
+    m_ppObjects[i]->SetSelected(false, false, -1);
   }
 }
 
@@ -6239,7 +6178,7 @@ int CDataList::GetSnapPoint(int iSnapMask, CDPoint cPt, double dDist, PDLine pSn
   return GetSnapPointFromList(iSnapMask, cPt, dDist, pSnapPt, pDynObj, m_ppObjects, m_iDataLen, true);
 }
 
-bool CDataList::DeleteSelected(CDataList *pUndoList, PDRect pRect) //, PDPtrList pRegions)
+bool CDataList::DeleteSelected(CDataList *pUndoList, PDRect pRect)
 {
   bool bRes = false;
   PDObject pObj;
@@ -6248,7 +6187,6 @@ bool CDataList::DeleteSelected(CDataList *pUndoList, PDRect pRect) //, PDPtrList
     pObj = m_ppObjects[i];
     if(pObj->GetSelected())
     {
-      //pObj->AddRegions(pRegions, -1);
       bRes = true;
       pUndoList->Add(pObj);
       m_iDataLen--;
@@ -6257,7 +6195,7 @@ bool CDataList::DeleteSelected(CDataList *pUndoList, PDRect pRect) //, PDPtrList
         memmove(&m_ppObjects[i], &m_ppObjects[i + 1], (m_iDataLen - i)*sizeof(PDObject));
       }
     }
-    else bRes |= pObj->DeleteSelDimens(pRect); //, pRegions);
+    else bRes |= pObj->DeleteSelDimens(pRect);
   }
   if(bRes) m_bHasChanged = true;
   return bRes;
@@ -6298,7 +6236,7 @@ PDObject CDataList::GetSelected(int iIndex)
   return iIndex < 0 ? pObj : NULL;
 }
 
-bool CDataList::CutSelected(CDPoint cPt, double dDist, PDRect pRect) //, PDPtrList pRegions)
+bool CDataList::CutSelected(CDPoint cPt, double dDist, PDRect pRect)
 {
   bool bRes = false;
   PDObject pObj, pObjNew = NULL;
@@ -6310,7 +6248,7 @@ bool CDataList::CutSelected(CDPoint cPt, double dDist, PDRect pRect) //, PDPtrLi
     if(pObj->GetSelected())
     {
       pNewObjs->Clear();
-      if(pObj->Split(cPt, pNewObjs, pRect)) //, pRegions))
+      if(pObj->Split(cPt, pNewObjs, pRect))
       {
         bRes = true;
         for(int i = 0; i < pNewObjs->GetCount(); i++)
@@ -6326,7 +6264,7 @@ bool CDataList::CutSelected(CDPoint cPt, double dDist, PDRect pRect) //, PDPtrLi
   return bRes;
 }
 
-bool CDataList::ExtendSelected(CDPoint cPt, double dDist, PDRect pRect) //, PDPtrList pRegions)
+bool CDataList::ExtendSelected(CDPoint cPt, double dDist, PDRect pRect)
 {
   bool bRes = false;
   PDObject pObj;
@@ -6335,7 +6273,7 @@ bool CDataList::ExtendSelected(CDPoint cPt, double dDist, PDRect pRect) //, PDPt
     pObj = m_ppObjects[i];
     if(pObj->GetSelected())
     {
-      bRes |= pObj->Extend(cPt, dDist, pRect); //, pRegions);
+      bRes |= pObj->Extend(cPt, dDist, pRect);
     }
   }
   if(bRes) m_bHasChanged = true;
@@ -6482,7 +6420,7 @@ bool CDataList::ReadFromFile(FILE *pf, bool bSwapBytes, bool bClear)
   return true;
 }
 
-void CDataList::SelectByRectangle(PDRect pRect, int iMode) //, PDPtrList pRegions)
+void CDataList::SelectByRectangle(PDRect pRect, int iMode)
 {
   double x;
   if(pRect->cPt1.x > pRect->cPt2.x)
@@ -6510,27 +6448,12 @@ void CDataList::SelectByRectangle(PDRect pRect, int iMode) //, PDPtrList pRegion
     //k = pObj->BuildPrimitives(cLn, 0, pRect, 2, NULL);
     pBounds->Clear();
     k = pObj->GetViewBounds(cLn, 0, pRect, pBounds, &cBnds, true);
-    if(k == iMode) pObj->SetSelected(true, false, -1); //, pRegions);
+    if(k == iMode) pObj->SetSelected(true, false, -1);
   }
   delete pBounds;
-
-  /*PDPoint pPts = (PDPoint)malloc(4*sizeof(CDPoint));
-  pPts[0].x = pRect->cPt1.x - 1.0;
-  pPts[0].y = pRect->cPt1.y - 1.0;
-  pPts[1].x = pRect->cPt2.x + 1.0;
-  pPts[1].y = pRect->cPt1.y - 1.0;
-  pPts[2].x = pRect->cPt2.x + 1.0;
-  pPts[2].y = pRect->cPt2.y + 1.0;
-  pPts[3].x = pRect->cPt1.x - 1.0;
-  pPts[3].y = pRect->cPt2.y + 1.0;
-
-  PDPolygon pPoly = (PDPolygon)malloc(sizeof(CDPolygon));
-  pPoly->iPoints = 4;
-  pPoly->pPoints = pPts;
-  pRegions->Add(pPoly);*/
 }
 
-bool CDataList::RotateSelected(CDPoint cOrig, double dRot, int iCop, PDRect pRect) //, PDPtrList pRegions)
+bool CDataList::RotateSelected(CDPoint cOrig, double dRot, int iCop, PDRect pRect)
 {
   bool bRes = false;
   double dRotStep = dRot;
@@ -6553,10 +6476,8 @@ bool CDataList::RotateSelected(CDPoint cOrig, double dRot, int iCop, PDRect pRec
       bRes = true;
       if(iCop < 1)
       {
-        //pObj->AddRegions(pRegions, -1);
         pObj->RotatePoints(cOrig, dRot, 2);
         pObj->BuildPrimitives(cLn, 0, pRect, 0, NULL);
-        //pObj->AddRegions(pRegions, -1);
       }
       else
       {
@@ -6565,13 +6486,12 @@ bool CDataList::RotateSelected(CDPoint cOrig, double dRot, int iCop, PDRect pRec
           pObj1 = pObj->Copy();
           pObj1->RotatePoints(cOrig, (j + 1)*dRotStep, 0);
           pObj1->BuildPrimitives(cLn, 0, pRect, 0, NULL);
-          //pObj1->AddRegions(pRegions, -1);
           Add(pObj1);
         }
         if(iCop == 1)
         {
-          pObj->SetSelected(false, false, -1); //, pRegions);
-          pObj1->SetSelected(true, false, -1); //, pRegions);
+          pObj->SetSelected(false, false, -1);
+          pObj1->SetSelected(true, false, -1);
         }
       }
     }
@@ -6579,10 +6499,8 @@ bool CDataList::RotateSelected(CDPoint cOrig, double dRot, int iCop, PDRect pRec
     {
       if(pObj->RotatePoints(cOrig, dRot, 1))
       {
-        //pObj->AddRegions(pRegions, -1);
         bRes = true;
         pObj->BuildPrimitives(cLn, 0, pRect, 0, NULL);
-        //pObj->AddRegions(pRegions, -1);
       }
     }
   }
@@ -6590,8 +6508,7 @@ bool CDataList::RotateSelected(CDPoint cOrig, double dRot, int iCop, PDRect pRec
   return bRes;
 }
 
-bool CDataList::MoveSelected(CDLine cLine, double dDist, int iCop, PDRect pRect,
-  bool bPreserveDir) //, PDPtrList pRegions)
+bool CDataList::MoveSelected(CDLine cLine, double dDist, int iCop, PDRect pRect, bool bPreserveDir)
 {
   bool bRes = false;
   double dDistStep = dDist;
@@ -6616,10 +6533,8 @@ bool CDataList::MoveSelected(CDLine cLine, double dDist, int iCop, PDRect pRect,
       bRes = true;
       if(iCop < 1)
       {
-        //pObj->AddRegions(pRegions, -1);
         pObj->MovePoints(cDir, dDist, 2);
         pObj->BuildPrimitives(cLn, 0, pRect, 0, NULL);
-        //pObj->AddRegions(pRegions, -1);
       }
       else
       {
@@ -6628,13 +6543,12 @@ bool CDataList::MoveSelected(CDLine cLine, double dDist, int iCop, PDRect pRect,
           pObj1 = pObj->Copy();
           pObj1->MovePoints(cDir, (j + 1)*dDistStep, 0);
           pObj1->BuildPrimitives(cLn, 0, pRect, 0, NULL);
-          //pObj1->AddRegions(pRegions, -1);
           Add(pObj1);
         }
         if(iCop == 1)
         {
-          pObj->SetSelected(false, false, -1); //, pRegions);
-          pObj1->SetSelected(true, false, -1); //, pRegions);
+          pObj->SetSelected(false, false, -1);
+          pObj1->SetSelected(true, false, -1);
         }
       }
     }
@@ -6642,10 +6556,8 @@ bool CDataList::MoveSelected(CDLine cLine, double dDist, int iCop, PDRect pRect,
     {
       if(pObj->MovePoints(cDir, dDist, 1))
       {
-        //pObj->AddRegions(pRegions, -1);
         bRes = true;
         pObj->BuildPrimitives(cLn, 0, pRect, 0, NULL);
-        //pObj->AddRegions(pRegions, -1);
       }
     }
   }
@@ -6653,7 +6565,7 @@ bool CDataList::MoveSelected(CDLine cLine, double dDist, int iCop, PDRect pRect,
   return bRes;
 }
 
-bool CDataList::MirrorSelected(CDLine cLine, PDRect pRect) //, PDPtrList pRegions)
+bool CDataList::MirrorSelected(CDLine cLine, PDRect pRect)
 {
   bool bRes = false;
 
@@ -6666,12 +6578,10 @@ bool CDataList::MirrorSelected(CDLine cLine, PDRect pRect) //, PDPtrList pRegion
     pObj = m_ppObjects[i];
     if(pObj->GetSelected())
     {
-      //pObj->AddRegions(pRegions, -1);
       bRes = true;
       pObj1 = pObj->Copy();
       pObj1->MirrorPoints(cLine);
       pObj1->BuildPrimitives(cLn, 0, pRect, 0, NULL);
-      //pObj1->AddRegions(pRegions, -1);
       Add(pObj1);
     }
   }
@@ -6729,7 +6639,7 @@ int CDataList::GetSelectedLineStyle(PDLineStyle pStyle)
   return iRes;
 }
 
-bool CDataList::SetSelectedLineStyle(int iMask, PDLineStyle pStyle) //, PDPtrList pRegions)
+bool CDataList::SetSelectedLineStyle(int iMask, PDLineStyle pStyle)
 {
   bool bRes = false;
   PDObject pObj;
@@ -6740,14 +6650,13 @@ bool CDataList::SetSelectedLineStyle(int iMask, PDLineStyle pStyle) //, PDPtrLis
     {
       bRes = true;
       pObj->SetLineStyle(iMask, *pStyle);
-      //pObj->AddRegions(pRegions, -1);
       m_bHasChanged = true;
     }
   }
   return bRes;
 }
 
-bool CDataList::SetCrossSelected(CDPoint cPt, double dDist, PDRect pRect) //, PDPtrList pRegions)
+bool CDataList::SetCrossSelected(CDPoint cPt, double dDist, PDRect pRect)
 {
   bool bRes = false;
   PDObject pObj;
@@ -6762,7 +6671,6 @@ bool CDataList::SetCrossSelected(CDPoint cPt, double dDist, PDRect pRect) //, PD
       {
         bRes = true;
         pObj->BuildPrimitives(cLn, 0, pRect, 0, NULL);
-        //pObj->AddRegions(pRegions, -1);
       }
     }
   }
@@ -6770,16 +6678,12 @@ bool CDataList::SetCrossSelected(CDPoint cPt, double dDist, PDRect pRect) //, PD
   return bRes;
 }
 
-bool CDataList::AddDimen(PDObject pSelForDiment, CDPoint cPt, double dDist, PDRect pRect) //, PDPtrList pRegions)
+bool CDataList::AddDimen(PDObject pSelForDiment, CDPoint cPt, double dDist, PDRect pRect)
 {
     if(!pSelForDiment) return false;
 
     bool bRes = pSelForDiment->AddDimen(cPt, dDist, pRect, &m_cFileAttrs);
-    if(bRes)
-    {
-        m_bHasChanged = true;
-        //pSelForDiment->AddRegions(pRegions, -1);
-    }
+    if(bRes) m_bHasChanged = true;
     return bRes;
 }
 
@@ -6837,14 +6741,14 @@ bool CDataList::GetSelectedDimen(PDDimension pDimen)
   return bFound;
 }
 
-bool CDataList::SetSelectedDimen(PDDimension pDimen) //, PDPtrList pRegions)
+bool CDataList::SetSelectedDimen(PDDimension pDimen)
 {
   bool bRes = false;
   PDObject pObj;
   for(int i = 0; i < m_iDataLen; i++)
   {
     pObj = m_ppObjects[i];
-    bRes |= pObj->SetSelectedDimen(pDimen); //, pRegions);
+    bRes |= pObj->SetSelectedDimen(pDimen);
   }
   if(bRes) m_bHasChanged = true;
   return bRes;
@@ -7091,7 +6995,7 @@ bool CDataList::BuildPaths(PDIntList pSelObjs, PDPtrList pPaths)
   return pPaths->GetCount() > 0;
 }
 
-int CDataList::CreatePath() //PDPtrList pRegions)
+int CDataList::CreatePath()
 {
   PDObject pObj, pNewObj;
   int n, i = m_iDataLen;
@@ -7131,7 +7035,7 @@ int CDataList::CreatePath() //PDPtrList pRegions)
       cSt = pObj->GetLineStyle();
       pNewObj = new CDObject(dtPath, cSt.dWidth);
       pNewObj->BuildPath(m_ppObjects, pPath);
-      pNewObj->SetSelected(true, false, -1); //, pRegions);
+      pNewObj->SetSelected(true, false, -1);
       Add(pNewObj);
       delete pPath;
     }
@@ -7146,7 +7050,7 @@ int CDataList::CreatePath() //PDPtrList pRegions)
   return iRes;
 }
 
-bool CDataList::BreakSelObjects(PDRect pRect) //, PDPtrList pRegions)
+bool CDataList::BreakSelObjects(PDRect pRect)
 {
   PDObject pObj, pNewObj;
   int iParts;

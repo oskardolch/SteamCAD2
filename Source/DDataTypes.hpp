@@ -146,12 +146,6 @@ typedef struct CDDimension
   bool bSelected;
 } *PDDimension;
 
-/*typedef struct CDPolygon
-{
-  int iPoints;
-  PDPoint pPoints;
-} *PDPolygon;*/
-
 typedef class CDPtrList
 {
 private:
@@ -273,7 +267,6 @@ bool Solve2ParamSystem(DFunc2D pFunc, DFunc2D pFuncDX, DFunc2D pFuncDY,
 double GetPtDistFromLineSeg(CDPoint cPt, CDPoint cLp1, CDPoint cLp2, PDLine pPtX);
 bool DPtInDRect(CDPoint cPt, PDRect pRect);
 void CopyDimenAttrs(PDDimension pDimDst, PDDimension pDimSrc);
-//void ClearPolygonList(PDPtrList pPolygons);
 // iBndMode flags: 2 - cBnds1.x is the lower bound, 4 - cBnds1.y is the upper bound,
 // 8 - curve is potentially closed, dLength is valid then
 int IntersectBounds(CDPoint cBnds1, CDPoint cBnds2, int iBndMode, double dLength, PDPoint pRes);
