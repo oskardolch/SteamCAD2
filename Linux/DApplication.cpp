@@ -2595,18 +2595,19 @@ void CDApplication::EditDeleteCmd(GtkWidget *widget, bool bFromAccel)
   cdr.cPt2.x = (iWidth - m_cViewOrigin.x)/m_dUnitScale;
   cdr.cPt2.y = (iHeight - m_cViewOrigin.y)/m_dUnitScale;
 
-  PDPtrList pRegions = new CDPtrList();
-  pRegions->SetDblVal(m_dUnitScale);
+  //PDPtrList pRegions = new CDPtrList();
+  //pRegions->SetDblVal(m_dUnitScale);
 
-  if(m_pDrawObjects->DeleteSelected(m_pUndoObjects, &cdr, pRegions))
+  if(m_pDrawObjects->DeleteSelected(m_pUndoObjects, &cdr)) //, pRegions))
   {
-    GdkRectangle cRect;
-    if(GetUpdateRegion(pRegions, &cRect)) gdk_window_invalidate_rect(draw->window, &cRect, FALSE);
+    //GdkRectangle cRect;
+    //if(GetUpdateRegion(pRegions, &cRect)) gdk_window_invalidate_rect(draw->window, &cRect, FALSE);
+    gdk_window_invalidate_rect(draw->window, NULL, FALSE);
     SetTitle(widget, false);
   }
 
-  ClearPolygonList(pRegions);
-  delete pRegions;
+  //ClearPolygonList(pRegions);
+  //delete pRegions;
   return;
 }
 
@@ -2698,14 +2699,14 @@ void CDApplication::EditLineStyleCmd(GtkWidget *widget)
   GtkWidget *draw = GetDrawing();
   //int iWidth = gdk_window_get_width(draw->window);
   //int iHeight = gdk_window_get_height(draw->window);
-  GdkRectangle cRect;
+  //GdkRectangle cRect;
   //CDRect cdr;
 
   CDLineStyleRec cLSRec;
   CDDimension cDimen;
   cDimen.psLab = NULL;
-  PDPtrList pRegions = new CDPtrList();
-  pRegions->SetDblVal(m_dUnitScale);
+  //PDPtrList pRegions = new CDPtrList();
+  //pRegions->SetDblVal(m_dUnitScale);
   int iMask = m_pDrawObjects->GetSelectedLineStyle(&cLSRec.cLineStyle);
   if(iMask > -1)
   {
@@ -2731,7 +2732,7 @@ void CDApplication::EditLineStyleCmd(GtkWidget *widget)
       if(cLSRec.bCapSet && cLSRec.bCapChanged) iMask |= 8;
       if(cLSRec.bJoinSet && cLSRec.bJoinChanged) iMask |= 16;
       if(cLSRec.bColorSet && cLSRec.bColorChanged) iMask |= 32;
-      if(m_pDrawObjects->SetSelectedLineStyle(iMask, &cLSRec.cLineStyle, pRegions))
+      if(m_pDrawObjects->SetSelectedLineStyle(iMask, &cLSRec.cLineStyle)) //, pRegions))
       {
         /*cdr.cPt1.x = -m_cViewOrigin.x/m_dUnitScale;
         cdr.cPt1.y = -m_cViewOrigin.y/m_dUnitScale;
@@ -2739,7 +2740,8 @@ void CDApplication::EditLineStyleCmd(GtkWidget *widget)
         cdr.cPt2.y = (iHeight - m_cViewOrigin.y)/m_dUnitScale;
 
         m_pDrawObjects->BuildAllPrimitives(&cdr);*/
-        if(GetUpdateRegion(pRegions, &cRect)) gdk_window_invalidate_rect(draw->window, &cRect, FALSE);
+        //if(GetUpdateRegion(pRegions, &cRect)) gdk_window_invalidate_rect(draw->window, &cRect, FALSE);
+        gdk_window_invalidate_rect(draw->window, NULL, FALSE);
         SetTitle(widget, false);
       }
     }
@@ -2748,7 +2750,7 @@ void CDApplication::EditLineStyleCmd(GtkWidget *widget)
   {
     if(m_pDimEditDlg->ShowDialog(widget, &cDimen, m_pFileSetupDlg->GetUnitList(), &m_cFSR.cGraphUnit))
     {
-      if(m_pDrawObjects->SetSelectedDimen(&cDimen, pRegions))
+      if(m_pDrawObjects->SetSelectedDimen(&cDimen)) //, pRegions))
       {
         /*cdr.cPt1.x = -m_cViewOrigin.x/m_dUnitScale;
         cdr.cPt1.y = -m_cViewOrigin.y/m_dUnitScale;
@@ -2756,14 +2758,15 @@ void CDApplication::EditLineStyleCmd(GtkWidget *widget)
         cdr.cPt2.y = (iHeight - m_cViewOrigin.y)/m_dUnitScale;
 
         m_pDrawObjects->BuildAllPrimitives(&cdr);*/
-        if(GetUpdateRegion(pRegions, &cRect)) gdk_window_invalidate_rect(draw->window, &cRect, FALSE);
+        //if(GetUpdateRegion(pRegions, &cRect)) gdk_window_invalidate_rect(draw->window, &cRect, FALSE);
+        gdk_window_invalidate_rect(draw->window, NULL, FALSE);
         SetTitle(widget, false);
       }
     }
     if(cDimen.psLab) free(cDimen.psLab);
   }
-  ClearPolygonList(pRegions);
-  delete pRegions;
+  //ClearPolygonList(pRegions);
+  //delete pRegions;
 }
 
 void CDApplication::EditToggleSnapCmd(GtkWidget *widget)
@@ -2799,26 +2802,27 @@ void CDApplication::EditUndoCmd(GtkWidget *widget)
   int iCnt = m_pUndoObjects->GetCount();
   if(iCnt < 1) return;
 
-  PDPtrList pRegions = new CDPtrList();
-  pRegions->SetDblVal(m_dUnitScale);
+  //PDPtrList pRegions = new CDPtrList();
+  //pRegions->SetDblVal(m_dUnitScale);
 
   PDObject pObj = m_pUndoObjects->GetItem(iCnt - 1);
-  m_pUndoObjects->ClearSelection(pRegions);
-  pObj->SetSelected(true, false, -1, pRegions);
+  m_pUndoObjects->ClearSelection(); //pRegions);
+  pObj->SetSelected(true, false, -1); //, pRegions);
 
-  if(m_pUndoObjects->DeleteSelected(m_pDrawObjects, NULL, pRegions))
+  if(m_pUndoObjects->DeleteSelected(m_pDrawObjects, NULL)) //, pRegions))
   {
     m_iRedoCount++;
     m_pDrawObjects->SetChanged();
     SetTitle(m_pMainWnd, false);
 
-    GdkRectangle cRect;
+    //GdkRectangle cRect;
     GtkWidget *draw = GetDrawing();
-    if(GetUpdateRegion(pRegions, &cRect)) gdk_window_invalidate_rect(draw->window, &cRect, FALSE);
+    //if(GetUpdateRegion(pRegions, &cRect)) gdk_window_invalidate_rect(draw->window, &cRect, FALSE);
+    gdk_window_invalidate_rect(draw->window, NULL, FALSE);
   }
 
-  ClearPolygonList(pRegions);
-  delete pRegions;
+  //ClearPolygonList(pRegions);
+  //delete pRegions;
   return;
 }
 
@@ -2828,26 +2832,27 @@ void CDApplication::EditRedoCmd(GtkWidget *widget)
   int iCnt = m_pDrawObjects->GetCount();
   if(iCnt < 1) return;
 
-  PDPtrList pRegions = new CDPtrList();
-  pRegions->SetDblVal(m_dUnitScale);
+  //PDPtrList pRegions = new CDPtrList();
+  //pRegions->SetDblVal(m_dUnitScale);
 
   PDObject pObj = m_pDrawObjects->GetItem(iCnt - 1);
-  m_pDrawObjects->ClearSelection(pRegions);
-  pObj->SetSelected(true, false, -1, pRegions);
+  m_pDrawObjects->ClearSelection(); //pRegions);
+  pObj->SetSelected(true, false, -1); //, pRegions);
 
-  if(m_pDrawObjects->DeleteSelected(m_pUndoObjects, NULL, pRegions))
+  if(m_pDrawObjects->DeleteSelected(m_pUndoObjects, NULL)) //, pRegions))
   {
     m_iRedoCount--;
 
-    GdkRectangle cRect;
+    //GdkRectangle cRect;
     GtkWidget *draw = GetDrawing();
-    if(GetUpdateRegion(pRegions, &cRect)) gdk_window_invalidate_rect(draw->window, &cRect, FALSE);
+    //if(GetUpdateRegion(pRegions, &cRect)) gdk_window_invalidate_rect(draw->window, &cRect, FALSE);
+    gdk_window_invalidate_rect(draw->window, NULL, FALSE);
 
     SetTitle(m_pMainWnd, false);
   }
 
-  ClearPolygonList(pRegions);
-  delete pRegions;
+  //ClearPolygonList(pRegions);
+  //delete pRegions;
   return;
 }
 
@@ -3660,7 +3665,7 @@ void CDApplication::MouseLButtonDown(GtkWidget *widget, GdkEventButton *event)
   return;
 }
 
-gboolean CDApplication::GetUpdateRegion(PDPtrList pPolygons, GdkRectangle *pRect)
+/*gboolean CDApplication::GetUpdateRegion(PDPtrList pPolygons, GdkRectangle *pRect)
 {
   int iCnt = pPolygons->GetCount();
   if(iCnt < 1) return FALSE;
@@ -3711,13 +3716,13 @@ gboolean CDApplication::GetUpdateRegion(PDPtrList pPolygons, GdkRectangle *pRect
   pRect->width -= pRect->x;
   pRect->height -= pRect->y;
 
-  /*pRect->x -= 5;
-  pRect->y -= 5;
-  pRect->width += 10;
-  pRect->height += 10;*/
+  //pRect->x -= 5;
+  //pRect->y -= 5;
+  //pRect->width += 10;
+  //pRect->height += 10;
 
   return TRUE;
-}
+}*/
 
 void CDApplication::MouseLButtonUp(GtkWidget *widget, GdkEventButton *event)
 {
@@ -3740,18 +3745,18 @@ void CDApplication::MouseLButtonUp(GtkWidget *widget, GdkEventButton *event)
   double dNorm;
   gchar *sUnit;
 
-  PDPtrList pRegions = new CDPtrList();
-  pRegions->SetDblVal(m_dUnitScale);
+  //PDPtrList pRegions = new CDPtrList();
+  //pRegions->SetDblVal(m_dUnitScale);
 
   double xPos = event->x;
   double yPos = event->y;
-  GdkRectangle cRect;
+  //GdkRectangle cRect;
 
   gboolean bUpdate = FALSE;
 
   if(m_iDrawMode + m_iToolMode < 1) // selection
   {
-    if(!(event->state & GDK_CONTROL_MASK)) m_pDrawObjects->ClearSelection(pRegions);
+    if(!(event->state & GDK_CONTROL_MASK)) m_pDrawObjects->ClearSelection(); //pRegions);
 
     if(GetPtDist(&m_cLastDownPt, xPos, yPos) > 4) // select by rectangle
     {
@@ -3760,51 +3765,55 @@ void CDApplication::MouseLButtonUp(GtkWidget *widget, GdkEventButton *event)
       cdr1.cPt1.y = (m_cLastDownPt.y - m_cViewOrigin.y)/m_dUnitScale;
       cdr1.cPt2.x = (xPos - m_cViewOrigin.x)/m_dUnitScale;
       cdr1.cPt2.y = (yPos - m_cViewOrigin.y)/m_dUnitScale;
-      m_pDrawObjects->SelectByRectangle(&cdr1, 2, pRegions);
+      m_pDrawObjects->SelectByRectangle(&cdr1, 2); //, pRegions);
     }
     else
     {
       if(m_pHighObject)
-        m_pHighObject->SetSelected(true, event->state & GDK_CONTROL_MASK, m_iHighDimen, pRegions);
+        m_pHighObject->SetSelected(true, event->state & GDK_CONTROL_MASK, m_iHighDimen); //, pRegions);
     }
 
-    if(GetUpdateRegion(pRegions, &cRect))
-      gdk_window_invalidate_rect(event->window, &cRect, FALSE);
+    //if(GetUpdateRegion(pRegions, &cRect))
+    //  gdk_window_invalidate_rect(event->window, &cRect, FALSE);
+    gdk_window_invalidate_rect(event->window, NULL, FALSE);
   }
   else if((m_iToolMode > 20) && (m_iToolMode != tolRound))
   {
     if(GetPtDist(&m_cLastDownPt, xPos, yPos) > 4)
     {
-      delete pRegions;
+      //delete pRegions;
       return;
     }
 
     switch(m_iToolMode)
     {
     case tolKnife:
-      if(m_pDrawObjects->CutSelected(m_cLastDrawPt, dTol, &cdr, pRegions))
+      if(m_pDrawObjects->CutSelected(m_cLastDrawPt, dTol, &cdr)) //, pRegions))
       {
         bUpdate = TRUE;
-        if(GetUpdateRegion(pRegions, &cRect))
-          gdk_window_invalidate_rect(event->window, &cRect, FALSE);
+        //if(GetUpdateRegion(pRegions, &cRect))
+        //  gdk_window_invalidate_rect(event->window, &cRect, FALSE);
+        gdk_window_invalidate_rect(event->window, NULL, FALSE);
         SetTitle(m_pMainWnd, false);
       }
       break;
     case tolExtend:
-      if(m_pDrawObjects->ExtendSelected(m_cLastDrawPt, dTol, &cdr, pRegions))
+      if(m_pDrawObjects->ExtendSelected(m_cLastDrawPt, dTol, &cdr)) //, pRegions))
       {
         bUpdate = TRUE;
-        if(GetUpdateRegion(pRegions, &cRect))
-          gdk_window_invalidate_rect(event->window, &cRect, FALSE);
+        //if(GetUpdateRegion(pRegions, &cRect))
+        //  gdk_window_invalidate_rect(event->window, &cRect, FALSE);
+        gdk_window_invalidate_rect(event->window, NULL, FALSE);
         SetTitle(m_pMainWnd, false);
       }
       break;
     case tolConflict:
-      if(m_pDrawObjects->SetCrossSelected(m_cLastDrawPt, dTol, &cdr, pRegions))
+      if(m_pDrawObjects->SetCrossSelected(m_cLastDrawPt, dTol, &cdr)) //, pRegions))
       {
         bUpdate = TRUE;
-        if(GetUpdateRegion(pRegions, &cRect))
-          gdk_window_invalidate_rect(event->window, &cRect, FALSE);
+        //if(GetUpdateRegion(pRegions, &cRect))
+        //  gdk_window_invalidate_rect(event->window, &cRect, FALSE);
+        gdk_window_invalidate_rect(event->window, NULL, FALSE);
         SetTitle(m_pMainWnd, false);
       }
       break;
@@ -3849,7 +3858,7 @@ void CDApplication::MouseLButtonUp(GtkWidget *widget, GdkEventButton *event)
   {
     if(GetPtDist(&m_cLastDownPt, xPos, yPos) > 4)
     {
-      delete pRegions;
+      //delete pRegions;
       return;
     }
 
@@ -3882,11 +3891,12 @@ void CDApplication::MouseLButtonUp(GtkWidget *widget, GdkEventButton *event)
         if(dNorm > g_dPrec)
         {
           cLine.cDirection = cDistPt/dNorm;
-          if(m_pDrawObjects->MoveSelected(cLine, dNorm, iCop, &cdr, true, pRegions))
+          if(m_pDrawObjects->MoveSelected(cLine, dNorm, iCop, &cdr, true)) //, pRegions))
           {
             bUpdate = TRUE;
-            if(GetUpdateRegion(pRegions, &cRect))
-              gdk_window_invalidate_rect(event->window, &cRect, FALSE);
+            //if(GetUpdateRegion(pRegions, &cRect))
+            //  gdk_window_invalidate_rect(event->window, &cRect, FALSE);
+            gdk_window_invalidate_rect(event->window, NULL, FALSE);
             SetTitle(m_pMainWnd, false);
             StartNewObject(TRUE);
           }
@@ -3904,11 +3914,12 @@ void CDApplication::MouseLButtonUp(GtkWidget *widget, GdkEventButton *event)
             cLine = pSelLine->GetLine();
             m_iToolMode = tolNone;
             if(!m_bPaperUnits) dVal *= m_dDrawScale;
-            if(m_pDrawObjects->MoveSelected(cLine, dVal, iCop, &cdr, false, pRegions))
+            if(m_pDrawObjects->MoveSelected(cLine, dVal, iCop, &cdr, false)) //, pRegions))
             {
               bUpdate = TRUE;
-              if(GetUpdateRegion(pRegions, &cRect))
-                gdk_window_invalidate_rect(event->window, &cRect, FALSE);
+              //if(GetUpdateRegion(pRegions, &cRect))
+              //  gdk_window_invalidate_rect(event->window, &cRect, FALSE);
+              gdk_window_invalidate_rect(event->window, NULL, FALSE);
               SetTitle(m_pMainWnd, false);
               StartNewObject(TRUE);
             }
@@ -3931,11 +3942,12 @@ void CDApplication::MouseLButtonUp(GtkWidget *widget, GdkEventButton *event)
         dVal *= M_PI/180.0/m_cFSR.cAngUnit.dBaseToUnit;
 
         m_iToolMode = tolNone;
-        if(m_pDrawObjects->RotateSelected(m_cLastDrawPt, -dVal, iCop, &cdr, pRegions))
+        if(m_pDrawObjects->RotateSelected(m_cLastDrawPt, -dVal, iCop, &cdr)) //, pRegions))
         {
           bUpdate = TRUE;
-          if(GetUpdateRegion(pRegions, &cRect))
-            gdk_window_invalidate_rect(event->window, &cRect, FALSE);
+          //if(GetUpdateRegion(pRegions, &cRect))
+          //  gdk_window_invalidate_rect(event->window, &cRect, FALSE);
+          gdk_window_invalidate_rect(event->window, NULL, FALSE);
           SetTitle(m_pMainWnd, false);
           StartNewObject(TRUE);
         }
@@ -3952,11 +3964,12 @@ void CDApplication::MouseLButtonUp(GtkWidget *widget, GdkEventButton *event)
           m_cMeasPoint1.bIsSet = false;
           m_cMeasPoint2.bIsSet = false;
           m_iToolMode = tolNone;
-          if(m_pDrawObjects->RotateSelected(m_cMeasPoint1.cOrigin, dVal, iCop, &cdr, pRegions))
+          if(m_pDrawObjects->RotateSelected(m_cMeasPoint1.cOrigin, dVal, iCop, &cdr)) //, pRegions))
           {
             bUpdate = TRUE;
-            if(GetUpdateRegion(pRegions, &cRect))
-              gdk_window_invalidate_rect(event->window, &cRect, FALSE);
+            //if(GetUpdateRegion(pRegions, &cRect))
+            //  gdk_window_invalidate_rect(event->window, &cRect, FALSE);
+            gdk_window_invalidate_rect(event->window, NULL, FALSE);
             SetTitle(m_pMainWnd, false);
             StartNewObject(TRUE);
           }
@@ -3984,11 +3997,12 @@ void CDApplication::MouseLButtonUp(GtkWidget *widget, GdkEventButton *event)
       {
         cLine = pSelLine->GetLine();
         m_iToolMode = tolNone;
-        if(m_pDrawObjects->MirrorSelected(cLine, &cdr, pRegions))
+        if(m_pDrawObjects->MirrorSelected(cLine, &cdr)) //, pRegions))
         {
           bUpdate = TRUE;
-          if(GetUpdateRegion(pRegions, &cRect))
-            gdk_window_invalidate_rect(event->window, &cRect, FALSE);
+          //if(GetUpdateRegion(pRegions, &cRect))
+          //  gdk_window_invalidate_rect(event->window, &cRect, FALSE);
+          gdk_window_invalidate_rect(event->window, NULL, FALSE);
           SetTitle(m_pMainWnd, false);
           StartNewObject(TRUE);
         }
@@ -3996,11 +4010,12 @@ void CDApplication::MouseLButtonUp(GtkWidget *widget, GdkEventButton *event)
     }
     else if(m_iToolMode == tolDimen)
     {
-      if(m_pDrawObjects->AddDimen(m_pSelForDimen, m_cLastDrawPt, dTol, &cdr, pRegions))
+      if(m_pDrawObjects->AddDimen(m_pSelForDimen, m_cLastDrawPt, dTol, &cdr)) //, pRegions))
       {
         bUpdate = TRUE;
-        if(GetUpdateRegion(pRegions, &cRect))
-          gdk_window_invalidate_rect(event->window, &cRect, FALSE);
+        //if(GetUpdateRegion(pRegions, &cRect))
+        //  gdk_window_invalidate_rect(event->window, &cRect, FALSE);
+        gdk_window_invalidate_rect(event->window, NULL, FALSE);
         SetTitle(m_pMainWnd, false);
       }
     }
@@ -4028,7 +4043,7 @@ void CDApplication::MouseLButtonUp(GtkWidget *widget, GdkEventButton *event)
       }
       if(m_pActiveObject->AddPoint(m_cLastDrawPt.x, m_cLastDrawPt.y, iCtrl, dOffset))
       {
-        m_pActiveObject->AddRegions(pRegions, -1);
+        //m_pActiveObject->AddRegions(pRegions, -1);
         m_pDrawObjects->Add(m_pActiveObject);
         SetTitle(m_pMainWnd, false);
         m_pActiveObject = NULL;
@@ -4038,8 +4053,9 @@ void CDApplication::MouseLButtonUp(GtkWidget *widget, GdkEventButton *event)
         SetStatusBarMsg(1, m_sStatus1Msg);
 
         bUpdate = TRUE;
-        if(GetUpdateRegion(pRegions, &cRect))
-        gdk_window_invalidate_rect(event->window, &cRect, FALSE);
+        //if(GetUpdateRegion(pRegions, &cRect))
+        //  gdk_window_invalidate_rect(event->window, &cRect, FALSE);
+        gdk_window_invalidate_rect(event->window, NULL, FALSE);
         StartNewObject(TRUE);
       }
     }
@@ -4060,8 +4076,8 @@ void CDApplication::MouseLButtonUp(GtkWidget *widget, GdkEventButton *event)
     cairo_destroy(cr);
   }
 
-  ClearPolygonList(pRegions);
-  delete pRegions;
+  //ClearPolygonList(pRegions);
+  //delete pRegions;
 
   m_cLastDynPt.bIsSet = false;
   return;
@@ -4117,12 +4133,12 @@ void CDApplication::MouseRButtonUp(GtkWidget *widget, GdkEventButton *event)
 
   m_iButton = 0;
 
-  PDPtrList pRegions = new CDPtrList();
-  pRegions->SetDblVal(m_dUnitScale);
+  //PDPtrList pRegions = new CDPtrList();
+  //pRegions->SetDblVal(m_dUnitScale);
 
   double xPos = event->x;
   double yPos = event->y;
-  GdkRectangle cRect;
+  //GdkRectangle cRect;
 
   gboolean bUpdate = FALSE;
 
@@ -4130,17 +4146,18 @@ void CDApplication::MouseRButtonUp(GtkWidget *widget, GdkEventButton *event)
   {
     if(GetPtDist(&m_cLastDownPt, xPos, yPos) > 4) // select by rectangle
     {
-      if(!(event->state & GDK_CONTROL_MASK)) m_pDrawObjects->ClearSelection(pRegions);
+      if(!(event->state & GDK_CONTROL_MASK)) m_pDrawObjects->ClearSelection(); //pRegions);
       CDRect cdr1;
       cdr1.cPt1.x = (m_cLastDownPt.x - m_cViewOrigin.x)/m_dUnitScale;
       cdr1.cPt1.y = (m_cLastDownPt.y - m_cViewOrigin.y)/m_dUnitScale;
       cdr1.cPt2.x = (xPos - m_cViewOrigin.x)/m_dUnitScale;
       cdr1.cPt2.y = (yPos - m_cViewOrigin.y)/m_dUnitScale;
-      m_pDrawObjects->SelectByRectangle(&cdr1, 1, pRegions);
+      m_pDrawObjects->SelectByRectangle(&cdr1, 1); //, pRegions);
 
       bUpdate = TRUE;
-      if(GetUpdateRegion(pRegions, &cRect))
-        gdk_window_invalidate_rect(event->window, &cRect, FALSE);
+      //if(GetUpdateRegion(pRegions, &cRect))
+      //  gdk_window_invalidate_rect(event->window, &cRect, FALSE);
+      gdk_window_invalidate_rect(event->window, NULL, FALSE);
     }
     else
     {
@@ -4160,7 +4177,7 @@ void CDApplication::MouseRButtonUp(GtkWidget *widget, GdkEventButton *event)
   {
     if(GetPtDist(&m_cLastDownPt, xPos, yPos) > 4)
     {
-      delete pRegions;
+      //delete pRegions;
       return;
     }
 
@@ -4173,7 +4190,7 @@ void CDApplication::MouseRButtonUp(GtkWidget *widget, GdkEventButton *event)
     }
     if(m_pActiveObject->AddPoint(m_cLastDrawPt.x, m_cLastDrawPt.y, 1, 0.0))
     {
-      m_pActiveObject->AddRegions(pRegions, -1);
+      //m_pActiveObject->AddRegions(pRegions, -1);
       m_pDrawObjects->Add(m_pActiveObject);
       SetTitle(m_pMainWnd, false);
       m_pActiveObject = NULL;
@@ -4183,8 +4200,9 @@ void CDApplication::MouseRButtonUp(GtkWidget *widget, GdkEventButton *event)
       SetStatusBarMsg(1, m_sStatus1Msg);
 
       bUpdate = TRUE;
-      if(GetUpdateRegion(pRegions, &cRect))
-        gdk_window_invalidate_rect(event->window, &cRect, FALSE);
+      //if(GetUpdateRegion(pRegions, &cRect))
+      //  gdk_window_invalidate_rect(event->window, &cRect, FALSE);
+      gdk_window_invalidate_rect(event->window, NULL, FALSE);
       StartNewObject(TRUE);
     }
   }
@@ -4204,8 +4222,8 @@ void CDApplication::MouseRButtonUp(GtkWidget *widget, GdkEventButton *event)
     cairo_destroy(cr);
   }
 
-  ClearPolygonList(pRegions);
-  delete pRegions;
+  //ClearPolygonList(pRegions);
+  //delete pRegions;
 
   m_cLastDynPt.bIsSet = false;
   return;
@@ -4219,20 +4237,21 @@ void CDApplication::MouseLDblClick(GtkWidget *widget, GdkEventButton *event)
     {
       if(m_pActiveObject->HasEnoughPoints())
       {
-        GdkRectangle cRect;
-        PDPtrList pRegions = new CDPtrList();
-        pRegions->SetDblVal(m_dUnitScale);
+        //GdkRectangle cRect;
+        //PDPtrList pRegions = new CDPtrList();
+        //pRegions->SetDblVal(m_dUnitScale);
 
-        m_pActiveObject->AddRegions(pRegions, -1);
+        //m_pActiveObject->AddRegions(pRegions, -1);
         m_pDrawObjects->Add(m_pActiveObject);
         SetTitle(m_pMainWnd, false);
         m_pActiveObject = NULL;
 
-        if(GetUpdateRegion(pRegions, &cRect))
-          gdk_window_invalidate_rect(event->window, &cRect, FALSE);
+        //if(GetUpdateRegion(pRegions, &cRect))
+        //  gdk_window_invalidate_rect(event->window, &cRect, FALSE);
+        gdk_window_invalidate_rect(event->window, NULL, FALSE);
 
-        ClearPolygonList(pRegions);
-        delete pRegions;
+        //ClearPolygonList(pRegions);
+        //delete pRegions;
         StartNewObject(TRUE);
       }
     }
@@ -4340,15 +4359,16 @@ void CDApplication::ToolsScaleCmd()
 
 void CDApplication::PathCreateCmd()
 {
-  PDPtrList pRegions = new CDPtrList();
-  pRegions->SetDblVal(m_dUnitScale);
-  m_pDrawObjects->CreatePath(pRegions);
-  GdkRectangle cRect;
-  if(GetUpdateRegion(pRegions, &cRect))
-  {
+  //PDPtrList pRegions = new CDPtrList();
+  //pRegions->SetDblVal(m_dUnitScale);
+  m_pDrawObjects->CreatePath(); //pRegions);
+  //GdkRectangle cRect;
+  //if(GetUpdateRegion(pRegions, &cRect))
+  //{
     GtkWidget *draw = GetDrawing();
-    gdk_window_invalidate_rect(draw->window, &cRect, FALSE);
-  }
+    //gdk_window_invalidate_rect(draw->window, &cRect, FALSE);
+    gdk_window_invalidate_rect(draw->window, NULL, FALSE);
+  //}
   SetTitle(m_pMainWnd, false);
 }
 
@@ -4365,18 +4385,19 @@ void CDApplication::PathBreakCmd()
   cdr.cPt2.x = (iWidth - m_cViewOrigin.x)/m_dUnitScale;
   cdr.cPt2.y = (iHeight - m_cViewOrigin.y)/m_dUnitScale;
 
-  PDPtrList pRegions = new CDPtrList();
-  pRegions->SetDblVal(m_dUnitScale);
+  //PDPtrList pRegions = new CDPtrList();
+  //pRegions->SetDblVal(m_dUnitScale);
 
-  if(m_pDrawObjects->BreakSelObjects(&cdr, pRegions))
+  if(m_pDrawObjects->BreakSelObjects(&cdr)) //, pRegions))
   {
-    GdkRectangle cRect;
-    if(GetUpdateRegion(pRegions, &cRect)) gdk_window_invalidate_rect(draw->window, &cRect, FALSE);
+    //GdkRectangle cRect;
+    //if(GetUpdateRegion(pRegions, &cRect)) gdk_window_invalidate_rect(draw->window, &cRect, FALSE);
+    gdk_window_invalidate_rect(draw->window, NULL, FALSE);
     SetTitle(m_pMainWnd, false);
   }
 
-  ClearPolygonList(pRegions);
-  delete pRegions;
+  //ClearPolygonList(pRegions);
+  //delete pRegions;
 }
 
 void CDApplication::PathAreaCmd()
