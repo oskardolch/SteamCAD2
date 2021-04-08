@@ -176,7 +176,6 @@ private:
     double dLineWidth);
   void DrawCross(HWND hWnd);
   void SetTitle(HWND hWnd, bool bForce);
-  HRGN GetUpdateRegion(PDPtrList pPolygons);
 public:
   CMainWnd(HINSTANCE hInstance);
   ~CMainWnd();
