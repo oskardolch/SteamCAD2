@@ -125,11 +125,12 @@ private:
   void AddSimpleSegment(double dt1, double dt2, double dExt, bool bReverse, PDPrimObject pPrimList);
   void AddPathSegment(double d1, double d2, double dExt, PDPrimObject pPrimList);
   int GetPointReferences(CDPoint cPt, PDRefList pRefs);
-  CDObject* SplitByRef(double dRef);
+  CDObject* SplitByRef(double dRef, bool *pbRes);
   double GetMovedDist(CDLine cTmpPt, int iMode);
   void AddSegmentToPath(PDPathSeg pNewSeg, bool bInsert);
   void UpdatePathCache();
   bool GetPathRestrictPoint(CDPoint cPt, int iMode, double dRestrictValue, PDPoint pSnapPt);
+  double GetRawDistFromPt(CDPoint cPt, CDPoint cRefPt, int iSearchMask, PDLine pPtX);
 public:
   CDObject(CDDrawType iType, double dWidth);
   ~CDObject();
