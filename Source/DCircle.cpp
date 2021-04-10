@@ -164,11 +164,11 @@ void AddCircSegment(double dt1, double dt2, double dExt, bool bReverse, PDPointL
 
   CDPoint cOrig = pCache->GetPoint(0, 0).cPoint;
   CDPoint cRad = pCache->GetPoint(1, 0).cPoint;
+  double dRad = cRad.x + dExt;
 
   int nOffs = pCache->GetCount(2);
-  if(nOffs > 0) cRad.x += pCache->GetPoint(0, 2).cPoint.x;
-  cRad.x += dExt;
-  double dr = fabs(cRad.x);
+  if(nOffs > 0) dRad += pCache->GetPoint(0, 2).cPoint.x;
+  double dr = fabs(dRad);
   if(dr < g_dPrec) return;
 
   CDPrimitive cPrim;
@@ -176,7 +176,7 @@ void AddCircSegment(double dt1, double dt2, double dExt, bool bReverse, PDPointL
   cPrim.cPt1 = cOrig;
   cPrim.cPt2.x = dr;
   cPrim.cPt2.y = 0.0;
-  if(cRad.x < 0.0)
+  if(dRad < 0.0)
   {
     cPrim.cPt3.x = OpositeAngle(dt1);
     cPrim.cPt3.y = OpositeAngle(dt2);

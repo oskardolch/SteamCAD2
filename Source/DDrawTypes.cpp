@@ -3530,8 +3530,9 @@ CDObject* CDObject::Copy()
   for(int i = 0; i < m_pInputPoints->GetCount(-1); i++)
   {
     cInPt = m_pInputPoints->GetPoint(i, -1);
-    pRes->AddPoint(cInPt.cPoint.x, cInPt.cPoint.y, cInPt.iCtrl, 0.0);
+    pRes->AddPoint(cInPt.cPoint.x, cInPt.cPoint.y, cInPt.iCtrl, cInPt.cPoint.x);
   }
+
   CDLine cPtX;
   cPtX.bIsSet = false;
   pRes->BuildCache(cPtX, 0);
