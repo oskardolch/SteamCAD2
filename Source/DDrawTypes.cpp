@@ -5640,9 +5640,9 @@ void CDObject::AddSegmentToPath(PDPathSeg pNewSeg, bool bInsert)
   }
 
   PDPathSeg pLastSeg = (PDPathSeg)m_pSubObjects->GetItem(iCnt - 1);
-  PDObject pObj = pLastSeg->pSegment;
+  PDObject pLastObj = pLastSeg->pSegment;
   CDPoint cBounds;
-  if(pObj->GetBoundsRef(&cBounds, 0.0, false) < 3)
+  if(pLastObj->GetBoundsRef(&cBounds, 0.0, false) < 3)
   {
     if(bInsert) m_pSubObjects->Add(pNewSeg);
     return;
@@ -5652,18 +5652,18 @@ void CDObject::AddSegmentToPath(PDPathSeg pNewSeg, bool bInsert)
   bool bHasLastDir = false;
   if(pLastSeg->bReverse)
   {
-    bHasLastDir = pObj->GetNativeRefDir(cBounds.x, &cLastDir);
+    bHasLastDir = pLastObj->GetNativeRefDir(cBounds.x, &cLastDir);
     if(bHasLastDir) cLastDir *= -1.0;
   }
-  else bHasLastDir = pObj->GetNativeRefDir(cBounds.y, &cLastDir);
+  else bHasLastDir = pLastObj->GetNativeRefDir(cBounds.y, &cLastDir);
   if(!bHasLastDir)
   {
     if(bInsert) m_pSubObjects->Add(pNewSeg);
     return;
   }
 
-  pObj = pNewSeg->pSegment;
-  if(pObj->GetBoundsRef(&cBounds, 0.0, false) < 3)
+  PDObject pNewObj = pNewSeg->pSegment;
+  if(pNewObj->GetBoundsRef(&cBounds, 0.0, false) < 3)
   {
     if(bInsert) m_pSubObjects->Add(pNewSeg);
     return;
@@ -5673,10 +5673,10 @@ void CDObject::AddSegmentToPath(PDPathSeg pNewSeg, bool bInsert)
   bool bHasNewDir = false;
   if(pNewSeg->bReverse)
   {
-    bHasNewDir = pObj->GetNativeRefDir(cBounds.y, &cNewDir);
+    bHasNewDir = pNewObj->GetNativeRefDir(cBounds.y, &cNewDir);
     if(bHasNewDir) cNewDir *= -1.0;
   }
-  else bHasNewDir = pObj->GetNativeRefDir(cBounds.x, &cNewDir);
+  else bHasNewDir = pNewObj->GetNativeRefDir(cBounds.x, &cNewDir);
   if(!bHasNewDir)
   {
     if(bInsert) m_pSubObjects->Add(pNewSeg);
@@ -5691,13 +5691,45 @@ void CDObject::AddSegmentToPath(PDPathSeg pNewSeg, bool bInsert)
   }
 
   CDPoint cOrig;
+  if(pNewSeg->bReverse) pNewObj->GetNativeRefPoint(cBounds.y, 0.0, &cOrig);
+  else pNewObj->GetNativeRefPoint(cBounds.x, 0.0, &cOrig);
 
   PDPathSeg pMidSeg = (PDPathSeg)malloc(sizeof(CDPathSeg));
-  cOrig = Rotate(cNewDir, cLastDir, false);
-  pMidSeg->bReverse = (cOrig.y < 0.0);
+  CDPoint cDir = Rotate(cNewDir, cLastDir, false);
+  if(fabs(cDir.y) < 10.0*g_dPrec)
+  {
+    CDLine cPtX, cPtR1, cPtR2;
+    cPtX.cOrigin = cOrig;
 
-  if(pNewSeg->bReverse) pObj->GetNativeRefPoint(cBounds.y, 0.0, &cOrig);
-  else pObj->GetNativeRefPoint(cBounds.x, 0.0, &cOrig);
+    double d1 = pLastObj->GetRadiusAtPt(cPtX, &cPtR1, false);
+    double d2 = pNewObj->GetRadiusAtPt(cPtX, &cPtR2, false);
+    if((d1 < 0.0) && (d2 > 0.0))
+    {
+      cDir = Rotate(cPtR2.cDirection, cLastDir, false);
+      pMidSeg->bReverse = (cDir.y > 0.0);
+    }
+    else if((d2 < 0.0) && (d1 > 0.0))
+    {
+      cDir = Rotate(cPtR1.cDirection, cNewDir, false);
+      pMidSeg->bReverse = (cDir.y > 0.0);
+    }
+    else if((d1 > 0.0) && (d2 > 0.0))
+    {
+      dDirProd = cPtR1.cDirection*cPtR2.cDirection;
+      if(dDirProd < -g_dPrec)
+      {
+        cDir = Rotate(cPtR2.cDirection, cLastDir, false);
+        pMidSeg->bReverse = (cDir.y > 0.0);
+      }
+      else
+      {
+        cDir = Rotate(cPtR2.cDirection, cLastDir, false);
+        if(cDir.y < 0.0) pMidSeg->bReverse = d1 < d2;
+        else pMidSeg->bReverse = d2 < d1;
+      }
+    }
+  }
+  else pMidSeg->bReverse = (cDir.y < 0.0);
 
   PDObject pMidCirc = new CDObject(dtCircle, m_cLineStyle.dWidth);
   pMidCirc->AddPoint(cOrig.x, cOrig.y, 1, 0.0);
@@ -5724,7 +5756,6 @@ void CDObject::AddSegmentToPath(PDPathSeg pNewSeg, bool bInsert)
     cOrig = GetNormal(cNewDir);
     cBnd.dRef = atan2(cOrig.y, cOrig.x);
     pMidCirc->SetBound(1, cBnd);
-    pMidSeg->bReverse = !pMidSeg->bReverse;
   }
   CDLine cTmpPt;
   pMidCirc->BuildCache(cTmpPt, 0);
