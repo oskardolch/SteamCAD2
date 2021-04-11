@@ -1279,6 +1279,97 @@ int CDObject::GetRectangleIntersects(PDRect pRect, double dOffset, int iBndMode,
   return iTot;
 }
 
+int CDObject::MergeWithBounds(PDRefList pInt1)
+{
+  int iRes = 1;
+  int iLen = pInt1->GetCount();
+  if(IsClosedShape())
+  {
+    if(m_cBounds[0].bIsSet && m_cBounds[1].bIsSet)
+    {
+      if(m_cBounds[1].dRef < m_cBounds[0].dRef)
+      {
+        if((*pInt1)[0] > (*pInt1)[1])
+        {
+          if((m_cBounds[0].dRef > (*pInt1)[0] - g_dPrec) && (m_cBounds[1].dRef < (*pInt1)[1] + g_dPrec))
+            iRes = 2;
+        }
+        else if((m_cBounds[1].dRef < (*pInt1)[0] + g_dPrec) && (m_cBounds[0].dRef > (*pInt1)[iLen - 1] - g_dPrec))
+          iRes = 0;
+      }
+      else
+      {
+        bool bFound = false;
+        int i = 0;
+        if((*pInt1)[0] > (*pInt1)[1])
+        {
+          if((m_cBounds[1].dRef < (*pInt1)[1] + g_dPrec) || (m_cBounds[0].dRef > (*pInt1)[0] - g_dPrec))
+          {
+            iRes = 2;
+            i = iLen;
+          }
+          else if((m_cBounds[0].dRef > (*pInt1)[1] - g_dPrec) && (m_cBounds[1].dRef < (*pInt1)[0] + g_dPrec))
+          {
+            iRes = 0;
+            i = iLen;
+          }
+          else i = 1;
+        }
+        else if((m_cBounds[0].dRef > (*pInt1)[iLen - 1] - g_dPrec) || (m_cBounds[1].dRef < (*pInt1)[0] + g_dPrec))
+        {
+          iRes = 0;
+          i = iLen;
+        }
+        while(!bFound && (i < iLen - 1))
+        {
+          bFound = (m_cBounds[0].dRef > (*pInt1)[i] - g_dPrec) &&
+            (m_cBounds[0].dRef < (*pInt1)[i + 1] + g_dPrec) &&
+            (m_cBounds[1].dRef > (*pInt1)[i] - g_dPrec) &&
+            (m_cBounds[1].dRef < (*pInt1)[i + 1] + g_dPrec);
+          i++;
+        }
+        if(bFound)
+        {
+          if(i % 2 > 0) iRes = 2;
+          else iRes = 0;
+        }
+      }
+    }
+  }
+  else
+  {
+    if(m_cBounds[0].bIsSet)
+    {
+      if(m_cBounds[1].bIsSet)
+      {
+        if(m_cBounds[1].dRef < (*pInt1)[0] + g_dPrec) iRes = 0;
+        else if(m_cBounds[0].dRef > (*pInt1)[iLen - 1] - g_dPrec) iRes = 0;
+        else
+        {
+          bool bFound = false;
+          int i = 0;
+          while(!bFound && (i < iLen - 1))
+          {
+            bFound = (m_cBounds[0].dRef > (*pInt1)[i] - g_dPrec) &&
+              (m_cBounds[0].dRef < (*pInt1)[i + 1] + g_dPrec) &&
+              (m_cBounds[1].dRef > (*pInt1)[i] - g_dPrec) &&
+              (m_cBounds[1].dRef < (*pInt1)[i + 1] + g_dPrec);
+            i++;
+          }
+          if(bFound)
+          {
+            if(i % 2 > 0) iRes = 2;
+            else iRes = 0;
+          }
+        }
+      }
+      else if(m_cBounds[0].dRef > (*pInt1)[iLen - 1] - g_dPrec) iRes = 0;
+    }
+    else if(m_cBounds[1].bIsSet && (m_cBounds[1].dRef < (*pInt1)[0] + g_dPrec)) iRes = 0;
+  }
+  return iRes;
+}
+
 int CDObject::GetSimpleViewBounds(CDLine cTmpPt, int iMode, double dOffset, double dLineHalfWidth,
   PDRect pRect, PDRefList pBounds, PDPoint pDrawBnds, bool bMergeWithBounds)
 {
@@ -1415,90 +1506,7 @@ int CDObject::GetSimpleViewBounds(CDLine cTmpPt, int iMode, double dOffset, doub
 
   if(bMergeWithBounds && (iRes == 1))
   {
-    if(IsClosedShape())
-    {
-      if(m_cBounds[0].bIsSet && m_cBounds[1].bIsSet)
-      {
-        if(m_cBounds[1].dRef < m_cBounds[0].dRef)
-        {
-          if((*pInt1)[0] > (*pInt1)[1])
-          {
-            if((m_cBounds[0].dRef > (*pInt1)[0] - g_dPrec) && (m_cBounds[1].dRef < (*pInt1)[1] + g_dPrec))
-              iRes = 2;
-          }
-          else if((m_cBounds[1].dRef < (*pInt1)[0] + g_dPrec) && (m_cBounds[0].dRef > (*pInt1)[iLen - 1] - g_dPrec))
-            iRes = 0;
-        }
-        else
-        {
-          bool bFound = false;
-          int i = 0;
-          if((*pInt1)[0] > (*pInt1)[1])
-          {
-            if((m_cBounds[1].dRef < (*pInt1)[1] + g_dPrec) || (m_cBounds[0].dRef > (*pInt1)[0] - g_dPrec))
-            {
-              iRes = 2;
-              i = iLen;
-            }
-            else if((m_cBounds[0].dRef > (*pInt1)[1] - g_dPrec) && (m_cBounds[1].dRef < (*pInt1)[0] + g_dPrec))
-            {
-              iRes = 0;
-              i = iLen;
-            }
-            else i = 1;
-          }
-          else if((m_cBounds[0].dRef > (*pInt1)[iLen - 1] - g_dPrec) || (m_cBounds[1].dRef < (*pInt1)[0] + g_dPrec))
-          {
-            iRes = 0;
-            i = iLen;
-          }
-          while(!bFound && (i < iLen - 1))
-          {
-            bFound = (m_cBounds[0].dRef > (*pInt1)[i] - g_dPrec) &&
-              (m_cBounds[0].dRef < (*pInt1)[i + 1] + g_dPrec) &&
-              (m_cBounds[1].dRef > (*pInt1)[i] - g_dPrec) &&
-              (m_cBounds[1].dRef < (*pInt1)[i + 1] + g_dPrec);
-            i++;
-          }
-          if(bFound)
-          {
-            if(i % 2 > 0) iRes = 2;
-            else iRes = 0;
-          }
-        }
-      }
-    }
-    else
-    {
-      if(m_cBounds[0].bIsSet)
-      {
-        if(m_cBounds[1].bIsSet)
-        {
-          if(m_cBounds[1].dRef < (*pInt1)[0] + g_dPrec) iRes = 0;
-          else if(m_cBounds[0].dRef > (*pInt1)[iLen - 1] - g_dPrec) iRes = 0;
-          else
-          {
-            bool bFound = false;
-            int i = 0;
-            while(!bFound && (i < iLen - 1))
-            {
-              bFound = (m_cBounds[0].dRef > (*pInt1)[i] - g_dPrec) &&
-                (m_cBounds[0].dRef < (*pInt1)[i + 1] + g_dPrec) &&
-                (m_cBounds[1].dRef > (*pInt1)[i] - g_dPrec) &&
-                (m_cBounds[1].dRef < (*pInt1)[i + 1] + g_dPrec);
-              i++;
-            }
-            if(bFound)
-            {
-              if(i % 2 > 0) iRes = 2;
-              else iRes = 0;
-            }
-          }
-        }
-        else if(m_cBounds[0].dRef > (*pInt1)[iLen - 1] - g_dPrec) iRes = 0;
-      }
-      else if(m_cBounds[1].bIsSet && (m_cBounds[1].dRef < (*pInt1)[0] + g_dPrec)) iRes = 0;
-    }
+    iRes = MergeWithBounds(pInt1);
   }
 
   delete pInt1;
@@ -1572,7 +1580,8 @@ double NormalizeAngle(PDPoint pNorm)
   return dAng;
 }
 
-int CDObject::GetPathViewBounds(CDLine cTmpPt, int iMode, PDRect pRect, PDRefList pBounds, PDPoint pDrawBnds)
+int CDObject::GetPathViewBounds(CDLine cTmpPt, int iMode, PDRect pRect, PDRefList pBounds,
+  PDPoint pDrawBnds, bool bMergeWithBounds)
 {
   int iCnt = m_pSubObjects->GetCount();
   int iRes = -1;
@@ -1607,9 +1616,14 @@ int CDObject::GetPathViewBounds(CDLine cTmpPt, int iMode, PDRect pRect, PDRefLis
   {
     pDrawBnds->x = 0.0;
     pDrawBnds->y = GetLength(dMid);
-    pBounds->AddPoint(pDrawBnds->x);
-    pBounds->AddPoint(pDrawBnds->y);
+    if(m_cBounds[0].bIsSet) pBounds->AddPoint(m_cBounds[0].dRef);
+    else pBounds->AddPoint(pDrawBnds->x);
+    if(m_cBounds[1].bIsSet) pBounds->AddPoint(m_cBounds[1].dRef);
+    else if(IsClosedPath() && m_cBounds[0].bIsSet)
+      pBounds->AddPoint(m_cBounds[0].dRef + pDrawBnds->y);
+    else pBounds->AddPoint(pDrawBnds->y);
   }
+
   return iRes;
 }
 
@@ -1619,7 +1633,7 @@ int CDObject::GetViewBounds(CDLine cTmpPt, int iMode, PDRect pRect, PDRefList pB
   switch(m_iType)
   {
   case dtPath:
-    iRes = GetPathViewBounds(cTmpPt, iMode, pRect, pBounds, pDrawBnds);
+    iRes = GetPathViewBounds(cTmpPt, iMode, pRect, pBounds, pDrawBnds, bMergeWithBounds);
   case dtBorderPath:
   case dtBorder:
   case dtArea:
@@ -3406,7 +3420,7 @@ double CDObject::GetDistFromPt(CDPoint cPt, CDPoint cRefPt, int iSearchMask, PDL
   }
 
   double dNorm = GetNorm(cPtX.cDirection);
-  if((dNorm < g_dPrec) || (m_iType == dtPath))
+  if(dNorm < g_dPrec)
   {
     if(pPtX) *pPtX = cPtX;
     return dRes;
@@ -3418,8 +3432,14 @@ double CDObject::GetDistFromPt(CDPoint cPt, CDPoint cRefPt, int iSearchMask, PDL
     return dRes;
   }
 
-  dNorm = GetNorm(cPtX.cDirection);
+  /*dNorm = GetNorm(cPtX.cDirection);
   if(dNorm < g_dPrec)
+  {
+    if(pPtX) *pPtX = cPtX;
+    return dRes;
+  }*/
+
+  if(m_iType == dtPath)
   {
     if(pPtX) *pPtX = cPtX;
     return dRes;

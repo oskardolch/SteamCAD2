@@ -121,7 +121,7 @@ private:
   double GetPathDistFromPt(CDPoint cPt, CDPoint cRefPt, bool bSnapCenters, PDLine pPtX);
   int GetSimpleViewBounds(CDLine cTmpPt, int iMode, double dOffset, double dLineHalfWidth,
     PDRect pRect, PDRefList pBounds, PDPoint pDrawBnds, bool bMergeWithBounds);
-  int GetPathViewBounds(CDLine cTmpPt, int iMode, PDRect pRect, PDRefList pBounds, PDPoint pDrawBnds);
+  int GetPathViewBounds(CDLine cTmpPt, int iMode, PDRect pRect, PDRefList pBounds, PDPoint pDrawBnds, bool bMergeWithBounds);
   void AddSimpleSegment(double dt1, double dt2, double dExt, bool bReverse, PDPrimObject pPrimList);
   void AddPathSegment(double d1, double d2, double dExt, PDPrimObject pPrimList);
   int GetPointReferences(CDPoint cPt, PDRefList pRefs);
@@ -131,6 +131,7 @@ private:
   void UpdatePathCache();
   bool GetPathRestrictPoint(CDPoint cPt, int iMode, double dRestrictValue, PDPoint pSnapPt);
   double GetRawDistFromPt(CDPoint cPt, CDPoint cRefPt, int iSearchMask, PDLine pPtX);
+  int MergeWithBounds(PDRefList pInt1);
 public:
   CDObject(CDDrawType iType, double dWidth);
   ~CDObject();
