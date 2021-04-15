@@ -3245,8 +3245,6 @@ void CDObject::SetPoint(int iIndex, char iCtrl, CDInputPoint cPoint)
 
 bool CDObject::BoundPoint(CDPoint cRefPt, PDLine pPtX, double *pdDist)
 {
-  CDPoint cDir;
-
   if(IsClosedShape())
   {
     bool bRes = false;
@@ -3254,16 +3252,15 @@ bool CDObject::BoundPoint(CDPoint cRefPt, PDLine pPtX, double *pdDist)
     {
       if(m_cBounds[0].dRef > m_cBounds[1].dRef)
       {
-        bRes = ((pPtX->dRef > m_cBounds[1].dRef) && (m_cBounds[0].dRef > pPtX->dRef));
+        bRes = ((pPtX->dRef > m_cBounds[1].dRef + g_dPrec) && (m_cBounds[0].dRef - g_dPrec > pPtX->dRef));
       }
-      else bRes = ((pPtX->dRef < m_cBounds[0].dRef) || (m_cBounds[1].dRef < pPtX->dRef));
+      else bRes = ((pPtX->dRef < m_cBounds[0].dRef - g_dPrec) || (m_cBounds[1].dRef + g_dPrec < pPtX->dRef));
     }
     if(bRes)
     {
       pPtX->dRef = m_cBounds[0].dRef;
       GetNativeRefPoint(m_cBounds[0].dRef, 0.0, &pPtX->cOrigin);
-      GetNativeRefDir(m_cBounds[0].dRef, &cDir);
-      pPtX->cDirection = GetNormal(cDir);
+      pPtX->cDirection = 0;
       *pdDist = GetDist(cRefPt, pPtX->cOrigin);
 
       CDPoint cPt2;
@@ -3273,8 +3270,6 @@ bool CDObject::BoundPoint(CDPoint cRefPt, PDLine pPtX, double *pdDist)
       {
         pPtX->dRef = m_cBounds[1].dRef;
         pPtX->cOrigin = cPt2;
-        GetNativeRefDir(m_cBounds[1].dRef, &cDir);
-        pPtX->cDirection = GetNormal(cDir);
         *pdDist = d1;
       }
       return true;
@@ -3284,24 +3279,22 @@ bool CDObject::BoundPoint(CDPoint cRefPt, PDLine pPtX, double *pdDist)
 
   if(m_cBounds[0].bIsSet)
   {
-    if(pPtX->dRef < m_cBounds[0].dRef)
+    if(pPtX->dRef < m_cBounds[0].dRef - g_dPrec)
     {
       pPtX->dRef = m_cBounds[0].dRef;
       GetNativeRefPoint(m_cBounds[0].dRef, 0.0, &pPtX->cOrigin);
-      GetNativeRefDir(m_cBounds[0].dRef, &cDir);
-      pPtX->cDirection = GetNormal(cDir);
+      pPtX->cDirection = 0;
       *pdDist = GetDist(cRefPt, pPtX->cOrigin);
       return true;
     }
   }
   if(m_cBounds[1].bIsSet)
   {
-    if(pPtX->dRef > m_cBounds[1].dRef)
+    if(pPtX->dRef > m_cBounds[1].dRef + g_dPrec)
     {
       pPtX->dRef = m_cBounds[1].dRef;
       GetNativeRefPoint(m_cBounds[1].dRef, 0.0, &pPtX->cOrigin);
-      GetNativeRefDir(m_cBounds[1].dRef, &cDir);
-      pPtX->cDirection = GetNormal(cDir);
+      pPtX->cDirection = 0;
       *pdDist = GetDist(cRefPt, pPtX->cOrigin);
       return true;
     }
@@ -3329,7 +3322,7 @@ double CDObject::GetPathDistFromPt(CDPoint cPt, CDPoint cRefPt, bool bSnapCenter
     pSeg = (PDPathSeg)m_pSubObjects->GetItem(i);
     dCur = pSeg->pSegment->GetDistFromPt(cPt, cRefPt, iSrchMask, &cCur, NULL);
     dNorm = GetNorm(cCur.cDirection);
-    if((iMin < 0) || (fabs(dCur) < dMinAbs) || ((fabs(dCur) < dMinAbs + g_dPrec) && (dNorm < g_dPrec)))
+    if((iMin < 0) || (fabs(dCur) < dMinAbs - 0.001) || ((dNormMin < 0.5) && (dNorm > 0.5)))
     {
       iMin = i;
       dMinAbs = fabs(dCur);
@@ -3492,13 +3485,6 @@ double CDObject::GetDistFromPt(CDPoint cPt, CDPoint cRefPt, int iSearchMask, PDL
     if(pPtX) *pPtX = cPtX;
     return dRes;
   }
-
-  /*dNorm = GetNorm(cPtX.cDirection);
-  if(dNorm < g_dPrec)
-  {
-    if(pPtX) *pPtX = cPtX;
-    return dRes;
-  }*/
 
   if(m_iType == dtPath)
   {

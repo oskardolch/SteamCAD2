@@ -1133,6 +1133,8 @@ double GetSplineDistFromPt(CDPoint cPt, CDPoint cRefPt, int iSrchMask, PDPointLi
   double dProj = GetSplineBoundProj(pCache, cPt, cRefPt, iSrchMask & 2, &dDist);
   if(!bClosed)
   {
+    pPtX->cDirection = 0;
+
     int iNumSegs = GetSplineNumSegments(pCache);
     cQuad = GetSplineNthSegment(0, pCache);
     cDir = GetQuadNormal(&cQuad, 0.0);
@@ -1145,7 +1147,6 @@ double GetSplineDistFromPt(CDPoint cPt, CDPoint cRefPt, int iSrchMask, PDPointLi
     {
       pPtX->bIsSet = true;
       pPtX->cOrigin = bPt1;
-      pPtX->cDirection = cDir;
       pPtX->dRef = 0.0;
     }
 
@@ -1160,7 +1161,6 @@ double GetSplineDistFromPt(CDPoint cPt, CDPoint cRefPt, int iSrchMask, PDPointLi
     {
       pPtX->bIsSet = true;
       pPtX->cOrigin = bPt1;
-      pPtX->cDirection = cDir;
       pPtX->dRef = (double)iNumSegs;
       d1 = d2;
     }
