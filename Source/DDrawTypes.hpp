@@ -132,6 +132,7 @@ private:
   bool GetPathRestrictPoint(CDPoint cPt, int iMode, double dRestrictValue, PDPoint pSnapPt);
   double GetRawDistFromPt(CDPoint cPt, CDPoint cRefPt, int iSearchMask, PDLine pPtX);
   int MergeWithBounds(PDRefList pInt1);
+  double GetPathMovedRef(double dDist, double dRef);
 public:
   CDObject(CDDrawType iType, double dWidth);
   ~CDObject();
