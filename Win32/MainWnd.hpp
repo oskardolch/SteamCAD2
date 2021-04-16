@@ -160,10 +160,8 @@ private:
   //void UpdateSnapMenu(HMENU hMenu);
   void GetPageDims();
   void DrawDimArrow(HDC hdc, PDPrimitive pPrim);
-  //void DrawPrimitive(HDC hdc, PDPrimitive pPrim);
-  void DrawPrimitivePlus(Graphics *graphics, Pen *pen, GraphicsPath *path, PDPrimitive pPrim);
-  //void DrawObject(HWND hWnd, HDC hdc, PDObject pObj, int iMode, int iDimen);
-  void DrawObjectPlus(HWND hWnd, Graphics *graphics, PDObject pObj, int iMode, int iDimen);
+  void DrawPrimitive(Graphics *graphics, Pen *pen, GraphicsPath *path, PDPrimitive pPrim);
+  void DrawObject(HWND hWnd, Graphics *graphics, PDObject pObj, int iMode, int iDimen);
   void StartNewObject(HWND hWnd);
   void GetDeviceToUnitScale(HWND hWnd);
   bool PromptForSave(HWND hWnd);
