@@ -1001,3 +1001,9 @@ void MergeCornerRefs(PDRefList pBnds, PDPoint pRefBnds, int iRectFlag, double *p
   if(iRectFlag & 8) MergeCornerRef(pdRefs[3], pBnds, pRefBnds);
 }
 
+bool DRefInBounds(double dRef, double dMin, double dMax)
+{
+  if(dMin > dMax + g_dPrec) return (dRef > dMin - g_dPrec) || (dRef < dMax + g_dPrec);
+  return (dRef > dMin - g_dPrec) && (dRef < dMax + g_dPrec);
+}
+

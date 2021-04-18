@@ -272,5 +272,6 @@ void CopyDimenAttrs(PDDimension pDimDst, PDDimension pDimSrc);
 int IntersectBounds(CDPoint cBnds1, CDPoint cBnds2, int iBndMode, double dLength, PDPoint pRes);
 int UnionBounds(PDRefList pBnds1, PDRefList pBnds2, int iBoundMode, PDPoint pDrawBnds);
 void MergeCornerRefs(PDRefList pBnds, PDPoint pRefBnds, int iRectFlag, double *pdRefs);
+bool DRefInBounds(double dRef, double dMin, double dMax);
 
 #endif

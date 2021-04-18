@@ -1312,17 +1312,20 @@ int CDObject::MergeWithBounds(PDRefList pInt1)
         int i = 0;
         if((*pInt1)[0] > (*pInt1)[1])
         {
-          if((m_cBounds[1].dRef < (*pInt1)[1] + g_dPrec) || (m_cBounds[0].dRef > (*pInt1)[0] - g_dPrec))
+          i = 1;
+          if(iLen < 3)
           {
-            iRes = 2;
-            i = iLen;
+            if((m_cBounds[1].dRef < (*pInt1)[1] + g_dPrec) || (m_cBounds[0].dRef > (*pInt1)[0] - g_dPrec))
+            {
+              iRes = 2;
+              i = iLen;
+            }
+            else if((m_cBounds[0].dRef > (*pInt1)[1] - g_dPrec) && (m_cBounds[1].dRef < (*pInt1)[0] + g_dPrec))
+            {
+              iRes = 0;
+              i = iLen;
+            }
           }
-          else if((m_cBounds[0].dRef > (*pInt1)[1] - g_dPrec) && (m_cBounds[1].dRef < (*pInt1)[0] + g_dPrec))
-          {
-            iRes = 0;
-            i = iLen;
-          }
-          else i = 1;
         }
         else if((m_cBounds[0].dRef > (*pInt1)[iLen - 1] - g_dPrec) || (m_cBounds[1].dRef < (*pInt1)[0] + g_dPrec))
         {
@@ -1628,24 +1631,10 @@ double CDObject::GetPathMovedRef(double dDist, double dRef)
 int AddPathBounds(double dt, double d1, double d2, PDRefList pBounds)
 {
   int iRes = 0;
-  if(!pBounds->HasPoint(dt))
+  if(DRefInBounds(dt, d1, d2))
   {
-    if(d2 < d1)
-    {
-      if((dt > d1) || (dt < d2))
-      {
-        pBounds->AddPoint(dt);
-        iRes = 1;
-      }
-    }
-    else
-    {
-      if((dt > d1) && (dt < d2))
-      {
-        pBounds->AddPoint(dt);
-        iRes = 1;
-      }
-    }
+    pBounds->AddPoint(dt);
+    iRes = 1;
   }
   return iRes;
 }
@@ -1672,11 +1661,10 @@ int CDObject::GetPathViewBounds(CDLine cTmpPt, int iMode, PDRect pRect, PDRefLis
   int iLocAdded;
 
   pDrawBnds->x = 0.0;
-  pDrawBnds->y = GetLength(dMid);
+  pDrawBnds->y = GetLength(m_dMovedDist);
 
   if(iMode == 2)
   {
-    dExt += m_dMovedDist;
     CDLine cSnap;
     m_dMovedDist = GetPathDistFromPt(cTmpPt.cOrigin, cTmpPt.cOrigin, false, &cSnap);
     if(m_cBounds[0].bIsSet) d1 = GetPathMovedRef(m_dMovedDist, m_cBounds[0].dRef);
@@ -1699,45 +1687,60 @@ int CDObject::GetPathViewBounds(CDLine cTmpPt, int iMode, PDRect pRect, PDRefLis
     pSeg = (PDPathSeg)m_pSubObjects->GetItem(i);
     pObj = pSeg->pSegment;
     if(pSeg->bReverse)
-      iLocRes = pObj->GetSimpleViewBounds(cOffL, 0, -dMid, dExt, pRect, pLocBounds, &cLocBnds, true);
-    else
-      iLocRes = pObj->GetSimpleViewBounds(cOffL, 0, dMid, dExt, pRect, pLocBounds, &cLocBnds, true);
-
-    iLocAdded = 0;
-    if(iLocRes > 0)
     {
+      iLocRes = pObj->GetSimpleViewBounds(cOffL, 0, -dMid, dExt, pRect, pLocBounds, &cLocBnds, true);
+      pObj->GetBoundsRef(&cLocBnds, -m_dMovedDist, false);
+    }
+    else
+    {
+      iLocRes = pObj->GetSimpleViewBounds(cOffL, 0, dMid, dExt, pRect, pLocBounds, &cLocBnds, true);
+      pObj->GetBoundsRef(&cLocBnds, m_dMovedDist, false);
+    }
+
+    if(iLocRes == 1)
+    {
+      iLocAdded = 0;
       for(int j = 0; j < pLocBounds->GetCount(); j++)
       {
         dRef1 = pLocBounds->GetPoint(j);
-        if(pSeg->bReverse)
+        if(DRefInBounds(dRef1, cLocBnds.x, cLocBnds.y))
         {
-          pObj->GetPointRefDist(dRef1, -dExt, &dl1);
-          pObj->GetPointRefDist(cLocBnds.y, -dExt, &dl2);
+          if(pSeg->bReverse)
+          {
+            pObj->GetPointRefDist(dRef1, -m_dMovedDist, &dl1);
+            pObj->GetPointRefDist(cLocBnds.y, -m_dMovedDist, &dl2);
+          }
+          else
+          {
+            pObj->GetPointRefDist(cLocBnds.x, m_dMovedDist, &dl1);
+            pObj->GetPointRefDist(dRef1, m_dMovedDist, &dl2);
+          }
+          dRef2 = dCurLen + (dl2 - dl1);
+          iLocAdded += AddPathBounds(dRef2, d1, d2, pBounds);
         }
-        else
-        {
-          pObj->GetPointRefDist(cLocBnds.x, dExt, &dl1);
-          pObj->GetPointRefDist(dRef1, dExt, &dl2);
-        }
-        dRef2 = dCurlen + (dl2 - dl1);
-        iLocAdded += AddPathBounds(dRef2, d1, d2, pBounds);
       }
       if((iLocRes < 2) && (iLocAdded < 1)) iLocRes = 0;
     }
-    pLocBounds->ClearAll();
+    pLocBounds->Clear();
 
     if(iRes < 0) iRes = iLocRes;
     else if(iLocRes != iRes) iRes = 1;
+
+    if(pSeg->bReverse)
+      dCurLen += pObj->GetLength(-m_dMovedDist);
+    else
+      dCurLen += pObj->GetLength(m_dMovedDist);
   }
+
+  delete pLocBounds;
 
   if(iRes > 0)
   {
-    pBounds->AddPoint(d1);
-    else pBounds->AddPoint(pDrawBnds->x);
-    if(m_cBounds[1].bIsSet) pBounds->AddPoint(d2);
-    else if(IsClosedPath() && m_cBounds[0].bIsSet)
-      pBounds->AddPoint(d1 + pDrawBnds->y);
-    else pBounds->AddPoint(pDrawBnds->y);
+    pBounds->Sort(0);
+    GetPathRefPoint(d1, m_dMovedDist, &cLocBnds);
+    if(DPtInDRect(cLocBnds, pRect) && !pBounds->HasPoint(d1)) pBounds->InsertPoint(0, d1);
+    GetPathRefPoint(d2, m_dMovedDist, &cLocBnds);
+    if(DPtInDRect(cLocBnds, pRect) && !pBounds->HasPoint(d2)) pBounds->AddPoint(d2);
   }
 
   return iRes;
