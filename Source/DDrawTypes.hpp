@@ -133,6 +133,7 @@ private:
   double GetRawDistFromPt(CDPoint cPt, CDPoint cRefPt, int iSearchMask, PDLine pPtX);
   int MergeWithBounds(PDRefList pInt1);
   double GetPathMovedRef(double dDist, double dRef);
+  double GetMovedRef(int iMode, double dRef);
 public:
   CDObject(CDDrawType iType, double dWidth);
   ~CDObject();
