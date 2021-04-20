@@ -819,14 +819,14 @@ void CDObject::AddCurveSegment(CDPrimitive cAddMode, PDPrimObject pPrimitive, PD
   double d1, dDist = 0.0;
   CDPoint cBnds2, pBnds[2];
   int iInterMode = cAddMode.iType & ~8;
-  if(cAddMode.cPt4.x > 0.5) iInterMode |= 8;
+  if(cAddMode.iType & 16) iInterMode |= 8;
   int iInter;
 
   for(int i = 0; i < iSegs; i++)
   {
     cBnds2.x = pBounds->GetPoint(2*i);
     cBnds2.y = pBounds->GetPoint(2*i + 1);
-    iInter = IntersectBounds(cAddMode.cPt1, cBnds2, iInterMode, cAddMode.cPt4.y, pBnds);
+    iInter = IntersectBounds(cAddMode.cPt1, cBnds2, iInterMode, cAddMode.cPt4.x, pBnds);
 
     for(int j = 0; j < iInter; j++)
     {
@@ -860,7 +860,7 @@ void CDObject::AddCurveSegment(CDPrimitive cAddMode, PDPrimObject pPrimitive, PD
           int n = (int)dDist/cAddMode.cPt2.y/cAddMode.cPt2.x;
           cPath.cPt2.y = n*cAddMode.cPt2.y*cAddMode.cPt2.x - dDist;
         }
-        if(cAddMode.cPt4.x > 1.5) cPath.cPt1.y = 2;
+        if(cAddMode.iType & 32) cPath.cPt1.y = 2;
         pPrimitive->AddPrimitive(cPath);
       }
     }
@@ -960,6 +960,7 @@ void CDObject::AddPatSegment(double dStart, int iStart, double dEnd, int iEnd,
   int iBoundMode, PDRefList pViewBnds, PDPoint pBnds)
 {
   double dExt = m_cLineStyle.dPercent*m_cLineStyle.dWidth/200.0;
+  double d1, d2;
 
   CDPrimitive cAdd;
   cAdd.iType = 1;
@@ -967,11 +968,14 @@ void CDObject::AddPatSegment(double dStart, int iStart, double dEnd, int iEnd,
   cAdd.cPt4.y = 0.0;
   if(iBoundMode & 1)
   {
-    cAdd.cPt4.x = 1.0;
-    cAdd.cPt4.y = pBnds->y - pBnds->x;
+    cAdd.iType |= 16;
+    GetPointRefDist(pBnds->x, dExt, &d1);
+    GetPointRefDist(pBnds->y, dExt, &d2);
+    cAdd.cPt4.x = pBnds->y - pBnds->x;
+    cAdd.cPt4.y = d2 - d1;
   }
   if(iBoundMode & 2) cAdd.iType |= 8;
-  if(iBoundMode & 4) cAdd.cPt4.x = 2.0;
+  if(iBoundMode & 4) cAdd.iType |= 32;
 
   double dPatScale = 1.0;
   double dSegLen = m_cLineStyle.dPattern[0];
@@ -979,7 +983,6 @@ void CDObject::AddPatSegment(double dStart, int iStart, double dEnd, int iEnd,
   double dPatStart2 = dSegLen/2.0;
 //  int iRep;
 
-  double d1, d2;
   GetPointRefDist(dStart, dExt, &d1);
   GetPointRefDist(dEnd, dExt, &d2);
   double dDist = d2 - d1;
