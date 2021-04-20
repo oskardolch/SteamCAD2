@@ -159,7 +159,8 @@ private:
 
   //void UpdateSnapMenu(HMENU hMenu);
   void GetPageDims();
-  void DrawDimArrow(HDC hdc, PDPrimitive pPrim);
+  //void DrawDimArrow(HDC hdc, PDPrimitive pPrim);
+  void DrawDimArrow(Graphics *graphics, Pen *pen, PDPrimitive pPrim);
   void DrawPrimitive(Graphics *graphics, Pen *pen, GraphicsPath *path, PDPrimitive pPrim);
   void DrawObject(HWND hWnd, Graphics *graphics, PDObject pObj, int iMode, int iDimen);
   void StartNewObject(HWND hWnd);

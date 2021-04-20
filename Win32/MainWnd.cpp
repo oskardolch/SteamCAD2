@@ -2523,7 +2523,60 @@ bool PointsEqual(POINT cPt1, POINT cPt2)
   return (cPt1.x == cPt2.x) && (cPt1.y == cPt2.y);
 }
 
-void CMainWnd::DrawDimArrow(HDC hdc, PDPrimitive pPrim)
+void CMainWnd::DrawDimArrow(Graphics *graphics, Pen *pen, PDPrimitive pPrim)
+{
+  CDPoint cStartPt, cEndPt, cPoly[3];
+  int iType = Round(pPrim->cPt1.x);
+iType = 1;
+
+  switch(iType)
+  {
+  case 1:
+    cStartPt.x = pPrim->cPt3.x + m_cViewOrigin.x;
+    cStartPt.y = pPrim->cPt3.y + m_cViewOrigin.y;
+    cEndPt.x = pPrim->cPt2.x + m_cViewOrigin.x;
+    cEndPt.y = pPrim->cPt2.y + m_cViewOrigin.y;
+    graphics->DrawLine(pen, (REAL)cStartPt.x, (REAL)cStartPt.y, (REAL)cEndPt.x, (REAL)cEndPt.y);
+    cStartPt.x = cEndPt.x;
+    cStartPt.y = cEndPt.y;
+    cEndPt.x = pPrim->cPt4.x + m_cViewOrigin.x;
+    cEndPt.y = pPrim->cPt4.y + m_cViewOrigin.y;
+    graphics->DrawLine(pen, (REAL)cStartPt.x, (REAL)cStartPt.y, (REAL)cEndPt.x, (REAL)cEndPt.y);
+    break;
+/*  case 2:
+    hPrevBr = (HBRUSH)SelectObject(hdc, hBr);
+    cPoly[0].x = pPrim->cPt3.x + m_cViewOrigin.x;
+    cPoly[0].y = pPrim->cPt3.y + m_cViewOrigin.y;
+    cPoly[1].x = pPrim->cPt2.x + m_cViewOrigin.x;
+    cPoly[1].y = pPrim->cPt2.y + m_cViewOrigin.y;
+    cPoly[2].x = pPrim->cPt4.x + m_cViewOrigin.x;
+    cPoly[2].y = pPrim->cPt4.y + m_cViewOrigin.y;
+    Polygon(hdc, cPoly, 3);
+    SelectObject(hdc, hPrevBr);
+    break;
+  case 3:
+    hPrevBr = (HBRUSH)SelectObject(hdc, hBr);
+    cStartPt.x = Round(pPrim->cPt3.x - pPrim->cPt2.x);
+    cStartPt.y = Round(pPrim->cPt3.y - pPrim->cPt2.y);
+    Ellipse(hdc, pPrim->cPt2.x + m_cViewOrigin.x - cStartPt.x,
+    pPrim->cPt2.y + m_cViewOrigin.y - cStartPt.y,
+    pPrim->cPt2.x + m_cViewOrigin.x + cStartPt.x,
+    pPrim->cPt2.y + m_cViewOrigin.y + cStartPt.y);
+    SelectObject(hdc, hPrevBr);
+    break;
+  case 4:
+  case 5:
+    cStartPt.x = pPrim->cPt3.x + m_cViewOrigin.x;
+    cStartPt.y = pPrim->cPt3.y + m_cViewOrigin.y;
+    MoveToEx(hdc, cStartPt.x, cStartPt.y, NULL);
+    cEndPt.x = pPrim->cPt4.x + m_cViewOrigin.x;
+    cEndPt.y = pPrim->cPt4.y + m_cViewOrigin.y;
+    LineTo(hdc, cEndPt.x, cEndPt.y);
+    break;*/
+  }
+}
+
+/*void CMainWnd::DrawDimArrow(HDC hdc, PDPrimitive pPrim)
 {
   POINT cStartPt, cEndPt, cPoly[3];
   int iType = Round(pPrim->cPt1.x);
@@ -2574,7 +2627,7 @@ void CMainWnd::DrawDimArrow(HDC hdc, PDPrimitive pPrim)
     LineTo(hdc, cEndPt.x, cEndPt.y);
     break;
   }
-}
+}*/
 
 void CMainWnd::DrawDimText(HWND hWnd, HDC hdc, PDPrimitive pPrim, PDObject pObj, DWORD dwColor,
   double dLineWidth)
@@ -2908,9 +2961,9 @@ void CMainWnd::DrawPrimitive(Graphics *graphics, Pen *pen, GraphicsPath *path, P
     cEndPt.y = pPrim->cPt1.y + m_cViewOrigin.y + 7;
     graphics->DrawLine(pen, (REAL)cEndPt.x, (REAL)(cEndPt.y - 13), (REAL)cEndPt.x, (REAL)cEndPt.y);
     break;
-  /*case 9:
-    DrawDimArrow(hdc, pPrim);
-    break;*/
+  case 9:
+    DrawDimArrow(graphics, pen, pPrim);
+    break;
   }
 }
 
