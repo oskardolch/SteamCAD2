@@ -2523,11 +2523,17 @@ bool PointsEqual(POINT cPt1, POINT cPt2)
   return (cPt1.x == cPt2.x) && (cPt1.y == cPt2.y);
 }
 
-void CMainWnd::DrawDimArrow(Graphics *graphics, Pen *pen, PDPrimitive pPrim)
+void CMainWnd::DrawDimArrow(Graphics *graphics, Pen *pen, GraphicsPath *path, PDPrimitive pPrim)
 {
+  pen->SetLineCap(LineCapRound, LineCapRound, DashCapRound);
+  pen->SetLineJoin(LineJoinRound);
+
+  Color clr;
+  pen->GetColor(&clr);
+  SolidBrush hBr(clr);
+
   CDPoint cStartPt, cEndPt, cPoly[3];
   int iType = Round(pPrim->cPt1.x);
-iType = 1;
 
   switch(iType)
   {
@@ -2536,98 +2542,47 @@ iType = 1;
     cStartPt.y = pPrim->cPt3.y + m_cViewOrigin.y;
     cEndPt.x = pPrim->cPt2.x + m_cViewOrigin.x;
     cEndPt.y = pPrim->cPt2.y + m_cViewOrigin.y;
-    graphics->DrawLine(pen, (REAL)cStartPt.x, (REAL)cStartPt.y, (REAL)cEndPt.x, (REAL)cEndPt.y);
-    cStartPt.x = cEndPt.x;
-    cStartPt.y = cEndPt.y;
+    path->AddLine((REAL)cStartPt.x, (REAL)cStartPt.y, (REAL)cEndPt.x, (REAL)cEndPt.y);
+    cStartPt = cEndPt;
     cEndPt.x = pPrim->cPt4.x + m_cViewOrigin.x;
     cEndPt.y = pPrim->cPt4.y + m_cViewOrigin.y;
-    graphics->DrawLine(pen, (REAL)cStartPt.x, (REAL)cStartPt.y, (REAL)cEndPt.x, (REAL)cEndPt.y);
-    break;
-/*  case 2:
-    hPrevBr = (HBRUSH)SelectObject(hdc, hBr);
-    cPoly[0].x = pPrim->cPt3.x + m_cViewOrigin.x;
-    cPoly[0].y = pPrim->cPt3.y + m_cViewOrigin.y;
-    cPoly[1].x = pPrim->cPt2.x + m_cViewOrigin.x;
-    cPoly[1].y = pPrim->cPt2.y + m_cViewOrigin.y;
-    cPoly[2].x = pPrim->cPt4.x + m_cViewOrigin.x;
-    cPoly[2].y = pPrim->cPt4.y + m_cViewOrigin.y;
-    Polygon(hdc, cPoly, 3);
-    SelectObject(hdc, hPrevBr);
-    break;
-  case 3:
-    hPrevBr = (HBRUSH)SelectObject(hdc, hBr);
-    cStartPt.x = Round(pPrim->cPt3.x - pPrim->cPt2.x);
-    cStartPt.y = Round(pPrim->cPt3.y - pPrim->cPt2.y);
-    Ellipse(hdc, pPrim->cPt2.x + m_cViewOrigin.x - cStartPt.x,
-    pPrim->cPt2.y + m_cViewOrigin.y - cStartPt.y,
-    pPrim->cPt2.x + m_cViewOrigin.x + cStartPt.x,
-    pPrim->cPt2.y + m_cViewOrigin.y + cStartPt.y);
-    SelectObject(hdc, hPrevBr);
-    break;
-  case 4:
-  case 5:
-    cStartPt.x = pPrim->cPt3.x + m_cViewOrigin.x;
-    cStartPt.y = pPrim->cPt3.y + m_cViewOrigin.y;
-    MoveToEx(hdc, cStartPt.x, cStartPt.y, NULL);
-    cEndPt.x = pPrim->cPt4.x + m_cViewOrigin.x;
-    cEndPt.y = pPrim->cPt4.y + m_cViewOrigin.y;
-    LineTo(hdc, cEndPt.x, cEndPt.y);
-    break;*/
-  }
-}
-
-/*void CMainWnd::DrawDimArrow(HDC hdc, PDPrimitive pPrim)
-{
-  POINT cStartPt, cEndPt, cPoly[3];
-  int iType = Round(pPrim->cPt1.x);
-  HBRUSH hBr, hPrevBr;
-  hBr = (HBRUSH)GetStockObject(BLACK_BRUSH);
-
-  switch(iType)
-  {
-  case 1:
-    cStartPt.x = pPrim->cPt3.x + m_cViewOrigin.x;
-    cStartPt.y = pPrim->cPt3.y + m_cViewOrigin.y;
-    MoveToEx(hdc, cStartPt.x, cStartPt.y, NULL);
-    cEndPt.x = pPrim->cPt2.x + m_cViewOrigin.x;
-    cEndPt.y = pPrim->cPt2.y + m_cViewOrigin.y;
-    LineTo(hdc, cEndPt.x, cEndPt.y);
-    cEndPt.x = pPrim->cPt4.x + m_cViewOrigin.x;
-    cEndPt.y = pPrim->cPt4.y + m_cViewOrigin.y;
-    LineTo(hdc, cEndPt.x, cEndPt.y);
+    path->AddLine((REAL)cStartPt.x, (REAL)cStartPt.y, (REAL)cEndPt.x, (REAL)cEndPt.y);
+    graphics->DrawPath(pen, path);
+    path->Reset();
     break;
   case 2:
-    hPrevBr = (HBRUSH)SelectObject(hdc, hBr);
-    cPoly[0].x = pPrim->cPt3.x + m_cViewOrigin.x;
-    cPoly[0].y = pPrim->cPt3.y + m_cViewOrigin.y;
-    cPoly[1].x = pPrim->cPt2.x + m_cViewOrigin.x;
-    cPoly[1].y = pPrim->cPt2.y + m_cViewOrigin.y;
-    cPoly[2].x = pPrim->cPt4.x + m_cViewOrigin.x;
-    cPoly[2].y = pPrim->cPt4.y + m_cViewOrigin.y;
-    Polygon(hdc, cPoly, 3);
-    SelectObject(hdc, hPrevBr);
+    cStartPt.x = pPrim->cPt3.x + m_cViewOrigin.x;
+    cStartPt.y = pPrim->cPt3.y + m_cViewOrigin.y;
+    cEndPt.x = pPrim->cPt2.x + m_cViewOrigin.x;
+    cEndPt.y = pPrim->cPt2.y + m_cViewOrigin.y;
+    path->AddLine((REAL)cStartPt.x, (REAL)cStartPt.y, (REAL)cEndPt.x, (REAL)cEndPt.y);
+    cStartPt = cEndPt;
+    cEndPt.x = pPrim->cPt4.x + m_cViewOrigin.x;
+    cEndPt.y = pPrim->cPt4.y + m_cViewOrigin.y;
+    path->AddLine((REAL)cStartPt.x, (REAL)cStartPt.y, (REAL)cEndPt.x, (REAL)cEndPt.y);
+    path->CloseFigure();
+    graphics->FillPath(&hBr, path);
+    path->Reset();
     break;
   case 3:
-    hPrevBr = (HBRUSH)SelectObject(hdc, hBr);
-    cStartPt.x = Round(pPrim->cPt3.x - pPrim->cPt2.x);
     cStartPt.y = Round(pPrim->cPt3.y - pPrim->cPt2.y);
-    Ellipse(hdc, pPrim->cPt2.x + m_cViewOrigin.x - cStartPt.x,
-    pPrim->cPt2.y + m_cViewOrigin.y - cStartPt.y,
-    pPrim->cPt2.x + m_cViewOrigin.x + cStartPt.x,
-    pPrim->cPt2.y + m_cViewOrigin.y + cStartPt.y);
-    SelectObject(hdc, hPrevBr);
+    path->AddEllipse((REAL)(pPrim->cPt2.x + m_cViewOrigin.x - cStartPt.y),
+      (REAL)(pPrim->cPt2.y + m_cViewOrigin.y - cStartPt.y),
+      (REAL)(2.0*cStartPt.y),
+      (REAL)(2.0*cStartPt.y));
+    graphics->FillPath(&hBr, path);
+    path->Reset();
     break;
   case 4:
   case 5:
     cStartPt.x = pPrim->cPt3.x + m_cViewOrigin.x;
     cStartPt.y = pPrim->cPt3.y + m_cViewOrigin.y;
-    MoveToEx(hdc, cStartPt.x, cStartPt.y, NULL);
     cEndPt.x = pPrim->cPt4.x + m_cViewOrigin.x;
     cEndPt.y = pPrim->cPt4.y + m_cViewOrigin.y;
-    LineTo(hdc, cEndPt.x, cEndPt.y);
+    graphics->DrawLine(pen, (REAL)cStartPt.x, (REAL)cStartPt.y, (REAL)cEndPt.x, (REAL)cEndPt.y);
     break;
   }
-}*/
+}
 
 void CMainWnd::DrawDimText(HWND hWnd, HDC hdc, PDPrimitive pPrim, PDObject pObj, DWORD dwColor,
   double dLineWidth)
@@ -2962,7 +2917,7 @@ void CMainWnd::DrawPrimitive(Graphics *graphics, Pen *pen, GraphicsPath *path, P
     graphics->DrawLine(pen, (REAL)cEndPt.x, (REAL)(cEndPt.y - 13), (REAL)cEndPt.x, (REAL)cEndPt.y);
     break;
   case 9:
-    DrawDimArrow(graphics, pen, pPrim);
+    DrawDimArrow(graphics, pen, path, pPrim);
     break;
   }
 }
@@ -3107,64 +3062,47 @@ void CMainWnd::DrawObject(HWND hWnd, Graphics *graphics, PDObject pObj, int iMod
       pObj->GetNextPrimitive(&cPrim, m_dUnitScale, iDimen);
     }
 
-    /*if(iMode == 0)
+    if(iMode == 0)
     {
-      SelectObject(hdc, hPrevPen);
-      DeleteObject(hPen);
-      hPen = CreatePen(PS_SOLID, iWidth, 0);
-      HPEN hSelPen = CreatePen(PS_SOLID, iWidth, m_lSelColor);
-      hPrevPen = (HPEN)SelectObject(hdc, hPen);
       for(int i = 0; i < pObj->GetDimenCount(); i++)
       {
         pDim = pObj->GetDimen(i);
-        if(pDim->bSelected)
-        {
-          dwColor = m_lSelColor;
-          SelectObject(hdc, hSelPen);
-        }
-        else
-        {
-          dwColor = 0;
-          SelectObject(hdc, hPen);
-        }
+        if(pDim->bSelected) dwColor = m_lSelColor;
+        else dwColor = CodeRGBAColor(cStyle.cColor);
+        hPen.SetColor(Color(EncodeColor(dwColor)));
 
         pObj->GetFirstPrimitive(&cPrim, m_dUnitScale, i);
         while(cPrim.iType > 0)
         {
           if(cPrim.iType == 10)
           {
-            DrawDimText(hWnd, hdc, &cPrim, pObj, dwColor, fabs(cStyle.dWidth));
+            //DrawDimText(hWnd, hdc, &cPrim, pObj, dwColor, fabs(cStyle.dWidth));
           }
-          else DrawPrimitive(hdc, &cPrim);
+          else DrawPrimitive(graphics, &hPen, &hPath, &cPrim);
           pObj->GetNextPrimitive(&cPrim, m_dUnitScale, i);
         }
       }
-      SelectObject(hdc, hPen);
-      DeleteObject(hSelPen);
-    }*/
+    }
   }
   else
   {
-    /*if((iMode < 1) && (iDimen > -1))
+    if((iMode < 1) && (iDimen > -1))
     {
       pDim = pObj->GetDimen(iDimen);
       if(pDim->bSelected) dwColor = m_lSelColor;
-      else dwColor = 0;
-      SelectObject(hdc, hPrevPen);
-      DeleteObject(hPen);
-      hPen = CreatePen(PS_SOLID, iWidth, dwColor);
-      hPrevPen = (HPEN)SelectObject(hdc, hPen);
+      else dwColor = CodeRGBAColor(cStyle.cColor);
+      hPen.SetColor(Color(EncodeColor(dwColor)));
     }
 
     while(cPrim.iType > 0)
     {
       if(cPrim.iType == 10)
       {
-        DrawDimText(hWnd, hdc, &cPrim, pObj, dwColor, fabs(cStyle.dWidth));
+        //DrawDimText(hWnd, hdc, &cPrim, pObj, dwColor, fabs(cStyle.dWidth));
       }
-      else DrawPrimitive(hdc, &cPrim);
+      else DrawPrimitive(graphics, &hPen, &hPath, &cPrim);
       pObj->GetNextPrimitive(&cPrim, m_dUnitScale, iDimen);
-    }*/
+    }
   }
 }
 

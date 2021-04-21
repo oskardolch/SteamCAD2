@@ -711,7 +711,7 @@ void CDApplication::SaveSettings()
   gchar sbuf[256];
   g_strlcpy(sbuf, "<?xml version=\"1.0\"?>\n<!--SteamCAD2 Workspace Settings-->\n<Settings>\n", 256);
   fwrite(sbuf, sizeof(gchar), strlen(sbuf), fp);
-  g_sprintf(sbuf, "  <MainForm Left=\"%d\" Top=\"%d\" Width=\"%d\" Height=\"%d\" Gravity=\"%d\"/>\n", 
+  g_sprintf(sbuf, "  <MainForm Left=\"%d\" Top=\"%d\" Width=\"%d\" Height=\"%d\" Gravity=\"%d\"/>\n",
     x, y, dx, dy, igr);
   fwrite(sbuf, sizeof(gchar), strlen(sbuf), fp);
 
@@ -817,7 +817,7 @@ void CDApplication::SaveSettings()
   return;
 }
 
-void CDApplication::SetPosition(gint iLeft, gint iTop, gint iWidth, 
+void CDApplication::SetPosition(gint iLeft, gint iTop, gint iWidth,
   gint iHeight, GdkGravity iGrav)
 {
   gtk_window_move(GTK_WINDOW(m_pMainWnd), iLeft, iTop);
@@ -1059,7 +1059,7 @@ void CDApplication::DrawDimArrow(cairo_t *cr, PDPrimitive pPrim)
   case 3:
     cairo_new_path(cr);
     cairo_arc(cr, pPrim->cPt2.x + m_cViewOrigin.x, pPrim->cPt2.y + m_cViewOrigin.y,
-      fabs(pPrim->cPt3.x - pPrim->cPt2.x), 0.0, 2.0*M_PI);
+      fabs(pPrim->cPt3.y - pPrim->cPt2.y), 0.0, 2.0*M_PI);
     cairo_fill(cr);
     break;
   case 4:
@@ -1435,16 +1435,9 @@ void CDApplication::DrawObject(cairo_t *cr, PDObject pObj, int iMode, int iDimen
       for(int i = 0; i < pObj->GetDimenCount(); i++)
       {
         pDim = pObj->GetDimen(i);
-        if(pDim->bSelected)
-        {
-          dwColor = m_lSelColor;
-          SetLColor(cr, dwColor);
-        }
-        else
-        {
-          dwColor = CodeRGBColor(cStyle.cColor);
-          SetLColor(cr, dwColor);
-        }
+        if(pDim->bSelected) dwColor = m_lSelColor;
+        else dwColor = CodeRGBColor(cStyle.cColor);
+        SetLColor(cr, dwColor);
 
         pObj->GetFirstPrimitive(&cPrim, m_dUnitScale, i);
         while(cPrim.iType > 0)
