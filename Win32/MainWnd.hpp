@@ -171,8 +171,10 @@ private:
   int GetDynMode();
   void FilePropsToData(PDFileAttrs pFAttrs);
   void DataToFileProps();
-  void DrawDimText(HWND hWnd, HDC hdc, PDPrimitive pPrim, PDObject pObj, DWORD dwColor,
-    double dLineWidth);
+  //void DrawDimText(HWND hWnd, HDC hdc, PDPrimitive pPrim, PDObject pObj, DWORD dwColor,
+  //  double dLineWidth);
+  void DrawDimText(HWND hWnd, Graphics *graphics, PDPrimitive pPrim, PDObject pObj,
+    DWORD dwColor, double dLineWidth);
   void DrawCross(HWND hWnd);
   void SetTitle(HWND hWnd, bool bForce);
 public:

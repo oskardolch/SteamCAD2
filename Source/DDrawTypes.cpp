@@ -144,7 +144,7 @@ int GetTangSnap(CDPoint cPt, double dDist, bool bNewPt, PDLine pSnapPt, PDObject
   return 0;
 }
 
-int GetSnapPointFromList(int iSnapMask, CDPoint cPt, double dDist, PDLine pSnapPt, PDObject pDynObj, 
+int GetSnapPointFromList(int iSnapMask, CDPoint cPt, double dDist, PDLine pSnapPt, PDObject pDynObj,
   PDObject *pObjList, int iCount, bool bHonorSnapTo)
 {
   pSnapPt->bIsSet = false;
@@ -2142,7 +2142,7 @@ int CDObject::BuildPrimitives(CDLine cTmpPt, int iMode, PDRect pRect, int iTemp,
         GetNativeRefPoint(dRef3, 0.0, &cPt1);
         GetNativeRefDir(dRef3, &cDir);
         cNorm = GetNormal(cDir);
-        if(m_iDimenDir < 0) cNorm *= -1.0;
+        if(m_iDimenDir > 0) cNorm *= -1.0;
         double dAng = NormalizeAngle(&cNorm);
 
         m_cTmpDim.cLabelPos.cPoint = cPt1 - pAttrs->dBaseLine*cNorm;
@@ -5295,7 +5295,7 @@ bool CDObject::AddDimen(CDPoint cPt, double dDist, PDRect pRect, PDFileAttrs pAt
   GetNativeRefPoint(dRef3, 0.0, &cPt1);
   GetNativeRefDir(dRef3, &cDir);
   cNorm = GetNormal(cDir);
-  if(m_iDimenDir < 0) cNorm *= -1.0;
+  if(m_iDimenDir > 0) cNorm *= -1.0;
   double dAng = NormalizeAngle(&cNorm);
 
   pDim->cLabelPos.cPoint = cPt1 - pAttrs->dBaseLine*cNorm;
