@@ -69,47 +69,51 @@ void ExportDimArrow(cairo_t *pct, PDPrimitive pPrim)
 
 void ExportPrimitive(cairo_t *pct, PDPrimitive pPrim)
 {
-    double dr, da1, da2;
+    double dr; //, da1, da2;
     CDPoint cPt1, cPt2;
 
     switch(pPrim->iType)
     {
     case 1:
-        cairo_new_path(pct);
-        cairo_move_to(pct, pPrim->cPt1.x, pPrim->cPt1.y);
+        //cairo_new_path(pct);
+        //cairo_move_to(pct, pPrim->cPt1.x, pPrim->cPt1.y);
         cairo_line_to(pct, pPrim->cPt2.x, pPrim->cPt2.y);
-        cairo_stroke(pct);
+        //cairo_stroke(pct);
         break;
     case 2:
-        dr = (pPrim->cPt2.x - pPrim->cPt1.x);
-        da2 = atan2(pPrim->cPt3.y - pPrim->cPt1.y, pPrim->cPt3.x - pPrim->cPt1.x);
-        da1 = atan2(pPrim->cPt4.y - pPrim->cPt1.y, pPrim->cPt4.x - pPrim->cPt1.x);
-        cairo_new_path(pct);
-        cairo_arc(pct, pPrim->cPt1.x, pPrim->cPt1.y, dr, da1, da2);
-        cairo_stroke(pct);
+        //dr = (pPrim->cPt2.x - pPrim->cPt1.x);
+        dr = pPrim->cPt2.x;
+        //da2 = atan2(pPrim->cPt3.y - pPrim->cPt1.y, pPrim->cPt3.x - pPrim->cPt1.x);
+        //da1 = atan2(pPrim->cPt4.y - pPrim->cPt1.y, pPrim->cPt4.x - pPrim->cPt1.x);
+        //cairo_new_path(pct);
+        if(fabs(pPrim->cPt4.x - 1.0) < 0.2)
+          cairo_arc_negative(pct, pPrim->cPt1.x, pPrim->cPt1.y, dr, pPrim->cPt3.y, pPrim->cPt3.x);
+        else
+          cairo_arc(pct, pPrim->cPt1.x, pPrim->cPt1.y, dr, pPrim->cPt3.x, pPrim->cPt3.y);
+        //cairo_stroke(pct);
         break;
     case 3:
         dr = (pPrim->cPt2.x - pPrim->cPt1.x);
-        cairo_new_path(pct);
+        //cairo_new_path(pct);
         cairo_arc(pct, pPrim->cPt1.x, pPrim->cPt1.y, dr, 0.0, 2.0*M_PI);
-        cairo_stroke(pct);
+        //cairo_stroke(pct);
         break;
     case 4:
         cPt1 = (pPrim->cPt1 + 2.0*pPrim->cPt2)/3.0;
         cPt2 = (pPrim->cPt3 + 2.0*pPrim->cPt2)/3.0;
-        cairo_new_path(pct);
-        cairo_move_to(pct, pPrim->cPt1.x, pPrim->cPt1.y);
+        //cairo_new_path(pct);
+        //cairo_move_to(pct, pPrim->cPt1.x, pPrim->cPt1.y);
         cairo_curve_to(pct, cPt1.x, cPt1.y, cPt2.x, cPt2.y,
             pPrim->cPt3.x, pPrim->cPt3.y);
-        cairo_stroke(pct);
+        //cairo_stroke(pct);
         break;
     case 5:
-        cairo_new_path(pct);
-        cairo_move_to(pct, pPrim->cPt1.x, pPrim->cPt1.y);
+        //cairo_new_path(pct);
+        //cairo_move_to(pct, pPrim->cPt1.x, pPrim->cPt1.y);
         cairo_curve_to(pct, pPrim->cPt2.x, pPrim->cPt2.y,
             pPrim->cPt3.x, pPrim->cPt3.y,
             pPrim->cPt4.x, pPrim->cPt4.y);
-        cairo_stroke(pct);
+        //cairo_stroke(pct);
         break;
     case 9:
         ExportDimArrow(pct, pPrim);
@@ -264,6 +268,7 @@ void ExportObject(PDObject pObj, cairo_t *pct, PDFileAttrs pFileAttrs, double dR
   double dLineWdth = fabs(cStyle.dWidth);
 
   cairo_set_line_cap(pct, (cairo_line_cap_t)cStyle.cCapType);
+  cairo_set_line_join(pct, (cairo_line_join_t)cStyle.cJoinType);
   ExpSetLColor(pct, cStyle.cColor);
   cairo_set_line_width(pct, dLineWdth*dRat);
 
@@ -273,7 +278,56 @@ void ExportObject(PDObject pObj, cairo_t *pct, PDFileAttrs pFileAttrs, double dR
   while(cPrim.iType > 0)
   {
     if(cPrim.iType == 10) ExportDimText(pct, &cPrim, pObj, dScale, pUnits, dRat);
-    else if(bVisible) ExportPrimitive(pct, &cPrim);
+    else if(bVisible)
+    {
+      if(cPrim.iType == 11)
+      {
+    //   (0, 0) - INVALID
+    //   (1, 0) - start a new path without subpath
+    //   (2, 0) - stroke path without closing the last subpath (if exists)
+    //   (0, 1) - start subpath without closing the previous one (if exists)
+    //   (1, 1) - start a new path and immediatelly new subpath
+    //   (2, 1) - INVALID
+    //   (0, 2) - close subpath and immediately start a new one
+    //   (1, 2) - INVALID
+    //   (2, 2) - close last subpath and stroke path
+        if(fabs(cPrim.cPt1.x - 1.0) < 0.2)
+        {
+          cairo_new_path(pct);
+          if(fabs(cPrim.cPt2.x - 1.0) < 0.2)
+            cairo_move_to(pct, cPrim.cPt3.x, cPrim.cPt3.y);
+        }
+        if(fabs(cPrim.cPt1.y - 1.0) < 0.2)
+        {
+          cairo_new_sub_path(pct);
+          if(fabs(cPrim.cPt2.x - 1.0) < 0.2)
+            cairo_move_to(pct, cPrim.cPt3.x, cPrim.cPt3.y);
+        }
+        if(fabs(cPrim.cPt1.y - 2.0) < 0.2)
+        {
+          cairo_close_path(pct);
+          if(fabs(cPrim.cPt1.x) < 0.2) cairo_new_sub_path(pct);
+        }
+        if(fabs(cPrim.cPt1.x - 2.0) < 0.2)
+        {
+          if(cPrim.cPt2.x > 0.00001)
+          {
+            double dDash[6];
+            double dSegLen;
+            for(int i = 0; i < cStyle.iSegments; i++)
+            {
+              dSegLen = cStyle.dPattern[i];
+              if((i % 2 == 0) && (dSegLen < g_dDashMin)) dSegLen = g_dDashMin;
+              dDash[i] = dRat*cPrim.cPt2.x*dSegLen;
+            }
+            cairo_set_dash(pct, dDash, cStyle.iSegments, dRat*cPrim.cPt2.y);
+          }
+          cairo_stroke(pct);
+          cairo_set_dash(pct, NULL, 0, 0.0);
+        }
+      }
+      else ExportPrimitive(pct, &cPrim);
+    }
     pObj->GetNextPrimitive(&cPrim, dRat, -2);
   }
 
