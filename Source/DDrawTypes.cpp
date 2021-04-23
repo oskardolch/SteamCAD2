@@ -4206,7 +4206,9 @@ void CDObject::SaveLineStyle(FILE *pf, bool bSwapBytes, CDLineStyle cLineStyle, 
   SwapBytes(buf, pbuf, 8, bSwapBytes);
   fwrite(buf, 1, 8, pf);
 
-  pbuf = (unsigned char*)&cLineStyle.dPercent;
+  double dPerc = cLineStyle.dPercent;
+  if((cVersion == 1) && ((m_iType == dtLine) || (m_iType == dtHyperbola))) dPerc *= -1.0;
+  pbuf = (unsigned char*)&dPerc;
   SwapBytes(buf, pbuf, 8, bSwapBytes);
   fwrite(buf, 1, 8, pf);
 
@@ -4320,10 +4322,22 @@ void CDObject::SaveToFile(FILE *pf, bool bSwapBytes, unsigned char cVersion)
     fwrite(buf, 1, 4, pf);
 
     CDInputPoint cInPt;
-    for(unsigned int i = 0; i < lCnt; i++)
+    if((cVersion == 1) && (m_iType == dtLine) && (m_pInputPoints->GetCount(0) == 1) && (m_pInputPoints->GetCount(1) == 1))
     {
-      cInPt = m_pInputPoints->GetPoint(i, -1);
+      cInPt = m_pInputPoints->GetPoint(0, 0);
+      cInPt.iCtrl = 1;
       SaveInputPoint(pf, bSwapBytes, cInPt);
+      cInPt = m_pInputPoints->GetPoint(0, 1);
+      cInPt.iCtrl = 0;
+      SaveInputPoint(pf, bSwapBytes, cInPt);
+    }
+    else
+    {
+      for(unsigned int i = 0; i < lCnt; i++)
+      {
+        cInPt = m_pInputPoints->GetPoint(i, -1);
+        SaveInputPoint(pf, bSwapBytes, cInPt);
+      }
     }
 
     lCnt = m_pCrossPoints->GetCount();
@@ -4489,9 +4503,9 @@ void CDObject::LoadLineStyle(FILE *pf, bool bSwapBytes, PDLineStyle pLineStyle, 
   }
   else
   {
-    pLineStyle->dPercent *= -1.0;
-    if(fabs(pLineStyle->dWidth) < 0.3) pLineStyle->cCapType = 1;
-    else pLineStyle->cCapType = 0;
+    if((m_iType == dtLine) || (m_iType == dtHyperbola)) pLineStyle->dPercent *= -1.0;
+    if(fabs(pLineStyle->dWidth) > 0.3) pLineStyle->cCapType = 0;
+    else pLineStyle->cCapType = 1;
     pLineStyle->cJoinType = 1;
     pLineStyle->cColor[0] = 0;
     pLineStyle->cColor[1] = 0;
@@ -4604,6 +4618,16 @@ bool CDObject::ReadFromFile(FILE *pf, bool bSwapBytes, unsigned char cVersion)
     LoadRefPoint(pf, bSwapBytes, &m_cBounds[1]);
   }
 
+  if((m_iType == dtHyperbola) || (m_iType == dtLine))
+  {
+    if(m_cBounds[0].bIsSet && m_cBounds[1].bIsSet && (m_cBounds[0].dRef > m_cBounds[1].dRef))
+    {
+      double d1 = m_cBounds[0].dRef;
+      m_cBounds[0].dRef = m_cBounds[1].dRef;
+      m_cBounds[1].dRef = d1;
+    }
+  }
+
   LoadLineStyle(pf, bSwapBytes, &m_cLineStyle, cVersion);
 
   unsigned long lCnt = 0;
@@ -4687,7 +4711,7 @@ bool CDObject::ReadFromFile(FILE *pf, bool bSwapBytes, unsigned char cVersion)
       }
     }
   }
-  if(m_cBounds[0].bIsSet && m_cBounds[1].bIsSet && (fabs(m_cBounds[0].dRef - m_cBounds[1].dRef) < 0.001)) return false;
+  if(m_cBounds[0].bIsSet && m_cBounds[1].bIsSet && (fabs(m_cBounds[0].dRef - m_cBounds[1].dRef) < 0.00001)) return false;
   return true;
 }
 
