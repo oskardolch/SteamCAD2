@@ -320,7 +320,7 @@ void ExportObject(PDObject pObj, cairo_t *pct, PDFileAttrs pFileAttrs, double dR
               if((i % 2 == 0) && (dSegLen < g_dDashMin)) dSegLen = g_dDashMin;
               dDash[i] = dRat*cPrim.cPt2.x*dSegLen;
             }
-            cairo_set_dash(pct, dDash, cStyle.iSegments, dRat*cPrim.cPt2.y);
+            cairo_set_dash(pct, dDash, cStyle.iSegments, cPrim.cPt2.y);
           }
           cairo_stroke(pct);
           cairo_set_dash(pct, NULL, 0, 0.0);
