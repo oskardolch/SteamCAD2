@@ -4489,7 +4489,9 @@ void CDObject::LoadLineStyle(FILE *pf, bool bSwapBytes, PDLineStyle pLineStyle, 
   }
   else
   {
-    pLineStyle->cCapType = 1;
+    pLineStyle->dPercent *= -1.0;
+    if(fabs(pLineStyle->dWidth) < 0.3) pLineStyle->cCapType = 1;
+    else pLineStyle->cCapType = 0;
     pLineStyle->cJoinType = 1;
     pLineStyle->cColor[0] = 0;
     pLineStyle->cColor[1] = 0;
@@ -4586,7 +4588,7 @@ bool CDObject::ReadFromFile(FILE *pf, bool bSwapBytes, unsigned char cVersion)
 
   LoadLine(pf, bSwapBytes, &m_cLines[0]);
   LoadLine(pf, bSwapBytes, &m_cLines[1]);
-  if((cVersion == 1) && ((m_iType == dtHyperbola)))
+  if((cVersion == 1) && (m_iType == dtHyperbola))
   {
     CDRefPoint cLocBnds[2];
     LoadRefPoint(pf, bSwapBytes, &cLocBnds[0]);
@@ -4616,6 +4618,18 @@ bool CDObject::ReadFromFile(FILE *pf, bool bSwapBytes, unsigned char cVersion)
     m_pInputPoints->AddPoint(cInPt.cPoint.x, cInPt.cPoint.y, cInPt.iCtrl);
   }
 
+  if((cVersion == 1) && (m_iType == dtLine))
+  {
+    if((m_pInputPoints->GetCount(0) == 1) && (m_pInputPoints->GetCount(1) == 1))
+    {
+      CDInputPoint cInPt2;
+      cInPt = m_pInputPoints->GetPoint(0, 0);
+      cInPt2 = m_pInputPoints->GetPoint(0, 1);
+      m_pInputPoints->SetPoint(0, 0, cInPt2.cPoint.x, cInPt2.cPoint.y, 0);
+      m_pInputPoints->SetPoint(0, 1, cInPt.cPoint.x, cInPt.cPoint.y, 1);
+    }
+  }
+
   fread(buf, 1, 4, pf);
   pbuf = (unsigned char*)&lCnt;
   SwapBytes(pbuf, buf, 4, bSwapBytes);
@@ -4641,6 +4655,7 @@ bool CDObject::ReadFromFile(FILE *pf, bool bSwapBytes, unsigned char cVersion)
 
   if(cVersion > 1)
   {
+    bool bRead;
     CDLine cPtX;
     cPtX.bIsSet = false;
     PDObject pObj;
@@ -4657,9 +4672,13 @@ bool CDObject::ReadFromFile(FILE *pf, bool bSwapBytes, unsigned char cVersion)
         pSeg->bReverse = (bool)buf[0];
         fread(buf, 1, 1, pf);
         pObj = new CDObject((CDDrawType)buf[0], 0.2);
-        pObj->ReadFromFile(pf, bSwapBytes, cVersion);
-        pSeg->pSegment = pObj;
-        if(pObj->BuildCache(cPtX, 0)) m_pSubObjects->Add(pSeg);
+        bRead = pObj->ReadFromFile(pf, bSwapBytes, cVersion);
+        if(bRead) bRead = pObj->BuildCache(cPtX, 0);
+        if(bRead)
+        {
+          pSeg->pSegment = pObj;
+          m_pSubObjects->Add(pSeg);
+        }
         else
         {
           delete pObj;
@@ -4667,18 +4686,8 @@ bool CDObject::ReadFromFile(FILE *pf, bool bSwapBytes, unsigned char cVersion)
         }
       }
     }
-    else
-    {
-      for(unsigned int i = 0; i < lCnt; i++)
-      {
-        fread(buf, 1, 1, pf);
-        pObj = new CDObject((CDDrawType)buf[0], 0.2);
-        pObj->ReadFromFile(pf, bSwapBytes, cVersion);
-        if(pObj->BuildCache(cPtX, 0)) m_pSubObjects->Add(pObj);
-        else delete pObj;
-      }
-    }
   }
+  if(m_cBounds[0].bIsSet && m_cBounds[1].bIsSet && (fabs(m_cBounds[0].dRef - m_cBounds[1].dRef) < 0.001)) return false;
   return true;
 }
 
@@ -6634,8 +6643,8 @@ bool CDataList::ReadFromFile(FILE *pf, bool bSwapBytes, bool bClear)
   {
     fread(buf, 1, 1, pf);
     pObj = new CDObject((CDDrawType)buf[0], 0.2);
-    pObj->ReadFromFile(pf, bSwapBytes, cVer);
-    Add(pObj);
+    if(pObj->ReadFromFile(pf, bSwapBytes, cVer)) Add(pObj);
+    else delete pObj;
   }
   m_bHasChanged = !bClear;
   return true;
