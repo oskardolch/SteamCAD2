@@ -4202,27 +4202,19 @@ void CDApplication::ToolsScaleCmd()
 
 void CDApplication::PathCreateCmd()
 {
-  m_pDrawObjects->CreatePath();
-  GtkWidget *draw = GetDrawing();
-  gdk_window_invalidate_rect(draw->window, NULL, FALSE);
-  SetTitle(m_pMainWnd, false);
+  if(m_pDrawObjects->CreatePath() > 0)
+  {
+    GtkWidget *draw = GetDrawing();
+    gdk_window_invalidate_rect(draw->window, NULL, FALSE);
+    SetTitle(m_pMainWnd, false);
+  }
 }
 
 void CDApplication::PathBreakCmd()
 {
-  GtkWidget *draw = GetDrawing();
-
-  int iWidth = gdk_window_get_width(draw->window);
-  int iHeight = gdk_window_get_height(draw->window);
-
-  CDRect cdr;
-  cdr.cPt1.x = -m_cViewOrigin.x/m_dUnitScale;
-  cdr.cPt1.y = -m_cViewOrigin.y/m_dUnitScale;
-  cdr.cPt2.x = (iWidth - m_cViewOrigin.x)/m_dUnitScale;
-  cdr.cPt2.y = (iHeight - m_cViewOrigin.y)/m_dUnitScale;
-
-  if(m_pDrawObjects->BreakSelObjects(&cdr))
+  if(m_pDrawObjects->BreakSelObjects())
   {
+    GtkWidget *draw = GetDrawing();
     gdk_window_invalidate_rect(draw->window, NULL, FALSE);
     SetTitle(m_pMainWnd, false);
   }
@@ -4230,6 +4222,12 @@ void CDApplication::PathBreakCmd()
 
 void CDApplication::PathAreaCmd()
 {
+  if(m_pDrawObjects->CreateArea())
+  {
+    GtkWidget *draw = GetDrawing();
+    gdk_window_invalidate_rect(draw->window, NULL, FALSE);
+    SetTitle(m_pMainWnd, false);
+  }
 }
 
 void CDApplication::PathGroupCmd()

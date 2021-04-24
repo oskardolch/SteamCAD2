@@ -5,9 +5,9 @@ BUILDDIR = Build/
 EXE_NAME = SteamCAD2
 
 CFLAGS = -Wall \
-	-DG_DISABLE_DEPRECATED 	 	\
-	-DGDK_PIXBUF_DISABLE_DEPRECATED \
-    -DGDK_DISABLE_DEPRECATED
+  -DG_DISABLE_DEPRECATED 	 	\
+  -DGDK_PIXBUF_DISABLE_DEPRECATED \
+  -DGDK_DISABLE_DEPRECATED
 
 ARFLAGS=rcs
 
@@ -34,17 +34,17 @@ libdxflib.a: $(dxflibobj)
 %.o : dxflib/%.cpp
 	$(CC) -c $< -o $(BUILDDIR)$@
 
+
 # dxflib sources
 dl_writer_ascii.o : dxflib/dl_writer_ascii.cpp dxflib/dl_writer_ascii.h
 dl_dxf.o : dxflib/dl_dxf.cpp dxflib/dl_dxf.h
 
-
 DGuiobj = SteamCAD2.o DMenu.o DApplication.o DDataTypes.o DMath.o DTopo.o \
-    DDrawTypes.o DPrimitive.o DLine.o DCircle.o DEllipse.o DArcElps.o \
-    DHyper.o DParabola.o DSpline.o DEvolv.o DExpCairo.o DParser.o \
-    DFileMenu.o DModeMenu.o DEditMenu.o DViewToolsMenu.o DFileSetupDlg.o \
-    DLineStyleDlg.o DDimEditDlg.o DStatDlg.o DSnapDlg.o DScaleDlg.o DExpDXF.o \
-    DPathMenu.o
+  DDrawTypes.o DPrimitive.o DLine.o DCircle.o DEllipse.o DArcElps.o \
+  DHyper.o DParabola.o DSpline.o DEvolv.o DExpCairo.o DParser.o \
+  DFileMenu.o DModeMenu.o DEditMenu.o DViewToolsMenu.o DFileSetupDlg.o \
+  DLineStyleDlg.o DDimEditDlg.o DStatDlg.o DSnapDlg.o DScaleDlg.o DExpDXF.o \
+  DPathMenu.o
 DBuildobj = $(addprefix $(BUILDDIR), $(DGuiobj))
 DGuimod = -L./Build -Wl,-rpath,.
 
@@ -53,67 +53,66 @@ $(BUILDDIR)%.o : Linux/%.cpp
 
 $(BUILDDIR)SteamCAD2.o : Linux/SteamCAD2.cpp Linux/DApplication.hpp
 $(BUILDDIR)DApplication.o : Linux/DApplication.cpp Linux/DApplication.hpp Linux/DLxBaseDefs.h \
-    Linux/DMenu.hpp Source/DDrawTypes.hpp Source/DMath.hpp Source/DExpCairo.hpp \
-    Linux/DFileSetupDlg.hpp Linux/DLineStyleDlg.hpp Linux/DStatDlg.hpp \
-    Linux/DSnapDlg.hpp Linux/DScaleDlg.hpp Source/DExpDXF.hpp
+  Linux/DMenu.hpp Source/DDrawTypes.hpp Source/DMath.hpp Source/DExpCairo.hpp \
+  Linux/DFileSetupDlg.hpp Linux/DLineStyleDlg.hpp Linux/DStatDlg.hpp \
+  Linux/DSnapDlg.hpp Linux/DScaleDlg.hpp Source/DExpDXF.hpp
 $(BUILDDIR)DMenu.o : Linux/DMenu.cpp Linux/DMenu.hpp Linux/DApplication.hpp \
-    Linux/DFileMenu.hpp Linux/DModeMenu.hpp Linux/DEditMenu.hpp \
-    Linux/DViewToolsMenu.hpp Linux/DPathMenu.hpp
+  Linux/DFileMenu.hpp Linux/DModeMenu.hpp Linux/DEditMenu.hpp \
+  Linux/DViewToolsMenu.hpp Linux/DPathMenu.hpp
 $(BUILDDIR)DFileMenu.o : Linux/DFileMenu.cpp Linux/DFileMenu.hpp Linux/DLxBaseDefs.h
 $(BUILDDIR)DModeMenu.o : Linux/DModeMenu.cpp Linux/DModeMenu.hpp Linux/DLxBaseDefs.h
 $(BUILDDIR)DEditMenu.o : Linux/DEditMenu.cpp Linux/DEditMenu.hpp Linux/DLxBaseDefs.h
 $(BUILDDIR)DViewToolsMenu.o : Linux/DViewToolsMenu.cpp Linux/DViewToolsMenu.hpp Linux/DLxBaseDefs.h
 $(BUILDDIR)DPathMenu.o : Linux/DPathMenu.cpp Linux/DPathMenu.hpp Linux/DLxBaseDefs.h
 $(BUILDDIR)DFileSetupDlg.o : Linux/DFileSetupDlg.cpp Linux/DFileSetupDlg.hpp Source/DParser.hpp \
-    Linux/DLxBaseDefs.h
+  Linux/DLxBaseDefs.h
 $(BUILDDIR)DLineStyleDlg.o : Linux/DLineStyleDlg.cpp Linux/DLineStyleDlg.hpp Source/DDataTypes.hpp \
-    Linux/DLxBaseDefs.h Linux/DFileSetupDlg.hpp
+  Linux/DLxBaseDefs.h Linux/DFileSetupDlg.hpp
 $(BUILDDIR)DDimEditDlg.o : Linux/DDimEditDlg.cpp Linux/DDimEditDlg.hpp Source/DDataTypes.hpp \
-    Linux/DLxBaseDefs.h Linux/DFileSetupDlg.hpp
+  Linux/DLxBaseDefs.h Linux/DFileSetupDlg.hpp
 $(BUILDDIR)DStatDlg.o : Linux/DStatDlg.cpp Linux/DStatDlg.hpp Linux/DLxBaseDefs.h
 $(BUILDDIR)DSnapDlg.o : Linux/DSnapDlg.cpp Linux/DSnapDlg.hpp Linux/DLxBaseDefs.h
 $(BUILDDIR)DScaleDlg.o : Linux/DScaleDlg.cpp Linux/DScaleDlg.hpp Source/DDataTypes.hpp \
-    Linux/DLxBaseDefs.h Linux/DFileSetupDlg.hpp
+  Linux/DLxBaseDefs.h Linux/DFileSetupDlg.hpp
 
 $(BUILDDIR)%.o : Source/%.cpp
 	$(CC) $(CFLAGS) -c $< -o $@ $(CARGS)
 
 $(BUILDDIR)DDataTypes.o : Source/DDataTypes.cpp Source/DDataTypes.hpp Source/DTopo.hpp \
-	Source/DMath.hpp
+  Source/DMath.hpp
 $(BUILDDIR)DMath.o : Source/DMath.cpp Source/DMath.hpp
 $(BUILDDIR)DTopo.o : Source/DTopo.cpp Source/DTopo.hpp Source/DMath.hpp
 $(BUILDDIR)DDrawTypes.o : Source/DDrawTypes.cpp Source/DDrawTypes.hpp Source/DDataTypes.hpp \
-	Source/DLine.hpp Source/DCircle.hpp Source/DEllipse.hpp Source/DPrimitive.hpp \
-	Source/DArcElps.hpp Source/DHyper.hpp Source/DParabola.hpp Source/DSpline.hpp \
-	Source/DEvolv.hpp Source/DParser.hpp
+  Source/DLine.hpp Source/DCircle.hpp Source/DEllipse.hpp Source/DPrimitive.hpp \
+  Source/DArcElps.hpp Source/DHyper.hpp Source/DParabola.hpp Source/DSpline.hpp \
+  Source/DEvolv.hpp Source/DParser.hpp
 $(BUILDDIR)DPrimitive.o : Source/DPrimitive.cpp Source/DPrimitive.hpp Source/DDataTypes.hpp \
-	Source/DMath.hpp
+  Source/DMath.hpp
 $(BUILDDIR)DLine.o : Source/DLine.cpp Source/DLine.hpp Source/DDataTypes.hpp \
-	Source/DPrimitive.hpp
+  Source/DPrimitive.hpp
 $(BUILDDIR)DCircle.o : Source/DCircle.cpp Source/DCircle.hpp Source/DDataTypes.hpp \
-	Source/DPrimitive.hpp Source/DMath.hpp
+  Source/DPrimitive.hpp Source/DMath.hpp
 $(BUILDDIR)DEllipse.o : Source/DEllipse.cpp Source/DEllipse.hpp Source/DDataTypes.hpp \
-	Source/DPrimitive.hpp Source/DMath.hpp
+  Source/DPrimitive.hpp Source/DMath.hpp
 $(BUILDDIR)DArcElps.o : Source/DArcElps.cpp Source/DArcElps.hpp Source/DDataTypes.hpp \
-	Source/DPrimitive.hpp Source/DMath.hpp
+  Source/DPrimitive.hpp Source/DMath.hpp
 $(BUILDDIR)DHyper.o : Source/DHyper.cpp Source/DHyper.hpp Source/DDataTypes.hpp \
-	Source/DPrimitive.hpp Source/DMath.hpp
+  Source/DPrimitive.hpp Source/DMath.hpp
 $(BUILDDIR)DParabola.o : Source/DParabola.cpp Source/DParabola.hpp Source/DDataTypes.hpp \
-	Source/DPrimitive.hpp Source/DMath.hpp
+  Source/DPrimitive.hpp Source/DMath.hpp
 $(BUILDDIR)DSpline.o : Source/DSpline.cpp Source/DSpline.hpp Source/DDataTypes.hpp \
-	Source/DPrimitive.hpp Source/DMath.hpp
+  Source/DPrimitive.hpp Source/DMath.hpp
 $(BUILDDIR)DEvolv.o : Source/DEvolv.cpp Source/DEvolv.hpp Source/DDataTypes.hpp \
-	Source/DPrimitive.hpp Source/DMath.hpp
+  Source/DPrimitive.hpp Source/DMath.hpp
 $(BUILDDIR)DExpCairo.o : Source/DExpCairo.cpp Source/DExpCairo.hpp Source/DDataTypes.hpp \
-	Source/DDrawTypes.hpp Source/DPrimitive.hpp Source/DParser.hpp
+  Source/DDrawTypes.hpp Source/DPrimitive.hpp Source/DParser.hpp
 $(BUILDDIR)DParser.o : Source/DParser.cpp Source/DParser.hpp Source/DMath.hpp Source/DDataTypes.hpp
 $(BUILDDIR)DExpDXF.o : Source/DExpDXF.cpp Source/DExpDXF.hpp Source/DDataTypes.hpp \
-	Source/DDrawTypes.hpp Source/DPrimitive.hpp Source/DParser.hpp
+  Source/DDrawTypes.hpp Source/DPrimitive.hpp Source/DParser.hpp
 
 
 $(EXE_NAME): $(DBuildobj)
 	$(CC) $^ -o $(BUILDDIR)$@ $(DGuimod) $(GARGS) -ldxflib
-
 
 clean: 
 	rm -f $(BUILDDIR)*.o

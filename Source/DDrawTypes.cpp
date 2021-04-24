@@ -3029,18 +3029,22 @@ PDPathSeg CDObject::GetPathRefSegment(double dRef, double dOffset, double *pdSeg
 
   if(dRef < -g_dPrec)
   {
-    if(!bClosedPath) return NULL;
-
-    dRef += dTotLen;
-    while(dRef < -g_dPrec) dRef += dTotLen;
+    if(bClosedPath)
+    {
+      dRef += dTotLen;
+      while(dRef < -g_dPrec) dRef += dTotLen;
+    }
+    else dRef = 0.0;
   }
 
   if(dRef > dTotLen + g_dPrec)
   {
-    if(!bClosedPath) return NULL;
-
-    dRef -= dTotLen;
-    while(dRef > dTotLen + g_dPrec) dRef -= dTotLen;
+    if(bClosedPath)
+    {
+      dRef -= dTotLen;
+      while(dRef > dTotLen + g_dPrec) dRef -= dTotLen;
+    }
+    else dRef = dTotLen;
   }
 
   PDPathSeg pSeg = (PDPathSeg)m_pSubObjects->GetItem(0);
@@ -3061,7 +3065,7 @@ PDPathSeg CDObject::GetPathRefSegment(double dRef, double dOffset, double *pdSeg
       dLen = pSeg->pSegment->GetLength(dOffset);
   }
 
-  if(dRef > dLen + g_dPrec) return NULL;
+  if(dRef > dLen + g_dPrec) dRef = dLen;
 
   while((dLen < g_dPrec) && (i < n))
   {
@@ -5994,8 +5998,20 @@ void CDObject::AddSegmentToPath(PDPathSeg pNewSeg, bool bInsert)
   if(bInsert) m_pSubObjects->Add(pNewSeg);
 }
 
-void CDObject::BuildPath(CDObject **ppObjects, PDIntList pPath)
+void CDObject::BuildPath(CDObject **ppObjects, PDIntList pPath, PDLineStyle pStyle)
 {
+  m_cLineStyle.dPercent = pStyle->dPercent;
+  m_cLineStyle.cCapType = pStyle->cCapType;
+  m_cLineStyle.cJoinType = pStyle->cJoinType;
+  m_cLineStyle.iSegments = pStyle->iSegments;
+  for(int i = 0; i < m_cLineStyle.iSegments; i++)
+    m_cLineStyle.dPattern[i] = pStyle->dPattern[i];
+  for(int i = m_cLineStyle.iSegments; i < 6; i++)
+    m_cLineStyle.dPattern[i] = 0.0;
+  for(int i = 0; i < 4; i++)
+    m_cLineStyle.cColor[i] = pStyle->cColor[i];
+  //m_cLineStyle.dBlend = pStyle->dBlend;
+
   int n = pPath->GetCount();
   PDPathSeg pSeg;
   PDObject pObj;
@@ -7305,7 +7321,7 @@ int CDataList::CreatePath()
       pObj = m_ppObjects[abs(pPath->GetItem(0)) - 1];
       cSt = pObj->GetLineStyle();
       pNewObj = new CDObject(dtPath, cSt.dWidth);
-      pNewObj->BuildPath(m_ppObjects, pPath);
+      pNewObj->BuildPath(m_ppObjects, pPath, &cSt);
       pNewObj->SetSelected(true, false, -1);
       Add(pNewObj);
       delete pPath;
@@ -7321,7 +7337,7 @@ int CDataList::CreatePath()
   return iRes;
 }
 
-bool CDataList::BreakSelObjects(PDRect pRect)
+bool CDataList::BreakSelObjects()
 {
   PDObject pObj, pNewObj;
   int iParts;
@@ -7353,5 +7369,68 @@ bool CDataList::BreakSelObjects(PDRect pRect)
     }
   }
   return bRes;
+}
+
+bool CDataList::CreateArea()
+{
+  PDObject pObj, pNewObj;
+  int n1, n2, i = m_iDataLen;
+  PDIntList pPath, pSelObjs;
+  pSelObjs = new CDIntList();
+  PDIntList pClosedList = new CDIntList();
+
+  while(i > 0)
+  {
+    pObj = m_ppObjects[--i];
+    if(pObj->GetSelected())
+    {
+      if(pObj->IsBoundShape() && (pObj->IsClosed() < 2) && (pObj->GetType() <= dtPath))
+      {
+        pSelObjs->AddItem(i);
+      }
+      else if((pObj->IsClosed() > 1) && (pObj->GetType() <= dtPath))
+      {
+        pClosedList->AddItem(i);
+      }
+    }
+  }
+
+  n1 = pSelObjs->GetCount();
+  n2 = pClosedList->GetCount();
+  if((n1 < 2) && (n2 < 1))
+  {
+    delete pClosedList;
+    delete pSelObjs;
+    return false;
+  }
+
+  //int iRes = 0;
+
+  PDPtrList pPaths = new CDPtrList();
+  /*CDLineStyle cSt;
+  if(BuildPaths(pSelObjs, pPaths))
+  {
+    iRes = pPaths->GetCount();
+    for(i = 0; i < iRes; i++)
+    {
+      pPath = (PDIntList)pPaths->GetItem(i);
+      pObj = m_ppObjects[abs(pPath->GetItem(0)) - 1];
+      cSt = pObj->GetLineStyle();
+      pNewObj = new CDObject(dtPath, cSt.dWidth);
+      pNewObj->BuildPath(m_ppObjects, pPath, &cSt);
+      pNewObj->SetSelected(true, false, -1);
+      Add(pNewObj);
+      delete pPath;
+    }
+
+    n = pSelObjs->GetCount();
+    for(i = 0; i < n; i++) Remove(pSelObjs->GetItem(i), false);
+  }*/
+
+  delete pPaths;
+  delete pClosedList;
+  delete pSelObjs;
+
+  return false;
 }
 

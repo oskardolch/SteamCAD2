@@ -7,7 +7,7 @@ SteamCAD was a first version of a 2D CAD versatile enough to draw an arbitrary b
 and white techical drawing. The aim of SteamCAD2 is to fix some issues and also add
 new functionality. These are namely:
 
-* the whole core was compltely rebuilt to improve the rendering speed
+* the whole core was completely rebuilt to improve the rendering speed
 * creating paths consisting of one or more segments, this is especially usefull when
 rendering patterned lines
 * added abilities to control line join shapes and dash endings

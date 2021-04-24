@@ -3951,7 +3951,7 @@ LRESULT CMainWnd::ToolsStatCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl)
 
 LRESULT CMainWnd::PathCreateCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl)
 {
-  if(m_pDrawObjects->CreatePath())
+  if(m_pDrawObjects->CreatePath() > 0)
   {
     InvalidateRect(hwnd, NULL, FALSE);
     SetTitle(hwnd, false);
@@ -3961,7 +3961,7 @@ LRESULT CMainWnd::PathCreateCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl)
 
 LRESULT CMainWnd::PathBreakCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl)
 {
-  if(m_pDrawObjects->BreakSelObjects(NULL))
+  if(m_pDrawObjects->BreakSelObjects())
   {
     InvalidateRect(hwnd, NULL, FALSE);
     SetTitle(hwnd, false);
@@ -3971,6 +3971,11 @@ LRESULT CMainWnd::PathBreakCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl)
 
 LRESULT CMainWnd::PathAreaCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl)
 {
+  if(m_pDrawObjects->CreateArea())
+  {
+    InvalidateRect(hwnd, NULL, FALSE);
+    SetTitle(hwnd, false);
+  }
   return 0;
 }
 

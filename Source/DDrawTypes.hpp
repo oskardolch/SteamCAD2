@@ -209,7 +209,7 @@ public:
   bool IsBoundShape();
   bool GetStartPoint(PDPoint pPt, double dOffset);
   bool GetEndPoint(PDPoint pPt, double dOffset);
-  void BuildPath(CDObject **ppObjects, PDIntList pPath);
+  void BuildPath(CDObject **ppObjects, PDIntList pPath, PDLineStyle pStyle);
   int GetSubObjectCount(bool bCountSubObjects);
   // returns: 0 - no snap point, 1 - on the curve, 2 - on the edge, 3 - on the cross point, 4 - on self intersection,
   // 5 - on a control point
@@ -279,7 +279,8 @@ public:
   bool GetSelSnapEnabled();
   void SetSelSnapEnabled(bool bEnable);
   int CreatePath();
-  bool BreakSelObjects(PDRect pRect);
+  bool BreakSelObjects();
+  bool CreateArea();
 } *PDataList;
 
 #endif
