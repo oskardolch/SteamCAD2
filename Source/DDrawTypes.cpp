@@ -4756,7 +4756,7 @@ bool CDObject::GetDynValue(CDPoint cPt, int iMode, double *pdVal)
       bRes = GetLineAngle(m_pCachePoints, pdVal);
       break;
     case dtCircle:
-      bRes = GetCirceRad(m_pCachePoints, pdVal);
+      bRes = GetCircRad(m_pCachePoints, pdVal);
       break;
     default:
       break;
@@ -5120,33 +5120,49 @@ int CDObject::GetPointReferences(CDPoint cPt, PDRefList pRefs)
     double d1, t1, t2;
     CDPoint cBnds, cBndRefs;
     int iCnt;
+    bool bHasZero = false;
     for(int i = 0; i < m_pSubObjects->GetCount(); i++)
     {
       pSeg = (PDPathSeg)m_pSubObjects->GetItem(i);
       pObj = pSeg->pSegment;
-      pObj->GetBounds(&cBnds, 0.0, true);
-      iCnt = pObj->GetPointReferences(cPt, pList);
-
-      for(int j = 0; j < iCnt; j++)
+      if(fabs(pObj->GetCircleRadius()) > g_dPrec)
       {
-        t1 = pList->GetPoint(j);
-        pObj->GetPointRefDist(t1, 0.0, &d1);
-        if(pObj->IsClosedShape() && (d1 < cBnds.x))
+        pObj->GetBounds(&cBnds, 0.0, true);
+        iCnt = pObj->GetPointReferences(cPt, pList);
+        if(pObj->IsClosedShape()) pObj->GetRefBounds(&cBndRefs);
+
+        for(int j = 0; j < iCnt; j++)
         {
-          pObj->GetRefBounds(&cBndRefs);
-          pObj->GetPointRefDist(cBndRefs.x, 0.0, &t1);
-          pObj->GetPointRefDist(cBndRefs.y, 0.0, &t2);
-          d1 += (t2 - t1);
+          t1 = pList->GetPoint(j);
+          pObj->GetPointRefDist(t1, 0.0, &d1);
+          if(pObj->IsClosedShape() && (d1 < cBnds.x))
+          {
+            pObj->GetPointRefDist(cBndRefs.x, 0.0, &t1);
+            pObj->GetPointRefDist(cBndRefs.y, 0.0, &t2);
+            d1 += (t2 - t1);
+          }
+          if(pSeg->bReverse) dCurLen = dTotLen + cBnds.y - d1;
+          else dCurLen = dTotLen + d1 - cBnds.x;
+          if(IsValidRef(dCurLen) && !pRefs->HasPoint(dCurLen))
+          {
+            if(fabs(dCurLen) < g_dPrec) bHasZero = true;
+            pRefs->AddPoint(dCurLen);
+          }
         }
-        if(pSeg->bReverse) dCurLen = dTotLen + cBnds.y - d1;
-        else dCurLen = dTotLen + d1 - cBnds.x;
-        if(IsValidRef(dCurLen) && !pRefs->HasPoint(dCurLen)) pRefs->AddPoint(dCurLen);
+        dTotLen += pObj->GetLength(0.0);
+        pList->Clear();
       }
-      dTotLen += (cBnds.y - cBnds.x);
-      pList->Clear();
     }
     delete pList;
     iCnt = pRefs->GetCount();
+    if(iCnt > 1)
+    {
+      if(bHasZero && (fabs(dTotLen - dCurLen) < g_dPrec))
+      {
+        iCnt--;
+        pRefs->Truncate(iCnt);
+      }
+    }
     if(iCnt > 0) return iCnt;
   }
 
@@ -6235,8 +6251,9 @@ int CDObject::GetSnapPoint(int iSnapMask, CDPoint cPt, double dDist, PDLine pSna
 
 double CDObject::GetCircleRadius()
 {
+  if(m_iType != dtCircle) return -1.0;
   double dRad = 0.0;
-  if(!GetCirceRad(m_pCachePoints, &dRad)) return 0.0;
+  if(!GetCircRad(m_pCachePoints, &dRad)) return -1.0;
   return dRad;
 }
 

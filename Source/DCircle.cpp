@@ -435,7 +435,7 @@ double GetCircRadiusAtPt(CDPoint cPt, PDPointList pCache, PDLine pPtR, bool bNew
   return dr;
 }
 
-bool GetCirceRad(PDPointList pCache, double *pdVal)
+bool GetCircRad(PDPointList pCache, double *pdVal)
 {
   int iCnt = pCache->GetCount(0);
   if(iCnt < 2) return false;
