@@ -537,3 +537,12 @@ bool GetCircReference(double dDist, double dOffset, PDPointList pCache, double *
   return true;
 }
 
+bool GetCircBoundRefPoints(PDPointList pCache, PDRefList pBnds)
+{
+  pBnds->AddPoint(0.0);
+  pBnds->AddPoint(0.5*M_PI);
+  pBnds->AddPoint(M_PI);
+  pBnds->AddPoint(1.5*M_PI);
+  return true;
+}
+

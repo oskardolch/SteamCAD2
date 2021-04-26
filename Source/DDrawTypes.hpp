@@ -218,6 +218,7 @@ public:
   double GetCircleRadius();
   CDObject* GetPathObject(int iIndex);
   void ClearPath(bool bFreeSubObjects);
+  CDPrimitive GetBBOX();
 } *PDObject;
 
 typedef class CDataList

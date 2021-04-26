@@ -6307,6 +6307,69 @@ void CDObject::ClearPath(bool bFreeSubObjects)
   m_pSubObjects->Clear();
 }
 
+CDPrimitive CDObject::GetBBOX()
+{
+  CDPrimitive cRes;
+  cRes.iType = 0;
+  if(m_iType < dtPath)
+  {
+    CDPoint cBnds;
+    int iBnds = GetBoundsRef(&cBnds, 0.0, false);
+    if(iBnds < 3) return cRes;
+
+    GetNativeRefPoint(cBnds.x, 0.0, &cRes.cPt3);
+    GetNativeRefPoint(cBnds.y, 0.0, &cRes.cPt4);
+
+    if(cRes.cPt3.x < cRes.cPt4.x)
+    {
+      cRes.cPt1.x = cRes.cPt3.x;
+      cRes.cPt2.x = cRes.cPt4.x;
+    }
+    else
+    {
+      cRes.cPt1.x = cRes.cPt4.x;
+      cRes.cPt2.x = cRes.cPt3.x;
+    }
+
+    if(cRes.cPt3.y < cRes.cPt4.y)
+    {
+      cRes.cPt1.y = cRes.cPt3.y;
+      cRes.cPt2.y = cRes.cPt4.y;
+    }
+    else
+    {
+      cRes.cPt1.y = cRes.cPt4.y;
+      cRes.cPt2.y = cRes.cPt3.y;
+    }
+
+    PDRefList pExtPts = new CDRefList();
+
+    switch(m_iType)
+    {
+    case dtCircle:
+      GetCircBoundRefPoints(m_pCachePoints, pExtPts);
+      break;
+    default:
+      break;
+    }
+
+    int iExtPts = pExtPts->GetCount();
+    for(int i = 0; i < iExtPts; i++)
+    {
+      GetNativeRefPoint((*pExtPts)[i], 0.0, &cRes.cPt3);
+      if(cRes.cPt3.x < cRes.cPt1.x) cRes.cPt1.x = cRes.cPt3.x;
+      if(cRes.cPt3.x > cRes.cPt2.x) cRes.cPt2.x = cRes.cPt3.x;
+      if(cRes.cPt3.y < cRes.cPt1.y) cRes.cPt1.y = cRes.cPt3.y;
+      if(cRes.cPt3.y > cRes.cPt2.y) cRes.cPt2.y = cRes.cPt3.y;
+    }
+    delete pExtPts;
+    cRes.iType = 1;
+    return cRes;
+  }
+  return cRes;
+}
+
+
 // CDataList
 
 CDataList::CDataList()

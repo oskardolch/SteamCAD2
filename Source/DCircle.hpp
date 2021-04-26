@@ -18,5 +18,6 @@ void AddCircleExtPrim(PDRect pRect, PDPointList pCache, PDPrimObject pPrimList);
 bool GetCircRefPoint(double dRef, double dOffset, PDPointList pCache, PDPoint pPt);
 bool GetCircRefDir(double dRef, PDPointList pCache, PDPoint pPt);
 bool GetCircReference(double dDist, double dOffset, PDPointList pCache, double *pdRef);
+bool GetCircBoundRefPoints(PDPointList pCache, PDRefList pBnds);
 
 #endif
