@@ -1517,7 +1517,7 @@ int GetElpsSnapPoints(PDPointList pCache, double *pdRefs)
   int iCnt = pCache->GetCount(0);
   if(iCnt < 3) return iRes;
 
-  CDPoint cBreak = {-0.5, 0.0};
+  CDPoint cBreak = {-1.0, 0.0};
   int iBreaks = pCache->GetCount(4);
   if(iBreaks > 0) cBreak = pCache->GetPoint(0, 4).cPoint;
   if(cBreak.x < -0.5) return iRes;
@@ -1554,5 +1554,48 @@ int GetElpsSnapPoints(PDPointList pCache, double *pdRefs)
   pdRefs[iRes++] = dt;
   pdRefs[iRes++] = M_PI - dt;
   return iRes;
+}
+
+bool GetElpsBoundRefPoints(PDPointList pCache, PDRefList pBnds)
+{
+  int iCnt = pCache->GetCount(0);
+
+  if(iCnt < 2) return false;
+
+  if(iCnt < 3)
+  {
+    pBnds->AddPoint(0.0);
+    pBnds->AddPoint(0.5*M_PI);
+    pBnds->AddPoint(M_PI);
+    pBnds->AddPoint(1.5*M_PI);
+    return true;
+  }
+
+  //CDPoint cOrig = pCache->GetPoint(0, 0).cPoint;
+  CDPoint cRad = pCache->GetPoint(1, 0).cPoint;
+  CDPoint cMainDir = pCache->GetPoint(2, 0).cPoint;
+  CDPoint cDir = {1.0, 0.0};
+  CDPoint cRotDir = Rotate(cDir, cMainDir, false);
+
+  double dt = atan2(-cRotDir.x/cRad.x, cRotDir.y/cRad.y);
+  pBnds->AddPoint(dt);
+  dt += M_PI;
+  if(dt > M_PI) dt -= 2.0*M_PI;
+  pBnds->AddPoint(dt);
+  dt = atan2(cRotDir.y/cRad.x, cRotDir.x/cRad.y);
+  pBnds->AddPoint(dt);
+  dt += M_PI;
+  if(dt > M_PI) dt -= 2.0*M_PI;
+  pBnds->AddPoint(dt);
+  int iBreaks = pCache->GetCount(4);
+
+  CDPoint cBreak = {-1.0, 0.0};
+  if(iBreaks > 0) cBreak = pCache->GetPoint(0, 4).cPoint;
+  if(cBreak.x < -0.5) return true;
+  pBnds->AddPoint(cBreak.x - M_PI);
+  pBnds->AddPoint(-cBreak.x);
+  pBnds->AddPoint(cBreak.x);
+  pBnds->AddPoint(M_PI - cBreak.x);
+  return true;
 }
 

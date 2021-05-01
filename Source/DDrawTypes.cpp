@@ -6349,18 +6349,28 @@ CDPrimitive CDObject::GetBBOX()
     case dtCircle:
       GetCircBoundRefPoints(m_pCachePoints, pExtPts);
       break;
+    case dtEllipse:
+      GetElpsBoundRefPoints(m_pCachePoints, pExtPts);
+      break;
     default:
       break;
     }
 
     int iExtPts = pExtPts->GetCount();
+    double dt;
     for(int i = 0; i < iExtPts; i++)
     {
-      GetNativeRefPoint((*pExtPts)[i], 0.0, &cRes.cPt3);
-      if(cRes.cPt3.x < cRes.cPt1.x) cRes.cPt1.x = cRes.cPt3.x;
-      if(cRes.cPt3.x > cRes.cPt2.x) cRes.cPt2.x = cRes.cPt3.x;
-      if(cRes.cPt3.y < cRes.cPt1.y) cRes.cPt1.y = cRes.cPt3.y;
-      if(cRes.cPt3.y > cRes.cPt2.y) cRes.cPt2.y = cRes.cPt3.y;
+      dt = (*pExtPts)[i];
+      if(IsValidRef(dt))
+      {
+        if(GetNativeRefPoint(dt, 0.0, &cRes.cPt3))
+        {
+          if(cRes.cPt3.x < cRes.cPt1.x) cRes.cPt1.x = cRes.cPt3.x;
+          if(cRes.cPt3.x > cRes.cPt2.x) cRes.cPt2.x = cRes.cPt3.x;
+          if(cRes.cPt3.y < cRes.cPt1.y) cRes.cPt1.y = cRes.cPt3.y;
+          if(cRes.cPt3.y > cRes.cPt2.y) cRes.cPt2.y = cRes.cPt3.y;
+        }
+      }
     }
     delete pExtPts;
     cRes.iType = 1;
