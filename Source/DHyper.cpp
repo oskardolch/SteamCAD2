@@ -841,3 +841,49 @@ int GetHyperSnapPoints(PDPointList pCache, double *pdRefs)
   return iRes;
 }
 
+bool GetHyperBoundRefPoints(PDPointList pCache, PDRefList pBnds)
+{
+  int iCnt = pCache->GetCount(0);
+
+  if(iCnt < 3) return false;
+
+  //CDPoint cOrig = pCache->GetPoint(0, 0).cPoint;
+  CDPoint cRad = pCache->GetPoint(1, 0).cPoint;
+  CDPoint cNorm = pCache->GetPoint(2, 0).cPoint;
+
+  CDPoint cDir = {1.0, 0.0};
+  CDPoint cRotDir = Rotate(cDir, cNorm, false);
+
+  double dt, dDet = Power2(cRad.x*cRotDir.y) - Power2(cRad.y*cRotDir.x);
+  if(dDet > g_dPrec)
+  {
+    dt = cRad.y*cRotDir.x/sqrt(dDet);
+    pBnds->AddPoint(dt);
+  }
+  dDet = Power2(cRad.x*cRotDir.x) - Power2(cRad.y*cRotDir.y);
+  if(dDet > g_dPrec)
+  {
+    dt = cRad.y*cRotDir.x/sqrt(dDet);
+    pBnds->AddPoint(dt);
+  }
+
+  double dr = 0.0;
+  int nOffs = pCache->GetCount(2);
+  if(nOffs > 0) dr += pCache->GetPoint(0, 2).cPoint.x;
+
+  double dBreak = -1.0;
+  if(pCache->GetCount(4) > 0) dBreak = pCache->GetPoint(0, 4).cPoint.x;
+
+  if(dBreak < -g_dPrec) return true;
+
+  if(dBreak < g_dPrec)
+  {
+    pBnds->AddPoint(0.0);
+    return true;
+  }
+
+  pBnds->AddPoint(-dBreak);
+  pBnds->AddPoint(dBreak);
+  return true;
+}
+

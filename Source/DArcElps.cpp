@@ -1439,3 +1439,57 @@ int GetArcElpsSnapPoints(PDPointList pCache, double *pdRefs)
   return iRes;
 }
 
+bool GetArcElpsBoundRefPoints(PDPointList pCache, PDRefList pBnds)
+{
+  int iCnt = pCache->GetCount(0);
+  if(iCnt < 2) return false;
+
+  if(iCnt < 5)
+  {
+    pBnds->AddPoint(0.0);
+    pBnds->AddPoint(0.5*M_PI);
+    pBnds->AddPoint(M_PI);
+    pBnds->AddPoint(1.5*M_PI);
+    return true;
+  }
+
+  //CDPoint cOrig = pCache->GetPoint(0, 0).cPoint;
+  CDPoint cRad = pCache->GetPoint(1, 0).cPoint;
+
+  int nOffs = pCache->GetCount(2);
+  if(nOffs > 0)
+  {
+    double dOff = pCache->GetPoint(0, 2).cPoint.x;
+    cRad.x += dOff;
+    cRad.y += dOff;
+  }
+
+  CDPoint cMainDir = pCache->GetPoint(2, 0).cPoint;
+  CDPoint cSol = pCache->GetPoint(3, 0).cPoint;
+  //CDPoint cInter = pCache->GetPoint(4, 0).cPoint;
+
+  CDPoint cDir = {1.0, 0.0};
+  CDPoint cRotDir = Rotate(cDir, cMainDir, false);
+  double dt = atan2(cRotDir.y, cRotDir.x);
+  pBnds->AddPoint(dt);
+  dt += M_PI;
+  if(dt > M_PI) dt -= 2.0*M_PI;
+  pBnds->AddPoint(dt);
+
+  dt = atan2(-cRotDir.x, cRotDir.y);
+  pBnds->AddPoint(dt);
+  dt += M_PI;
+  if(dt > M_PI) dt -= 2.0*M_PI;
+  pBnds->AddPoint(dt);
+
+  if(cRad.x > g_dPrec) return true;
+  if(cRad.y < -g_dPrec) return true;
+
+  double dAng = atan2(cSol.y, cSol.x);
+  pBnds->AddPoint(dAng - M_PI);
+  pBnds->AddPoint(-dAng);
+  pBnds->AddPoint(dAng);
+  pBnds->AddPoint(M_PI - dAng);
+  return true;
+}
+

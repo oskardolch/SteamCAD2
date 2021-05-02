@@ -19,5 +19,6 @@ bool GetArcElpsRefPoint(double dRef, double dExt, PDPointList pCache, PDPoint pP
 bool GetArcElpsRefDir(double dRef, PDPointList pCache, PDPoint pPt);
 bool GetArcElpsReference(double dDist, double dOffset, PDPointList pCache, double *pdRef);
 int GetArcElpsSnapPoints(PDPointList pCache, double *pdRefs);
+bool GetArcElpsBoundRefPoints(PDPointList pCache, PDRefList pBnds);
 
 #endif

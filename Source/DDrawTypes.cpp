@@ -6352,6 +6352,15 @@ CDPrimitive CDObject::GetBBOX()
     case dtEllipse:
       GetElpsBoundRefPoints(m_pCachePoints, pExtPts);
       break;
+    case dtArcEllipse:
+      GetArcElpsBoundRefPoints(m_pCachePoints, pExtPts);
+      break;
+    case dtHyperbola:
+      GetHyperBoundRefPoints(m_pCachePoints, pExtPts);
+      break;
+    case dtParabola:
+      GetParabBoundRefPoints(m_pCachePoints, pExtPts);
+      break;
     default:
       break;
     }

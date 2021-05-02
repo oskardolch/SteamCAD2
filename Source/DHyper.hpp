@@ -19,5 +19,6 @@ bool GetHyperRestrictPoint(CDPoint cPt, int iMode, double dRestrictValue, PDPoin
 bool GetHyperRefDir(double dRef, PDPointList pCache, PDPoint pPt);
 bool GetHyperReference(double dDist, double dOffset, PDPointList pCache, double *pdRef);
 int GetHyperSnapPoints(PDPointList pCache, double *pdRefs);
+bool GetHyperBoundRefPoints(PDPointList pCache, PDRefList pBnds);
 
 #endif
