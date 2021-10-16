@@ -1,15 +1,15 @@
 #!/bin/sh
 
 # Workaround for https://github.com/oskardolch/SteamCAD/issues/1#issuecomment-437698790
-# This script checks if $HOME/.SteamCAD exists and if it doesn't, it copies
+# This script checks if $HOME/.SteamCAD2 exists and if it doesn't, it copies
 # the ini files there. This file should be replaced by native code in the
-# SteamCAD executable.
+# SteamCAD2 executable.
 
 HERE="$(dirname "$(readlink -f "${0}")")"
 
-if [ ! -e "${HOME}/.SteamCAD" ] ; then
- mkdir -p "${HOME}/.SteamCAD"
- cp "${HERE}/../share/steamcad/*.ini" "${HOME}/.SteamCAD/"
+if [ ! -e "${HOME}/.SteamCAD2" ] ; then
+ mkdir -p "${HOME}/.SteamCAD2"
+ cp "${HERE}/../share/steamcad/*.ini" "${HOME}/.SteamCAD2/"
 fi
 
 exec SteamCad "$@"

@@ -703,7 +703,7 @@ bool ReadLine(FILE *fp, gchar *sBuf, int iBufSize)
 void CDFileSetupDlg::BuildPaperSizeList()
 {
   const gchar *homedir = g_get_home_dir();
-  gchar *sFile = g_strconcat(homedir, "/.SteamCAD/DPapers.ini", NULL);
+  gchar *sFile = g_strconcat(homedir, "/.SteamCAD2/DPapers.ini", NULL);
 
   FILE *fp = fopen(sFile, "r");
   g_free(sFile);
@@ -800,7 +800,7 @@ void CDFileSetupDlg::BuildPaperSizeList()
 void CDFileSetupDlg::BuildLenUnitsList()
 {
   const gchar *homedir = g_get_home_dir();
-  gchar *sFile = g_strconcat(homedir, "/.SteamCAD/DUnits.ini", NULL);
+  gchar *sFile = g_strconcat(homedir, "/.SteamCAD2/DUnits.ini", NULL);
 
   FILE *fp = fopen(sFile, "r");
   g_free(sFile);
