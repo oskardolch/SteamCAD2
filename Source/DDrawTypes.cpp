@@ -389,7 +389,7 @@ bool CDObject::AddPoint(double x, double y, char iCtrl, double dRestrictVal)
       cNewPt.y = 0.0;
       if(!bUpdateLine && (nOffs4 > 0))
       {
-        cNewPt.x += m_pInputPoints->GetPoint(0, 2).cPoint.x;
+        cNewPt.x += m_pInputPoints->GetPoint(0, 4).cPoint.x;
       }
     }
     if(m_iType == dtPath)
@@ -410,7 +410,10 @@ bool CDObject::AddPoint(double x, double y, char iCtrl, double dRestrictVal)
     if(nOffs2 > 0) m_pInputPoints->SetPoint(0, 2, cNewPt.x, cNewPt.y, iCtrl);
     else if(nOffs3 > 0) m_pInputPoints->SetPoint(0, 3, cNewPt.x, cNewPt.y, iCtrl);
     else if(nOffs4 > 0) m_pInputPoints->SetPoint(0, 4, cNewPt.x, cNewPt.y, iCtrl);
-    else m_pInputPoints->AddPoint(cNewPt.x, cNewPt.y, iCtrl);
+    else
+    {
+      m_pInputPoints->AddPoint(cNewPt.x, cNewPt.y, iCtrl);
+    }
 
     if(bUpdateLine && (m_iType < dtCircle))
     {
