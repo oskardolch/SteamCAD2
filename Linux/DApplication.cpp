@@ -3896,7 +3896,7 @@ void CDApplication::MouseLButtonUp(GtkWidget *widget, GdkEventButton *event)
     else
     {
       int iCtrl = 0;
-      double dOffset = m_dRestrictValue*m_dDrawScale;
+      double dOffset = m_dRestrictValue*m_dDrawScale*m_cFSR.cLenUnit.dBaseToUnit;
       if(m_iToolMode == tolCopyPar)
       {
         iCtrl = 2;
