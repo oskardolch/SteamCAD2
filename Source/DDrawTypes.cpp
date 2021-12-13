@@ -829,7 +829,7 @@ void CDObject::AddCurveSegment(CDPrimitive cAddMode, PDPrimObject pPrimitive, PD
   {
     cBnds2.x = pBounds->GetPoint(2*i);
     cBnds2.y = pBounds->GetPoint(2*i + 1);
-    iInter = IntersectBounds(cAddMode.cPt1, cBnds2, iInterMode, cAddMode.cPt4.x, pBnds);
+    iInter = IntersectBounds(cAddMode.cPt1, cBnds2, iInterMode, cAddMode.cPt4.y, pBnds);
 
     for(int j = 0; j < iInter; j++)
     {
@@ -2062,6 +2062,7 @@ int CDObject::BuildPrimitives(CDLine cTmpPt, int iMode, PDRect pRect, int iTemp,
     int iBndType = GetBoundsRef(&cAdd.cPt1, dMid, iClosed > 0);
     if(iBndType & 1) cAdd.iType |= 2;
     if(iBndType & 2) cAdd.iType |= 4;
+    if(iClosed > 0) cAdd.iType |= 16;
     if((nCrs > 0) && (iClosed > 1))
     {
       double dLen = cAdd.cPt1.y - cAdd.cPt1.x;
