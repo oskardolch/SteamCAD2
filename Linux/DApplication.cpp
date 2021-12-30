@@ -314,6 +314,7 @@ CDApplication::CDApplication(const char *psConfDir)
   m_bRenderDirect = FALSE;
   m_cMeasPoint1.bIsSet = false;
   m_cMeasPoint2.bIsSet = false;
+  m_cMeasPoint3.bIsSet = false;
   m_bPaperUnits = FALSE;
   m_iDrawGridMode = 0;
 
@@ -2247,6 +2248,7 @@ void CDApplication::StartNewObject(gboolean bShowEdit)
 
   m_cMeasPoint1.bIsSet = false;
   m_cMeasPoint2.bIsSet = false;
+  m_cMeasPoint3.bIsSet = false;
 
   int iLines = m_pDrawObjects->GetNumOfSelectedLines();
   CDLine cLine1, cLine2;
@@ -2934,6 +2936,9 @@ void CDApplication::ToolsCommand(int iCmd, bool bFromAccel)
   case IDM_TOOLSMEASURE:
     SetTool(tolMeas);
     break;
+  case IDM_TOOLSMEASUREANGLE:
+    SetTool(tolMeasAngle);
+    break;
   case IDM_TOOLSCALE:
     ToolsScaleCmd();
     break;
@@ -3591,8 +3596,27 @@ void CDApplication::MouseMove(GtkWidget *widget, GdkEventMotion *event, gboolean
         }
         double dNorm = GetNorm(cDistPt);
         sprintf(m_sStatus1Msg, "dx: %.3f, dy: %.3f, dist: %.4f (%s)", fabs(cDistPt.x),
-        fabs(cDistPt.y), dNorm, sUnit);
+          fabs(cDistPt.y), dNorm, sUnit);
         SetStatusBarMsg(1, m_sStatus1Msg);
+      }
+    }
+    else if(m_iToolMode == tolMeasAngle)
+    {
+      if(m_cMeasPoint1.bIsSet && m_cMeasPoint2.bIsSet && !m_cMeasPoint3.bIsSet)
+      {
+        CDPoint cPt1 = m_cMeasPoint2.cOrigin - m_cMeasPoint1.cOrigin;
+        CDPoint cPt2 = m_cLastDrawPt - m_cMeasPoint1.cOrigin;
+        double d1 = GetNorm(cPt1);
+        double d2 = GetNorm(cPt2);
+        if((d1 > g_dPrec) && (d2 > g_dPrec))
+        {
+          double dx1 = (cPt1.x*cPt2.x + cPt1.y*cPt2.y)/d1/d2;
+          double dy1 = (cPt2.y*cPt1.x - cPt1.y*cPt2.x)/d1/d2;
+          double dAng = -180*atan2(dy1, dx1)/M_PI;
+          gchar *sUnit = m_cFSR.cAngUnit.sAbbrev;
+          sprintf(m_sStatus1Msg, "angle: %.4f (%s)", dAng*m_cFSR.cAngUnit.dBaseToUnit, sUnit);
+          SetStatusBarMsg(1, m_sStatus1Msg);
+        }
       }
     }
   }
@@ -3739,6 +3763,44 @@ void CDApplication::MouseLButtonUp(GtkWidget *widget, GdkEventButton *event)
         m_cMeasPoint1.bIsSet = true;
         m_cMeasPoint1.cOrigin = m_cLastDrawPt;
         m_cMeasPoint2.bIsSet = false;
+        SetStatusBarMsg(1, "");
+      }
+      break;
+    case tolMeasAngle:
+      if(!m_cMeasPoint1.bIsSet)
+      {
+        m_cMeasPoint1.bIsSet = true;
+        m_cMeasPoint1.cOrigin = m_cLastDrawPt;
+      }
+      else if(!m_cMeasPoint2.bIsSet)
+      {
+        m_cMeasPoint2.bIsSet = true;
+        m_cMeasPoint2.cOrigin = m_cLastDrawPt;
+      }
+      else if(!m_cMeasPoint3.bIsSet)
+      {
+        m_cMeasPoint3.bIsSet = true;
+        m_cMeasPoint3.cOrigin = m_cLastDrawPt;
+        CDPoint cPt1 = m_cMeasPoint2.cOrigin - m_cMeasPoint1.cOrigin;
+        CDPoint cPt2 = m_cMeasPoint3.cOrigin - m_cMeasPoint1.cOrigin;
+        double d1 = GetNorm(cPt1);
+        double d2 = GetNorm(cPt2);
+        if((d1 > g_dPrec) && (d2 > g_dPrec))
+        {
+          double dx1 = (cPt1.x*cPt2.x + cPt1.y*cPt2.y)/d1/d2;
+          double dy1 = (cPt2.y*cPt1.x - cPt1.y*cPt2.x)/d1/d2;
+          double dAng = -180.0*atan2(dy1, dx1)/M_PI;
+          gchar *sUnit = m_cFSR.cAngUnit.sAbbrev;
+          sprintf(m_sStatus1Msg, "angle: %.4f (%s)", dAng*m_cFSR.cAngUnit.dBaseToUnit, sUnit);
+          SetStatusBarMsg(1, m_sStatus1Msg);
+        }
+      }
+      else
+      {
+        m_cMeasPoint1.bIsSet = true;
+        m_cMeasPoint1.cOrigin = m_cLastDrawPt;
+        m_cMeasPoint2.bIsSet = false;
+        m_cMeasPoint3.bIsSet = false;
         SetStatusBarMsg(1, "");
       }
       break;

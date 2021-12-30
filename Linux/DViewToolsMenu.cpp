@@ -101,6 +101,18 @@ static void tools_measdist_accel(PDApplication pApp)
   return;
 }
 
+static void tools_measangle_click(PDApplication pApp)
+{
+  pApp->ToolsCommand(IDM_TOOLSMEASUREANGLE, false);
+  return;
+}
+
+static void tools_measangle_accel(PDApplication pApp)
+{
+  pApp->ToolsCommand(IDM_TOOLSMEASUREANGLE, true);
+  return;
+}
+
 static void tools_rescale_click(PDApplication pApp)
 {
   pApp->ToolsCommand(IDM_TOOLSCALE, false);
@@ -240,6 +252,16 @@ void CreateToolsMenu(void *pPtr, GtkMenuShell *pMenuBar, GtkAccelGroup *pAccel)
   menu_label = gtk_bin_get_child(GTK_BIN(menu_item));
   gtk_accel_label_set_accel_closure(GTK_ACCEL_LABEL(menu_label), pClos);
   g_signal_connect_swapped(G_OBJECT(menu_item), "activate", G_CALLBACK(tools_measdist_click), pApp);
+  gtk_widget_show(menu_item);
+
+  menu_item = gtk_menu_item_new_with_mnemonic(_("Measure _angle"));
+  gtk_menu_shell_append(GTK_MENU_SHELL(menu), menu_item);
+
+  pClos = g_cclosure_new_swap(G_CALLBACK(tools_measangle_accel), pApp, NULL);
+  gtk_accel_group_connect(pAccel, GDK_A, GDK_MOD1_MASK, GTK_ACCEL_MASK, pClos);
+  menu_label = gtk_bin_get_child(GTK_BIN(menu_item));
+  gtk_accel_label_set_accel_closure(GTK_ACCEL_LABEL(menu_label), pClos);
+  g_signal_connect_swapped(G_OBJECT(menu_item), "activate", G_CALLBACK(tools_measangle_click), pApp);
   gtk_widget_show(menu_item);
 
   menu_item = gtk_separator_menu_item_new();

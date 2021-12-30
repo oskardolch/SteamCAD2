@@ -55,7 +55,7 @@ private:
   cairo_surface_t *m_pcs;
   cairo_pattern_t *m_pcp;
   gboolean m_bRenderDirect;
-  CDLine m_cMeasPoint1, m_cMeasPoint2;
+  CDLine m_cMeasPoint1, m_cMeasPoint2, m_cMeasPoint3;
   gboolean m_bPaperUnits;
 
   int m_iLastExportType;
