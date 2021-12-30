@@ -104,7 +104,7 @@ MainWnd.o : Win32/MainWnd.cpp Win32/MainWnd.hpp \
 	Win32/DFileSetupDlg.hpp Source/DDrawTypes.hpp \
 	Win32/DLineStyleDlg.hpp Win32/DDimEditDlg.hpp \
 	Source/DExpCairo.hpp Win32/DScaleDlg.hpp Win32/DStatDlg.hpp \
-	Source/DParser.hpp Win32/DSnapDlg.hpp
+	Source/DParser.hpp Win32/DSnapDlg.hpp Source/DBaseDefs.hpp
 #	Win32/DToolBar.hpp
 #DToolBar.o : Win32/DToolBar.cpp Win32/DToolBar.hpp \
 #	Win32/SteamCAD2.rh

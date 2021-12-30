@@ -186,6 +186,7 @@ CMainWnd::CMainWnd(HINSTANCE hInstance)
 
   m_cMeasPoint1.bIsSet = false;
   m_cMeasPoint2.bIsSet = false;
+  m_cMeasPoint3.bIsSet = false;
   m_cLastDynPt.bIsSet = false;
   m_bHasChanged = true;
 
@@ -430,6 +431,8 @@ LRESULT CMainWnd::WMCommand(HWND hwnd, WORD wNotifyCode, WORD wID, HWND hwndCtl)
     return ToolsCmd(hwnd, wNotifyCode, hwndCtl, tolConflict);
   case IDM_TOOLSMEASURE:
     return ToolsCmd(hwnd, wNotifyCode, hwndCtl, tolMeas);
+  case IDM_TOOLSMEASUREANGLE:
+    return ToolsCmd(hwnd, wNotifyCode, hwndCtl, tolMeasAngle);
   //case IDM_TOOLSBREAK:
   //  return ToolsBreakCmd(hwnd, wNotifyCode, hwndCtl);
   case IDM_TOOLSCALE:
@@ -2150,9 +2153,9 @@ LRESULT CMainWnd::WMLButtonUp(HWND hwnd, WPARAM fwKeys, int xPos, int yPos)
   cdr.cPt2.y = (rc.bottom - m_cViewOrigin.y)/m_dUnitScale;
 
   double dTol = (double)m_iSnapTolerance/m_dUnitScale;
-  CDPoint cDistPt;
+  CDPoint cDistPt, cPt1, cPt2;
   wchar_t wsBuf[128];
-  double dNorm;
+  double dNorm, d1, d2, dx1, dy1, dAng;
   wchar_t *wsUnit;
 
   if(m_iDrawMode + m_iToolMode < 1)
@@ -2226,7 +2229,7 @@ LRESULT CMainWnd::WMLButtonUp(HWND hwnd, WPARAM fwKeys, int xPos, int yPos)
         }
         dNorm = GetNorm(cDistPt);
         swprintf(wsBuf, L"dx: %.3f, dy: %.3f, dist: %.4f (%s)", fabs(cDistPt.x),
-        fabs(cDistPt.y), dNorm, wsUnit);
+          fabs(cDistPt.y), dNorm, wsUnit);
         SendMessage(m_hStatus, SB_SETTEXT, 1, (LPARAM)wsBuf);
       }
       else
@@ -2234,6 +2237,44 @@ LRESULT CMainWnd::WMLButtonUp(HWND hwnd, WPARAM fwKeys, int xPos, int yPos)
         m_cMeasPoint1.bIsSet = true;
         m_cMeasPoint1.cOrigin = m_cLastDrawPt;
         m_cMeasPoint2.bIsSet = false;
+        SendMessage(m_hStatus, SB_SETTEXT, 1, (LPARAM)L"");
+      }
+      break;
+    case tolMeasAngle:
+      if(!m_cMeasPoint1.bIsSet)
+      {
+        m_cMeasPoint1.bIsSet = true;
+        m_cMeasPoint1.cOrigin = m_cLastDrawPt;
+      }
+      else if(!m_cMeasPoint2.bIsSet)
+      {
+        m_cMeasPoint2.bIsSet = true;
+        m_cMeasPoint2.cOrigin = m_cLastDrawPt;
+      }
+      else if(!m_cMeasPoint3.bIsSet)
+      {
+        m_cMeasPoint3.bIsSet = true;
+        m_cMeasPoint3.cOrigin = m_cLastDrawPt;
+        cPt1 = m_cMeasPoint2.cOrigin - m_cMeasPoint1.cOrigin;
+        cPt2 = m_cMeasPoint3.cOrigin - m_cMeasPoint1.cOrigin;
+        d1 = GetNorm(cPt1);
+        d2 = GetNorm(cPt2);
+        if((d1 > g_dPrec) && (d2 > g_dPrec))
+        {
+          dx1 = (cPt1.x*cPt2.x + cPt1.y*cPt2.y)/d1/d2;
+          dy1 = (cPt2.y*cPt1.x - cPt1.y*cPt2.x)/d1/d2;
+          dAng = -180.0*atan2(dy1, dx1)/M_PI;
+          wsUnit = m_cFSR.cAngUnit.wsAbbrev;
+          swprintf(wsBuf, L"angle: %.4f (%s)", dAng*m_cFSR.cAngUnit.dBaseToUnit, wsUnit);
+          SendMessage(m_hStatus, SB_SETTEXT, 1, (LPARAM)wsBuf);
+        }
+      }
+      else
+      {
+        m_cMeasPoint1.bIsSet = true;
+        m_cMeasPoint1.cOrigin = m_cLastDrawPt;
+        m_cMeasPoint2.bIsSet = false;
+        m_cMeasPoint3.bIsSet = false;
         SendMessage(m_hStatus, SB_SETTEXT, 1, (LPARAM)L"");
       }
       break;
@@ -3497,8 +3538,27 @@ LRESULT CMainWnd::WMMouseMove(HWND hwnd, WPARAM fwKeys, int xPos, int yPos)
         }
         double dNorm = GetNorm(cDistPt);
         swprintf(m_wsStatus2Msg, L"dx: %.3f, dy: %.3f, dist: %.4f (%s)", fabs(cDistPt.x),
-        fabs(cDistPt.y), dNorm, wsUnit);
+          fabs(cDistPt.y), dNorm, wsUnit);
         SendMessage(m_hStatus, SB_SETTEXT, 1, (LPARAM)m_wsStatus2Msg);
+      }
+    }
+    else if(m_iToolMode == tolMeasAngle)
+    {
+      if(m_cMeasPoint1.bIsSet && m_cMeasPoint2.bIsSet && !m_cMeasPoint3.bIsSet)
+      {
+        CDPoint cPt1 = m_cMeasPoint2.cOrigin - m_cMeasPoint1.cOrigin;
+        CDPoint cPt2 = m_cLastDrawPt - m_cMeasPoint1.cOrigin;
+        double d1 = GetNorm(cPt1);
+        double d2 = GetNorm(cPt2);
+        if((d1 > g_dPrec) && (d2 > g_dPrec))
+        {
+          double dx1 = (cPt1.x*cPt2.x + cPt1.y*cPt2.y)/d1/d2;
+          double dy1 = (cPt2.y*cPt1.x - cPt1.y*cPt2.x)/d1/d2;
+          double dAng = -180*atan2(dy1, dx1)/M_PI;
+          wchar_t *wsUnit = m_cFSR.cAngUnit.wsAbbrev;
+          swprintf(m_wsStatus2Msg, L"angle: %.4f (%s)", dAng*m_cFSR.cAngUnit.dBaseToUnit, wsUnit);
+          SendMessage(m_hStatus, SB_SETTEXT, 1, (LPARAM)m_wsStatus2Msg);
+        }
       }
     }
   }
@@ -3638,6 +3698,7 @@ void CMainWnd::StartNewObject(HWND hWnd)
 
     m_cMeasPoint1.bIsSet = false;
     m_cMeasPoint2.bIsSet = false;
+    m_cMeasPoint3.bIsSet = false;
 
     int iLines = m_pDrawObjects->GetNumOfSelectedLines();
     CDLine cLine1, cLine2;
