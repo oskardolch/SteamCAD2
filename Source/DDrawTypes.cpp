@@ -3891,6 +3891,15 @@ void CDObject::SetBound(int iIndex, CDRefPoint cBound)
 
 PDObject CDObject::SplitByRef(double dRef, bool *pbRes)
 {
+  if(m_cBounds[0].bIsSet)
+  {
+    if(fabs(dRef - m_cBounds[0].dRef) < g_dPrec) return NULL;
+  }
+  if(m_cBounds[1].bIsSet)
+  {
+    if(fabs(dRef - m_cBounds[1].dRef) < g_dPrec) return NULL;
+  }
+
   CDRefPoint cBnd;
   cBnd.bIsSet = true;
   cBnd.dRef = dRef;
