@@ -1684,6 +1684,7 @@ LRESULT CMainWnd::EditCopyParCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl)
   SendMessage(m_hStatus, SB_SETTEXT, 1, (LPARAM)m_wsStatus2Msg);
 
   ShowWindow(m_hEdt1, SW_SHOW);
+  SendMessage(m_hEdt1, EM_SETSEL, 0, (LPARAM)-1);
   SetFocus(m_hEdt1);
   return 0;
 }
@@ -1697,6 +1698,7 @@ LRESULT CMainWnd::EditMoveCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl)
   ShowWindow(m_hEdt2, SW_SHOW);
   ShowWindow(m_hLab1, SW_SHOW);
 
+  SendMessage(m_hEdt1, EM_SETSEL, 0, (LPARAM)-1);
   SetFocus(m_hEdt1);
 
   wchar_t wBuf[64];
@@ -1720,6 +1722,7 @@ LRESULT CMainWnd::EditRotateCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl)
   ShowWindow(m_hEdt1, SW_SHOW);
   ShowWindow(m_hEdt2, SW_SHOW);
   ShowWindow(m_hLab1, SW_SHOW);
+  SendMessage(m_hEdt1, EM_SETSEL, 0, (LPARAM)-1);
   SetFocus(m_hEdt1);
   LoadString(m_hInstance, IDS_SELPOINTTOROTATE, m_wsStatus2Msg, 128);
   SendMessage(m_hStatus, SB_SETTEXT, 2, (LPARAM)m_wsStatus2Msg);
@@ -3730,6 +3733,7 @@ void CMainWnd::StartNewObject(HWND hWnd)
         LoadString(m_hInstance, IDS_ANGLE, m_wsStatus2Base, 64);
         m_pActiveObject = new CDObject(dtLine, m_cFSR.dDefLineWidth);
         ShowWindow(m_hEdt1, SW_SHOW);
+        SendMessage(m_hEdt1, EM_SETSEL, 0, (LPARAM)-1);
         SetFocus(m_hEdt1);
         break;
     case modCircle:
@@ -3738,6 +3742,7 @@ void CMainWnd::StartNewObject(HWND hWnd)
         if(iLinesFlag & 1) m_pActiveObject->SetInputLine(0, cLine1);
         //if(iLinesFlag & 2) m_pActiveObject->SetInputLine(1, cLine2);
         ShowWindow(m_hEdt1, SW_SHOW);
+        SendMessage(m_hEdt1, EM_SETSEL, 0, (LPARAM)-1);
         SetFocus(m_hEdt1);
         break;
     case modEllipse:
@@ -3819,6 +3824,7 @@ void CMainWnd::StartNewObject(HWND hWnd)
             m_pActiveObject = new CDObject(dtCircle, m_cFSR.dDefLineWidth);
             LoadString(m_hInstance, IDS_RADIUS, m_wsStatus2Base, 64);
             ShowWindow(m_hEdt1, SW_SHOW);
+            SendMessage(m_hEdt1, EM_SETSEL, 0, (LPARAM)-1);
             SetFocus(m_hEdt1);
         }
         else
