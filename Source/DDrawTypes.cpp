@@ -1166,17 +1166,17 @@ int CDObject::AddDimenPrimitive(int iPos, PDDimension pDim, PDPrimObject pPrimit
 
 int CDObject::AddSubIntersects(CDPoint cPt1, CDPoint cPt2, double dOffset, PDRefList pBounds)
 {
-  int n = m_pSubObjects->GetCount();
-  bool bRes = n > 0;
-  int i = 0;
+  //int n = m_pSubObjects->GetCount();
+  //bool bRes = n > 0;
+  //int i = 0;
   if(m_iType == dtPath)
   {
     //PDPathSeg pObj;
-    while(bRes && (i < n))
-    {
+    //while(bRes && (i < n))
+    //{
       //pObj = (PDPathSeg)m_pSubObjects->GetItem(i++);
       //bRes = pObj->pSegment->BuildCache(cTmpPt, iMode);
-    }
+    //}
   }
   else if(m_iType == dtGroup)
   {
@@ -4871,10 +4871,36 @@ bool CDObject::RotatePoints(CDPoint cOrig, double dRot, int iDimFlag)
 {
   bool bRes = false;
   CDLine cPtX;
+  int iCnt;
 
   BuildCache(cPtX, 0);
 
-  int iCnt;
+  if(m_iType == dtPath)
+  {
+    bRes = true;
+    iCnt = m_pSubObjects->GetCount();
+    int i = 0;
+    PDPathSeg pObj;
+    while(bRes && (i < iCnt))
+    {
+      pObj = (PDPathSeg)m_pSubObjects->GetItem(i++);
+      bRes &= pObj->pSegment->RotatePoints(cOrig, dRot, iDimFlag);
+    }
+    BuildCache(cPtX, 0);
+    return bRes;
+  }
+  else if(m_iType == dtGroup)
+  {
+    /*cOffL.bIsSet = false;
+    PDObject pObj;
+    while(bRes && (i < n))
+    {
+      pObj = (PDObject)m_pSubObjects->GetItem(i++);
+      bRes = pObj->BuildCache(cOffL, iMode);
+    }*/
+    return false;
+  }
+
   PDDimension pDim;
   if(iDimFlag == 1)
   {
@@ -4911,12 +4937,15 @@ bool CDObject::RotatePoints(CDPoint cOrig, double dRot, int iDimFlag)
   for(int i = 0; i < iCnt; i++)
   {
     cInPt = m_pInputPoints->GetPoint(i, -1);
-    cDir = cInPt.cPoint - cOrig;
-    dNorm = GetNorm(cDir);
-    if(dNorm > g_dPrec)
+    if(cInPt.iCtrl < 2)
     {
-      cPt2 = cOrig + Rotate(dNorm*cPt1, cDir/dNorm, true);
-      m_pInputPoints->SetPoint(i, -1, cPt2.x, cPt2.y, cInPt.iCtrl);
+      cDir = cInPt.cPoint - cOrig;
+      dNorm = GetNorm(cDir);
+      if(dNorm > g_dPrec)
+      {
+        cPt2 = cOrig + Rotate(dNorm*cPt1, cDir/dNorm, true);
+        m_pInputPoints->SetPoint(i, -1, cPt2.x, cPt2.y, cInPt.iCtrl);
+      }
     }
   }
   RotateLine(&m_cLines[0], cOrig, cPt1);
@@ -4966,8 +4995,35 @@ bool CDObject::MovePoints(CDPoint cDir, double dDist, int iDimFlag)
   bool bRes = false;
   CDPoint dx = dDist*cDir;
   int iCnt;
-  PDDimension pDim;
   CDLine cPtX;
+
+  if(m_iType == dtPath)
+  {
+    bRes = true;
+    iCnt = m_pSubObjects->GetCount();
+    int i = 0;
+    PDPathSeg pObj;
+    while(bRes && (i < iCnt))
+    {
+      pObj = (PDPathSeg)m_pSubObjects->GetItem(i++);
+      bRes &= pObj->pSegment->MovePoints(cDir, dDist, iDimFlag);
+    }
+    BuildCache(cPtX, 0);
+    return bRes;
+  }
+  else if(m_iType == dtGroup)
+  {
+    /*cOffL.bIsSet = false;
+    PDObject pObj;
+    while(bRes && (i < n))
+    {
+      pObj = (PDObject)m_pSubObjects->GetItem(i++);
+      bRes = pObj->BuildCache(cOffL, iMode);
+    }*/
+    return false;
+  }
+
+  PDDimension pDim;
   if(iDimFlag == 1)
   {
     iCnt = m_pDimens->GetCount();
@@ -4989,7 +5045,10 @@ bool CDObject::MovePoints(CDPoint cDir, double dDist, int iDimFlag)
   for(int i = 0; i < iCnt; i++)
   {
     cInPt = m_pInputPoints->GetPoint(i, -1);
-    m_pInputPoints->SetPoint(i, -1, cInPt.cPoint.x + dx.x, cInPt.cPoint.y + dx.y, cInPt.iCtrl);
+    if(cInPt.iCtrl < 2)
+    {
+      m_pInputPoints->SetPoint(i, -1, cInPt.cPoint.x + dx.x, cInPt.cPoint.y + dx.y, cInPt.iCtrl);
+    }
   }
   if(m_cLines[0].bIsSet) m_cLines[0].cOrigin += dx;
   if(m_cLines[1].bIsSet) m_cLines[1].cOrigin += dx;
@@ -5031,6 +5090,31 @@ void CDObject::MirrorPoints(CDLine cLine)
 
   BuildCache(cPtX, 0);
 
+  if(m_iType == dtPath)
+  {
+    int iCnt = m_pSubObjects->GetCount();
+    int i = 0;
+    PDPathSeg pObj;
+    while(i < iCnt)
+    {
+      pObj = (PDPathSeg)m_pSubObjects->GetItem(i++);
+      pObj->pSegment->MirrorPoints(cLine);
+    }
+    BuildCache(cPtX, 0);
+    return;
+  }
+  else if(m_iType == dtGroup)
+  {
+    /*cOffL.bIsSet = false;
+    PDObject pObj;
+    while(bRes && (i < n))
+    {
+      pObj = (PDObject)m_pSubObjects->GetItem(i++);
+      bRes = pObj->BuildCache(cOffL, iMode);
+    }*/
+    return;
+  }
+
   CDPoint bPt1, bPt2;
   bool b1 = m_cBounds[0].bIsSet;
   bool b2 = m_cBounds[1].bIsSet;
@@ -5047,8 +5131,11 @@ void CDObject::MirrorPoints(CDLine cLine)
   for(int i = 0; i < iCnt; i++)
   {
     cInPt = m_pInputPoints->GetPoint(i, -1);
-    cPt1 = Mirror(cInPt.cPoint, cLine);
-    m_pInputPoints->SetPoint(i, -1, cPt1.x, cPt1.y, cInPt.iCtrl);
+    if(cInPt.iCtrl < 2)
+    {
+      cPt1 = Mirror(cInPt.cPoint, cLine);
+      m_pInputPoints->SetPoint(i, -1, cPt1.x, cPt1.y, cInPt.iCtrl);
+    }
   }
   MirrorLine(&m_cLines[0], cLine);
   MirrorLine(&m_cLines[1], cLine);
