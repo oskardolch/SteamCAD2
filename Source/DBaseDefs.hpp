@@ -45,6 +45,7 @@
 #define tolConflict 24
 #define tolMeas 25
 #define tolMeasAngle 26
+#define tolMeasLength 27
 
 #define IDM_EDITCOPY 301
 #define IDM_EDITCUT 302
@@ -79,8 +80,9 @@
 #define IDM_TOOLSCONFLICTS 604
 #define IDM_TOOLSMEASURE 605
 #define IDM_TOOLSMEASUREANGLE 606
-#define IDM_TOOLSCALE 607
-#define IDM_TOOLSTAT 608
+#define IDM_TOOLSMEASURELENGTH 607
+#define IDM_TOOLSCALE 608
+#define IDM_TOOLSTAT 609
 
 #define IDM_PATHCREATE 701
 #define IDM_PATHBREAK 702

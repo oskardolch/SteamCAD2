@@ -102,7 +102,6 @@ private:
   // GetBounds = mask: 1 .. pBounds->x is set, 2 .. pBounds->y is set
   int GetBounds(PDPoint pBounds, double dOffset, bool bAdvancePeriod);
   int GetBoundsRef(PDPoint pBounds, double dOffset, bool bAdvancePeriod);
-  double GetLength(double dOffset);
   PDPathSeg GetPathRefSegment(double dRef, double dOffset, double *pdSegRef, int *piPos);
   bool GetPathRefPoint(double dRef, double dOffset, PDPoint pPt);
   bool GetNativeRefPoint(double dRef, double dOffset, PDPoint pPt);
@@ -162,6 +161,7 @@ public:
   bool HasEnoughPoints();
   bool GetPoint(int iIndex, char iCtrl, PDInputPoint pPoint);
   void SetPoint(int iIndex, char iCtrl, CDInputPoint cPoint);
+  double GetLength(double dOffset);
   double GetOffset();
   double GetDistFromPt(CDPoint cPt, CDPoint cRefPt, int iSearchMask, PDLine pPtX, int *piDimen);
   CDLineStyle GetLineStyle();
@@ -282,6 +282,7 @@ public:
   int CreatePath();
   bool BreakSelObjects();
   bool CreateArea();
+  int GetSelectedLength(double *pdLength);
 } *PDataList;
 
 #endif

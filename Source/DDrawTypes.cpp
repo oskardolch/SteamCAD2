@@ -2999,7 +2999,7 @@ double CDObject::GetLength(double dOffset)
   {
     CDPoint cBounds = {0.0, 0.0};
     if(GetBounds(&cBounds, dOffset, true) > 2) return cBounds.y - cBounds.x;
-    return 0.0;
+    return -1.0;
   }
 
   double dTotLen = 0.0;
@@ -7551,6 +7551,28 @@ bool CDataList::BreakSelObjects()
     }
   }
   return bRes;
+}
+
+int CDataList::GetSelectedLength(double *pdLength)
+{
+  PDObject pObj;
+  int iLen = m_iDataLen;
+  if(iLen < 1) return 2;
+
+  *pdLength = 0.0;
+  double dLen = 1.0;
+  int i = 0;
+  while((i < iLen) && (dLen > -g_dPrec))
+  {
+    pObj = m_ppObjects[i++];
+    if(pObj->GetSelected())
+    {
+      dLen = pObj->GetLength(0.0);
+      *pdLength += dLen;
+    }
+  }
+  if(dLen < -g_dPrec) return 1;
+  return 0;
 }
 
 bool CDataList::CreateArea()

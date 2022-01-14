@@ -2939,6 +2939,9 @@ void CDApplication::ToolsCommand(int iCmd, bool bFromAccel)
   case IDM_TOOLSMEASUREANGLE:
     SetTool(tolMeasAngle);
     break;
+  case IDM_TOOLSMEASURELENGTH:
+    SetTool(tolMeasLength);
+    break;
   case IDM_TOOLSCALE:
     ToolsScaleCmd();
     break;
@@ -3677,6 +3680,7 @@ void CDApplication::MouseLButtonUp(GtkWidget *widget, GdkEventButton *event)
 
   double xPos = event->x;
   double yPos = event->y;
+  int i;
 
   gboolean bUpdate = FALSE;
 
@@ -3755,7 +3759,7 @@ void CDApplication::MouseLButtonUp(GtkWidget *widget, GdkEventButton *event)
         }
         dNorm = GetNorm(cDistPt);
         sprintf(sBuf, "dx: %.3f, dy: %.3f, dist: %.4f (%s)", fabs(cDistPt.x),
-        fabs(cDistPt.y), dNorm, sUnit);
+          fabs(cDistPt.y), dNorm, sUnit);
         SetStatusBarMsg(1, sBuf);
       }
       else
@@ -3803,6 +3807,33 @@ void CDApplication::MouseLButtonUp(GtkWidget *widget, GdkEventButton *event)
         m_cMeasPoint3.bIsSet = false;
         SetStatusBarMsg(1, "");
       }
+      break;
+    case tolMeasLength:
+      i = m_pDrawObjects->GetSelectedLength(&dNorm);
+      if(i > 1)
+      {
+        strcpy(m_sStatus1Msg, "No object selected");
+      }
+      else if(i > 0)
+      {
+        strcpy(m_sStatus1Msg, "Infinity");
+      }
+      else
+      {
+        if(m_bPaperUnits)
+        {
+          dNorm /= m_cFSR.cPaperUnit.dBaseToUnit;
+          sUnit = m_cFSR.cPaperUnit.sAbbrev;
+        }
+        else
+        {
+          dNorm /= m_dDrawScale;
+          dNorm /= m_cFSR.cLenUnit.dBaseToUnit;
+          sUnit = m_cFSR.cLenUnit.sAbbrev;
+        }
+        sprintf(sBuf, "Length: %.4f (%s)", dNorm, sUnit);
+      }
+      SetStatusBarMsg(1, sBuf);
       break;
     }
   }
