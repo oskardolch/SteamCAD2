@@ -433,6 +433,8 @@ LRESULT CMainWnd::WMCommand(HWND hwnd, WORD wNotifyCode, WORD wID, HWND hwndCtl)
     return ToolsCmd(hwnd, wNotifyCode, hwndCtl, tolMeas);
   case IDM_TOOLSMEASUREANGLE:
     return ToolsCmd(hwnd, wNotifyCode, hwndCtl, tolMeasAngle);
+  case IDM_TOOLSMEASURELENGTH:
+    return ToolsCmd(hwnd, wNotifyCode, hwndCtl, tolMeasLength);
   //case IDM_TOOLSBREAK:
   //  return ToolsBreakCmd(hwnd, wNotifyCode, hwndCtl);
   case IDM_TOOLSCALE:
@@ -2160,6 +2162,7 @@ LRESULT CMainWnd::WMLButtonUp(HWND hwnd, WPARAM fwKeys, int xPos, int yPos)
   wchar_t wsBuf[128];
   double dNorm, d1, d2, dx1, dy1, dAng;
   wchar_t *wsUnit;
+  int i;
 
   if(m_iDrawMode + m_iToolMode < 1)
   {
@@ -2280,6 +2283,33 @@ LRESULT CMainWnd::WMLButtonUp(HWND hwnd, WPARAM fwKeys, int xPos, int yPos)
         m_cMeasPoint3.bIsSet = false;
         SendMessage(m_hStatus, SB_SETTEXT, 1, (LPARAM)L"");
       }
+      break;
+    case tolMeasLength:
+      i = m_pDrawObjects->GetSelectedLength(&dNorm);
+      if(i > 1)
+      {
+        wcscpy(wsBuf, L"No object selected");
+      }
+      else if(i > 0)
+      {
+        wcscpy(wsBuf, L"Infinity");
+      }
+      else
+      {
+        if(m_bPaperUnits)
+        {
+          dNorm /= m_cFSR.cPaperUnit.dBaseToUnit;
+          wsUnit = m_cFSR.cPaperUnit.wsAbbrev;
+        }
+        else
+        {
+          dNorm /= m_dDrawScale;
+          dNorm /= m_cFSR.cLenUnit.dBaseToUnit;
+          wsUnit = m_cFSR.cLenUnit.wsAbbrev;
+        }
+        swprintf(wsBuf, L"Length: %.4f (%s)", dNorm, wsUnit);
+      }
+      SendMessage(m_hStatus, SB_SETTEXT, 1, (LPARAM)wsBuf);
       break;
     }
   }

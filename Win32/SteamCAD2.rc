@@ -147,6 +147,7 @@ BEGIN
         MENUITEM "Mark con&flicts\tCtrl+F", IDM_TOOLSCONFLICTS
         MENUITEM "Measure &distance\tAlt+D", IDM_TOOLSMEASURE
         MENUITEM "Measure &angle\tAlt+A", IDM_TOOLSMEASUREANGLE
+        MENUITEM "Measure &length\tAlt+L", IDM_TOOLSMEASURELENGTH
         MENUITEM SEPARATOR
         MENUITEM "Re&scale and Units", IDM_TOOLSCALE
         MENUITEM "S&tatistics", IDM_TOOLSTAT
