@@ -7557,20 +7557,22 @@ int CDataList::GetSelectedLength(double *pdLength)
 {
   PDObject pObj;
   int iLen = m_iDataLen;
-  if(iLen < 1) return 2;
 
   *pdLength = 0.0;
   double dLen = 1.0;
   int i = 0;
+  int iSel = 0;
   while((i < iLen) && (dLen > -g_dPrec))
   {
     pObj = m_ppObjects[i++];
     if(pObj->GetSelected())
     {
+      iSel++;
       dLen = pObj->GetLength(0.0);
       *pdLength += dLen;
     }
   }
+  if(iSel < 1) return 2;
   if(dLen < -g_dPrec) return 1;
   return 0;
 }

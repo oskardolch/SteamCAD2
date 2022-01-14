@@ -3831,9 +3831,9 @@ void CDApplication::MouseLButtonUp(GtkWidget *widget, GdkEventButton *event)
           dNorm /= m_cFSR.cLenUnit.dBaseToUnit;
           sUnit = m_cFSR.cLenUnit.sAbbrev;
         }
-        sprintf(sBuf, "Length: %.4f (%s)", dNorm, sUnit);
+        sprintf(m_sStatus1Msg, "Length: %.4f (%s)", dNorm, sUnit);
       }
-      SetStatusBarMsg(1, sBuf);
+      SetStatusBarMsg(1, m_sStatus1Msg);
       break;
     }
   }
