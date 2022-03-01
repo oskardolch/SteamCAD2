@@ -6488,6 +6488,60 @@ CDPrimitive CDObject::GetBBOX()
   return cRes;
 }
 
+// return -1: outside, 0: on boundary, 1: inside
+int CDObject::PtInArea(CDPoint cPt)
+{
+  return -1;
+}
+
+bool CDObject::ContainsObject(PDObject pObj)
+{
+  return false;
+}
+
+void CDObject::BuildArea(PDPtrList pBoundaries, PDLineStyle pStyle)
+{
+  int n = pBoundaries->GetCount();
+  if(n < 1) return;
+
+  PDObject pObj1, pObj2;
+  PIntList pParents;
+  PPtrList pParentList = new CPtrList();
+
+  for(int i = 0; i < n; i++)
+  {
+    pParents = new CIntlist();
+    pObj1 = (PDObject)pBoundaries->GetItem(i);
+    for(int j = 0; j < i; j++)
+    {
+      pObj2 = (PDObject)pBoundaries->GetItem(j);
+      if(pObj2->ContainsObject(pObj1)) pParents->AddItem(j);
+    }
+    for(int j = i + 1; j < n; j++)
+    {
+      pObj2 = (PDObject)pBoundaries->GetItem(j);
+      if(pObj2->ContainsObject(pObj1)) pParents->AddItem(j);
+    }
+    pParentList->Add(pParents);
+  }
+
+  int iCount;
+  for(int i = 0; i < n; i++)
+  {
+    pParents = (PIntList)pParentList->GetItem(i);
+    iCount = pParents->GetCount();
+    if(iCount % 2 == 0)
+    {
+      pObj2 = new CDObject(dtBorderPath, pStyle);
+    }
+    else
+    {
+    }
+    delete pParents
+  }
+  delete pParentList;
+}
+
 
 // CDataList
 
@@ -7580,10 +7634,11 @@ int CDataList::GetSelectedLength(double *pdLength)
 bool CDataList::CreateArea()
 {
   PDObject pObj, pNewObj;
-  int n1, n2, i = m_iDataLen;
-  PDIntList pPath, pSelObjs;
-  pSelObjs = new CDIntList();
-  PDIntList pClosedList = new CDIntList();
+  int n, i = m_iDataLen;
+  PDIntList pPath;
+  PDIntList pSelObjs = new CDIntList();
+  PDIntList pTotals = new CDIntList();
+  PDPtrList pBoundaries = new CDPtrList();
 
   while(i > 0)
   {
@@ -7593,27 +7648,29 @@ bool CDataList::CreateArea()
       if(pObj->IsBoundShape() && (pObj->IsClosed() < 2) && (pObj->GetType() <= dtPath))
       {
         pSelObjs->AddItem(i);
+        pTotals->AddItem(i);
       }
       else if((pObj->IsClosed() > 1) && (pObj->GetType() <= dtPath))
       {
-        pClosedList->AddItem(i);
+        pTotals->AddItem(i);
+        pBoundaries->Add(pObj);
       }
     }
   }
 
-  n1 = pSelObjs->GetCount();
-  n2 = pClosedList->GetCount();
-  if((n1 < 2) && (n2 < 1))
+  n = pTotals->GetCount();
+  if(n < 1)
   {
-    delete pClosedList;
+    delete pTotals;
+    delete pBoundaries;
     delete pSelObjs;
     return false;
   }
 
-  //int iRes = 0;
+  int iRes = 0;
 
   PDPtrList pPaths = new CDPtrList();
-  /*CDLineStyle cSt;
+  CDLineStyle cSt;
   if(BuildPaths(pSelObjs, pPaths))
   {
     iRes = pPaths->GetCount();
@@ -7624,19 +7681,46 @@ bool CDataList::CreateArea()
       cSt = pObj->GetLineStyle();
       pNewObj = new CDObject(dtPath, cSt.dWidth);
       pNewObj->BuildPath(m_ppObjects, pPath, &cSt);
-      pNewObj->SetSelected(true, false, -1);
-      Add(pNewObj);
+      if((pNewObj->IsClosed() > 1) && (pNewObj->GetType() <= dtPath))
+      {
+        pBoundaries->Add(pNewObj);
+      }
+      else
+      {
+        n = pPath->GetCount();
+        for(int j = 0; j < n; j++)
+        {
+          pTotals->RemoveItem(abs(pPath->GetItem(j)) - 1);
+        }
+        delete pNewObj;
+      }
       delete pPath;
     }
-
-    n = pSelObjs->GetCount();
-    for(i = 0; i < n; i++) Remove(pSelObjs->GetItem(i), false);
-  }*/
-
+  }
   delete pPaths;
-  delete pClosedList;
+
+  n = pTotals->GetCount();
+  if(n < 1)
+  {
+    delete pTotals;
+    delete pBoundaries;
+    delete pSelObjs;
+    return false;
+  }
+
+  pObj = m_ppObjects[pTotals->GetItem(0)];
+  cSt = pObj->GetLineStyle();
+
+  pNewObj = new CDObject(dtArea, cSt.dWidth);
+  pNewObj->BuildArea(pBoundaries, &cSt);
+  Add(pNewObj);
+
+  for(i = 0; i < n; i++) Remove(pTotals->GetItem(i), false);
+
+  delete pTotals;
+  delete pBoundaries;
   delete pSelObjs;
 
-  return false;
+  return true;
 }
 

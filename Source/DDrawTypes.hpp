@@ -133,6 +133,7 @@ private:
   int MergeWithBounds(PDRefList pInt1);
   double GetPathMovedRef(double dDist, double dRef);
   double GetMovedRef(int iMode, double dRef);
+  int PtInArea(CDPoint cPt);
 public:
   CDObject(CDDrawType iType, double dWidth);
   ~CDObject();
@@ -219,6 +220,7 @@ public:
   CDObject* GetPathObject(int iIndex);
   void ClearPath(bool bFreeSubObjects);
   CDPrimitive GetBBOX();
+  void BuildArea(PDPtrList pBoundaries, PDLineStyle pStyle);
 } *PDObject;
 
 typedef class CDataList
