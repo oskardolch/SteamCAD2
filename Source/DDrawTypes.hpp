@@ -133,7 +133,9 @@ private:
   int MergeWithBounds(PDRefList pInt1);
   double GetPathMovedRef(double dDist, double dRef);
   double GetMovedRef(int iMode, double dRef);
+  int PtInPathArea(CDPoint cPt);
   int PtInArea(CDPoint cPt);
+  bool ContainsObject(CDObject *pObj);
 public:
   CDObject(CDDrawType iType, double dWidth);
   ~CDObject();

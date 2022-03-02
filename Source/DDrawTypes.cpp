@@ -6488,29 +6488,74 @@ CDPrimitive CDObject::GetBBOX()
   return cRes;
 }
 
-// return -1: outside, 0: on boundary, 1: inside
-int CDObject::PtInArea(CDPoint cPt)
+int CDObject::PtInPathArea(CDPoint cPt)
 {
   return -1;
 }
 
-bool CDObject::ContainsObject(PDObject pObj)
+// return -1: outside, 0: on boundary, 1: inside
+int CDObject::PtInArea(CDPoint cPt)
 {
+  double d1;
+  CDLine cPtX;
+  int iRes = -1;
+  switch(m_iType)
+  {
+  case dtCircle:
+  case dtEllipse:
+  case dtArcEllipse:
+    d1 = GetRawDistFromPt(cPt, cPt, 0, &cPtX);
+    if(d1 > g_dPrec) iRes = 1;
+    else if(d1 > -g_dPrec) iRes = 0;
+    break;
+  case dtPath:
+    iRes = PtInPathArea(cPt);
+    break;
+  default:
+    break;
+  }
+  return iRes;
+}
+
+bool CDObject::ContainsObject(CDObject *pObj)
+{
+  int iTp1 = pObj->GetType();
+  if(iTp1 <= dtPath)
+  {
+    CDPoint cBounds;
+    int iBndMask = GetBoundsRef(&cBounds, 0.0, false);
+    if(iBndMask < 3) return false;
+
+    double dt = (cBounds.y - cBounds.x)/10.0;
+    int iPos = 0;
+    int iIter = 0;
+    CDPoint cPt;
+    while((iPos == 0) && (iIter < 11))
+    {
+      if(pObj->GetNativeRefPoint(cBounds.x, 0.0, &cPt)) iPos = PtInArea(cPt);
+      cBounds.x += dt;
+      iIter++;
+    }
+    return iPos > 0;
+  }
   return false;
 }
 
 void CDObject::BuildArea(PDPtrList pBoundaries, PDLineStyle pStyle)
 {
+  SetLineStyle(63, *pStyle);
   int n = pBoundaries->GetCount();
   if(n < 1) return;
 
   PDObject pObj1, pObj2;
-  PIntList pParents;
-  PPtrList pParentList = new CPtrList();
+  PDIntList pChildren;
+  PDPtrList pChildList = new CDPtrList();
+  PDIntList pParents;
+  PDPtrList pParentList = new CDPtrList();
 
   for(int i = 0; i < n; i++)
   {
-    pParents = new CIntlist();
+    pParents = new CDIntList();
     pObj1 = (PDObject)pBoundaries->GetItem(i);
     for(int j = 0; j < i; j++)
     {
@@ -6528,18 +6573,70 @@ void CDObject::BuildArea(PDPtrList pBoundaries, PDLineStyle pStyle)
   int iCount;
   for(int i = 0; i < n; i++)
   {
-    pParents = (PIntList)pParentList->GetItem(i);
+    pParents = (PDIntList)pParentList->GetItem(i);
     iCount = pParents->GetCount();
     if(iCount % 2 == 0)
     {
-      pObj2 = new CDObject(dtBorderPath, pStyle);
+      pChildren = new CDIntList();
+      pChildren->AddItem(i);
+      pChildList->Add(pChildren);
     }
-    else
+  }
+
+  int n1 = pChildList->GetCount();
+  int iBest, iNewCount;
+  for(int i = 0; i < n; i++)
+  {
+    pParents = (PDIntList)pParentList->GetItem(i);
+    iCount = pParents->GetCount();
+    if(iCount % 2 != 0)
     {
+      pObj1 = (PDObject)pBoundaries->GetItem(i);
+      iCount = -1;
+      iBest = -1;
+      for(int j = 0; j < n1; j++)
+      {
+        pChildren = (PDIntList)pChildList->GetItem(j);
+        pObj2 = (PDObject)pBoundaries->GetItem(pChildren->GetItem(0));
+        if(pObj2->ContainsObject(pObj1))
+        {
+          pParents = (PDIntList)pParentList->GetItem(pChildren->GetItem(0));
+          iNewCount = pParents->GetCount();
+          if(iNewCount > iCount)
+          {
+            iBest = j;
+            iCount = iNewCount;
+          }
+        }
+      }
+      if(iBest > -1)
+      {
+        pChildren = (PDIntList)pChildList->GetItem(iBest);
+        pChildren->AddItem(i);
+      }
     }
-    delete pParents
+  }
+  for(int i = 0; i < n; i++)
+  {
+    pParents = (PDIntList)pParentList->GetItem(i);
+    delete pParents;
   }
   delete pParentList;
+
+  for(int i = 0; i < n1; i++)
+  {
+    pChildren = (PDIntList)pChildList->GetItem(i);
+    iCount = pChildren->GetCount();
+    pObj1 = new CDObject(dtBorderPath, pStyle->dWidth);
+    for(int j = 0; j < iCount; j++)
+    {
+      pObj2 = (PDObject)pBoundaries->GetItem(pChildren->GetItem(j));
+      pObj1->m_pSubObjects->Add(pObj2);
+    }
+    m_pSubObjects->Add(pObj1);
+    delete pChildren;
+  }
+  delete pChildList;
 }
 
 
