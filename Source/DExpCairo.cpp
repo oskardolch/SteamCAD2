@@ -256,6 +256,8 @@ void ExportObject(PDObject pObj, cairo_t *pct, PDFileAttrs pFileAttrs, double dR
   ExpSetLColor(pct, cStyle.cColor);
   cairo_set_line_width(pct, dLineWdth*dRat);
 
+  unsigned char cFillColor[4] = {0x08, 0x08, 0x08, 0x00};
+
   CDPrimitive cPrim;
   pObj->GetFirstPrimitive(&cPrim, dRat, -2);
 
@@ -294,6 +296,26 @@ void ExportObject(PDObject pObj, cairo_t *pct, PDFileAttrs pFileAttrs, double dR
         }
         if(fabs(cPrim.cPt1.x - 2.0) < 0.2)
         {
+          if(cPrim.cPt2.x > 0.00001)
+          {
+            double dDash[6];
+            double dSegLen;
+            for(int i = 0; i < cStyle.iSegments; i++)
+            {
+              dSegLen = cStyle.dPattern[i];
+              if((i % 2 == 0) && (dSegLen < g_dDashMin)) dSegLen = g_dDashMin;
+              dDash[i] = dRat*cPrim.cPt2.x*dSegLen;
+            }
+            cairo_set_dash(pct, dDash, cStyle.iSegments, cPrim.cPt2.y);
+          }
+          cairo_stroke(pct);
+          cairo_set_dash(pct, NULL, 0, 0.0);
+        }
+        if(fabs(cPrim.cPt1.x - 3.0) < 0.2)
+        {
+          ExpSetLColor(pct, cFillColor);
+          cairo_fill_preserve(pct);
+          ExpSetLColor(pct, cStyle.cColor);
           if(cPrim.cPt2.x > 0.00001)
           {
             double dDash[6];

@@ -1424,6 +1424,12 @@ void CDApplication::DrawObject(cairo_t *cr, PDObject pObj, int iMode, int iDimen
           cairo_set_dash(cr, NULL, 0, 0.0);
         }
       }
+      else if(cPrim.iType == 12)
+      {
+        SetLColor(cr, 0x00808080);
+        cairo_fill(cr);
+        SetLColor(cr, dwColor);
+      }
       else
       {
         DrawPrimitive(cr, &cPrim);
@@ -1647,7 +1653,7 @@ cairo_stroke(cr);
   {
     if(m_pActiveObject)
     {
-      m_pActiveObject->BuildPrimitives(cPtX, iDynMode, &cdr, 0, NULL);
+      m_pActiveObject->BuildPrimitives(cPtX, iDynMode, &cdr, 0, NULL, NULL);
       DrawObject(cr2, m_pActiveObject, 1, -2);
     }
 
@@ -1669,7 +1675,7 @@ cairo_stroke(cr);
       m_pDrawObjects->BuildAllPrimitives(&cdr);
       if(m_pActiveObject)
       {
-        m_pActiveObject->BuildPrimitives(cPtX, iDynMode, &cdr, 0, NULL);
+        m_pActiveObject->BuildPrimitives(cPtX, iDynMode, &cdr, 0, NULL, NULL);
       }
     }
   }*/
@@ -3555,7 +3561,7 @@ void CDApplication::MouseMove(GtkWidget *widget, GdkEventMotion *event, gboolean
         SetStatusBarMsg(1, m_sStatus1Msg);
       }
 
-      m_pActiveObject->BuildPrimitives(cPtX, iDynMode, &cdr, 0, NULL);
+      m_pActiveObject->BuildPrimitives(cPtX, iDynMode, &cdr, 0, NULL, NULL);
 
       DrawObject(cr, m_pActiveObject, 1, -2);
     }
@@ -3571,7 +3577,7 @@ void CDApplication::MouseMove(GtkWidget *widget, GdkEventMotion *event, gboolean
         // so we will use it to pass the view scale
         cFAttrs.dScaleDenom = m_dUnitScale;
 
-        pObj1->BuildPrimitives(cPtX, iDynMode, &cdr, 0, &cFAttrs);
+        pObj1->BuildPrimitives(cPtX, iDynMode, &cdr, 0, &cFAttrs, NULL);
         DrawObject(cr, pObj1, 1, -1);
       }
     }
