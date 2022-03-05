@@ -905,7 +905,7 @@ LRESULT CMainWnd::WMPaint(HWND hwnd, HDC hdc)
       (REAL)m_cLastSnapPt.x, (REAL)(m_cLastSnapPt.y + 10));
     if(m_pActiveObject)
     {
-      m_pActiveObject->BuildPrimitives(cPtX, iDynMode, &cdr, 0, NULL);
+      m_pActiveObject->BuildPrimitives(cPtX, iDynMode, &cdr, 0, NULL, NULL);
       DrawObject(hwnd, &dstgraph, m_pActiveObject, 1, -2);
     }
   }
@@ -924,7 +924,7 @@ LRESULT CMainWnd::WMPaint(HWND hwnd, HDC hdc)
   m_pDrawObjects->BuildAllPrimitives(&cdr);
   if(m_pActiveObject)
   {
-    m_pActiveObject->BuildPrimitives(cPtX, iDynMode, &cdr, 0, NULL);
+    m_pActiveObject->BuildPrimitives(cPtX, iDynMode, &cdr, 0, NULL, NULL);
   }
 
   //SendMessage(m_hStatus, WM_PAINT, 0, 0);
@@ -3016,6 +3016,7 @@ void CMainWnd::DrawObject(HWND hWnd, Graphics *graphics, PDObject pObj, int iMod
   Pen hPtPen(Color(EncodeColor(dwColor)), 0.0);
   Pen hCentPen(Color(EncodeColor(0xFF888888)), 0.0);
   GraphicsPath hPath(FillModeWinding);
+  SolidBrush hBrush(Color(EncodeColor(0xFF808080)));
 
   CDPrimitive cPrim;
   PDDimension pDim;
@@ -3103,6 +3104,41 @@ void CMainWnd::DrawObject(HWND hWnd, Graphics *graphics, PDObject pObj, int iMod
           graphics->DrawPath(&hPen, &hPath);
           hPath.Reset();
           hPen.SetDashStyle(DashStyleSolid);
+        }
+      }
+      else if(cPrim.iType == 12)
+      {
+    //   (0, 0) - INVALID
+    //   (1, 0) - start a new path without subpath
+    //   (2, 0) - close path and fill it
+    //   (0, 1) - INVALID
+    //   (1, 1) - start a new path and immediatelly new subpath
+    //   (2, 1) - INVALID
+    //   (0, 2) - close subpath and immediately start a new one
+    //   (1, 2) - INVALID
+    //   (2, 2) - close last subpath and fill path
+        if(fabs(cPrim.cPt1.x - 1.0) < 0.2)
+        {
+          hPath.Reset();
+          //if(fabs(cPrim.cPt2.x - 1.0) < 0.2)
+          //  cairo_move_to(cr, m_cViewOrigin.x + cPrim.cPt3.x, m_cViewOrigin.y + cPrim.cPt3.y);
+        }
+        if(fabs(cPrim.cPt1.y - 1.0) < 0.2)
+        {
+          hPath.StartFigure();
+          //if(fabs(cPrim.cPt2.x - 1.0) < 0.2)
+          //  cairo_move_to(cr, m_cViewOrigin.x + cPrim.cPt3.x, m_cViewOrigin.y + cPrim.cPt3.y);
+        }
+        if(fabs(cPrim.cPt1.y - 2.0) < 0.2)
+        {
+          hPath.CloseFigure();
+          if(fabs(cPrim.cPt1.x) < 0.2) hPath.StartFigure();
+        }
+        if(fabs(cPrim.cPt1.x - 2.0) < 0.2)
+        {
+          hPath.CloseFigure();
+          graphics->FillPath(&hBrush, &hPath);
+          hPath.Reset();
         }
       }
       else DrawPrimitive(graphics, &hPen, &hPath, &cPrim);
@@ -3519,7 +3555,7 @@ LRESULT CMainWnd::WMMouseMove(HWND hwnd, WPARAM fwKeys, int xPos, int yPos)
       cdr.cPt2.x = (rc.right - m_cViewOrigin.x)/m_dUnitScale;
       cdr.cPt2.y = (rc.bottom - m_cViewOrigin.y)/m_dUnitScale;
 
-      m_pActiveObject->BuildPrimitives(cPtX, iDynMode, &cdr, 0, NULL);
+      m_pActiveObject->BuildPrimitives(cPtX, iDynMode, &cdr, 0, NULL, NULL);
 
       DrawObject(hwnd, &graphics, m_pActiveObject, 1, -2);
     }
@@ -3541,7 +3577,7 @@ LRESULT CMainWnd::WMMouseMove(HWND hwnd, WPARAM fwKeys, int xPos, int yPos)
         cdr.cPt2.x = (rc.right - m_cViewOrigin.x)/m_dUnitScale;
         cdr.cPt2.y = (rc.bottom - m_cViewOrigin.y)/m_dUnitScale;
 
-        pObj1->BuildPrimitives(cPtX, iDynMode, &cdr, 0, &cFAttrs);
+        pObj1->BuildPrimitives(cPtX, iDynMode, &cdr, 0, &cFAttrs, NULL);
         DrawObject(hwnd, &graphics, pObj1, 1, -1);
       }
     }

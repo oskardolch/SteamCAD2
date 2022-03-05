@@ -1864,17 +1864,32 @@ int CDObject::BuildAreaPrimitives(CDLine cTmpPt, int iMode, PDRect pRect, PDFile
   int n = m_pSubObjects->GetCount();
   PDObject pObj, pObj1;
   int n1;
+  CDPoint cBounds;
   CDPrimitive cPath;
   cPath.iType = 12;
+  cPath.cPt1.x = 0.0;
+  cPath.cPt1.y = 0.0;
   for(int i = 0; i < n; i++)
   {
     pObj = (PDObject)m_pSubObjects->GetItem(i);
     n1 = pObj->m_pSubObjects->GetCount();
+    cPath.cPt1.x = 1.0;
+    //cPath.cPt1.y = 1.0;
+    if(n1 > 1) cPath.cPt1.y = 1.0;
     for(int j = 0; j < n1; j++)
     {
+      m_pPrimitive->AddPrimitive(cPath);
       pObj1 = (PDObject)pObj->m_pSubObjects->GetItem(j);
-      iRes += pObj1->BuildPrimitives(cTmpPt, iMode, NULL, 0, pAttrs, m_pPrimitive);
+      if(pObj1->GetBoundsRef(&cBounds, 0.0, false) > 2)
+      {
+        pObj1->AddSimpleSegment(cBounds.x, cBounds.y, 0.0, false, m_pPrimitive);
+        cPath.cPt1.x = 0.0;
+        cPath.cPt1.y = 2.0;
+      }
     }
+    cPath.cPt1.x = 2.0;
+    //cPath.cPt1.y = 2.0;
+    if(n1 > 1) cPath.cPt1.y = 2.0;
     m_pPrimitive->AddPrimitive(cPath);
   }
   for(int i = 0; i < n; i++)
@@ -2572,6 +2587,7 @@ void CDObject::GetNextPrimitive(PDPrimitive pPrim, double dScale, int iDimen)
     }
     else if(cStPrim.iType == 12)
     {
+      pPrim->cPt1 = cStPrim.cPt1;
     }
     else
     {
