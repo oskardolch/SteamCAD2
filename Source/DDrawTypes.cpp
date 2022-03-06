@@ -1838,6 +1838,36 @@ int CDObject::GetPathViewBounds(CDLine cTmpPt, int iMode, PDRect pRect, PDRefLis
   return iRes;
 }
 
+int CDObject::GetAreaViewBounds(CDLine cTmpPt, int iMode, PDRect pRect, PDRefList pBounds,
+  PDPoint pDrawBnds, bool bMergeWithBounds)
+{
+  int iCnt = m_pSubObjects->GetCount();
+  int iRes = -1;
+  int iLocRes, n1;
+  PDObject pObj, pObj1;
+
+  for(int i = 0; i < iCnt; i++)
+  {
+    pObj = (PDObject)m_pSubObjects->GetItem(i);
+    n1 = pObj->m_pSubObjects->GetCount();
+    for(int j = 0; j < n1; j++)
+    {
+      pObj1 = (PDObject)pObj->m_pSubObjects->GetItem(j);
+      iLocRes = pObj1->GetViewBounds(cTmpPt, iMode, pRect, pBounds, pDrawBnds, bMergeWithBounds);
+      if(iRes < 0) iRes = iLocRes;
+      else if(iRes != iLocRes) iRes = 1;
+    }
+  }
+
+  if(iRes < 1)
+  {
+    CDLine cPtX;
+    if(GetAreaDistFromPt(pRect->cPt1, &cPtX) < g_dPrec) iRes = 1;
+  }
+
+  return iRes;
+}
+
 int CDObject::GetViewBounds(CDLine cTmpPt, int iMode, PDRect pRect, PDRefList pBounds, PDPoint pDrawBnds, bool bMergeWithBounds)
 {
   int iRes = 0;
@@ -1845,8 +1875,13 @@ int CDObject::GetViewBounds(CDLine cTmpPt, int iMode, PDRect pRect, PDRefList pB
   {
   case dtPath:
     iRes = GetPathViewBounds(cTmpPt, iMode, pRect, pBounds, pDrawBnds, bMergeWithBounds);
+    break;
   case dtBorderPath:
   case dtBorder:
+    break;
+  case dtArea:
+    iRes = GetAreaViewBounds(cTmpPt, iMode, pRect, pBounds, pDrawBnds, bMergeWithBounds);
+    break;
   case dtGroup:
     break;
   default:
@@ -2848,7 +2883,7 @@ bool CDObject::IsNearPoint(CDPoint cPt, double dTolerance, int *piDimen)
   cPtX.bIsSet = false;
   double dDist = GetDistFromPt(cPt, cPt, 1, &cPtX, piDimen);
 
-  if(!cPtX.bIsSet) return false;
+  if(!cPtX.bIsSet && (m_iType != dtArea)) return false;
 
   return fabs(dDist) < dTolerance;
 }
