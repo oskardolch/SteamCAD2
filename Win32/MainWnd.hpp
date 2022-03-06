@@ -102,7 +102,7 @@ private:
   PDStatDlg m_pStatDlg;
   PDSnapDlg m_pSnapDlg;
 
-  CDLine m_cMeasPoint1, m_cMeasPoint2;
+  CDLine m_cMeasPoint1, m_cMeasPoint2, m_cMeasPoint3;
   bool m_bHasChanged;
   double m_dSavedAngle;
   CDLine m_cLastDynPt;

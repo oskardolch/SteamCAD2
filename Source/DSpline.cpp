@@ -1853,3 +1853,46 @@ int GetSplineSnapPoints(CDPoint cPt, double dDist, PDPointList pCache, PDRefList
   return iRes;
 }
 
+bool GetSplineBoundRefPoints(PDPointList pCache, PDRefList pBnds)
+{
+  int iCnt = pCache->GetCount(0);
+  if(iCnt < 2) return 0;
+
+  //int nCtrl = pCache->GetCount(1);
+  //bool bClosed = (nCtrl > 0);
+
+  //double dr = dOffset;
+  //int nOffs = pCache->GetCount(2);
+  //if(nOffs > 0) dr += pCache->GetPoint(0, 2).cPoint.x;
+
+  int iSegs = GetSplineNumSegments(pCache);
+  CDPrimitive cQuad;
+  double dx;
+  for(int i = 0; i < iSegs; i++)
+  {
+    cQuad = GetSplineNthSegment(i, pCache);
+    dx = cQuad.cPt3.x - 2.0*cQuad.cPt2.x + cQuad.cPt1.x;
+    if(fabs(dx) > g_dPrec)
+    {
+      dx = (cQuad.cPt1.x - cQuad.cPt2.x)/dx;
+      if((dx > -g_dPrec) && (dx < 1.0 + g_dPrec))
+      {
+        dx += (double)i;
+        if(!pBnds->HasPoint(dx)) pBnds->AddPoint(dx);
+      }
+    }
+    dx = cQuad.cPt3.y - 2.0*cQuad.cPt2.y + cQuad.cPt1.y;
+    if(fabs(dx) > g_dPrec)
+    {
+      dx = (cQuad.cPt1.y - cQuad.cPt2.y)/dx;
+      if((dx > -g_dPrec) && (dx < 1.0 + g_dPrec))
+      {
+        dx += (double)i;
+        if(!pBnds->HasPoint(dx)) pBnds->AddPoint(dx);
+      }
+    }
+  }
+
+  return pBnds->GetCount() > 0;
+}
+

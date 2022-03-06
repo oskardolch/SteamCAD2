@@ -55,10 +55,10 @@ $(BUILDDIR)SteamCAD2.o : Linux/SteamCAD2.cpp Linux/DApplication.hpp
 $(BUILDDIR)DApplication.o : Linux/DApplication.cpp Linux/DApplication.hpp Linux/DLxBaseDefs.h \
   Linux/DMenu.hpp Source/DDrawTypes.hpp Source/DMath.hpp Source/DExpCairo.hpp \
   Linux/DFileSetupDlg.hpp Linux/DLineStyleDlg.hpp Linux/DStatDlg.hpp \
-  Linux/DSnapDlg.hpp Linux/DScaleDlg.hpp Source/DExpDXF.hpp
+  Linux/DSnapDlg.hpp Linux/DScaleDlg.hpp Source/DExpDXF.hpp Source/DBaseDefs.hpp
 $(BUILDDIR)DMenu.o : Linux/DMenu.cpp Linux/DMenu.hpp Linux/DApplication.hpp \
   Linux/DFileMenu.hpp Linux/DModeMenu.hpp Linux/DEditMenu.hpp \
-  Linux/DViewToolsMenu.hpp Linux/DPathMenu.hpp
+  Linux/DViewToolsMenu.hpp Linux/DPathMenu.hpp Source/DBaseDefs.hpp
 $(BUILDDIR)DFileMenu.o : Linux/DFileMenu.cpp Linux/DFileMenu.hpp Linux/DLxBaseDefs.h
 $(BUILDDIR)DModeMenu.o : Linux/DModeMenu.cpp Linux/DModeMenu.hpp Linux/DLxBaseDefs.h
 $(BUILDDIR)DEditMenu.o : Linux/DEditMenu.cpp Linux/DEditMenu.hpp Linux/DLxBaseDefs.h

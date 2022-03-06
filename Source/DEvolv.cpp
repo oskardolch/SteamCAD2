@@ -826,3 +826,53 @@ int GetEvolvSnapPoints(PDPointList pCache, double *pdRefs)
   return 1;
 }
 
+bool GetEvolvBoundRefPoints(PDPointList pCache, PDRefList pBnds, double dMax)
+{
+  int iCnt = pCache->GetCount(0);
+  if(iCnt < 3) return false;
+
+  //CDPoint cOrig = pCache->GetPoint(0, 0).cPoint;
+  CDPoint cN1 = pCache->GetPoint(1, 0).cPoint;
+  CDPoint cRad = pCache->GetPoint(2, 0).cPoint;
+  double dr1 = cRad.x;
+  double dDir = cRad.y;
+
+  double dr = 0.0;
+  int nOffs = pCache->GetCount(2);
+  if(nOffs > 0) dr = pCache->GetPoint(0, 2).cPoint.x;
+
+  CDPoint cPt1;
+  double da = 0.0;
+
+  if(fabs(dr) > g_dPrec)
+  {
+    double da = dr/dr1;
+    cPt1.x = cos(da);
+    cPt1.y = -dDir*sin(da);
+    cN1 = Rotate(cN1, cPt1, true);
+  }
+
+  double dx, dy;
+  if(fabs(cN1.y) < g_dPrec) dx = M_PI/2.0;
+  else dx = -atan(cN1.x/cN1.y) - da;
+  if(fabs(cN1.x) < g_dPrec) dy = M_PI/2.0;
+  else dx = atan(cN1.y/cN1.x) - da;
+
+  while(dx < -g_dPrec) dx += M_PI;
+  while(dy < -g_dPrec) dy += M_PI;
+
+  while(dx < dMax)
+  {
+    if(!pBnds->HasPoint(dx)) pBnds->AddPoint(dx);
+    dx += M_PI;
+  }
+
+  while(dy < dMax)
+  {
+    if(!pBnds->HasPoint(dy)) pBnds->AddPoint(dy);
+    dy += M_PI;
+  }
+
+  return pBnds->GetCount() > 0;
+}
+

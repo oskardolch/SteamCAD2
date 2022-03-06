@@ -186,6 +186,7 @@ CMainWnd::CMainWnd(HINSTANCE hInstance)
 
   m_cMeasPoint1.bIsSet = false;
   m_cMeasPoint2.bIsSet = false;
+  m_cMeasPoint3.bIsSet = false;
   m_cLastDynPt.bIsSet = false;
   m_bHasChanged = true;
 
@@ -430,6 +431,10 @@ LRESULT CMainWnd::WMCommand(HWND hwnd, WORD wNotifyCode, WORD wID, HWND hwndCtl)
     return ToolsCmd(hwnd, wNotifyCode, hwndCtl, tolConflict);
   case IDM_TOOLSMEASURE:
     return ToolsCmd(hwnd, wNotifyCode, hwndCtl, tolMeas);
+  case IDM_TOOLSMEASUREANGLE:
+    return ToolsCmd(hwnd, wNotifyCode, hwndCtl, tolMeasAngle);
+  case IDM_TOOLSMEASURELENGTH:
+    return ToolsCmd(hwnd, wNotifyCode, hwndCtl, tolMeasLength);
   //case IDM_TOOLSBREAK:
   //  return ToolsBreakCmd(hwnd, wNotifyCode, hwndCtl);
   case IDM_TOOLSCALE:
@@ -900,7 +905,7 @@ LRESULT CMainWnd::WMPaint(HWND hwnd, HDC hdc)
       (REAL)m_cLastSnapPt.x, (REAL)(m_cLastSnapPt.y + 10));
     if(m_pActiveObject)
     {
-      m_pActiveObject->BuildPrimitives(cPtX, iDynMode, &cdr, 0, NULL);
+      m_pActiveObject->BuildPrimitives(cPtX, iDynMode, &cdr, 0, NULL, NULL);
       DrawObject(hwnd, &dstgraph, m_pActiveObject, 1, -2);
     }
   }
@@ -919,7 +924,7 @@ LRESULT CMainWnd::WMPaint(HWND hwnd, HDC hdc)
   m_pDrawObjects->BuildAllPrimitives(&cdr);
   if(m_pActiveObject)
   {
-    m_pActiveObject->BuildPrimitives(cPtX, iDynMode, &cdr, 0, NULL);
+    m_pActiveObject->BuildPrimitives(cPtX, iDynMode, &cdr, 0, NULL, NULL);
   }
 
   //SendMessage(m_hStatus, WM_PAINT, 0, 0);
@@ -1681,6 +1686,7 @@ LRESULT CMainWnd::EditCopyParCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl)
   SendMessage(m_hStatus, SB_SETTEXT, 1, (LPARAM)m_wsStatus2Msg);
 
   ShowWindow(m_hEdt1, SW_SHOW);
+  SendMessage(m_hEdt1, EM_SETSEL, 0, (LPARAM)-1);
   SetFocus(m_hEdt1);
   return 0;
 }
@@ -1694,6 +1700,7 @@ LRESULT CMainWnd::EditMoveCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl)
   ShowWindow(m_hEdt2, SW_SHOW);
   ShowWindow(m_hLab1, SW_SHOW);
 
+  SendMessage(m_hEdt1, EM_SETSEL, 0, (LPARAM)-1);
   SetFocus(m_hEdt1);
 
   wchar_t wBuf[64];
@@ -1717,6 +1724,7 @@ LRESULT CMainWnd::EditRotateCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl)
   ShowWindow(m_hEdt1, SW_SHOW);
   ShowWindow(m_hEdt2, SW_SHOW);
   ShowWindow(m_hLab1, SW_SHOW);
+  SendMessage(m_hEdt1, EM_SETSEL, 0, (LPARAM)-1);
   SetFocus(m_hEdt1);
   LoadString(m_hInstance, IDS_SELPOINTTOROTATE, m_wsStatus2Msg, 128);
   SendMessage(m_hStatus, SB_SETTEXT, 2, (LPARAM)m_wsStatus2Msg);
@@ -2150,10 +2158,11 @@ LRESULT CMainWnd::WMLButtonUp(HWND hwnd, WPARAM fwKeys, int xPos, int yPos)
   cdr.cPt2.y = (rc.bottom - m_cViewOrigin.y)/m_dUnitScale;
 
   double dTol = (double)m_iSnapTolerance/m_dUnitScale;
-  CDPoint cDistPt;
+  CDPoint cDistPt, cPt1, cPt2;
   wchar_t wsBuf[128];
-  double dNorm;
+  double dNorm, d1, d2, dx1, dy1, dAng;
   wchar_t *wsUnit;
+  int i;
 
   if(m_iDrawMode + m_iToolMode < 1)
   {
@@ -2226,7 +2235,7 @@ LRESULT CMainWnd::WMLButtonUp(HWND hwnd, WPARAM fwKeys, int xPos, int yPos)
         }
         dNorm = GetNorm(cDistPt);
         swprintf(wsBuf, L"dx: %.3f, dy: %.3f, dist: %.4f (%s)", fabs(cDistPt.x),
-        fabs(cDistPt.y), dNorm, wsUnit);
+          fabs(cDistPt.y), dNorm, wsUnit);
         SendMessage(m_hStatus, SB_SETTEXT, 1, (LPARAM)wsBuf);
       }
       else
@@ -2236,6 +2245,71 @@ LRESULT CMainWnd::WMLButtonUp(HWND hwnd, WPARAM fwKeys, int xPos, int yPos)
         m_cMeasPoint2.bIsSet = false;
         SendMessage(m_hStatus, SB_SETTEXT, 1, (LPARAM)L"");
       }
+      break;
+    case tolMeasAngle:
+      if(!m_cMeasPoint1.bIsSet)
+      {
+        m_cMeasPoint1.bIsSet = true;
+        m_cMeasPoint1.cOrigin = m_cLastDrawPt;
+      }
+      else if(!m_cMeasPoint2.bIsSet)
+      {
+        m_cMeasPoint2.bIsSet = true;
+        m_cMeasPoint2.cOrigin = m_cLastDrawPt;
+      }
+      else if(!m_cMeasPoint3.bIsSet)
+      {
+        m_cMeasPoint3.bIsSet = true;
+        m_cMeasPoint3.cOrigin = m_cLastDrawPt;
+        cPt1 = m_cMeasPoint2.cOrigin - m_cMeasPoint1.cOrigin;
+        cPt2 = m_cMeasPoint3.cOrigin - m_cMeasPoint1.cOrigin;
+        d1 = GetNorm(cPt1);
+        d2 = GetNorm(cPt2);
+        if((d1 > g_dPrec) && (d2 > g_dPrec))
+        {
+          dx1 = (cPt1.x*cPt2.x + cPt1.y*cPt2.y)/d1/d2;
+          dy1 = (cPt2.y*cPt1.x - cPt1.y*cPt2.x)/d1/d2;
+          dAng = -180.0*atan2(dy1, dx1)/M_PI;
+          wsUnit = m_cFSR.cAngUnit.wsAbbrev;
+          swprintf(wsBuf, L"angle: %.4f (%s)", dAng*m_cFSR.cAngUnit.dBaseToUnit, wsUnit);
+          SendMessage(m_hStatus, SB_SETTEXT, 1, (LPARAM)wsBuf);
+        }
+      }
+      else
+      {
+        m_cMeasPoint1.bIsSet = true;
+        m_cMeasPoint1.cOrigin = m_cLastDrawPt;
+        m_cMeasPoint2.bIsSet = false;
+        m_cMeasPoint3.bIsSet = false;
+        SendMessage(m_hStatus, SB_SETTEXT, 1, (LPARAM)L"");
+      }
+      break;
+    case tolMeasLength:
+      i = m_pDrawObjects->GetSelectedLength(&dNorm);
+      if(i > 1)
+      {
+        wcscpy(wsBuf, L"No object selected");
+      }
+      else if(i > 0)
+      {
+        wcscpy(wsBuf, L"Infinity");
+      }
+      else
+      {
+        if(m_bPaperUnits)
+        {
+          dNorm /= m_cFSR.cPaperUnit.dBaseToUnit;
+          wsUnit = m_cFSR.cPaperUnit.wsAbbrev;
+        }
+        else
+        {
+          dNorm /= m_dDrawScale;
+          dNorm /= m_cFSR.cLenUnit.dBaseToUnit;
+          wsUnit = m_cFSR.cLenUnit.wsAbbrev;
+        }
+        swprintf(wsBuf, L"Length: %.4f (%s)", dNorm, wsUnit);
+      }
+      SendMessage(m_hStatus, SB_SETTEXT, 1, (LPARAM)wsBuf);
       break;
     }
   }
@@ -2393,7 +2467,7 @@ LRESULT CMainWnd::WMLButtonUp(HWND hwnd, WPARAM fwKeys, int xPos, int yPos)
     else
     {
       int iCtrl = 0;
-      double dOffset = m_dRestrictValue;
+      double dOffset = m_dRestrictValue*m_dDrawScale*m_cFSR.cLenUnit.dBaseToUnit;
       if(m_iToolMode == tolCopyPar)
       {
         iCtrl = 2;
@@ -2942,6 +3016,7 @@ void CMainWnd::DrawObject(HWND hWnd, Graphics *graphics, PDObject pObj, int iMod
   Pen hPtPen(Color(EncodeColor(dwColor)), 0.0);
   Pen hCentPen(Color(EncodeColor(0xFF888888)), 0.0);
   GraphicsPath hPath(FillModeWinding);
+  SolidBrush hBrush(Color(EncodeColor(0xFF808080)));
 
   CDPrimitive cPrim;
   PDDimension pDim;
@@ -3029,6 +3104,41 @@ void CMainWnd::DrawObject(HWND hWnd, Graphics *graphics, PDObject pObj, int iMod
           graphics->DrawPath(&hPen, &hPath);
           hPath.Reset();
           hPen.SetDashStyle(DashStyleSolid);
+        }
+      }
+      else if(cPrim.iType == 12)
+      {
+    //   (0, 0) - INVALID
+    //   (1, 0) - start a new path without subpath
+    //   (2, 0) - close path and fill it
+    //   (0, 1) - INVALID
+    //   (1, 1) - start a new path and immediatelly new subpath
+    //   (2, 1) - INVALID
+    //   (0, 2) - close subpath and immediately start a new one
+    //   (1, 2) - INVALID
+    //   (2, 2) - close last subpath and fill path
+        if(fabs(cPrim.cPt1.x - 1.0) < 0.2)
+        {
+          hPath.Reset();
+          //if(fabs(cPrim.cPt2.x - 1.0) < 0.2)
+          //  cairo_move_to(cr, m_cViewOrigin.x + cPrim.cPt3.x, m_cViewOrigin.y + cPrim.cPt3.y);
+        }
+        if(fabs(cPrim.cPt1.y - 1.0) < 0.2)
+        {
+          hPath.StartFigure();
+          //if(fabs(cPrim.cPt2.x - 1.0) < 0.2)
+          //  cairo_move_to(cr, m_cViewOrigin.x + cPrim.cPt3.x, m_cViewOrigin.y + cPrim.cPt3.y);
+        }
+        if(fabs(cPrim.cPt1.y - 2.0) < 0.2)
+        {
+          hPath.CloseFigure();
+          if(fabs(cPrim.cPt1.x) < 0.2) hPath.StartFigure();
+        }
+        if(fabs(cPrim.cPt1.x - 2.0) < 0.2)
+        {
+          hPath.CloseFigure();
+          graphics->FillPath(&hBrush, &hPath);
+          hPath.Reset();
         }
       }
       else DrawPrimitive(graphics, &hPen, &hPath, &cPrim);
@@ -3445,7 +3555,7 @@ LRESULT CMainWnd::WMMouseMove(HWND hwnd, WPARAM fwKeys, int xPos, int yPos)
       cdr.cPt2.x = (rc.right - m_cViewOrigin.x)/m_dUnitScale;
       cdr.cPt2.y = (rc.bottom - m_cViewOrigin.y)/m_dUnitScale;
 
-      m_pActiveObject->BuildPrimitives(cPtX, iDynMode, &cdr, 0, NULL);
+      m_pActiveObject->BuildPrimitives(cPtX, iDynMode, &cdr, 0, NULL, NULL);
 
       DrawObject(hwnd, &graphics, m_pActiveObject, 1, -2);
     }
@@ -3467,7 +3577,7 @@ LRESULT CMainWnd::WMMouseMove(HWND hwnd, WPARAM fwKeys, int xPos, int yPos)
         cdr.cPt2.x = (rc.right - m_cViewOrigin.x)/m_dUnitScale;
         cdr.cPt2.y = (rc.bottom - m_cViewOrigin.y)/m_dUnitScale;
 
-        pObj1->BuildPrimitives(cPtX, iDynMode, &cdr, 0, &cFAttrs);
+        pObj1->BuildPrimitives(cPtX, iDynMode, &cdr, 0, &cFAttrs, NULL);
         DrawObject(hwnd, &graphics, pObj1, 1, -1);
       }
     }
@@ -3497,8 +3607,27 @@ LRESULT CMainWnd::WMMouseMove(HWND hwnd, WPARAM fwKeys, int xPos, int yPos)
         }
         double dNorm = GetNorm(cDistPt);
         swprintf(m_wsStatus2Msg, L"dx: %.3f, dy: %.3f, dist: %.4f (%s)", fabs(cDistPt.x),
-        fabs(cDistPt.y), dNorm, wsUnit);
+          fabs(cDistPt.y), dNorm, wsUnit);
         SendMessage(m_hStatus, SB_SETTEXT, 1, (LPARAM)m_wsStatus2Msg);
+      }
+    }
+    else if(m_iToolMode == tolMeasAngle)
+    {
+      if(m_cMeasPoint1.bIsSet && m_cMeasPoint2.bIsSet && !m_cMeasPoint3.bIsSet)
+      {
+        CDPoint cPt1 = m_cMeasPoint2.cOrigin - m_cMeasPoint1.cOrigin;
+        CDPoint cPt2 = m_cLastDrawPt - m_cMeasPoint1.cOrigin;
+        double d1 = GetNorm(cPt1);
+        double d2 = GetNorm(cPt2);
+        if((d1 > g_dPrec) && (d2 > g_dPrec))
+        {
+          double dx1 = (cPt1.x*cPt2.x + cPt1.y*cPt2.y)/d1/d2;
+          double dy1 = (cPt2.y*cPt1.x - cPt1.y*cPt2.x)/d1/d2;
+          double dAng = -180*atan2(dy1, dx1)/M_PI;
+          wchar_t *wsUnit = m_cFSR.cAngUnit.wsAbbrev;
+          swprintf(m_wsStatus2Msg, L"angle: %.4f (%s)", dAng*m_cFSR.cAngUnit.dBaseToUnit, wsUnit);
+          SendMessage(m_hStatus, SB_SETTEXT, 1, (LPARAM)m_wsStatus2Msg);
+        }
       }
     }
   }
@@ -3638,6 +3767,7 @@ void CMainWnd::StartNewObject(HWND hWnd)
 
     m_cMeasPoint1.bIsSet = false;
     m_cMeasPoint2.bIsSet = false;
+    m_cMeasPoint3.bIsSet = false;
 
     int iLines = m_pDrawObjects->GetNumOfSelectedLines();
     CDLine cLine1, cLine2;
@@ -3669,6 +3799,7 @@ void CMainWnd::StartNewObject(HWND hWnd)
         LoadString(m_hInstance, IDS_ANGLE, m_wsStatus2Base, 64);
         m_pActiveObject = new CDObject(dtLine, m_cFSR.dDefLineWidth);
         ShowWindow(m_hEdt1, SW_SHOW);
+        SendMessage(m_hEdt1, EM_SETSEL, 0, (LPARAM)-1);
         SetFocus(m_hEdt1);
         break;
     case modCircle:
@@ -3677,6 +3808,7 @@ void CMainWnd::StartNewObject(HWND hWnd)
         if(iLinesFlag & 1) m_pActiveObject->SetInputLine(0, cLine1);
         //if(iLinesFlag & 2) m_pActiveObject->SetInputLine(1, cLine2);
         ShowWindow(m_hEdt1, SW_SHOW);
+        SendMessage(m_hEdt1, EM_SETSEL, 0, (LPARAM)-1);
         SetFocus(m_hEdt1);
         break;
     case modEllipse:
@@ -3758,6 +3890,7 @@ void CMainWnd::StartNewObject(HWND hWnd)
             m_pActiveObject = new CDObject(dtCircle, m_cFSR.dDefLineWidth);
             LoadString(m_hInstance, IDS_RADIUS, m_wsStatus2Base, 64);
             ShowWindow(m_hEdt1, SW_SHOW);
+            SendMessage(m_hEdt1, EM_SETSEL, 0, (LPARAM)-1);
             SetFocus(m_hEdt1);
         }
         else

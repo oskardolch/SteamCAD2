@@ -102,7 +102,6 @@ private:
   // GetBounds = mask: 1 .. pBounds->x is set, 2 .. pBounds->y is set
   int GetBounds(PDPoint pBounds, double dOffset, bool bAdvancePeriod);
   int GetBoundsRef(PDPoint pBounds, double dOffset, bool bAdvancePeriod);
-  double GetLength(double dOffset);
   PDPathSeg GetPathRefSegment(double dRef, double dOffset, double *pdSegRef, int *piPos);
   bool GetPathRefPoint(double dRef, double dOffset, PDPoint pPt);
   bool GetNativeRefPoint(double dRef, double dOffset, PDPoint pPt);
@@ -119,11 +118,14 @@ private:
   // returns: 0 - nothing is visible, 1 - part is visible, 2 - whole curve is visible and is closed
   void AddExtraPrimitives(PDRect pRect, PDPrimObject pPrimList);
   double GetPathDistFromPt(CDPoint cPt, CDPoint cRefPt, bool bSnapCenters, PDLine pPtX);
+  double GetAreaDistFromPt(CDPoint cPt, PDLine pPtX);
   int GetSimpleViewBounds(CDLine cTmpPt, int iMode, double dOffset, double dLineHalfWidth,
     PDRect pRect, PDRefList pBounds, PDPoint pDrawBnds, bool bMergeWithBounds);
   int GetPathViewBounds(CDLine cTmpPt, int iMode, PDRect pRect, PDRefList pBounds, PDPoint pDrawBnds, bool bMergeWithBounds);
+  int GetAreaViewBounds(CDLine cTmpPt, int iMode, PDRect pRect, PDRefList pBounds, PDPoint pDrawBnds, bool bMergeWithBounds);
   void AddSimpleSegment(double dt1, double dt2, double dExt, bool bReverse, PDPrimObject pPrimList);
   void AddPathSegment(double d1, double d2, double dExt, PDPrimObject pPrimList);
+  void AddAreaSegment(double d1, double d2, double dExt, PDPrimObject pPrimList);
   int GetPointReferences(CDPoint cPt, PDRefList pRefs);
   CDObject* SplitByRef(double dRef, bool *pbRes);
   double GetMovedDist(CDLine cTmpPt, int iMode);
@@ -134,6 +136,11 @@ private:
   int MergeWithBounds(PDRefList pInt1);
   double GetPathMovedRef(double dDist, double dRef);
   double GetMovedRef(int iMode, double dRef);
+  CDPrimitive GetPathBBOX();
+  int PtInPathArea(CDPoint cPt);
+  int PtInArea(CDPoint cPt);
+  bool ContainsObject(CDObject *pObj);
+  int BuildAreaPrimitives(CDLine cTmpPt, int iMode, PDRect pRect, PDFileAttrs pAttrs);
 public:
   CDObject(CDDrawType iType, double dWidth);
   ~CDObject();
@@ -145,7 +152,7 @@ public:
   bool BuildCache(CDLine cTmpPt, int iMode);
   int GetViewBounds(CDLine cTmpPt, int iMode, PDRect pRect, PDRefList pBounds, PDPoint pDrawBnds, bool bMergeWithBounds);
   // returns 0 - not in rect, 1 - partially in rect, 2 - full in rect
-  int BuildPrimitives(CDLine cTmpPt, int iMode, PDRect pRect, int iTemp, PDFileAttrs pAttrs);
+  int BuildPrimitives(CDLine cTmpPt, int iMode, PDRect pRect, int iTemp, PDFileAttrs pAttrs, PDPrimObject pPrimitives);
   void GetFirstPrimitive(PDPrimitive pPrim, double dScale, int iDimen);
   void GetNextPrimitive(PDPrimitive pPrim, double dScale, int iDimen);
   int GetAttractors(CDPoint cPt, double dScale, PDPointList pPoints);
@@ -162,6 +169,7 @@ public:
   bool HasEnoughPoints();
   bool GetPoint(int iIndex, char iCtrl, PDInputPoint pPoint);
   void SetPoint(int iIndex, char iCtrl, CDInputPoint cPoint);
+  double GetLength(double dOffset);
   double GetOffset();
   double GetDistFromPt(CDPoint cPt, CDPoint cRefPt, int iSearchMask, PDLine pPtX, int *piDimen);
   CDLineStyle GetLineStyle();
@@ -219,6 +227,7 @@ public:
   CDObject* GetPathObject(int iIndex);
   void ClearPath(bool bFreeSubObjects);
   CDPrimitive GetBBOX();
+  void BuildArea(PDPtrList pBoundaries, PDLineStyle pStyle);
 } *PDObject;
 
 typedef class CDataList
@@ -282,6 +291,7 @@ public:
   int CreatePath();
   bool BreakSelObjects();
   bool CreateArea();
+  int GetSelectedLength(double *pdLength);
 } *PDataList;
 
 #endif
