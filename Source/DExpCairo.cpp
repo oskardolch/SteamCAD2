@@ -311,25 +311,37 @@ void ExportObject(PDObject pObj, cairo_t *pct, PDFileAttrs pFileAttrs, double dR
           cairo_stroke(pct);
           cairo_set_dash(pct, NULL, 0, 0.0);
         }
-        if(fabs(cPrim.cPt1.x - 3.0) < 0.2)
+      }
+      else if(cPrim.iType == 12)
+      {
+    //   (0, 0) - INVALID
+    //   (1, 0) - start a new path without subpath
+    //   (2, 0) - close path and fill it
+    //   (0, 1) - INVALID
+    //   (1, 1) - start a new path and immediatelly new subpath
+    //   (2, 1) - INVALID
+    //   (0, 2) - close subpath and immediately start a new one
+    //   (1, 2) - INVALID
+    //   (2, 2) - close last subpath and fill path
+        if(fabs(cPrim.cPt1.x - 1.0) < 0.2)
+        {
+          cairo_new_path(pct);
+        }
+        if(fabs(cPrim.cPt1.y - 1.0) < 0.2)
+        {
+          cairo_new_sub_path(pct);
+        }
+        if(fabs(cPrim.cPt1.y - 2.0) < 0.2)
+        {
+          cairo_close_path(pct);
+          if(fabs(cPrim.cPt1.x) < 0.2) cairo_new_sub_path(pct);
+        }
+        if(fabs(cPrim.cPt1.x - 2.0) < 0.2)
         {
           ExpSetLColor(pct, cFillColor);
-          cairo_fill_preserve(pct);
+          cairo_set_fill_rule(pct, CAIRO_FILL_RULE_EVEN_ODD);
+          cairo_fill(pct);
           ExpSetLColor(pct, cStyle.cColor);
-          if(cPrim.cPt2.x > 0.00001)
-          {
-            double dDash[6];
-            double dSegLen;
-            for(int i = 0; i < cStyle.iSegments; i++)
-            {
-              dSegLen = cStyle.dPattern[i];
-              if((i % 2 == 0) && (dSegLen < g_dDashMin)) dSegLen = g_dDashMin;
-              dDash[i] = dRat*cPrim.cPt2.x*dSegLen;
-            }
-            cairo_set_dash(pct, dDash, cStyle.iSegments, cPrim.cPt2.y);
-          }
-          cairo_stroke(pct);
-          cairo_set_dash(pct, NULL, 0, 0.0);
         }
       }
       else ExportPrimitive(pct, &cPrim);

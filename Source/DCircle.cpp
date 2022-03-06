@@ -459,9 +459,8 @@ bool GetCircPointRefDist(double dRef, double dOffset, PDPointList pCache, double
   if(nOffs > 0) cRad.x += pCache->GetPoint(0, 2).cPoint.x;
   cRad.x += dOffset;
   double dr = fabs(cRad.x);
-  if(dr < g_dPrec) return false;
-
-  *pdDist = dr*dRef;
+  if(dr < g_dPrec) *pdDist = 0.0;
+  else *pdDist = dr*dRef;
   return true;
 }
 
@@ -477,11 +476,13 @@ bool GetCircPointAtDist(double dDist, PDPointList pCache, PDPoint pPt)
   if(nOffs > 0) cRad.x += pCache->GetPoint(0, 2).cPoint.x;
 
   double dr = fabs(cRad.x);
-  if(dr < g_dPrec) return false;
-
-  double dAng = dDist/dr;
-  pPt->x = cOrig.x + cRad.x*cos(dAng);
-  pPt->y = cOrig.y + cRad.x*sin(dAng);
+  if(dr < g_dPrec) *pPt = cOrig;
+  else
+  {
+    double dAng = dDist/dr;
+    pPt->x = cOrig.x + cRad.x*cos(dAng);
+    pPt->y = cOrig.y + cRad.x*sin(dAng);
+  }
   return true;
 }
 
@@ -497,14 +498,13 @@ bool GetCircRefPoint(double dRef, double dOffset, PDPointList pCache, PDPoint pP
   if(nOffs > 0) cRad.x += pCache->GetPoint(0, 2).cPoint.x;
   cRad.x += dOffset;
   double dr = fabs(cRad.x);
-  if(dr < g_dPrec)
+  if(dr < g_dPrec) *pPt = cOrig;
+  else
   {
-    *pPt = cOrig;
-    return true;
+    if(cRad.x < 0.0) dRef = OpositeAngle(dRef);
+    pPt->x = cOrig.x + dr*cos(dRef);
+    pPt->y = cOrig.y + dr*sin(dRef);
   }
-  if(cRad.x < 0.0) dRef = OpositeAngle(dRef);
-  pPt->x = cOrig.x + dr*cos(dRef);
-  pPt->y = cOrig.y + dr*sin(dRef);
   return true;
 }
 

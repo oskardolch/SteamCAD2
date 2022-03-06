@@ -1197,13 +1197,20 @@ int CDObject::AddSubIntersects(CDPoint cPt1, CDPoint cPt2, double dOffset, PDRef
 {
   int iRes = 0;
   int n = m_pSubObjects->GetCount();
+  int iLocRes, iCurLen;
   if(m_iType == dtPath)
   {
     PDPathSeg pObj;
     for(int i = 0; i < n; i++)
     {
       pObj = (PDPathSeg)m_pSubObjects->GetItem(i);
-      iRes += pObj->pSegment->AddLineIntersects(cPt1, cPt2, dOffset, pBounds);
+      iLocRes = pObj->pSegment->AddLineIntersects(cPt1, cPt2, dOffset, pBounds);
+      iCurLen = pBounds->GetCount();
+      for(int j = 0; j < iLocRes; j++)
+      {
+        if(pObj->pSegment->IsValidRef(pBounds->GetPoint(iCurLen - j - 1))) iRes++;
+        else pBounds->Remove(iCurLen - j - 1);
+      }
     }
   }
   else if(m_iType == dtGroup)
@@ -6354,6 +6361,41 @@ int CDObject::GetSubObjectCount(bool bCountSubObjects)
   return iRes;
 }
 
+int CDObject::GetAreaObjectCount()
+{
+  int iRes = 0;
+  PDObject pObj, pObj1;
+  for(int i = 0; i < m_pSubObjects->GetCount(); i++)
+  {
+    pObj = (PDObject)m_pSubObjects->GetItem(i);
+    for(int j = 0; j < pObj->m_pSubObjects->GetCount(); j++)
+    {
+      pObj1 = (PDObject)pObj->m_pSubObjects->GetItem(j);
+      iRes += pObj1->m_pSubObjects->GetCount();
+    }
+  }
+  return iRes;
+}
+
+CDObject* CDObject::GetAreaObject(int iIndex)
+{
+  int n1, n2, i = 0;
+  PDObject pObj, pObj1 = NULL;
+  n1 = m_pSubObjects->GetCount();
+  while((iIndex > -1) && (i < n1))
+  {
+    pObj = (PDObject)m_pSubObjects->GetItem(i++);
+    n2 = pObj->m_pSubObjects->GetCount();
+    if(iIndex < n2)
+    {
+      pObj1 = (PDObject)pObj->m_pSubObjects->GetItem(iIndex);
+      iIndex = -1;
+    }
+    else iIndex -= n2;
+  }
+  return pObj1;
+}
+
 int CDObject::GetSnapPoint(int iSnapMask, CDPoint cPt, double dDist, PDLine pSnapPt, PDObject pDynObj, bool bHonorSnapTo)
 {
   if(bHonorSnapTo && !m_bSnapTo) return 0;
@@ -6575,6 +6617,30 @@ void CDObject::ClearPath(bool bFreeSubObjects)
   m_pSubObjects->Clear();
 }
 
+void CDObject::ClearArea(bool bFreeSubObjects)
+{
+  PDObject pObj;
+  if(bFreeSubObjects)
+  {
+    for(int i = 0; i < m_pSubObjects->GetCount(); i++)
+    {
+      pObj = (PDObject)m_pSubObjects->GetItem(i);
+      delete pObj;
+    }
+  }
+  else
+  {
+    for(int i = 0; i < m_pSubObjects->GetCount(); i++)
+    {
+      pObj = (PDObject)m_pSubObjects->GetItem(i);
+      pObj->m_pSubObjects->Clear();
+      delete pObj;
+    }
+  }
+  m_pSubObjects->Clear();
+}
+
+
 CDPrimitive CDObject::GetPathBBOX()
 {
   CDPrimitive cRes, cRes1;
@@ -6705,6 +6771,7 @@ int CDObject::PtInPathArea(CDPoint cPt)
   if(cExt.iType != 1) return -1;
   if((cPt.x < cExt.cPt1.x) || (cPt.y < cExt.cPt1.y) || (cPt.x > cExt.cPt2.x) || (cPt.y > cExt.cPt2.y))
     return -1;
+
 
   dRad = 1.1*GetDist(cExt.cPt1, cExt.cPt2);
 
@@ -7936,6 +8003,22 @@ bool CDataList::BreakSelObjects()
           }
         }
         pObj->ClearPath(false);
+        Remove(--i, true);
+        iLen--;
+      }
+      else if(pObj->GetType() == dtArea)
+      {
+        iParts = pObj->GetAreaObjectCount();
+        for(int j = 0; j < iParts; j++)
+        {
+          pNewObj = pObj->GetAreaObject(j);
+          if(pNewObj != NULL)
+          {
+            Add(pNewObj);
+            bRes = true;
+          }
+        }
+        pObj->ClearArea(false);
         Remove(--i, true);
         iLen--;
       }

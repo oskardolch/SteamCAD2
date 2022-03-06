@@ -219,6 +219,8 @@ public:
   bool GetEndPoint(PDPoint pPt, double dOffset);
   void BuildPath(CDObject **ppObjects, PDIntList pPath, PDLineStyle pStyle);
   int GetSubObjectCount(bool bCountSubObjects);
+  int GetAreaObjectCount();
+  CDObject* GetAreaObject(int iIndex);
   // returns: 0 - no snap point, 1 - on the curve, 2 - on the edge, 3 - on the cross point, 4 - on self intersection,
   // 5 - on a control point
   // pSnapPt must be array of two
@@ -226,6 +228,7 @@ public:
   double GetCircleRadius();
   CDObject* GetPathObject(int iIndex);
   void ClearPath(bool bFreeSubObjects);
+  void ClearArea(bool bFreeSubObjects);
   CDPrimitive GetBBOX();
   void BuildArea(PDPtrList pBoundaries, PDLineStyle pStyle);
 } *PDObject;

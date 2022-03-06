@@ -1426,9 +1426,35 @@ void CDApplication::DrawObject(cairo_t *cr, PDObject pObj, int iMode, int iDimen
       }
       else if(cPrim.iType == 12)
       {
-        SetLColor(cr, 0x00808080);
-        cairo_fill(cr);
-        SetLColor(cr, dwColor);
+    //   (0, 0) - INVALID
+    //   (1, 0) - start a new path without subpath
+    //   (2, 0) - close path and fill it
+    //   (0, 1) - INVALID
+    //   (1, 1) - start a new path and immediatelly new subpath
+    //   (2, 1) - INVALID
+    //   (0, 2) - close subpath and immediately start a new one
+    //   (1, 2) - INVALID
+    //   (2, 2) - close last subpath and fill path
+        if(fabs(cPrim.cPt1.x - 1.0) < 0.2)
+        {
+          cairo_new_path(cr);
+        }
+        if(fabs(cPrim.cPt1.y - 1.0) < 0.2)
+        {
+          cairo_new_sub_path(cr);
+        }
+        if(fabs(cPrim.cPt1.y - 2.0) < 0.2)
+        {
+          cairo_close_path(cr);
+          if(fabs(cPrim.cPt1.x) < 0.2) cairo_new_sub_path(cr);
+        }
+        if(fabs(cPrim.cPt1.x - 2.0) < 0.2)
+        {
+          SetLColor(cr, 0x00808080);
+          cairo_set_fill_rule(cr, CAIRO_FILL_RULE_EVEN_ODD);
+          cairo_fill(cr);
+          SetLColor(cr, dwColor);
+        }
       }
       else
       {
