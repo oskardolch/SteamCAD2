@@ -3930,6 +3930,15 @@ CDObject* CDObject::Copy()
       pRes->m_pSubObjects->Add(pSegOut);
     }
   }
+  else if(m_iType > dtPath)
+  {
+    PDObject pObj;
+    for(int i = 0; i < m_pSubObjects->GetCount(); i++)
+    {
+      pObj = (PDObject)m_pSubObjects->GetItem(i);
+      pRes->m_pSubObjects->Add(pObj->Copy());
+    }
+  }
 
   return pRes;
 }
@@ -4430,6 +4439,7 @@ void CDObject::SaveLineStyle(FILE *pf, bool bSwapBytes, CDLineStyle cLineStyle, 
     buf[1] = cLineStyle.cJoinType;
     fwrite(buf, 1, 2, pf);
     fwrite(cLineStyle.cColor, 1, 4, pf);
+    if(m_iType == dtArea) fwrite(cLineStyle.cFillColor, 1, 4, pf);
   }
 }
 
@@ -4575,7 +4585,7 @@ void CDObject::SaveToFile(FILE *pf, bool bSwapBytes, unsigned char cVersion)
     SwapBytes(buf, pbuf, 4, bSwapBytes);
     fwrite(buf, 1, 4, pf);
 
-    if(m_iType < dtBorder)
+    if(m_iType < dtBorderPath)
     {
       for(unsigned int i = 0; i < lCnt; i++)
       {
@@ -4594,7 +4604,7 @@ void CDObject::SaveToFile(FILE *pf, bool bSwapBytes, unsigned char cVersion)
       }
     }
   }
-  else if(m_iType < dtBorder)
+  else if(m_iType < dtBorderPath)
   {
     for(unsigned int i = 0; i < lCnt; i++)
     {
@@ -4700,6 +4710,7 @@ void CDObject::LoadLineStyle(FILE *pf, bool bSwapBytes, PDLineStyle pLineStyle, 
     pLineStyle->cCapType = buf[0];
     pLineStyle->cJoinType = buf[1];
     fread(pLineStyle->cColor, 1, 4, pf);
+    if(m_iType == dtArea) fread(pLineStyle->cFillColor, 1, 4, pf);
   }
   else
   {
@@ -4887,7 +4898,7 @@ bool CDObject::ReadFromFile(FILE *pf, bool bSwapBytes, unsigned char cVersion)
     fread(buf, 1, 4, pf);
     pbuf = (unsigned char*)&lCnt;
     SwapBytes(pbuf, buf, 4, bSwapBytes);
-    if(m_iType < dtBorder)
+    if(m_iType < dtBorderPath)
     {
       for(unsigned int i = 0; i < lCnt; i++)
       {
@@ -4908,6 +4919,18 @@ bool CDObject::ReadFromFile(FILE *pf, bool bSwapBytes, unsigned char cVersion)
           delete pObj;
           free(pSeg);
         }
+      }
+    }
+    else
+    {
+      for(unsigned int i = 0; i < lCnt; i++)
+      {
+        fread(buf, 1, 1, pf);
+        pObj = new CDObject((CDDrawType)buf[0], 0.2);
+        bRead = pObj->ReadFromFile(pf, bSwapBytes, cVersion);
+        if(bRead) bRead = pObj->BuildCache(cPtX, 0);
+        if(bRead) m_pSubObjects->Add(pObj);
+        else delete pObj;
       }
     }
   }
