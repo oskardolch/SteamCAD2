@@ -94,7 +94,7 @@ private:
   //   cPt4.y - length of the closed curve
   void AddCurveSegment(CDPrimitive cAddMode, PDPrimObject pPrimitive, PDRefList pBounds);
   void AddPatSegment(double dStart, int iStart, double dEnd, int iEnd,
-    int iBoundMode, PDRefList pViewBnds, PDPoint pBnds);
+    int iBoundMode, PDRefList pViewBnds, PDPoint pBnds, PDPrimObject pPrimitives);
   int GetRefBounds(PDPoint pPoint);
   int GetDimenDir(double dRef1, double dRef2);
   double GetDimenMidPointRef(double dRef1, double dRef2, int iDir);
