@@ -64,6 +64,9 @@ private:
   long m_lSelColor;
   long m_lHighColor;
   long m_lActiveColor;
+  long m_lSelFillColor;
+  long m_lHighFillColor;
+  long m_lActiveFillColor;
 
   PDataList m_pDrawObjects;
   PDataList m_pUndoObjects;

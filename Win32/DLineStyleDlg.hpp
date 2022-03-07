@@ -17,12 +17,14 @@ typedef struct CDLineStyleRec
   bool bCapSet;
   bool bJoinSet;
   bool bColorSet;
+  bool bFillColorSet;
   bool bWidthChanged;
   bool bExcChanged;
   bool bPatChanged;
   bool bCapChanged;
   bool bJoinChanged;
   bool bColorChanged;
+  bool bFillColorChanged;
 } *PDLineStyleRec;
 
 typedef class CDLineStyleDlg
@@ -35,6 +37,8 @@ private:
   PDLineStyleRec m_pLSR;
   COLORREF m_rgbCurColor;
   COLORREF m_rgbCustColors[16];
+  COLORREF m_rgbCurFillColor;
+  COLORREF m_rgbCustFillColors[16];
 
   INT_PTR OKBtnClick(HWND hWnd);
   INT_PTR LineWidthChange(HWND hWnd, WORD wNotifyCode, HWND hwndCtl);
@@ -43,8 +47,9 @@ private:
   INT_PTR LineJoinChange(HWND hWnd, WORD wNotifyCode, HWND hwndCtl);
   INT_PTR TranslucencyChange(HWND hWnd, WORD wNotifyCode, HWND hwndCtl);
   INT_PTR ColorChange(HWND hWnd, WORD wNotifyCode, HWND hwndCtl);
+  INT_PTR FillColorChange(HWND hWnd, WORD wNotifyCode, HWND hwndCtl);
   INT_PTR LinePatChange(HWND hWnd, WORD wNotifyCode, int iSeg, HWND hwndCtl);
-  void SetButtonColor(HWND hWnd);
+  void SetButtonColor(HWND hWnd, COLORREF cColor);
 public:
   CDLineStyleDlg(HINSTANCE hInstance);
   ~CDLineStyleDlg();

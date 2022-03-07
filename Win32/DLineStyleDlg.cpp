@@ -36,6 +36,7 @@ CDLineStyleDlg::CDLineStyleDlg(HINSTANCE hInstance)
   for(int i = 0; i < 16; i++)
   {
     m_rgbCustColors[i] = 0;
+    m_rgbCustFillColors[i] = 0;
   }
   m_bSettingUp = false;
 }
@@ -94,27 +95,26 @@ void DecodeRGBColor(DWORD dwColor, double dTrans, unsigned char *pColor)
   pColor[3] = (int)Round(255.0*(1.0 - dTrans/100.0));
 }
 
-void CDLineStyleDlg::SetButtonColor(HWND hWnd)
+void CDLineStyleDlg::SetButtonColor(HWND hWnd, COLORREF cColor)
 {
-  HWND wnd = GetDlgItem(hWnd, LSD_BTN_COLOR);
   RECT rc;
-  GetWindowRect(wnd, &rc);
+  GetWindowRect(hWnd, &rc);
   int iWidth = 0.5*(rc.right - rc.left);
   int iHeight = 0.6*(rc.bottom - rc.top);
-  HDC hdc = GetDC(wnd);
+  HDC hdc = GetDC(hWnd);
   HDC memDC = CreateCompatibleDC(hdc);
   HBITMAP memBM = CreateCompatibleBitmap(hdc, iWidth, iHeight);
   SelectObject(memDC, memBM);
   HPEN hPen = CreatePen(PS_SOLID, 1, 0x008F8F8F);
-  HBRUSH hBr = CreateSolidBrush(m_rgbCurColor);
+  HBRUSH hBr = CreateSolidBrush(cColor);
   SelectObject(memDC, hPen);
   SelectObject(memDC, hBr);
   Rectangle(memDC, 0, 0, iWidth, iHeight);
   DeleteObject(hBr);
   DeleteObject(hPen);
   DeleteDC(memDC);
-  ReleaseDC(wnd, NULL);
-  SendMessage(wnd, BM_SETIMAGE, IMAGE_BITMAP, (LPARAM)memBM);
+  ReleaseDC(hWnd, NULL);
+  SendMessage(hWnd, BM_SETIMAGE, IMAGE_BITMAP, (LPARAM)memBM);
   DeleteObject(memBM);
 }
 
@@ -169,8 +169,13 @@ INT_PTR CDLineStyleDlg::WMInitDialog(HWND hWnd, HWND hwndFocus, LPARAM lInitPara
   FormatFloatStr(100.0 - GetAlpha(m_pLSR->cLineStyle.cColor), buf);
   SendMessage(wnd, WM_SETTEXT, 0, (LPARAM)buf);
 
+  wnd = GetDlgItem(hWnd, LSD_BTN_COLOR);
   m_rgbCurColor = CodeRGBColor(m_pLSR->cLineStyle.cColor);
-  SetButtonColor(hWnd);
+  SetButtonColor(wnd, m_rgbCurColor);
+
+  wnd = GetDlgItem(hWnd, LSD_BTN_FILLCOLOR);
+  m_rgbCurFillColor = CodeRGBColor(m_pLSR->cLineStyle.cFillColor);
+  SetButtonColor(wnd, m_rgbCurFillColor);
 
   wnd = GetDlgItem(hWnd, LSD_LBL_LINEPATUNIT);
   swprintf(buf, L"(%s)", m_pLSR->cUnit.wsAbbrev);
@@ -224,6 +229,8 @@ INT_PTR CDLineStyleDlg::WMCommand(HWND hWnd, WORD wNotifyCode, WORD wID, HWND hw
     return TranslucencyChange(hWnd, wNotifyCode, hwndCtl);
   case LSD_BTN_COLOR:
     return ColorChange(hWnd, wNotifyCode, hwndCtl);
+  case LSD_BTN_FILLCOLOR:
+    return FillColorChange(hWnd, wNotifyCode, hwndCtl);
   case LSD_EDT_LINEPAT1:
   case LSD_EDT_LINEPAT2:
   case LSD_EDT_LINEPAT3:
@@ -322,6 +329,17 @@ INT_PTR CDLineStyleDlg::OKBtnClick(HWND hWnd)
     {
       DecodeRGBColor(m_rgbCurColor, f, m_pLSR->cLineStyle.cColor);
       m_pLSR->bColorSet = true;
+    }
+  }
+
+  if(m_pLSR->bFillColorChanged)
+  {
+    wnd = GetDlgItem(hWnd, LSD_EDT_TRANS);
+    SendMessage(wnd, WM_GETTEXT, 64, (LPARAM)buf);
+    if(swscanf(buf, L"%f", &f) == 1)
+    {
+      DecodeRGBColor(m_rgbCurFillColor, f, m_pLSR->cLineStyle.cFillColor);
+      m_pLSR->bFillColorSet = true;
     }
   }
 
@@ -424,8 +442,29 @@ INT_PTR CDLineStyleDlg::ColorChange(HWND hWnd, WORD wNotifyCode, HWND hwndCtl)
     if(ChooseColor(&ccl))
     {
       m_rgbCurColor = ccl.rgbResult;
-      SetButtonColor(hWnd);
+      HWND wnd = GetDlgItem(hWnd, LSD_BTN_COLOR);
+      SetButtonColor(wnd, m_rgbCurColor);
       m_pLSR->bColorChanged = true;
+    }
+  }
+  return TRUE;
+}
+
+INT_PTR CDLineStyleDlg::FillColorChange(HWND hWnd, WORD wNotifyCode, HWND hwndCtl)
+{
+  if(m_bSettingUp) return 0;
+  if(wNotifyCode == BN_CLICKED)
+  {
+    CHOOSECOLOR ccl = {
+      sizeof(CHOOSECOLOR), hWnd, 0, m_rgbCurFillColor, m_rgbCustFillColors,
+      CC_RGBINIT, 0, NULL, NULL
+    };
+    if(ChooseColor(&ccl))
+    {
+      m_rgbCurFillColor = ccl.rgbResult;
+      HWND wnd = GetDlgItem(hWnd, LSD_BTN_FILLCOLOR);
+      SetButtonColor(wnd, m_rgbCurFillColor);
+      m_pLSR->bFillColorChanged = true;
     }
   }
   return TRUE;

@@ -123,6 +123,9 @@ CMainWnd::CMainWnd(HINSTANCE hInstance)
   m_lSelColor = 0xFF24E907; //0x00008888;
   m_lHighColor = 0xFFEDD52C; //0x00888800;
   m_lActiveColor = 0xFFFF0000;
+  m_lSelFillColor = 0xF0127503; //0x00008888;
+  m_lHighFillColor = 0xF0776B16; //0x00888800;
+  m_lActiveFillColor = 0xF07F0000;
 
   m_pDrawObjects = new CDataList();
   m_pUndoObjects = new CDataList();
@@ -1756,12 +1759,14 @@ LRESULT CMainWnd::EditLineStyleCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl)
     cLSRec.bCapSet = (iMask & 8);
     cLSRec.bJoinSet = (iMask & 16);
     cLSRec.bColorSet = (iMask & 32);
+    cLSRec.bFillColorSet = (iMask & 64);
     cLSRec.bWidthChanged = false;
     cLSRec.bExcChanged = false;
     cLSRec.bPatChanged = false;
     cLSRec.bCapChanged = false;
     cLSRec.bJoinChanged = false;
     cLSRec.bColorChanged = false;
+    cLSRec.bFillColorChanged = false;
     if(m_pLineStyleDlg->ShowDialog(hwnd, &cLSRec) == IDOK)
     {
       iMask = 0;
@@ -1771,6 +1776,7 @@ LRESULT CMainWnd::EditLineStyleCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl)
       if(cLSRec.bCapSet && cLSRec.bCapChanged) iMask |= 8;
       if(cLSRec.bJoinSet && cLSRec.bJoinChanged) iMask |= 16;
       if(cLSRec.bColorSet && cLSRec.bColorChanged) iMask |= 32;
+      if(cLSRec.bFillColorSet && cLSRec.bFillColorChanged) iMask |= 64;
       if(m_pDrawObjects->SetSelectedLineStyle(iMask, &cLSRec.cLineStyle))
       {
         RECT rc;
@@ -2993,6 +2999,11 @@ void CMainWnd::DrawObject(HWND hWnd, Graphics *graphics, PDObject pObj, int iMod
   else if(iMode == 2) dwColor = m_lHighColor;
   else if(bSel) dwColor = m_lSelColor;
 
+  DWORD dwFillColor = CodeRGBAColor(cStyle.cFillColor);
+  if(iMode == 1) dwFillColor = m_lActiveFillColor;
+  else if(iMode == 2) dwFillColor = m_lHighFillColor;
+  else if(bSel) dwFillColor = m_lSelFillColor;
+
   REAL rWidth = fabs(cStyle.dWidth)*m_dUnitScale;
   REAL rPtRad = rWidth;
   if(rPtRad < 2.0) rPtRad = 2.0;
@@ -3016,7 +3027,7 @@ void CMainWnd::DrawObject(HWND hWnd, Graphics *graphics, PDObject pObj, int iMod
   Pen hPtPen(Color(EncodeColor(dwColor)), 0.0);
   Pen hCentPen(Color(EncodeColor(0xFF888888)), 0.0);
   GraphicsPath hPath(FillModeWinding);
-  SolidBrush hBrush(Color(EncodeColor(0xFF808080)));
+  SolidBrush hBrush(Color(EncodeColor(dwFillColor)));
 
   CDPrimitive cPrim;
   PDDimension pDim;
