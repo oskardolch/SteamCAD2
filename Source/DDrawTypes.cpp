@@ -1920,7 +1920,6 @@ int CDObject::BuildAreaPrimitives(CDLine cTmpPt, int iMode, PDRect pRect, PDFile
     pObj = (PDObject)m_pSubObjects->GetItem(i);
     n1 = pObj->m_pSubObjects->GetCount();
     cPath.cPt1.x = 1.0;
-    //cPath.cPt1.y = 1.0;
     if(n1 > 1) cPath.cPt1.y = 1.0;
     for(int j = 0; j < n1; j++)
     {
@@ -1931,10 +1930,10 @@ int CDObject::BuildAreaPrimitives(CDLine cTmpPt, int iMode, PDRect pRect, PDFile
         pObj1->AddSimpleSegment(cBounds.x, cBounds.y, 0.0, false, m_pPrimitive);
         cPath.cPt1.x = 0.0;
         cPath.cPt1.y = 2.0;
+        iRes++;
       }
     }
     cPath.cPt1.x = 2.0;
-    //cPath.cPt1.y = 2.0;
     if(n1 > 1) cPath.cPt1.y = 2.0;
     m_pPrimitive->AddPrimitive(cPath);
   }
@@ -3837,6 +3836,16 @@ void CDObject::SetLineStyle(int iMask, CDLineStyle cStyle)
   if(iMask & 64)
   {
     for(int i = 0; i < 4; i++) m_cLineStyle.cFillColor[i] = cStyle.cFillColor[i];
+  }
+
+  if((m_iType > dtPath) && (m_iType < dtGroup))
+  {
+    PDObject pObj;
+    for(int i = 0; i < m_pSubObjects->GetCount(); i++)
+    {
+      pObj = (PDObject)m_pSubObjects->GetItem(i);
+      pObj->SetLineStyle(iMask, cStyle);
+    }
   }
 }
 
