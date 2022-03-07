@@ -256,8 +256,6 @@ void ExportObject(PDObject pObj, cairo_t *pct, PDFileAttrs pFileAttrs, double dR
   ExpSetLColor(pct, cStyle.cColor);
   cairo_set_line_width(pct, dLineWdth*dRat);
 
-  unsigned char cFillColor[4] = {0x08, 0x08, 0x08, 0x00};
-
   CDPrimitive cPrim;
   pObj->GetFirstPrimitive(&cPrim, dRat, -2);
 
@@ -338,7 +336,7 @@ void ExportObject(PDObject pObj, cairo_t *pct, PDFileAttrs pFileAttrs, double dR
         }
         if(fabs(cPrim.cPt1.x - 2.0) < 0.2)
         {
-          ExpSetLColor(pct, cFillColor);
+          ExpSetLColor(pct, cStyle.cFillColor);
           cairo_set_fill_rule(pct, CAIRO_FILL_RULE_EVEN_ODD);
           cairo_fill(pct);
           ExpSetLColor(pct, cStyle.cColor);

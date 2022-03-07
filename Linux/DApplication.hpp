@@ -45,6 +45,9 @@ private:
   long m_lSelColor;
   long m_lHighColor;
   long m_lActiveColor;
+  long m_lSelFillColor;
+  long m_lHighFillColor;
+  long m_lActiveFillColor;
 
   int m_iDrawMode;
   int m_iButton; // 0 nothing, 1 LButon, 2 MButton, 3 RButton

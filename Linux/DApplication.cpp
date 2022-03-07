@@ -304,6 +304,9 @@ CDApplication::CDApplication(const char *psConfDir)
   m_lSelColor = 0x0024E907; //0x00008888;
   m_lHighColor = 0x00EDD52C; //0x00888800;
   m_lActiveColor = 0x00FF0000;
+  m_lSelFillColor = 0xF0127503; //0x00008888;
+  m_lHighFillColor = 0xF0776B16; //0x00888800;
+  m_lActiveFillColor = 0xF07F0000;
   m_iHighDimen = -2;
   m_iDrawMode = modSelect;
   m_iButton = 0;
@@ -1327,6 +1330,11 @@ void CDApplication::DrawObject(cairo_t *cr, PDObject pObj, int iMode, int iDimen
   else if(iMode == 2) dwColor = m_lHighColor;
   else if(bSel) dwColor = m_lSelColor;
 
+  long dwFillColor = CodeRGBColor(cStyle.cFillColor);
+  if(iMode == 1) dwFillColor = m_lActiveFillColor;
+  else if(iMode == 2) dwFillColor = m_lHighFillColor;
+  else if(bSel) dwFillColor = m_lSelFillColor;
+
   double dw1 = fabs(cStyle.dWidth);
   double dWidth;
   if(dw1 < g_dPrec) dWidth = 1.0;
@@ -1450,7 +1458,7 @@ void CDApplication::DrawObject(cairo_t *cr, PDObject pObj, int iMode, int iDimen
         }
         if(fabs(cPrim.cPt1.x - 2.0) < 0.2)
         {
-          SetLColor(cr, 0x00808080);
+          SetLColor(cr, dwFillColor);
           cairo_set_fill_rule(cr, CAIRO_FILL_RULE_EVEN_ODD);
           cairo_fill(cr);
           SetLColor(cr, dwColor);
@@ -2734,12 +2742,14 @@ void CDApplication::EditLineStyleCmd(GtkWidget *widget)
     cLSRec.bCapSet = (iMask & 8);
     cLSRec.bJoinSet = (iMask & 16);
     cLSRec.bColorSet = (iMask & 32);
+    cLSRec.bFillColorSet = (iMask & 64);
     cLSRec.bWidthChanged = FALSE;
     cLSRec.bExcChanged = FALSE;
     cLSRec.bPatChanged = FALSE;
     cLSRec.bCapChanged = FALSE;
     cLSRec.bJoinChanged = FALSE;
     cLSRec.bColorChanged = FALSE;
+    cLSRec.bFillColorChanged = FALSE;
     if(m_pLineStyleDlg->ShowDialog(widget, &cLSRec))
     {
       iMask = 0;
@@ -2749,6 +2759,7 @@ void CDApplication::EditLineStyleCmd(GtkWidget *widget)
       if(cLSRec.bCapSet && cLSRec.bCapChanged) iMask |= 8;
       if(cLSRec.bJoinSet && cLSRec.bJoinChanged) iMask |= 16;
       if(cLSRec.bColorSet && cLSRec.bColorChanged) iMask |= 32;
+      if(cLSRec.bFillColorSet && cLSRec.bFillColorChanged) iMask |= 64;
       if(m_pDrawObjects->SetSelectedLineStyle(iMask, &cLSRec.cLineStyle))
       {
         /*cdr.cPt1.x = -m_cViewOrigin.x/m_dUnitScale;

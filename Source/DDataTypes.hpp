@@ -81,6 +81,7 @@ typedef struct CDLineStyle
   double dPattern[6];
   unsigned char cColor[4];
   double dBlend;
+  unsigned char cFillColor[4];
 } *PDLineStyle;
 
 enum CDGradMode

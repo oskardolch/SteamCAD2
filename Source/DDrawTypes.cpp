@@ -319,6 +319,10 @@ CDObject::CDObject(CDDrawType iType, double dWidth)
   m_cLineStyle.cColor[1] = 0;
   m_cLineStyle.cColor[2] = 0;
   m_cLineStyle.cColor[3] = 255;
+  m_cLineStyle.cFillColor[0] = 127;
+  m_cLineStyle.cFillColor[1] = 127;
+  m_cLineStyle.cFillColor[2] = 127;
+  m_cLineStyle.cFillColor[3] = 255;
   m_cLineStyle.dBlend = 0.0;
   m_dMovedDist = 0.0;
   m_bFirstDimSet = false;
@@ -3830,6 +3834,10 @@ void CDObject::SetLineStyle(int iMask, CDLineStyle cStyle)
   {
     for(int i = 0; i < 4; i++) m_cLineStyle.cColor[i] = cStyle.cColor[i];
   }
+  if(iMask & 64)
+  {
+    for(int i = 0; i < 4; i++) m_cLineStyle.cFillColor[i] = cStyle.cFillColor[i];
+  }
 }
 
 bool CDObject::GetPathRestrictPoint(CDPoint cPt, int iMode, double dRestrictValue, PDPoint pSnapPt)
@@ -3901,7 +3909,7 @@ CDObject* CDObject::Copy()
 
   pRes->SetBound(0, m_cBounds[0]);
   pRes->SetBound(1, m_cBounds[1]);
-  pRes->SetLineStyle(63, m_cLineStyle);
+  pRes->SetLineStyle(127, m_cLineStyle);
 
   double dRef;
   for(int i = 0; i < m_pCrossPoints->GetCount(); i++)
@@ -5064,6 +5072,26 @@ bool CDObject::RotatePoints(CDPoint cOrig, double dRot, int iDimFlag)
     BuildCache(cPtX, 0);
     return bRes;
   }
+  else if(m_iType == dtArea)
+  {
+    bRes = true;
+    iCnt = m_pSubObjects->GetCount();
+    int i = 0, j, n1;
+    PDObject pObj, pObj1;
+    while(bRes && (i < iCnt))
+    {
+      pObj = (PDObject)m_pSubObjects->GetItem(i++);
+      n1 = pObj->m_pSubObjects->GetCount();
+      j = 0;
+      while(bRes && (j < n1))
+      {
+        pObj1 = (PDObject)pObj->m_pSubObjects->GetItem(j++);
+        bRes &= pObj1->RotatePoints(cOrig, dRot, iDimFlag);
+      }
+    }
+    BuildCache(cPtX, 0);
+    return bRes;
+  }
   else if(m_iType == dtGroup)
   {
     /*cOffL.bIsSet = false;
@@ -5186,6 +5214,26 @@ bool CDObject::MovePoints(CDPoint cDir, double dDist, int iDimFlag)
     BuildCache(cPtX, 0);
     return bRes;
   }
+  else if(m_iType == dtArea)
+  {
+    bRes = true;
+    iCnt = m_pSubObjects->GetCount();
+    int i = 0, j, n1;
+    PDObject pObj, pObj1;
+    while(bRes && (i < iCnt))
+    {
+      pObj = (PDObject)m_pSubObjects->GetItem(i++);
+      n1 = pObj->m_pSubObjects->GetCount();
+      j = 0;
+      while(bRes && (j < n1))
+      {
+        pObj1 = (PDObject)pObj->m_pSubObjects->GetItem(j++);
+        bRes &= pObj1->MovePoints(cDir, dDist, iDimFlag);
+      }
+    }
+    BuildCache(cPtX, 0);
+    return bRes;
+  }
   else if(m_iType == dtGroup)
   {
     /*cOffL.bIsSet = false;
@@ -5274,6 +5322,25 @@ void CDObject::MirrorPoints(CDLine cLine)
     {
       pObj = (PDPathSeg)m_pSubObjects->GetItem(i++);
       pObj->pSegment->MirrorPoints(cLine);
+    }
+    BuildCache(cPtX, 0);
+    return;
+  }
+  else if(m_iType == dtArea)
+  {
+    int iCnt = m_pSubObjects->GetCount();
+    int i = 0, j, n1;
+    PDObject pObj, pObj1;
+    while(i < iCnt)
+    {
+      pObj = (PDObject)m_pSubObjects->GetItem(i++);
+      n1 = pObj->m_pSubObjects->GetCount();
+      j = 0;
+      while(j < n1)
+      {
+        pObj1 = (PDObject)pObj->m_pSubObjects->GetItem(j++);
+        pObj1->MirrorPoints(cLine);
+      }
     }
     BuildCache(cPtX, 0);
     return;
@@ -6850,7 +6917,7 @@ bool CDObject::ContainsObject(CDObject *pObj)
 
 void CDObject::BuildArea(PDPtrList pBoundaries, PDLineStyle pStyle)
 {
-  SetLineStyle(63, *pStyle);
+  SetLineStyle(127, *pStyle);
   int n = pBoundaries->GetCount();
   if(n < 1) return;
 
@@ -7559,6 +7626,7 @@ int CDataList::GetSelectedLineStyle(PDLineStyle pStyle)
         if(cSt1.cCapType != cSt2.cCapType) iRes &= ~8;
         if(cSt1.cJoinType != cSt2.cJoinType) iRes &= ~16;
         if(!LSColorMatch(cSt1.cColor, cSt2.cColor)) iRes &= ~32;
+        if(!LSColorMatch(cSt1.cFillColor, cSt2.cFillColor)) iRes &= ~64;
       }
     }
   }

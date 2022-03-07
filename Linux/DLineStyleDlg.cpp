@@ -46,6 +46,11 @@ void lsd_color_changed(GtkColorButton *widget, PDLineStyleDlg pApp)
   pApp->LineColorChange(widget);
 }
 
+void lsd_fill_color_changed(GtkColorButton *widget, PDLineStyleDlg pApp)
+{
+  pApp->FillColorChange(widget);
+}
+
 
 // CDFileSetupDlg
 
@@ -79,7 +84,7 @@ gboolean CDLineStyleDlg::ShowDialog(GtkWidget *pWndParent, PDLineStyleRec pLSR)
 
   GtkWidget *pCA = gtk_dialog_get_content_area(GTK_DIALOG(m_pDlg));
 
-  GtkWidget *pTbl = gtk_table_new(4, 12, FALSE);
+  GtkWidget *pTbl = gtk_table_new(5, 12, FALSE);
   gtk_table_set_col_spacings(GTK_TABLE(pTbl), 3);
   gtk_table_set_row_spacings(GTK_TABLE(pTbl), 3);
   gtk_container_set_border_width(GTK_CONTAINER(pTbl), 4);
@@ -159,13 +164,13 @@ gboolean CDLineStyleDlg::ShowDialog(GtkWidget *pWndParent, PDLineStyleRec pLSR)
 
   pLab = gtk_label_new(_("Line pattern:"));
   gtk_misc_set_alignment(GTK_MISC(pLab), 0, 1);
-  gtk_table_attach_defaults(GTK_TABLE(pTbl), pLab, 0, 3, 2, 3);
+  gtk_table_attach_defaults(GTK_TABLE(pTbl), pLab, 0, 3, 3, 4);
   gtk_widget_show(pLab);
 
   sprintf(buf, "(%s)", m_pLSR->cUnit.sAbbrev);
   pLab = gtk_label_new(buf);
   gtk_misc_set_alignment(GTK_MISC(pLab), 0, 1);
-  gtk_table_attach_defaults(GTK_TABLE(pTbl), pLab, 3, 5, 2, 3);
+  gtk_table_attach_defaults(GTK_TABLE(pTbl), pLab, 3, 5, 3, 4);
   gtk_widget_show(pLab);
 
   for(gint i = 0; i < 6; i++)
@@ -174,7 +179,7 @@ gboolean CDLineStyleDlg::ShowDialog(GtkWidget *pWndParent, PDLineStyleRec pLSR)
     gtk_widget_set_size_request(m_pPatternEdt[i], 50, -1);
     gtk_entry_set_max_length(GTK_ENTRY(m_pPatternEdt[i]), 32);
     gtk_entry_set_activates_default(GTK_ENTRY(m_pPatternEdt[i]), TRUE);
-    gtk_table_attach_defaults(GTK_TABLE(pTbl), m_pPatternEdt[i], 2*i, 2*(i + 1), 3, 4);
+    gtk_table_attach_defaults(GTK_TABLE(pTbl), m_pPatternEdt[i], 2*i, 2*(i + 1), 4, 5);
     g_signal_connect(G_OBJECT(m_pPatternEdt[i]), "changed", G_CALLBACK(lsd_patedt_changed), this);
     gtk_widget_show(m_pPatternEdt[i]);
 
@@ -201,6 +206,23 @@ gboolean CDLineStyleDlg::ShowDialog(GtkWidget *pWndParent, PDLineStyleRec pLSR)
   g_signal_connect(G_OBJECT(m_pLineColorBtn), "color-set", G_CALLBACK(lsd_color_changed), this);
   gtk_table_attach_defaults(GTK_TABLE(pTbl), m_pLineColorBtn, 9, 12, 2, 3);
   gtk_widget_show(m_pLineColorBtn);
+
+  pLab = gtk_label_new(_("Fill Color:"));
+  gtk_misc_set_alignment(GTK_MISC(pLab), 0, 0.5);
+  gtk_table_attach_defaults(GTK_TABLE(pTbl), pLab, 6, 9, 3, 4);
+  gtk_widget_show(pLab);
+
+  GdkColor cFillCol = {0,
+    (guint16)round(std::numeric_limits<guint16>::max()*((double)m_pLSR->cLineStyle.cFillColor[0]/255.0)),
+    (guint16)round(std::numeric_limits<guint16>::max()*((double)m_pLSR->cLineStyle.cFillColor[1]/255.0)),
+    (guint16)round(std::numeric_limits<guint16>::max()*((double)m_pLSR->cLineStyle.cFillColor[2]/255.0))};
+  m_pFillColorBtn = gtk_color_button_new_with_color(&cFillCol);
+  gtk_color_button_set_use_alpha(GTK_COLOR_BUTTON(m_pFillColorBtn), TRUE);
+  iAlpha = (guint16)round(std::numeric_limits<guint16>::max()*((double)m_pLSR->cLineStyle.cFillColor[3]/255.0));
+  gtk_color_button_set_alpha(GTK_COLOR_BUTTON(m_pFillColorBtn), iAlpha);
+  g_signal_connect(G_OBJECT(m_pFillColorBtn), "color-set", G_CALLBACK(lsd_fill_color_changed), this);
+  gtk_table_attach_defaults(GTK_TABLE(pTbl), m_pFillColorBtn, 9, 12, 3, 4);
+  gtk_widget_show(m_pFillColorBtn);
 
   gtk_widget_grab_default(pBtn);
   gtk_window_set_default(GTK_WINDOW(m_pDlg), pBtn);
@@ -364,6 +386,18 @@ void CDLineStyleDlg::OKBtnClick(GtkButton *button)
     m_pLSR->bColorSet = true;
   }
 
+  if(m_pLSR->bFillColorChanged)
+  {
+    GdkColor cColor;
+    gtk_color_button_get_color(GTK_COLOR_BUTTON(m_pFillColorBtn), &cColor);
+    guint16 iAlpha = gtk_color_button_get_alpha(GTK_COLOR_BUTTON(m_pFillColorBtn));
+    m_pLSR->cLineStyle.cFillColor[0] = (unsigned char)round(255.0*((double)cColor.red/std::numeric_limits<guint16>::max()));
+    m_pLSR->cLineStyle.cFillColor[1] = (unsigned char)round(255.0*((double)cColor.green/std::numeric_limits<guint16>::max()));
+    m_pLSR->cLineStyle.cFillColor[2] = (unsigned char)round(255.0*((double)cColor.blue/std::numeric_limits<guint16>::max()));
+    m_pLSR->cLineStyle.cFillColor[3] = (unsigned char)round(255.0*((double)iAlpha/std::numeric_limits<guint16>::max()));
+    m_pLSR->bFillColorSet = true;
+  }
+
   gtk_dialog_response(GTK_DIALOG(m_pDlg), GTK_RESPONSE_OK);
   return;
 }
@@ -402,5 +436,11 @@ void CDLineStyleDlg::LineColorChange(GtkColorButton *entry)
 {
   if(m_bSettingUp) return;
   m_pLSR->bColorChanged = TRUE;
+}
+
+void CDLineStyleDlg::FillColorChange(GtkColorButton *entry)
+{
+  if(m_bSettingUp) return;
+  m_pLSR->bFillColorChanged = TRUE;
 }
 
