@@ -726,6 +726,8 @@ void CDObject::AddSimpleSegment(double dt1, double dt2, double dExt, bool bRever
   case dtArea:
     AddAreaSegment(dt1, dt2, dExt, pPrimList);
     break;
+  case dtGroup:
+    break;
   default:
     break;
   }
@@ -8235,5 +8237,64 @@ bool CDataList::CreateArea()
   delete pSelObjs;
 
   return true;
+}
+
+bool CDataList::Group()
+{
+  PDObject pObj;
+  int i = m_iDataLen;
+  bool bRes = false;
+
+  while(!bRes && (i > 0))
+  {
+    pObj = m_ppObjects[--i];
+    bRes = pObj->GetSelected();
+  }
+
+  if(bRes)
+  {
+    CDLineStyle cSt = pObj->GetLineStyle();
+    PDObject pNewObj = new CDObject(dtGroup, cSt.dWidth);
+    pNewObj->m_pSubObjects->Add(pObj);
+    Remove(i, false);
+
+    while(i > 0)
+    {
+      pObj = m_ppObjects[--i];
+      if(pObj->GetSelected())
+      {
+        pNewObj->m_pSubObjects->Add(pObj);
+        Remove(i, false);
+      }
+    }
+
+    Add(pNewObj);
+  }
+  return bRes;
+}
+
+bool CDataList::Ungroup()
+{
+  PDObject pObj;
+  int n, i = m_iDataLen;
+  bool bRes = false;
+
+  while(i > 0)
+  {
+    pObj = m_ppObjects[--i];
+    if(pObj->GetSelected() && (pObj->GetType() == dtGroup))
+    {
+      bRes = true;
+      Remove(i, false);
+      n = pObj->m_pSubObjects->GetCount();
+      for(int j = 0; j < n; j++)
+      {
+        Add((PDObject)pObj->m_pSubObjects->GetItem(j));
+      }
+      pObj->m_pSubObjects->Clear();
+      delete pObj;
+    }
+  }
+  return bRes;
 }
 

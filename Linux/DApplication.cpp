@@ -4368,10 +4368,22 @@ void CDApplication::PathAreaCmd()
 
 void CDApplication::PathGroupCmd()
 {
+  if(m_pDrawObjects->Group())
+  {
+    GtkWidget *draw = GetDrawing();
+    gdk_window_invalidate_rect(draw->window, NULL, FALSE);
+    SetTitle(m_pMainWnd, false);
+  }
 }
 
 void CDApplication::PathUngroupCmd()
 {
+  if(m_pDrawObjects->Ungroup())
+  {
+    GtkWidget *draw = GetDrawing();
+    gdk_window_invalidate_rect(draw->window, NULL, FALSE);
+    SetTitle(m_pMainWnd, false);
+  }
 }
 
 void CDApplication::PathMoveUpCmd()

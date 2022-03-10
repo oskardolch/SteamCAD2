@@ -40,6 +40,7 @@ typedef struct CDPathSeg
 
 typedef class CDObject
 {
+  friend class CDataList;
 private:
   CDDrawType m_iType;
   CDLine m_cLines[2];
@@ -295,6 +296,8 @@ public:
   bool BreakSelObjects();
   bool CreateArea();
   int GetSelectedLength(double *pdLength);
+  bool Group();
+  bool Ungroup();
 } *PDataList;
 
 #endif
