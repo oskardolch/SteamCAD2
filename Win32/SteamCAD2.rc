@@ -155,8 +155,8 @@ BEGIN
     POPUP "&Paths"
     BEGIN
         MENUITEM "Create &path\tAlt+H", IDM_PATHCREATE
-        MENUITEM "&Break apart\tAlt+B", IDM_PATHBREAK
         MENUITEM "Create &area\tCtrl+A", IDM_PATHAREA
+        MENUITEM "&Break apart\tAlt+B", IDM_PATHBREAK
         MENUITEM "&Group\tG", IDM_PATHGROUP
         MENUITEM "&Ungroup\tAlt+U", IDM_PATHUNGROUP
         MENUITEM SEPARATOR

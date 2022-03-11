@@ -2991,6 +2991,18 @@ DWORD CodeRGBAColor(unsigned char *pColor)
 
 void CMainWnd::DrawObject(HWND hWnd, Graphics *graphics, PDObject pObj, int iMode, int iDimen)
 {
+  if(pObj->GetType() == dtGroup)
+  {
+    int n = pObj->GetSubObjectCount(false);
+    PDObject pObj1;
+    for(int i = 0; i < n; i++)
+    {
+      pObj1 = pObj->GetSubObject(i);
+      DrawObject(hWnd, graphics, pObj1, iMode, iDimen);
+    }
+    return;
+  }
+
   bool bSel = pObj->GetSelected();
   CDLineStyle cStyle = pObj->GetLineStyle();
 
@@ -3967,7 +3979,7 @@ void CMainWnd::SetTitle(HWND hWnd, bool bForce)
 
     m_bHasChanged = bNewHasChanged;
 
-    int iLen = wcslen(L"SteamCAD - ");
+    int iLen = wcslen(L"SteamCAD2 - ");
     LPWSTR wsFileName = NULL;
     if(m_wsFileName[0])
     {
@@ -3980,7 +3992,7 @@ void CMainWnd::SetTitle(HWND hWnd, bool bForce)
     if(m_bHasChanged) iLen++;
 
     LPWSTR wsCap = (LPWSTR)malloc((iLen + 1)*sizeof(wchar_t));
-    wcscpy(wsCap, L"SteamCAD - ");
+    wcscpy(wsCap, L"SteamCAD2 - ");
     if(wsFileName) wcscat(wsCap, wsFileName);
     else wcscat(wsCap, L"new file");
     if(m_bHasChanged) wcscat(wsCap, L"*");
@@ -4125,30 +4137,60 @@ LRESULT CMainWnd::PathAreaCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl)
 
 LRESULT CMainWnd::PathGroupCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl)
 {
-    return 0;
+  if(m_pDrawObjects->Group())
+  {
+    InvalidateRect(hwnd, NULL, FALSE);
+    SetTitle(hwnd, false);
+  }
+  return 0;
 }
 
 LRESULT CMainWnd::PathUngroupCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl)
 {
-    return 0;
+  if(m_pDrawObjects->Ungroup())
+  {
+    InvalidateRect(hwnd, NULL, FALSE);
+    SetTitle(hwnd, false);
+  }
+  return 0;
 }
 
 LRESULT CMainWnd::PathMoveUpCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl)
 {
-    return 0;
+  if(m_pDrawObjects->MoveUp())
+  {
+    InvalidateRect(hwnd, NULL, FALSE);
+    SetTitle(hwnd, false);
+  }
+  return 0;
 }
 
 LRESULT CMainWnd::PathMoveDownCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl)
 {
-    return 0;
+  if(m_pDrawObjects->MoveDown())
+  {
+    InvalidateRect(hwnd, NULL, FALSE);
+    SetTitle(hwnd, false);
+  }
+  return 0;
 }
 
 LRESULT CMainWnd::PathMoveTopCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl)
 {
-    return 0;
+  if(m_pDrawObjects->MoveTop())
+  {
+    InvalidateRect(hwnd, NULL, FALSE);
+    SetTitle(hwnd, false);
+  }
+  return 0;
 }
 
 LRESULT CMainWnd::PathMoveBottomCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl)
 {
-    return 0;
+  if(m_pDrawObjects->MoveBottom())
+  {
+    InvalidateRect(hwnd, NULL, FALSE);
+    SetTitle(hwnd, false);
+  }
+  return 0;
 }

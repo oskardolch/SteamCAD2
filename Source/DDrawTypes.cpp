@@ -8400,12 +8400,12 @@ bool CDataList::CreateArea()
 bool CDataList::Group()
 {
   PDObject pObj;
-  int i = m_iDataLen;
+  int i = 0;
   bool bRes = false;
 
-  while(!bRes && (i > 0))
+  while(!bRes && (i < m_iDataLen))
   {
-    pObj = m_ppObjects[--i];
+    pObj = m_ppObjects[i++];
     bRes = pObj->GetSelected();
   }
 
@@ -8414,15 +8414,15 @@ bool CDataList::Group()
     CDLineStyle cSt = pObj->GetLineStyle();
     PDObject pNewObj = new CDObject(dtGroup, cSt.dWidth);
     pNewObj->AddSubObject(pObj);
-    Remove(i, false);
+    Remove(--i, false);
 
-    while(i > 0)
+    while(i < m_iDataLen)
     {
-      pObj = m_ppObjects[--i];
+      pObj = m_ppObjects[i++];
       if(pObj->GetSelected())
       {
         pNewObj->AddSubObject(pObj);
-        Remove(i, false);
+        Remove(--i, false);
       }
     }
 
