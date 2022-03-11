@@ -341,10 +341,7 @@ CDObject::~CDObject()
     for(int i = 0; i < m_pSubObjects->GetCount(); i++)
     {
       pSubObj = (PDPathSeg)m_pSubObjects->GetItem(i);
-      if(m_iType != dtBorderPath)
-      {
-        delete pSubObj->pSegment;
-      }
+      delete pSubObj->pSegment;
       free(pSubObj);
     }
   }
@@ -465,7 +462,6 @@ bool CDObject::AddPoint(double x, double y, char iCtrl, double dRestrictVal)
   case dtLogSpiral:
   case dtArchSpiral:
   case dtPath:
-  case dtBorderPath:
   case dtBorder:
   case dtArea:
   case dtGroup:
@@ -1269,7 +1265,6 @@ int CDObject::AddLineIntersects(CDPoint cPt1, CDPoint cPt2, double dOffset, PDRe
   case dtPath:
     iRes = AddSubIntersects(cPt1, cPt2, dOffset, pBounds);
     break;
-  case dtBorderPath:
   case dtBorder:
   case dtArea:
   case dtGroup:
@@ -1608,7 +1603,6 @@ void CDObject::AddExtraPrimitives(PDRect pRect, PDPrimObject pPrimList)
   case dtLogSpiral:
   case dtArchSpiral:
   case dtPath:
-  case dtBorderPath:
   case dtBorder:
   case dtArea:
   case dtGroup:
@@ -1911,7 +1905,6 @@ int CDObject::GetViewBounds(CDLine cTmpPt, int iMode, PDRect pRect, PDRefList pB
   case dtPath:
     iRes = GetPathViewBounds(cTmpPt, iMode, pRect, pBounds, pDrawBnds, bMergeWithBounds);
     break;
-  case dtBorderPath:
   case dtBorder:
     break;
   case dtArea:
@@ -3788,7 +3781,6 @@ double CDObject::GetRawDistFromPt(CDPoint cPt, CDPoint cRefPt, int iSearchMask, 
   case dtPath:
     dRes = GetPathDistFromPt(cPt, cRefPt, iSearchMask & 1, pPtX);
     break;
-  case dtBorderPath:
   case dtBorder:
     break;
   case dtArea:
@@ -4675,7 +4667,7 @@ void CDObject::SaveToFile(FILE *pf, bool bSwapBytes, unsigned char cVersion)
     SwapBytes(buf, pbuf, 4, bSwapBytes);
     fwrite(buf, 1, 4, pf);
 
-    if(m_iType < dtBorderPath)
+    if(m_iType < dtBorder)
     {
       for(unsigned int i = 0; i < lCnt; i++)
       {
@@ -4694,7 +4686,7 @@ void CDObject::SaveToFile(FILE *pf, bool bSwapBytes, unsigned char cVersion)
       }
     }
   }
-  else if(m_iType < dtBorderPath)
+  else if(m_iType < dtBorder)
   {
     for(unsigned int i = 0; i < lCnt; i++)
     {
@@ -4980,6 +4972,7 @@ bool CDObject::ReadFromFile(FILE *pf, bool bSwapBytes, unsigned char cVersion)
 
   if(cVersion > 1)
   {
+    unsigned char cType;
     bool bRead;
     CDLine cPtX;
     cPtX.bIsSet = false;
@@ -4988,7 +4981,7 @@ bool CDObject::ReadFromFile(FILE *pf, bool bSwapBytes, unsigned char cVersion)
     fread(buf, 1, 4, pf);
     pbuf = (unsigned char*)&lCnt;
     SwapBytes(pbuf, buf, 4, bSwapBytes);
-    if(m_iType < dtBorderPath)
+    if(m_iType < dtBorder)
     {
       for(unsigned int i = 0; i < lCnt; i++)
       {
@@ -5016,7 +5009,9 @@ bool CDObject::ReadFromFile(FILE *pf, bool bSwapBytes, unsigned char cVersion)
       for(unsigned int i = 0; i < lCnt; i++)
       {
         fread(buf, 1, 1, pf);
-        pObj = new CDObject((CDDrawType)buf[0], 0.2);
+        cType = buf[0];
+        if(cType == 101) cType = dtBorder;
+        pObj = new CDObject((CDDrawType)cType, 0.2);
         bRead = pObj->ReadFromFile(pf, bSwapBytes, cVersion);
         if(bRead) bRead = pObj->BuildCache(cPtX, 0);
         if(bRead) m_pSubObjects->Add(pObj);
@@ -6577,15 +6572,11 @@ void CDObject::ClearSubObjects(bool bDelete)
 int CDObject::GetAreaObjectCount()
 {
   int iRes = 0;
-  PDObject pObj, pObj1;
+  PDObject pObj;
   for(int i = 0; i < m_pSubObjects->GetCount(); i++)
   {
     pObj = (PDObject)m_pSubObjects->GetItem(i);
-    for(int j = 0; j < pObj->m_pSubObjects->GetCount(); j++)
-    {
-      pObj1 = (PDObject)pObj->m_pSubObjects->GetItem(j);
-      iRes += pObj1->m_pSubObjects->GetCount();
-    }
+    iRes += pObj->m_pSubObjects->GetCount();
   }
   return iRes;
 }
@@ -7147,7 +7138,7 @@ void CDObject::BuildArea(PDPtrList pBoundaries, PDLineStyle pStyle)
   {
     pChildren = (PDIntList)pChildList->GetItem(i);
     iCount = pChildren->GetCount();
-    pObj1 = new CDObject(dtBorderPath, pStyle->dWidth);
+    pObj1 = new CDObject(dtBorder, pStyle->dWidth);
     for(int j = 0; j < iCount; j++)
     {
       pObj2 = (PDObject)pBoundaries->GetItem(pChildren->GetItem(j));
