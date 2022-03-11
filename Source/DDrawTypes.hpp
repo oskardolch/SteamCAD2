@@ -40,7 +40,6 @@ typedef struct CDPathSeg
 
 typedef class CDObject
 {
-  friend class CDataList;
 private:
   CDDrawType m_iType;
   CDLine m_cLines[2];
@@ -120,13 +119,16 @@ private:
   void AddExtraPrimitives(PDRect pRect, PDPrimObject pPrimList);
   double GetPathDistFromPt(CDPoint cPt, CDPoint cRefPt, bool bSnapCenters, PDLine pPtX);
   double GetAreaDistFromPt(CDPoint cPt, PDLine pPtX);
+  double GetGroupDistFromPt(CDPoint cPt, PDLine pPtX);
   int GetSimpleViewBounds(CDLine cTmpPt, int iMode, double dOffset, double dLineHalfWidth,
     PDRect pRect, PDRefList pBounds, PDPoint pDrawBnds, bool bMergeWithBounds);
   int GetPathViewBounds(CDLine cTmpPt, int iMode, PDRect pRect, PDRefList pBounds, PDPoint pDrawBnds, bool bMergeWithBounds);
   int GetAreaViewBounds(CDLine cTmpPt, int iMode, PDRect pRect, PDRefList pBounds, PDPoint pDrawBnds, bool bMergeWithBounds);
+  int GetGroupViewBounds(CDLine cTmpPt, int iMode, PDRect pRect, PDRefList pBounds, PDPoint pDrawBnds, bool bMergeWithBounds);
   void AddSimpleSegment(double dt1, double dt2, double dExt, bool bReverse, PDPrimObject pPrimList);
   void AddPathSegment(double d1, double d2, double dExt, PDPrimObject pPrimList);
   void AddAreaSegment(double d1, double d2, double dExt, PDPrimObject pPrimList);
+  void AddGroupSegment(double d1, double d2, double dExt, PDPrimObject pPrimList);
   int GetPointReferences(CDPoint cPt, PDRefList pRefs);
   CDObject* SplitByRef(double dRef, bool *pbRes);
   double GetMovedDist(CDLine cTmpPt, int iMode);
@@ -142,6 +144,7 @@ private:
   int PtInArea(CDPoint cPt);
   bool ContainsObject(CDObject *pObj);
   int BuildAreaPrimitives(CDLine cTmpPt, int iMode, PDRect pRect, PDFileAttrs pAttrs);
+  int BuildGroupPrimitives(CDLine cTmpPt, int iMode, PDRect pRect, PDFileAttrs pAttrs);
 public:
   CDObject(CDDrawType iType, double dWidth);
   ~CDObject();
@@ -220,6 +223,9 @@ public:
   bool GetEndPoint(PDPoint pPt, double dOffset);
   void BuildPath(CDObject **ppObjects, PDIntList pPath, PDLineStyle pStyle);
   int GetSubObjectCount(bool bCountSubObjects);
+  CDObject* GetSubObject(int iIndex);
+  void AddSubObject(CDObject* pObj);
+  void ClearSubObjects(bool bDelete);
   int GetAreaObjectCount();
   CDObject* GetAreaObject(int iIndex);
   // returns: 0 - no snap point, 1 - on the curve, 2 - on the edge, 3 - on the cross point, 4 - on self intersection,
@@ -251,6 +257,7 @@ public:
   int GetCount();
   void Add(PDObject pObject);
   void Remove(int iIndex, bool bFree);
+  void Insert(int iIndex, PDObject pObject);
   PDObject GetItem(int iIndex);
   void BuildAllPrimitives(PDRect pRect, bool bResolvePatterns = true);
   PDObject SelectByPoint(CDPoint cPt, double dDist, int *piDimen);
@@ -298,6 +305,10 @@ public:
   int GetSelectedLength(double *pdLength);
   bool Group();
   bool Ungroup();
+  bool MoveUp();
+  bool MoveDown();
+  bool MoveTop();
+  bool MoveBottom();
 } *PDataList;
 
 #endif

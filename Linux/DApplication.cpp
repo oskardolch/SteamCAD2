@@ -1322,6 +1322,18 @@ void CDApplication::DrawPrimitive(cairo_t *cr, PDPrimitive pPrim)
 
 void CDApplication::DrawObject(cairo_t *cr, PDObject pObj, int iMode, int iDimen)
 {
+  if(pObj->GetType() == dtGroup)
+  {
+    int n = pObj->GetSubObjectCount(false);
+    PDObject pObj1;
+    for(int i = 0; i < n; i++)
+    {
+      pObj1 = pObj->GetSubObject(i);
+      DrawObject(cr, pObj1, iMode, iDimen);
+    }
+    return;
+  }
+
   bool bSel = pObj->GetSelected();
   CDLineStyle cStyle = pObj->GetLineStyle();
 
@@ -4388,17 +4400,41 @@ void CDApplication::PathUngroupCmd()
 
 void CDApplication::PathMoveUpCmd()
 {
+  if(m_pDrawObjects->MoveUp())
+  {
+    GtkWidget *draw = GetDrawing();
+    gdk_window_invalidate_rect(draw->window, NULL, FALSE);
+    SetTitle(m_pMainWnd, false);
+  }
 }
 
 void CDApplication::PathMoveDownCmd()
 {
+  if(m_pDrawObjects->MoveDown())
+  {
+    GtkWidget *draw = GetDrawing();
+    gdk_window_invalidate_rect(draw->window, NULL, FALSE);
+    SetTitle(m_pMainWnd, false);
+  }
 }
 
 void CDApplication::PathMoveTopCmd()
 {
+  if(m_pDrawObjects->MoveTop())
+  {
+    GtkWidget *draw = GetDrawing();
+    gdk_window_invalidate_rect(draw->window, NULL, FALSE);
+    SetTitle(m_pMainWnd, false);
+  }
 }
 
 void CDApplication::PathMoveBottomCmd()
 {
+  if(m_pDrawObjects->MoveBottom())
+  {
+    GtkWidget *draw = GetDrawing();
+    gdk_window_invalidate_rect(draw->window, NULL, FALSE);
+    SetTitle(m_pMainWnd, false);
+  }
 }
 

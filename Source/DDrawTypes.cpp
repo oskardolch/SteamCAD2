@@ -727,6 +727,7 @@ void CDObject::AddSimpleSegment(double dt1, double dt2, double dExt, bool bRever
     AddAreaSegment(dt1, dt2, dExt, pPrimList);
     break;
   case dtGroup:
+    AddGroupSegment(dt1, dt2, dExt, pPrimList);
     break;
   default:
     break;
@@ -832,6 +833,17 @@ void CDObject::AddAreaSegment(double d1, double d2, double dExt, PDPrimObject pP
       pObj1 = (PDObject)pObj->m_pSubObjects->GetItem(j);
       pObj1->AddSimpleSegment(d1, d2, dExt, false, pPrimList);
     }
+  }
+}
+
+void CDObject::AddGroupSegment(double d1, double d2, double dExt, PDPrimObject pPrimList)
+{
+  int n = m_pSubObjects->GetCount();
+  PDObject pObj;
+  for(int i = 0; i < n; i++)
+  {
+    pObj = (PDObject)m_pSubObjects->GetItem(i);
+    pObj->AddSimpleSegment(d1, d2, dExt, false, pPrimList);
   }
 }
 
@@ -1872,6 +1884,25 @@ int CDObject::GetAreaViewBounds(CDLine cTmpPt, int iMode, PDRect pRect, PDRefLis
   return iRes;
 }
 
+int CDObject::GetGroupViewBounds(CDLine cTmpPt, int iMode, PDRect pRect, PDRefList pBounds,
+  PDPoint pDrawBnds, bool bMergeWithBounds)
+{
+  int iCnt = m_pSubObjects->GetCount();
+  int iRes = -1;
+  int iLocRes;
+  PDObject pObj;
+
+  for(int i = 0; i < iCnt; i++)
+  {
+    pObj = (PDObject)m_pSubObjects->GetItem(i);
+    iLocRes = pObj->GetViewBounds(cTmpPt, iMode, pRect, pBounds, pDrawBnds, bMergeWithBounds);
+    if(iRes < 0) iRes = iLocRes;
+    else if(iRes != iLocRes) iRes = 1;
+  }
+
+  return iRes;
+}
+
 int CDObject::GetViewBounds(CDLine cTmpPt, int iMode, PDRect pRect, PDRefList pBounds, PDPoint pDrawBnds, bool bMergeWithBounds)
 {
   int iRes = 0;
@@ -1887,6 +1918,7 @@ int CDObject::GetViewBounds(CDLine cTmpPt, int iMode, PDRect pRect, PDRefList pB
     iRes = GetAreaViewBounds(cTmpPt, iMode, pRect, pBounds, pDrawBnds, bMergeWithBounds);
     break;
   case dtGroup:
+    iRes = GetGroupViewBounds(cTmpPt, iMode, pRect, pBounds, pDrawBnds, bMergeWithBounds);
     break;
   default:
     double dExt = m_cLineStyle.dWidth/2.0;
@@ -1943,9 +1975,24 @@ int CDObject::BuildAreaPrimitives(CDLine cTmpPt, int iMode, PDRect pRect, PDFile
   return iRes;
 }
 
+int CDObject::BuildGroupPrimitives(CDLine cTmpPt, int iMode, PDRect pRect, PDFileAttrs pAttrs)
+{
+  m_pPrimitive->Clear();
+  int iRes = 0;
+  int n = m_pSubObjects->GetCount();
+  PDObject pObj;
+  for(int i = 0; i < n; i++)
+  {
+    pObj = (PDObject)m_pSubObjects->GetItem(i);
+    iRes += pObj->BuildPrimitives(cTmpPt, iMode, pRect, 0, pAttrs, NULL);
+  }
+  return iRes;
+}
+
 int CDObject::BuildPrimitives(CDLine cTmpPt, int iMode, PDRect pRect, int iTemp, PDFileAttrs pAttrs, PDPrimObject pPrimitives)
 {
   if(m_iType == dtArea) return BuildAreaPrimitives(cTmpPt, iMode, pRect, pAttrs);
+  else if(m_iType == dtGroup) return BuildGroupPrimitives(cTmpPt, iMode, pRect, pAttrs);
 
   PDPrimObject plPrimitive = m_pPrimitive;
   if(pPrimitives) plPrimitive = pPrimitives;
@@ -2888,7 +2935,7 @@ bool CDObject::IsNearPoint(CDPoint cPt, double dTolerance, int *piDimen)
   cPtX.bIsSet = false;
   double dDist = GetDistFromPt(cPt, cPt, 1, &cPtX, piDimen);
 
-  if(!cPtX.bIsSet && (m_iType != dtArea)) return false;
+  if(!cPtX.bIsSet && (m_iType < dtArea)) return false;
 
   return fabs(dDist) < dTolerance;
 }
@@ -3413,6 +3460,17 @@ void CDObject::SetSelected(bool bSelect, bool bInvert, int iDimen)
       }
     }
   }
+
+  if(m_iType == dtGroup)
+  {
+    PDObject pObj;
+    int n = m_pSubObjects->GetCount();
+    for(int i = 0; i < n; i++)
+    {
+      pObj = (PDObject)m_pSubObjects->GetItem(i);
+      pObj->SetSelected(bSelect, bInvert, iDimen);
+    }
+  }
 }
 
 int CDObject::GetType()
@@ -3659,6 +3717,33 @@ double CDObject::GetAreaDistFromPt(CDPoint cPt, PDLine pPtX)
   return 1000000.0;
 }
 
+double CDObject::GetGroupDistFromPt(CDPoint cPt, PDLine pPtX)
+{
+  pPtX->bIsSet = false;
+
+  int n = m_pSubObjects->GetCount();
+  if(n < 1) return -1.0;
+
+  PDObject pObj;
+  int i = 0;
+  bool bFound = false;
+  double dRes = 1000000.0;
+  double dCurDist;
+  CDLine cPtX;
+  while(!bFound && (i < n))
+  {
+    pObj = (PDObject)m_pSubObjects->GetItem(i++);
+    dCurDist = pObj->GetDistFromPt(cPt, cPt, 0, &cPtX, NULL);
+    if(fabs(dCurDist) < fabs(dRes))
+    {
+      dRes = dCurDist;
+      *pPtX = cPtX;
+      bFound = fabs(dRes) < g_dPrec;
+    }
+  }
+  return dRes;
+}
+
 double CDObject::GetOffset()
 {
   if(m_iType < dtCircle) return 0.0;
@@ -3710,6 +3795,7 @@ double CDObject::GetRawDistFromPt(CDPoint cPt, CDPoint cRefPt, int iSearchMask, 
     dRes = GetAreaDistFromPt(cPt, pPtX);
     break;
   case dtGroup:
+    dRes = GetGroupDistFromPt(cPt, pPtX);
     break;
   }
   return dRes;
@@ -5121,14 +5207,17 @@ bool CDObject::RotatePoints(CDPoint cOrig, double dRot, int iDimFlag)
   }
   else if(m_iType == dtGroup)
   {
-    /*cOffL.bIsSet = false;
+    bRes = true;
+    iCnt = m_pSubObjects->GetCount();
+    int i = 0;
     PDObject pObj;
-    while(bRes && (i < n))
+    while(bRes && (i < iCnt))
     {
       pObj = (PDObject)m_pSubObjects->GetItem(i++);
-      bRes = pObj->BuildCache(cOffL, iMode);
-    }*/
-    return false;
+      bRes &= pObj->RotatePoints(cOrig, dRot, iDimFlag);
+    }
+    BuildCache(cPtX, 0);
+    return bRes;
   }
 
   PDDimension pDim;
@@ -5263,14 +5352,17 @@ bool CDObject::MovePoints(CDPoint cDir, double dDist, int iDimFlag)
   }
   else if(m_iType == dtGroup)
   {
-    /*cOffL.bIsSet = false;
+    bRes = true;
+    iCnt = m_pSubObjects->GetCount();
+    int i = 0;
     PDObject pObj;
-    while(bRes && (i < n))
+    while(bRes && (i < iCnt))
     {
       pObj = (PDObject)m_pSubObjects->GetItem(i++);
-      bRes = pObj->BuildCache(cOffL, iMode);
-    }*/
-    return false;
+      bRes &= pObj->MovePoints(cDir, dDist, iDimFlag);
+    }
+    BuildCache(cPtX, 0);
+    return bRes;
   }
 
   PDDimension pDim;
@@ -5374,13 +5466,15 @@ void CDObject::MirrorPoints(CDLine cLine)
   }
   else if(m_iType == dtGroup)
   {
-    /*cOffL.bIsSet = false;
+    int iCnt = m_pSubObjects->GetCount();
+    int i = 0;
     PDObject pObj;
-    while(bRes && (i < n))
+    while(i < iCnt)
     {
       pObj = (PDObject)m_pSubObjects->GetItem(i++);
-      bRes = pObj->BuildCache(cOffL, iMode);
-    }*/
+      pObj->MirrorPoints(cLine);
+    }
+    BuildCache(cPtX, 0);
     return;
   }
 
@@ -6455,6 +6549,31 @@ int CDObject::GetSubObjectCount(bool bCountSubObjects)
   return iRes;
 }
 
+CDObject* CDObject::GetSubObject(int iIndex)
+{
+  return (PDObject)m_pSubObjects->GetItem(iIndex);
+}
+
+void CDObject::AddSubObject(CDObject* pObj)
+{
+  m_pSubObjects->Add(pObj);
+}
+
+void CDObject::ClearSubObjects(bool bDelete)
+{
+  if(bDelete)
+  {
+    int n = m_pSubObjects->GetCount();
+    PDObject pObj;
+    for(int i = 0; i < n; i++)
+    {
+      pObj = (PDObject)m_pSubObjects->GetItem(i);
+      delete pObj;
+    }
+  }
+  m_pSubObjects->Clear();
+}
+
 int CDObject::GetAreaObjectCount()
 {
   int iRes = 0;
@@ -7090,6 +7209,29 @@ void CDataList::Remove(int iIndex, bool bFree)
   {
     memmove(&m_ppObjects[iIndex], &m_ppObjects[iIndex + 1], (m_iDataLen - iIndex)*sizeof(PDObject));
   }
+}
+
+void CDataList::Insert(int iIndex, PDObject pObject)
+{
+  // building cache is redundant in many cases, but just to be sure
+  CDLine cPtX;
+  cPtX.bIsSet = false;
+  if(!pObject->BuildCache(cPtX, 0)) return;
+  if(m_iDataLen >= m_iDataSize)
+  {
+    m_iDataSize += 16;
+    m_ppObjects = (PDObject*)realloc(m_ppObjects, m_iDataSize*sizeof(PDObject));
+  }
+  if(iIndex < 0) iIndex = 0;
+  if(iIndex > m_iDataLen) iIndex = m_iDataLen;
+  if(iIndex < m_iDataLen)
+  {
+    memmove(&m_ppObjects[iIndex + 1], &m_ppObjects[iIndex], (m_iDataLen - iIndex)*sizeof(PDObject));
+  }
+  m_ppObjects[iIndex] = pObject;
+  m_iDataLen++;
+  m_bHasChanged = true;
+  return;
 }
 
 PDObject CDataList::GetItem(int iIndex)
@@ -8117,6 +8259,22 @@ bool CDataList::BreakSelObjects()
         Remove(--i, true);
         iLen--;
       }
+      /*else if(pObj->GetType() == dtGroup)
+      {
+        iParts = pObj->GetSubObjectCount(false);
+        for(int j = 0; j < iParts; j++)
+        {
+          pNewObj = pObj->GetSubObject(j);
+          if(pNewObj != NULL)
+          {
+            Add(pNewObj);
+            bRes = true;
+          }
+        }
+        pObj->ClearSubObjects(false);
+        Remove(--i, true);
+        iLen--;
+      }*/
     }
   }
   return bRes;
@@ -8255,7 +8413,7 @@ bool CDataList::Group()
   {
     CDLineStyle cSt = pObj->GetLineStyle();
     PDObject pNewObj = new CDObject(dtGroup, cSt.dWidth);
-    pNewObj->m_pSubObjects->Add(pObj);
+    pNewObj->AddSubObject(pObj);
     Remove(i, false);
 
     while(i > 0)
@@ -8263,7 +8421,7 @@ bool CDataList::Group()
       pObj = m_ppObjects[--i];
       if(pObj->GetSelected())
       {
-        pNewObj->m_pSubObjects->Add(pObj);
+        pNewObj->AddSubObject(pObj);
         Remove(i, false);
       }
     }
@@ -8286,15 +8444,133 @@ bool CDataList::Ungroup()
     {
       bRes = true;
       Remove(i, false);
-      n = pObj->m_pSubObjects->GetCount();
+      n = pObj->GetSubObjectCount(false);
       for(int j = 0; j < n; j++)
       {
-        Add((PDObject)pObj->m_pSubObjects->GetItem(j));
+        Add(pObj->GetSubObject(j));
       }
-      pObj->m_pSubObjects->Clear();
+      pObj->ClearSubObjects(false);
       delete pObj;
     }
   }
   return bRes;
+}
+
+bool CDataList::MoveUp()
+{
+  PDObject pObj;
+  int n, i = m_iDataLen;
+  PDIntList pSelObjs = new CDIntList();
+
+  while(i > 0)
+  {
+    pObj = m_ppObjects[--i];
+    if(pObj->GetSelected()) pSelObjs->AddItem(i);
+  }
+
+  n = pSelObjs->GetCount();
+  if(n > 0)
+  {
+    int i1 = pSelObjs->GetItem(0) + 1;
+    int i2;
+    for(i = 0; i < n; i++)
+    {
+      i2 = pSelObjs->GetItem(i);
+      pObj = m_ppObjects[i2];
+      Remove(i2, false);
+      Insert(i1--, pObj);
+    }
+  }
+
+  delete pSelObjs;
+  return n > 0;
+}
+
+bool CDataList::MoveDown()
+{
+  PDObject pObj;
+  int n, i = m_iDataLen;
+  PDIntList pSelObjs = new CDIntList();
+
+  while(i > 0)
+  {
+    pObj = m_ppObjects[--i];
+    if(pObj->GetSelected()) pSelObjs->AddItem(i);
+  }
+
+  n = pSelObjs->GetCount();
+  if(n > 0)
+  {
+    int i1 = pSelObjs->GetItem(n - 1) - 1;
+    int i2;
+    for(i = 0; i < n; i++)
+    {
+      i2 = pSelObjs->GetItem(i) + i;
+      pObj = m_ppObjects[i2];
+      Remove(i2, false);
+      Insert(i1, pObj);
+    }
+  }
+
+  delete pSelObjs;
+  return n > 0;
+}
+
+bool CDataList::MoveTop()
+{
+  PDObject pObj;
+  int n, i = m_iDataLen;
+  PDIntList pSelObjs = new CDIntList();
+
+  while(i > 0)
+  {
+    pObj = m_ppObjects[--i];
+    if(pObj->GetSelected()) pSelObjs->AddItem(i);
+  }
+
+  n = pSelObjs->GetCount();
+  if(n > 0)
+  {
+    int i2;
+    for(i = 0; i < n; i++)
+    {
+      i2 = pSelObjs->GetItem(i);
+      pObj = m_ppObjects[i2];
+      Remove(i2, false);
+      Add(pObj);
+    }
+  }
+
+  delete pSelObjs;
+  return n > 0;
+}
+
+bool CDataList::MoveBottom()
+{
+  PDObject pObj;
+  int n, i = m_iDataLen;
+  PDIntList pSelObjs = new CDIntList();
+
+  while(i > 0)
+  {
+    pObj = m_ppObjects[--i];
+    if(pObj->GetSelected()) pSelObjs->AddItem(i);
+  }
+
+  n = pSelObjs->GetCount();
+  if(n > 0)
+  {
+    int i2;
+    for(i = 0; i < n; i++)
+    {
+      i2 = pSelObjs->GetItem(i) + i;
+      pObj = m_ppObjects[i2];
+      Remove(i2, false);
+      Insert(0, pObj);
+    }
+  }
+
+  delete pSelObjs;
+  return n > 0;
 }
 
