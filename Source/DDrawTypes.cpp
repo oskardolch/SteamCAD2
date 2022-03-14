@@ -4793,6 +4793,13 @@ void CDObject::LoadLineStyle(FILE *pf, bool bSwapBytes, PDLineStyle pLineStyle, 
     pLineStyle->cJoinType = buf[1];
     fread(pLineStyle->cColor, 1, 4, pf);
     if(m_iType == dtArea) fread(pLineStyle->cFillColor, 1, 4, pf);
+    else
+    {
+      pLineStyle->cFillColor[0] = 127;
+      pLineStyle->cFillColor[1] = 127;
+      pLineStyle->cFillColor[2] = 127;
+      pLineStyle->cFillColor[3] = 255;
+    }
   }
   else
   {
@@ -4804,6 +4811,10 @@ void CDObject::LoadLineStyle(FILE *pf, bool bSwapBytes, PDLineStyle pLineStyle, 
     pLineStyle->cColor[1] = 0;
     pLineStyle->cColor[2] = 0;
     pLineStyle->cColor[3] = 255;
+    pLineStyle->cFillColor[0] = 127;
+    pLineStyle->cFillColor[1] = 127;
+    pLineStyle->cFillColor[2] = 127;
+    pLineStyle->cFillColor[3] = 255;
   }
 }
 

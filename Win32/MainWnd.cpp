@@ -979,7 +979,7 @@ bool CMainWnd::SaveFile(HWND hWnd, LPWSTR wsFile, bool bSelectOnly)
   LPWSTR sDot = wcsrchr(wsFile, '.');
   if(sDot)
   {
-    if(wcsicmp(sDot, L".sc2") == 0) cVer = 1;
+    if(wcsicmp(sDot, L".sdr") == 0) cVer = 1;
   }
 
   // save the file
@@ -1056,7 +1056,7 @@ bool CMainWnd::SaveFile(HWND hWnd, LPWSTR wsFile, bool bSelectOnly)
   LPWSTR sDot = wcsrchr(wsFile, '.');
   if(sDot)
   {
-    if(wcsicmp(sDot, L".sc2") == 0) cVer = 1;
+    if(wcsicmp(sDot, L".sdr") == 0) cVer = 1;
   }
 
   // save the file
