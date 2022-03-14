@@ -245,6 +245,20 @@ void ExportDimText(cairo_t *pct, PDPrimitive pPrim, PDObject pObj, double dScale
 void ExportObject(PDObject pObj, cairo_t *pct, PDFileAttrs pFileAttrs, double dRat,
   PDUnitList pUnits)
 {
+  if(pObj->GetType() == dtGroup)
+  {
+    //cairo_push_group(pct);
+    int n = pObj->GetSubObjectCount(false);
+    PDObject pObj1;
+    for(int i = 0; i < n; i++)
+    {
+      pObj1 = pObj->GetSubObject(i);
+      ExportObject(pObj1, pct, pFileAttrs, dRat, pUnits);
+    }
+    //cairo_pop_group(pct);
+    return;
+  }
+
   CDLineStyle cStyle = pObj->GetLineStyle();
   double dScale = pFileAttrs->dScaleNom/pFileAttrs->dScaleDenom;
 
