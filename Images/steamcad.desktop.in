@@ -3,5 +3,5 @@ Type=Application
 Name=SteamCAD2
 Comment=2D CAD especially designed to draw steam locomotives
 Categories=Graphics;Engineering;
-Icon=@prefix@/etc/@PACKAGE@/steamcad2.png
+Icon=@prefix@/etc/@PACKAGE@/steamcad2_256.png
 Exec=SteamCAD2
