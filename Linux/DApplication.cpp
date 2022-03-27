@@ -1225,27 +1225,18 @@ void CDApplication::DrawDimText(cairo_t *cr, PDPrimitive pPrim, PDObject pObj, l
 
 void CDApplication::DrawPrimitive(cairo_t *cr, PDPrimitive pPrim)
 {
-  double dr; //, da1, da2;
+  double dr;
 
   CDPoint cStartPt, cEndPt;
 
   switch(pPrim->iType)
   {
   case 1:
-    //cairo_new_path(cr);
-    //cStartPt.x = pPrim->cPt1.x + m_cViewOrigin.x;
-    //cStartPt.y = pPrim->cPt1.y + m_cViewOrigin.y;
-    //cairo_move_to(cr, cStartPt.x, cStartPt.y);
     cEndPt.x = pPrim->cPt2.x + m_cViewOrigin.x;
     cEndPt.y = pPrim->cPt2.y + m_cViewOrigin.y;
     cairo_line_to(cr, cEndPt.x, cEndPt.y);
-    //cairo_stroke(cr);
     break;
   case 2:
-    //cStartPt.x = pPrim->cPt3.x + m_cViewOrigin.x;
-    //cStartPt.y = pPrim->cPt3.y + m_cViewOrigin.y;
-    //cEndPt.x = pPrim->cPt4.x + m_cViewOrigin.x;
-    //cEndPt.y = pPrim->cPt4.y + m_cViewOrigin.y;
     cStartPt.x = pPrim->cPt1.x + m_cViewOrigin.x + pPrim->cPt2.x*cos(pPrim->cPt3.x);
     cStartPt.y = pPrim->cPt1.y + m_cViewOrigin.y + pPrim->cPt2.x*sin(pPrim->cPt3.x);
     cEndPt.x = pPrim->cPt1.x + m_cViewOrigin.x + pPrim->cPt2.x*cos(pPrim->cPt3.y);
@@ -1254,53 +1245,35 @@ void CDApplication::DrawPrimitive(cairo_t *cr, PDPrimitive pPrim)
     dr = GetDist(cStartPt, cEndPt);
     if((dr > 2) || (fabs(pPrim->cPt3.y - pPrim->cPt3.x) > 0.001))
     {
-      //dr = (pPrim->cPt2.x - pPrim->cPt1.x);
       dr = pPrim->cPt2.x;
-      //da2 = atan2(pPrim->cPt3.y - pPrim->cPt1.y, pPrim->cPt3.x - pPrim->cPt1.x);
-      //da1 = atan2(pPrim->cPt4.y - pPrim->cPt1.y, pPrim->cPt4.x - pPrim->cPt1.x);
-      //cairo_new_path(cr);
       if(fabs(pPrim->cPt4.x - 1.0) < 0.2)
         cairo_arc_negative(cr, m_cViewOrigin.x + pPrim->cPt1.x, m_cViewOrigin.y + pPrim->cPt1.y, dr, pPrim->cPt3.y, pPrim->cPt3.x);
       else
         cairo_arc(cr, m_cViewOrigin.x + pPrim->cPt1.x, m_cViewOrigin.y + pPrim->cPt1.y, dr, pPrim->cPt3.x, pPrim->cPt3.y);
-      //cairo_stroke(cr);
     }
     else
     {
-      //cairo_new_path(cr);
-      //cairo_move_to(cr, cStartPt.x, cStartPt.y);
       if(fabs(pPrim->cPt4.x - 1.0) < 0.2)
         cairo_line_to(cr, cStartPt.x, cStartPt.y);
       else
         cairo_line_to(cr, cEndPt.x, cEndPt.y);
-      //cairo_stroke(cr);
     }
     break;
   case 3:
     dr = (pPrim->cPt2.x - pPrim->cPt1.x);
-    //cairo_stroke(cr);
-    //cairo_new_path(cr);
     cairo_arc(cr, m_cViewOrigin.x + pPrim->cPt1.x, m_cViewOrigin.y + pPrim->cPt1.y, dr, 0.0, 2.0*M_PI);
-    //cairo_stroke(cr);
-    //cairo_new_path(cr);
     break;
   case 4:
     cStartPt = (pPrim->cPt1 + 2.0*pPrim->cPt2)/3.0;
     cEndPt = (pPrim->cPt3 + 2.0*pPrim->cPt2)/3.0;
-    //cairo_new_path(cr);
-//    cairo_move_to(cr, m_cViewOrigin.x + pPrim->cPt1.x, m_cViewOrigin.y + pPrim->cPt1.y);
     cairo_curve_to(cr, m_cViewOrigin.x + cStartPt.x, m_cViewOrigin.y + cStartPt.y,
       m_cViewOrigin.x + cEndPt.x, m_cViewOrigin.y + cEndPt.y,
       m_cViewOrigin.x + pPrim->cPt3.x, m_cViewOrigin.y + pPrim->cPt3.y);
-    //cairo_stroke(cr);
     break;
   case 5:
-    //cairo_new_path(cr);
-//    cairo_move_to(cr, m_cViewOrigin.x + pPrim->cPt1.x, m_cViewOrigin.y + pPrim->cPt1.y);
     cairo_curve_to(cr, m_cViewOrigin.x + pPrim->cPt2.x, m_cViewOrigin.y + pPrim->cPt2.y,
       m_cViewOrigin.x + pPrim->cPt3.x, m_cViewOrigin.y + pPrim->cPt3.y,
       m_cViewOrigin.x + pPrim->cPt4.x, m_cViewOrigin.y + pPrim->cPt4.y);
-    //cairo_stroke(cr);
     break;
   case 7:
     cairo_new_path(cr);
