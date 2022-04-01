@@ -388,12 +388,12 @@ void ExportCairoFile(int iType, FILE *pFile, PDataList pDrawData, PDUnitList pUn
   {
   case 0:
     pcs = cairo_pdf_surface_create_for_stream(WriteCairoStream,
-    pFile, dWidth, dHeight);
+      pFile, dWidth, dHeight);
     break;
   case 1:
   case 2:
     pcs = cairo_ps_surface_create_for_stream(WriteCairoStream,
-    pFile, dWidth, dHeight);
+      pFile, dWidth, dHeight);
     break;
   case 3:
     dMmToPt = 600.0/dMmToIn;
@@ -403,7 +403,7 @@ void ExportCairoFile(int iType, FILE *pFile, PDataList pDrawData, PDUnitList pUn
     break;
   case 4:
     pcs = cairo_svg_surface_create_for_stream(WriteCairoStream,
-    pFile, dWidth, dHeight);
+      pFile, dWidth, dHeight);
     break;
   }
 
