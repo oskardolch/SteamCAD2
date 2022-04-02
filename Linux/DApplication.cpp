@@ -3918,7 +3918,9 @@ void CDApplication::MouseLButtonUp(GtkWidget *widget, GdkEventButton *event)
           {
             cLine = pSelLine->GetLine();
             m_iToolMode = tolNone;
-            if(!m_bPaperUnits) dVal *= m_dDrawScale;
+            if(m_bPaperUnits)
+              dVal *= m_cFSR.cPaperUnit.dBaseToUnit;
+            else dVal *= m_dDrawScale*m_cFSR.cLenUnit.dBaseToUnit;
             if(m_pDrawObjects->MoveSelected(cLine, dVal, iCop, &cdr, false))
             {
               bUpdate = TRUE;
