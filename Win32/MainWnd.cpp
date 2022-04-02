@@ -2379,7 +2379,9 @@ LRESULT CMainWnd::WMLButtonUp(HWND hwnd, WPARAM fwKeys, int xPos, int yPos)
           {
             cLine = pSelLine->GetLine();
             m_iToolMode = tolNone;
-            if(!m_bPaperUnits) dVal *= m_dDrawScale;
+            if(m_bPaperUnits)
+              dVal *= m_cFSR.cPaperUnit.dBaseToUnit;
+            else dVal *= m_dDrawScale*m_cFSR.cLenUnit.dBaseToUnit;
             if(m_pDrawObjects->MoveSelected(cLine, dVal, iCop, &cdr, false))
             {
               InvalidateRect(hwnd, &rc, FALSE);
