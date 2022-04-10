@@ -41,6 +41,8 @@ BEGIN
     IDS_SELPOINTTOMOVE "Click a point to move to"
     IDS_SELPOINTFROMROT "Click a point to rotate from"
     IDS_SELPOINTTOROT "Click a point to rotate to"
+    IDS_SELPATHTODISTRIBUTE "Click a path to distribute about"
+    IDS_KEEPPATHDIR "keep path orientation"
     IDS_ARROWNONE "None"
     IDS_ARROWSTD "Standard"
     IDS_ARROWFILL "Filled"
@@ -71,6 +73,10 @@ BEGIN
     IDS_FILECHANGED "The file has been changed. Do you want to save it?"
     IDS_TWOOBJSFORROUND "Exactly two objects must be selected to round corner"
     IDS_ONEOBJFORDIMEN "Exactly one object must be selected to insert a dimension"
+    IDS_ONEOBJECTFORDISTR "Exactly one bound object to be distributed must be selected"
+    IDS_BOUNDOBJFORDIST "The object to be distributed must be single bound object or path"
+    IDS_BOUNDPATHTODISTR "The path to distribute about must be bound"
+    IDS_NOCLOSEDPATHFORRUBBER "Closed path cannot be distributed in rubber mode"
     IDS_INFOBASE "Information"
 END
 

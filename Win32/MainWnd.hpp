@@ -35,7 +35,7 @@ private:
   HWND m_hStatus;
   //HWND m_hProg;
   HWND m_hEdt1, m_hEdt2;
-  HWND m_hLab1;
+  HWND m_hLab1, m_hChB1;
 
   //CDToolbar *m_pToolBar;
   int m_iToolBarHeight;
@@ -134,6 +134,7 @@ private:
   LRESULT EditMoveCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl);
   LRESULT EditRotateCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl);
   LRESULT EditMirrorCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl);
+  LRESULT EditDistributeCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl);
   LRESULT EditLineStyleCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl);
   LRESULT EditToggleSnapCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl);
   LRESULT EditPaperUnitsCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl);

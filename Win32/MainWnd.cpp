@@ -323,6 +323,14 @@ LRESULT CMainWnd::WMCreate(HWND hwnd, LPCREATESTRUCT lpcs)
   SendMessage(m_hLab1, WM_SETFONT, (WPARAM)hFnt, 0);
   SendMessage(m_hLab1, WM_SETTEXT, 0, (LPARAM)buf);
 
+  m_hChB1 = CreateWindowEx(0, L"BUTTON", NULL,
+    WS_CHILD | BS_AUTOCHECKBOX, 340, 4, 160, m_iStatusHeight - 5,
+    m_hStatus, (HMENU)IDC_CHB1, m_hInstance, NULL);
+  LoadString(m_hInstance, IDS_KEEPPATHDIR, buf, 64);
+  SendMessage(m_hChB1, WM_SETFONT, (WPARAM)hFnt, 0);
+  SendMessage(m_hChB1, WM_SETTEXT, 0, (LPARAM)buf);
+  SendMessage(m_hChB1, BM_SETCHECK, (WPARAM)BST_CHECKED, 0);
+
   WNDPROC wPrevProc = (WNDPROC)SetWindowLongPtr(m_hStatus, GWLP_WNDPROC, (LONG_PTR)StatusWndProc);
   SetWindowLongPtr(m_hStatus, GWLP_USERDATA, (LONG_PTR)wPrevProc);
 
@@ -399,6 +407,8 @@ LRESULT CMainWnd::WMCommand(HWND hwnd, WORD wNotifyCode, WORD wID, HWND hwndCtl)
     return EditRotateCmd(hwnd, wNotifyCode, hwndCtl);
   case IDM_EDITMIRROR:
     return EditMirrorCmd(hwnd, wNotifyCode, hwndCtl);
+  case IDM_EDITDISTRIBUTE:
+    return EditDistributeCmd(hwnd, wNotifyCode, hwndCtl);
   case IDM_EDITLINESTYLE:
     return EditLineStyleCmd(hwnd, wNotifyCode, hwndCtl);
   case IDM_EDITTOGGLESNAP:
@@ -1529,6 +1539,8 @@ LRESULT CMainWnd::ModeCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl, int iMode)
 
   ShowWindow(m_hEdt1, SW_HIDE);
   ShowWindow(m_hEdt2, SW_HIDE);
+  ShowWindow(m_hLab1, SW_HIDE);
+  ShowWindow(m_hChB1, SW_HIDE);
 
   RECT rc;
   GetClientRect(hwnd, &rc);
@@ -1741,6 +1753,21 @@ LRESULT CMainWnd::EditMirrorCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl)
   LoadString(m_hInstance, IDS_SELLINETOMIRROR, m_wsStatus2Msg, 128);
   SendMessage(m_hStatus, SB_SETTEXT, 2, (LPARAM)m_wsStatus2Msg);
   m_iToolMode = tolMirror;
+  return 0;
+}
+
+LRESULT CMainWnd::EditDistributeCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl)
+{
+  DrawCross(hwnd);
+  LoadString(m_hInstance, IDS_NUMCOPIES, m_wsStatus2Base, 64);
+  SendMessage(m_hStatus, SB_SETTEXT, 1, (LPARAM)m_wsStatus2Base);
+  ShowWindow(m_hEdt1, SW_SHOW);
+  ShowWindow(m_hChB1, SW_SHOW);
+  SendMessage(m_hEdt1, EM_SETSEL, 0, (LPARAM)-1);
+  SetFocus(m_hEdt1);
+  LoadString(m_hInstance, IDS_SELPATHTODISTRIBUTE, m_wsStatus2Msg, 128);
+  SendMessage(m_hStatus, SB_SETTEXT, 2, (LPARAM)m_wsStatus2Msg);
+  m_iToolMode = tolDistribute;
   return 0;
 }
 
@@ -2334,6 +2361,7 @@ LRESULT CMainWnd::WMLButtonUp(HWND hwnd, WPARAM fwKeys, int xPos, int yPos)
     bool bdValSet = false;
     double dVal = 0;
     int iCop = 0;
+    bool bKeepOrient = true;
     PDObject pSelLine = NULL;
     CDLine cLine;
 
@@ -2347,6 +2375,13 @@ LRESULT CMainWnd::WMLButtonUp(HWND hwnd, WPARAM fwKeys, int xPos, int yPos)
       }
       SendMessage(m_hEdt2, WM_GETTEXT, 64, (LPARAM)buf);
       if(swscanf(buf, L"%d", &i) == 1) iCop = i;
+    }
+    else if(m_iToolMode == tolDistribute)
+    {
+      SendMessage(m_hEdt1, WM_GETTEXT, 64, (LPARAM)buf);
+      if(swscanf(buf, L"%d", &i) == 1) iCop = i;
+      i = SendMessage(m_hChB1, BM_GETCHECK, 0, 0);
+      if(i != BST_CHECKED) bKeepOrient = false;
     }
 
     if(m_iToolMode == tolMove)
@@ -2462,6 +2497,39 @@ LRESULT CMainWnd::WMLButtonUp(HWND hwnd, WPARAM fwKeys, int xPos, int yPos)
           SetTitle(hwnd, false);
           StartNewObject(hwnd);
         }
+      }
+    }
+    else if(m_iToolMode == tolDistribute)
+    {
+      int iRes = m_pDrawObjects->Distribute(iCop, bKeepOrient, m_cLastDrawPt);
+      if(iRes > 0)
+      {
+        wchar_t sCap[64];
+        wchar_t sMsg[128];
+        LoadString(m_hInstance, IDS_WARNING, sCap, 64);
+        switch(iRes)
+        {
+        case 1:
+          LoadString(m_hInstance, IDS_ONEOBJECTFORDISTR, sMsg, 128);
+          break;
+        case 2:
+          LoadString(m_hInstance, IDS_BOUNDOBJFORDIST, sMsg, 128);
+          break;
+        case 3:
+          LoadString(m_hInstance, IDS_BOUNDPATHTODISTR, sMsg, 128);
+          break;
+        case 4:
+          LoadString(m_hInstance, IDS_NOCLOSEDPATHFORRUBBER, sMsg, 128);
+          break;
+        }
+        MessageBox(hwnd, sMsg, sCap, MB_OK | MB_ICONWARNING);
+      }
+      else
+      {
+        m_iToolMode = tolNone;
+        InvalidateRect(hwnd, &rc, FALSE);
+        SetTitle(hwnd, false);
+        StartNewObject(hwnd);
       }
     }
     else if(m_iToolMode == tolDimen)
@@ -3785,6 +3853,7 @@ void CMainWnd::StartNewObject(HWND hWnd)
     ShowWindow(m_hEdt1, SW_HIDE);
     ShowWindow(m_hEdt2, SW_HIDE);
     ShowWindow(m_hLab1, SW_HIDE);
+    ShowWindow(m_hChB1, SW_HIDE);
     SendMessage(m_hStatus, SB_SETTEXT, 2, (LPARAM)L"");
 
     m_pActiveObject = NULL;
