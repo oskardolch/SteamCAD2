@@ -310,6 +310,11 @@ public:
   bool MoveDown();
   bool MoveTop();
   bool MoveBottom();
+  // returns:
+  // 0 - success, 1 - either no path selected or more than 1 path selected,
+  // 2 - unbound object selected, 3 - unbound path selected to distribute about,
+  // 4 - closed object to distribute in rubber mode
+  int Distribute(int iCopies, bool bKeepOrient, CDPoint cPt);
 } *PDataList;
 
 #endif

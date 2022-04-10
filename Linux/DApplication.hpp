@@ -72,6 +72,7 @@ private:
   GtkWidget *m_pStatLab3;
   GtkWidget *m_pSnapEnableMnu;
   GtkWidget *m_pSnapDisableMnu;
+  GtkWidget *m_pStatChB1;
 
   GtkAccelGroup *m_pAccelGroup;
 
@@ -115,6 +116,7 @@ private:
   void EditMoveCmd(GtkWidget *widget);
   void EditRotateCmd(GtkWidget *widget);
   void EditMirrorCmd(GtkWidget *widget);
+  void EditDistributeCmd(GtkWidget *widget);
   void EditLineStyleCmd(GtkWidget *widget);
   void EditToggleSnapCmd(GtkWidget *widget);
   void EditPaperUnitsCmd(GtkWidget *widget, bool bFromAccel);

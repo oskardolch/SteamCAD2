@@ -36,6 +36,7 @@
 #define tolMove 2
 #define tolRotate 3
 #define tolMirror 4
+#define tolDistribute 5
 
 #define tolDimen 11
 
@@ -56,12 +57,13 @@
 #define IDM_EDITMOVE 307
 #define IDM_EDITROTATE 308
 #define IDM_EDITMIRROR 309
-#define IDM_EDITLINESTYLE 310
-#define IDM_EDITTOGGLESNAP 311
-#define IDM_EDITPAPERUNITS 312
-#define IDM_EDITUNDO 313
-#define IDM_EDITREDO 314
-#define IDM_EDITCONFIRM 315
+#define IDM_EDITDISTRIBUTE 310
+#define IDM_EDITLINESTYLE 311
+#define IDM_EDITTOGGLESNAP 312
+#define IDM_EDITPAPERUNITS 313
+#define IDM_EDITUNDO 314
+#define IDM_EDITREDO 315
+#define IDM_EDITCONFIRM 316
 
 #define IDM_VIEWFITALL 401
 #define IDM_VIEWACTSIZE 402

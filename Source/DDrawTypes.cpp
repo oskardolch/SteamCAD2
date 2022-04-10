@@ -8576,3 +8576,8 @@ bool CDataList::MoveBottom()
   return n > 0;
 }
 
+int CDataList::Distribute(int iCopies, bool bKeepOrient, CDPoint cPt)
+{
+  return 0;
+}
+

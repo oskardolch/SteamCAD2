@@ -187,7 +187,7 @@ CDApplication::CDApplication(const char *psConfDir)
   gtk_widget_show(draw);
 
   gtk_widget_set_events(draw, GDK_POINTER_MOTION_MASK | GDK_BUTTON_PRESS_MASK |
-  GDK_BUTTON_RELEASE_MASK | GDK_STRUCTURE_MASK);
+    GDK_BUTTON_RELEASE_MASK | GDK_STRUCTURE_MASK);
   g_signal_connect(G_OBJECT(draw), "expose-event", G_CALLBACK(app_paint), this);
   g_signal_connect(G_OBJECT(draw), "configure-event", G_CALLBACK(app_configure), this);
   g_signal_connect(G_OBJECT(draw), "motion-notify-event", G_CALLBACK(app_mouse_move), this);
@@ -231,6 +231,12 @@ CDApplication::CDApplication(const char *psConfDir)
   gtk_box_pack_start(GTK_BOX(pStatBar), m_pStatEdt2, FALSE, TRUE, 0);
   gtk_widget_set_size_request(m_pStatEdt2, 100, 23);
   //gtk_widget_show(m_pStatEdt2);
+
+  m_pStatChB1 = gtk_check_button_new_with_label("keep path orientation");
+  gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(m_pStatChB1), TRUE);
+  gtk_box_pack_start(GTK_BOX(pStatBar), m_pStatChB1, FALSE, TRUE, 0);
+  gtk_widget_set_size_request(m_pStatChB1, 180, 23);
+  //gtk_widget_show(m_pStatChB1);
 
   m_pStatSep2 = gtk_vseparator_new();
   gtk_box_pack_start(GTK_BOX(pStatBar), m_pStatSep2, FALSE, TRUE, 0);
@@ -341,7 +347,7 @@ CDApplication::CDApplication(const char *psConfDir)
   GtkWidget *edit_menu = (GtkWidget*)g_list_nth(pChilds, 2)->data;
   GtkWidget *edit_top = (GtkWidget*)gtk_menu_item_get_submenu(GTK_MENU_ITEM(edit_menu));
   GList *pMenuChilds = gtk_container_get_children(GTK_CONTAINER(edit_top));
-  GtkWidget *menu_item = (GtkWidget*)g_list_nth(pMenuChilds, 7)->data;
+  GtkWidget *menu_item = (GtkWidget*)g_list_nth(pMenuChilds, 8)->data;
   gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(menu_item), m_bPaperUnits);
 
   edit_menu = (GtkWidget*)g_list_nth(pChilds, 3)->data;
@@ -2263,6 +2269,7 @@ void CDApplication::StartNewObject(gboolean bShowEdit)
     gtk_widget_hide(m_pStatEdt1);
     gtk_widget_hide(m_pStatLab2);
     gtk_widget_hide(m_pStatEdt2);
+    gtk_widget_hide(m_pStatChB1);
     gtk_window_add_accel_group(GTK_WINDOW(m_pMainWnd), m_pAccelGroup);
   }
   m_sStatus3Msg[0] = 0;
@@ -2445,7 +2452,9 @@ void CDApplication::SetMode(int iNewMode, bool bFromAccel)
   if(gtk_widget_get_visible(m_pStatEdt1))
   {
     gtk_widget_hide(m_pStatEdt1);
+    gtk_widget_hide(m_pStatLab2);
     gtk_widget_hide(m_pStatEdt2);
+    gtk_widget_hide(m_pStatChB1);
     gtk_window_add_accel_group(GTK_WINDOW(m_pMainWnd), m_pAccelGroup);
   }
 
@@ -2707,6 +2716,25 @@ void CDApplication::EditMirrorCmd(GtkWidget *widget)
   return;
 }
 
+void CDApplication::EditDistributeCmd(GtkWidget *widget)
+{
+  strcpy(m_sStatus1Base, _("# of copies: "));
+  SetStatusBarMsg(1, m_sStatus1Base);
+  if(!gtk_widget_get_visible(m_pStatEdt1))
+  {
+    gtk_widget_show(m_pStatEdt1);
+    gtk_window_remove_accel_group(GTK_WINDOW(m_pMainWnd), m_pAccelGroup);
+  }
+  gtk_widget_show(m_pStatChB1);
+
+  gtk_widget_grab_focus(m_pStatEdt1);
+
+  strcpy(m_sStatus3Msg, _("Click a path to distribute about"));
+  SetStatusBarMsg(3, m_sStatus3Msg);
+  m_iToolMode = tolDistribute;
+  return;
+}
+
 void CDApplication::EditLineStyleCmd(GtkWidget *widget)
 {
   GtkWidget *draw = GetDrawing();
@@ -2880,6 +2908,9 @@ void CDApplication::EditCommand(int iCmd, bool bFromAccel)
     break;
   case IDM_EDITMIRROR:
     EditMirrorCmd(m_pMainWnd);
+    break;
+  case IDM_EDITDISTRIBUTE:
+    EditDistributeCmd(m_pMainWnd);
     break;
   case IDM_EDITLINESTYLE:
     EditLineStyleCmd(m_pMainWnd);
@@ -3874,6 +3905,7 @@ void CDApplication::MouseLButtonUp(GtkWidget *widget, GdkEventButton *event)
     bool bdValSet = false;
     double dVal = 0;
     int iCop = 0;
+    bool bKeepOrient = true;
     PDObject pSelLine = NULL;
     CDLine cLine;
 
@@ -3885,6 +3917,11 @@ void CDApplication::MouseLButtonUp(GtkWidget *widget, GdkEventButton *event)
         bdValSet = true;
       }
       if(sscanf(gtk_entry_get_text(GTK_ENTRY(m_pStatEdt2)), "%d", &i) == 1) iCop = i;
+    }
+    else if(m_iToolMode < tolDistribute)
+    {
+      if(sscanf(gtk_entry_get_text(GTK_ENTRY(m_pStatEdt1)), "%d", &i) == 1) iCop = i;
+      bKeepOrient = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(m_pStatChB1));
     }
 
     if(m_iToolMode == tolMove)
@@ -4005,6 +4042,49 @@ void CDApplication::MouseLButtonUp(GtkWidget *widget, GdkEventButton *event)
           SetTitle(m_pMainWnd, false);
           StartNewObject(TRUE);
         }
+      }
+    }
+    else if(m_iToolMode == tolDistribute)
+    {
+      int iRes = m_pDrawObjects->Distribute(iCop, bKeepOrient, m_cLastDrawPt);
+      GtkWidget *msg_dlg;
+      switch(iRes)
+      {
+      case 0:
+        m_iToolMode = tolNone;
+        bUpdate = TRUE;
+        gdk_window_invalidate_rect(event->window, NULL, FALSE);
+        SetTitle(m_pMainWnd, false);
+        StartNewObject(TRUE);
+        break;
+      case 1:
+        msg_dlg = gtk_message_dialog_new(GTK_WINDOW(m_pMainWnd), GTK_DIALOG_MODAL,
+          GTK_MESSAGE_WARNING, GTK_BUTTONS_OK,
+          _("Exactly one bound object to be distributed must be selected"));
+        gtk_dialog_run(GTK_DIALOG(msg_dlg));
+        gtk_widget_destroy(msg_dlg);
+        break;
+      case 2:
+        msg_dlg = gtk_message_dialog_new(GTK_WINDOW(m_pMainWnd), GTK_DIALOG_MODAL,
+          GTK_MESSAGE_WARNING, GTK_BUTTONS_OK,
+          _("The object to be distributed must be single bound object or path"));
+        gtk_dialog_run(GTK_DIALOG(msg_dlg));
+        gtk_widget_destroy(msg_dlg);
+        break;
+      case 3:
+        msg_dlg = gtk_message_dialog_new(GTK_WINDOW(m_pMainWnd), GTK_DIALOG_MODAL,
+          GTK_MESSAGE_WARNING, GTK_BUTTONS_OK,
+          _("The path to distribute about must be bound"));
+        gtk_dialog_run(GTK_DIALOG(msg_dlg));
+        gtk_widget_destroy(msg_dlg);
+        break;
+      case 4:
+        msg_dlg = gtk_message_dialog_new(GTK_WINDOW(m_pMainWnd), GTK_DIALOG_MODAL,
+          GTK_MESSAGE_WARNING, GTK_BUTTONS_OK,
+          _("Closed path cannot be distributed in rubber mode"));
+        gtk_dialog_run(GTK_DIALOG(msg_dlg));
+        gtk_widget_destroy(msg_dlg);
+        break;
       }
     }
     else if(m_iToolMode == tolDimen)
