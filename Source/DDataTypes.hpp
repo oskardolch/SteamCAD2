@@ -73,6 +73,7 @@ typedef struct CDLine
 
 typedef struct CDLineStyle
 {
+  bool bShowFill;
   double dWidth;
   double dPercent;
   char cCapType;
@@ -80,7 +81,7 @@ typedef struct CDLineStyle
   int iSegments;
   double dPattern[6];
   unsigned char cColor[4];
-  double dBlend;
+  double dBlur;
   unsigned char cFillColor[4];
 } *PDLineStyle;
 

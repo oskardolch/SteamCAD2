@@ -309,10 +309,12 @@ CDObject::CDObject(CDDrawType iType, double dWidth)
   m_cLines[1].bIsSet = false;
   m_cBounds[0].bIsSet = false;
   m_cBounds[1].bIsSet = false;
+  m_cLineStyle.bShowFill = false;
   m_cLineStyle.dWidth = dWidth;
   m_cLineStyle.dPercent = 0.0;
   m_cLineStyle.cCapType = 1;
   m_cLineStyle.cJoinType = 1;
+  m_cLineStyle.dBlur = 0.0;
   m_cLineStyle.iSegments = 0;
   for(int i = 0; i < 6; i++) m_cLineStyle.dPattern[i] = 0.0;
   m_cLineStyle.cColor[0] = 0;
@@ -323,7 +325,6 @@ CDObject::CDObject(CDDrawType iType, double dWidth)
   m_cLineStyle.cFillColor[1] = 127;
   m_cLineStyle.cFillColor[2] = 127;
   m_cLineStyle.cFillColor[3] = 255;
-  m_cLineStyle.dBlend = 0.0;
   m_dMovedDist = 0.0;
   m_bFirstDimSet = false;
   m_iDimenDir = 0;
@@ -3910,6 +3911,7 @@ void CDObject::SetLineStyle(int iMask, CDLineStyle cStyle)
   {
     for(int i = 0; i < 4; i++) m_cLineStyle.cFillColor[i] = cStyle.cFillColor[i];
   }
+  if(iMask & 128) m_cLineStyle.dBlur = cStyle.dBlur;
 
   if((m_iType > dtPath) && (m_iType < dtGroup))
   {
@@ -3920,6 +3922,8 @@ void CDObject::SetLineStyle(int iMask, CDLineStyle cStyle)
       pObj->SetLineStyle(iMask, cStyle);
     }
   }
+
+  if(m_iType == dtArea) m_cLineStyle.bShowFill = true;
 }
 
 bool CDObject::GetPathRestrictPoint(CDPoint cPt, int iMode, double dRestrictValue, PDPoint pSnapPt)
@@ -3991,7 +3995,7 @@ CDObject* CDObject::Copy()
 
   pRes->SetBound(0, m_cBounds[0]);
   pRes->SetBound(1, m_cBounds[1]);
-  pRes->SetLineStyle(127, m_cLineStyle);
+  pRes->SetLineStyle(255, m_cLineStyle);
 
   double dRef;
   for(int i = 0; i < m_pCrossPoints->GetCount(); i++)
@@ -6479,7 +6483,7 @@ void CDObject::BuildPath(CDObject **ppObjects, PDIntList pPath, PDLineStyle pSty
     m_cLineStyle.dPattern[i] = 0.0;
   for(int i = 0; i < 4; i++)
     m_cLineStyle.cColor[i] = pStyle->cColor[i];
-  //m_cLineStyle.dBlend = pStyle->dBlend;
+  m_cLineStyle.dBlur = pStyle->dBlur;
 
   int n = pPath->GetCount();
   PDPathSeg pSeg;
@@ -7065,7 +7069,7 @@ bool CDObject::ContainsObject(CDObject *pObj)
 
 void CDObject::BuildArea(PDPtrList pBoundaries, PDLineStyle pStyle)
 {
-  SetLineStyle(127, *pStyle);
+  SetLineStyle(255, *pStyle);
   int n = pBoundaries->GetCount();
   if(n < 1) return;
 
@@ -7786,7 +7790,7 @@ int CDataList::GetSelectedLineStyle(PDLineStyle pStyle)
       if(iRes < 0)
       {
         cSt1 = pObj->GetLineStyle();
-        iRes = 63;
+        iRes = 255;
       }
       else
       {
@@ -7798,6 +7802,8 @@ int CDataList::GetSelectedLineStyle(PDLineStyle pStyle)
         if(cSt1.cJoinType != cSt2.cJoinType) iRes &= ~16;
         if(!LSColorMatch(cSt1.cColor, cSt2.cColor)) iRes &= ~32;
         if(!LSColorMatch(cSt1.cFillColor, cSt2.cFillColor)) iRes &= ~64;
+        if(fabs(cSt1.dBlur - cSt2.dBlur) > g_dPrec) iRes &= ~128;
+        if(cSt2.bShowFill) cSt2.bShowFill = true;
       }
     }
   }

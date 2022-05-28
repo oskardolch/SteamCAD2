@@ -174,8 +174,21 @@ INT_PTR CDLineStyleDlg::WMInitDialog(HWND hWnd, HWND hwndFocus, LPARAM lInitPara
   SetButtonColor(wnd, m_rgbCurColor);
 
   wnd = GetDlgItem(hWnd, LSD_BTN_FILLCOLOR);
-  m_rgbCurFillColor = CodeRGBColor(m_pLSR->cLineStyle.cFillColor);
-  SetButtonColor(wnd, m_rgbCurFillColor);
+  if(m_pLSR->cLineStyle.bShowFill)
+  {
+    m_rgbCurFillColor = CodeRGBColor(m_pLSR->cLineStyle.cFillColor);
+    SetButtonColor(wnd, m_rgbCurFillColor);
+  }
+  else
+  {
+    ShowWindow(wnd, SW_HIDE);
+    wnd = GetDlgItem(hWnd, LSD_LBL_FILLCOLOR);
+    ShowWindow(wnd, SW_HIDE);
+  }
+
+  wnd = GetDlgItem(hWnd, LSD_EDT_BLUR);
+  FormatFloatStr(m_pLSR->cLineStyle.dBlur, buf);
+  SendMessage(wnd, WM_SETTEXT, 0, (LPARAM)buf);
 
   wnd = GetDlgItem(hWnd, LSD_LBL_LINEPATUNIT);
   swprintf(buf, L"(%s)", m_pLSR->cUnit.wsAbbrev);
@@ -231,6 +244,8 @@ INT_PTR CDLineStyleDlg::WMCommand(HWND hWnd, WORD wNotifyCode, WORD wID, HWND hw
     return ColorChange(hWnd, wNotifyCode, hwndCtl);
   case LSD_BTN_FILLCOLOR:
     return FillColorChange(hWnd, wNotifyCode, hwndCtl);
+  case LSD_EDT_BLUR:
+    return BlurChange(hWnd, wNotifyCode, hwndCtl);
   case LSD_EDT_LINEPAT1:
   case LSD_EDT_LINEPAT2:
   case LSD_EDT_LINEPAT3:
@@ -341,6 +356,30 @@ INT_PTR CDLineStyleDlg::OKBtnClick(HWND hWnd)
       DecodeRGBColor(m_rgbCurFillColor, f, m_pLSR->cLineStyle.cFillColor);
       m_pLSR->bFillColorSet = true;
     }
+  }
+
+  if(m_pLSR->bBlurChanged)
+  {
+    wnd = GetDlgItem(hWnd, LSD_EDT_BLUR);
+    SendMessage(wnd, WM_GETTEXT, 64, (LPARAM)buf);
+    if(swscanf(buf, L"%f", &f) == 1)
+    {
+      if(fabs(f) < 100.0001)
+      {
+        m_pLSR->cLineStyle.dBlur = f;
+        m_pLSR->bBlurSet = true;
+      }
+      else
+      {
+        LoadString(m_hInstance, IDS_ERRORBASE, buf, 64);
+        LoadString(m_hInstance, IDS_BLURTOOBIG, sMsg, 256);
+        MessageBox(hWnd, sMsg, buf, MB_ICONERROR | MB_OK);
+        SendMessage(wnd, EM_SETSEL, 0, (LPARAM)-1);
+        SetFocus(wnd);
+        return 0;
+      }
+    }
+    else m_pLSR->bBlurSet = false;
   }
 
   if(m_pLSR->bPatChanged)
@@ -467,6 +506,13 @@ INT_PTR CDLineStyleDlg::FillColorChange(HWND hWnd, WORD wNotifyCode, HWND hwndCt
       m_pLSR->bFillColorChanged = true;
     }
   }
+  return TRUE;
+}
+
+INT_PTR CDLineStyleDlg::BlurChange(HWND hWnd, WORD wNotifyCode, HWND hwndCtl)
+{
+  if(m_bSettingUp) return 0;
+  if(wNotifyCode == EN_CHANGE) m_pLSR->bBlurChanged = true;
   return TRUE;
 }
 

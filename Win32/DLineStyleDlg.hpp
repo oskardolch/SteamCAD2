@@ -18,6 +18,7 @@ typedef struct CDLineStyleRec
   bool bJoinSet;
   bool bColorSet;
   bool bFillColorSet;
+  bool bBlurSet;
   bool bWidthChanged;
   bool bExcChanged;
   bool bPatChanged;
@@ -25,6 +26,7 @@ typedef struct CDLineStyleRec
   bool bJoinChanged;
   bool bColorChanged;
   bool bFillColorChanged;
+  bool bBlurChanged;
 } *PDLineStyleRec;
 
 typedef class CDLineStyleDlg
@@ -48,6 +50,7 @@ private:
   INT_PTR TranslucencyChange(HWND hWnd, WORD wNotifyCode, HWND hwndCtl);
   INT_PTR ColorChange(HWND hWnd, WORD wNotifyCode, HWND hwndCtl);
   INT_PTR FillColorChange(HWND hWnd, WORD wNotifyCode, HWND hwndCtl);
+  INT_PTR BlurChange(HWND hWnd, WORD wNotifyCode, HWND hwndCtl);
   INT_PTR LinePatChange(HWND hWnd, WORD wNotifyCode, int iSeg, HWND hwndCtl);
   void SetButtonColor(HWND hWnd, COLORREF cColor);
 public:

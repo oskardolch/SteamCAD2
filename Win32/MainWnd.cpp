@@ -1787,6 +1787,7 @@ LRESULT CMainWnd::EditLineStyleCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl)
     cLSRec.bJoinSet = (iMask & 16);
     cLSRec.bColorSet = (iMask & 32);
     cLSRec.bFillColorSet = (iMask & 64);
+    cLSRec.bBlurSet = (iMask & 128);
     cLSRec.bWidthChanged = false;
     cLSRec.bExcChanged = false;
     cLSRec.bPatChanged = false;
@@ -1794,6 +1795,7 @@ LRESULT CMainWnd::EditLineStyleCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl)
     cLSRec.bJoinChanged = false;
     cLSRec.bColorChanged = false;
     cLSRec.bFillColorChanged = false;
+    cLSRec.bBlurChanged = false;
     if(m_pLineStyleDlg->ShowDialog(hwnd, &cLSRec) == IDOK)
     {
       iMask = 0;
@@ -1804,6 +1806,7 @@ LRESULT CMainWnd::EditLineStyleCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl)
       if(cLSRec.bJoinSet && cLSRec.bJoinChanged) iMask |= 16;
       if(cLSRec.bColorSet && cLSRec.bColorChanged) iMask |= 32;
       if(cLSRec.bFillColorSet && cLSRec.bFillColorChanged) iMask |= 64;
+      if(cLSRec.bBlurSet && cLSRec.bBlurChanged) iMask |= 128;
       if(m_pDrawObjects->SetSelectedLineStyle(iMask, &cLSRec.cLineStyle))
       {
         RECT rc;
