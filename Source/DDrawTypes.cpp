@@ -1266,6 +1266,7 @@ int CDObject::AddLineIntersects(CDPoint cPt1, CDPoint cPt2, double dOffset, PDRe
     break;
   case dtLogSpiral:
   case dtArchSpiral:
+  case dtRect:
     break;
   case dtPath:
     iRes = AddSubIntersects(cPt1, cPt2, dOffset, pBounds);
@@ -1607,6 +1608,7 @@ void CDObject::AddExtraPrimitives(PDRect pRect, PDPrimObject pPrimList)
   case dtEvolvent:
   case dtLogSpiral:
   case dtArchSpiral:
+  case dtRect:
   case dtPath:
   case dtBorder:
   case dtArea:
@@ -3782,6 +3784,7 @@ double CDObject::GetRawDistFromPt(CDPoint cPt, CDPoint cRefPt, int iSearchMask, 
     break;
   case dtLogSpiral:
   case dtArchSpiral:
+  case dtRect:
     break;
   case dtPath:
     dRes = GetPathDistFromPt(cPt, cRefPt, iSearchMask & 1, pPtX);

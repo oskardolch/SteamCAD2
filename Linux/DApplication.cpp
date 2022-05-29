@@ -2413,6 +2413,19 @@ void CDApplication::StartNewObject(gboolean bShowEdit)
       gtk_widget_destroy(msg_dlg);
     }
     break;
+  case modRect:
+    strcpy(m_sStatus1Base, _("Width: "));
+    m_pActiveObject = new CDObject(dtRect, m_cFSR.dDefLineWidth);
+    if(bShowEdit)
+    {
+      if(!gtk_widget_get_visible(m_pStatEdt1))
+      {
+        gtk_widget_show(m_pStatEdt1);
+        gtk_window_remove_accel_group(GTK_WINDOW(m_pMainWnd), m_pAccelGroup);
+      }
+      gtk_widget_grab_focus(m_pStatEdt1);
+    }
+    break;
   }
 
   if(m_iToolMode == tolRound)
