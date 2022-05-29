@@ -76,6 +76,18 @@ static void edit_distribute_accel(PDApplication pApp)
   return;
 }
 
+static void edit_buffer_click(PDApplication pApp)
+{
+  pApp->EditCommand(IDM_EDITBUFFER, false);
+  return;
+}
+
+static void edit_buffer_accel(PDApplication pApp)
+{
+  pApp->EditCommand(IDM_EDITBUFFER, true);
+  return;
+}
+
 static void edit_lnstyle_click(PDApplication pApp)
 {
   pApp->EditCommand(IDM_EDITLINESTYLE, false);
@@ -97,6 +109,42 @@ static void edit_tglsnap_click(PDApplication pApp)
 static void edit_tglsnap_accel(PDApplication pApp)
 {
   pApp->EditCommand(IDM_EDITTOGGLESNAP, true);
+  return;
+}
+
+static void edit_copy_click(PDApplication pApp)
+{
+  pApp->EditCommand(IDM_EDITCOPY, false);
+  return;
+}
+
+static void edit_copy_accel(PDApplication pApp)
+{
+  pApp->EditCommand(IDM_EDITCOPY, true);
+  return;
+}
+
+static void edit_cut_click(PDApplication pApp)
+{
+  pApp->EditCommand(IDM_EDITCUT, false);
+  return;
+}
+
+static void edit_cut_accel(PDApplication pApp)
+{
+  pApp->EditCommand(IDM_EDITCUT, true);
+  return;
+}
+
+static void edit_paste_click(PDApplication pApp)
+{
+  pApp->EditCommand(IDM_EDITPASTE, false);
+  return;
+}
+
+static void edit_paste_accel(PDApplication pApp)
+{
+  pApp->EditCommand(IDM_EDITPASTE, true);
   return;
 }
 
@@ -203,6 +251,16 @@ void CreateEditMenu(void *pPtr, GtkMenuShell *pMenuBar, GtkAccelGroup *pAccel, G
   g_signal_connect_swapped(G_OBJECT(menu_item), "activate", G_CALLBACK(edit_distribute_click), pApp);
   gtk_widget_show(menu_item);
 
+  menu_item = gtk_menu_item_new_with_mnemonic(_("_Buffer"));
+  gtk_menu_shell_append(GTK_MENU_SHELL(menu), menu_item);
+
+  pClos = g_cclosure_new_swap(G_CALLBACK(edit_buffer_accel), pApp, NULL);
+  gtk_accel_group_connect(pAccel, GDK_F, GDK_MOD1_MASK, GTK_ACCEL_MASK, pClos);
+  menu_label = gtk_bin_get_child(GTK_BIN(menu_item));
+  gtk_accel_label_set_accel_closure(GTK_ACCEL_LABEL(menu_label), pClos);
+  g_signal_connect_swapped(G_OBJECT(menu_item), "activate", G_CALLBACK(edit_buffer_click), pApp);
+  gtk_widget_show(menu_item);
+
   menu_item = gtk_menu_item_new_with_mnemonic(_("Line _style"));
   gtk_menu_shell_append(GTK_MENU_SHELL(menu), menu_item);
 
@@ -211,6 +269,40 @@ void CreateEditMenu(void *pPtr, GtkMenuShell *pMenuBar, GtkAccelGroup *pAccel, G
   menu_label = gtk_bin_get_child(GTK_BIN(menu_item));
   gtk_accel_label_set_accel_closure(GTK_ACCEL_LABEL(menu_label), pClos);
   g_signal_connect_swapped(G_OBJECT(menu_item), "activate", G_CALLBACK(edit_lnstyle_click), pApp);
+  gtk_widget_show(menu_item);
+
+  menu_item = gtk_separator_menu_item_new();
+  gtk_menu_shell_append(GTK_MENU_SHELL(menu), menu_item);
+  gtk_widget_show(menu_item);
+
+  menu_item = gtk_menu_item_new_with_mnemonic(_("Co_py"));
+  gtk_menu_shell_append(GTK_MENU_SHELL(menu), menu_item);
+
+  pClos = g_cclosure_new_swap(G_CALLBACK(edit_copy_accel), pApp, NULL);
+  gtk_accel_group_connect(pAccel, GDK_C, GDK_MOD1_MASK, GTK_ACCEL_MASK, pClos);
+  menu_label = gtk_bin_get_child(GTK_BIN(menu_item));
+  gtk_accel_label_set_accel_closure(GTK_ACCEL_LABEL(menu_label), pClos);
+  g_signal_connect_swapped(G_OBJECT(menu_item), "activate", G_CALLBACK(edit_copy_click), pApp);
+  gtk_widget_show(menu_item);
+
+  menu_item = gtk_menu_item_new_with_mnemonic(_("C_ut"));
+  gtk_menu_shell_append(GTK_MENU_SHELL(menu), menu_item);
+
+  pClos = g_cclosure_new_swap(G_CALLBACK(edit_cut_accel), pApp, NULL);
+  gtk_accel_group_connect(pAccel, GDK_X, GDK_CONTROL_MASK, GTK_ACCEL_MASK, pClos);
+  menu_label = gtk_bin_get_child(GTK_BIN(menu_item));
+  gtk_accel_label_set_accel_closure(GTK_ACCEL_LABEL(menu_label), pClos);
+  g_signal_connect_swapped(G_OBJECT(menu_item), "activate", G_CALLBACK(edit_cut_click), pApp);
+  gtk_widget_show(menu_item);
+
+  menu_item = gtk_menu_item_new_with_mnemonic(_("_Paste"));
+  gtk_menu_shell_append(GTK_MENU_SHELL(menu), menu_item);
+
+  pClos = g_cclosure_new_swap(G_CALLBACK(edit_paste_accel), pApp, NULL);
+  gtk_accel_group_connect(pAccel, GDK_V, GDK_CONTROL_MASK, GTK_ACCEL_MASK, pClos);
+  menu_label = gtk_bin_get_child(GTK_BIN(menu_item));
+  gtk_accel_label_set_accel_closure(GTK_ACCEL_LABEL(menu_label), pClos);
+  g_signal_connect_swapped(G_OBJECT(menu_item), "activate", G_CALLBACK(edit_paste_click), pApp);
   gtk_widget_show(menu_item);
 
   menu_item = gtk_separator_menu_item_new();

@@ -17,6 +17,7 @@ typedef struct CDLineStyleRec
   gboolean bJoinSet;
   gboolean bColorSet;
   gboolean bFillColorSet;
+  gboolean bBlurSet;
   gboolean bWidthChanged;
   gboolean bExcChanged;
   gboolean bPatChanged;
@@ -24,6 +25,7 @@ typedef struct CDLineStyleRec
   gboolean bJoinChanged;
   gboolean bColorChanged;
   gboolean bFillColorChanged;
+  gboolean bBlurChanged;
 } *PDLineStyleRec;
 
 typedef class CDLineStyleDlg
@@ -40,6 +42,7 @@ private:
   GtkWidget *m_pDlg;
   GtkWidget *m_pLineWidthEdt;
   GtkWidget *m_pEccentEdt;
+  GtkWidget *m_pBlurEdt;
   GtkWidget *m_pLineCapCB;
   GtkWidget *m_pLineJoinCB;
   GtkWidget *m_pLineColorBtn;
@@ -55,6 +58,7 @@ public:
   gboolean Configure(GtkWidget *widget, GdkEvent *event);
   void LineWidthChange(GtkEntry *entry);
   void LineExcChange(GtkEntry *entry);
+  void LineBlurChange(GtkEntry *entry);
   void LinePatChange(GtkEntry *entry);
   void LineCapChange(GtkComboBox *entry);
   void LineJoinChange(GtkComboBox *entry);

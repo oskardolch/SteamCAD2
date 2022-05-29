@@ -26,6 +26,11 @@ void lsd_excedt_changed(GtkEntry *entry, PDLineStyleDlg pApp)
   pApp->LineExcChange(entry);
 }
 
+void lsd_bluredt_changed(GtkEntry *entry, PDLineStyleDlg pApp)
+{
+  pApp->LineBlurChange(entry);
+}
+
 void lsd_linecap_changed(GtkComboBox *entry, PDLineStyleDlg pApp)
 {
   pApp->LineCapChange(entry);
@@ -162,6 +167,27 @@ gboolean CDLineStyleDlg::ShowDialog(GtkWidget *pWndParent, PDLineStyleRec pLSR)
   gtk_table_attach_defaults(GTK_TABLE(pTbl), m_pLineJoinCB, 9, 12, 1, 2);
   gtk_widget_show(m_pLineJoinCB);
 
+  pLab = gtk_label_new(_("Blur:"));
+  gtk_misc_set_alignment(GTK_MISC(pLab), 0, 0.5);
+  gtk_table_attach_defaults(GTK_TABLE(pTbl), pLab, 0, 3, 2, 3);
+  gtk_widget_show(pLab);
+
+  m_pBlurEdt = gtk_entry_new();
+  gtk_widget_set_size_request(m_pBlurEdt, 50, -1);
+  gtk_entry_set_max_length(GTK_ENTRY(m_pBlurEdt), 32);
+  gtk_entry_set_activates_default(GTK_ENTRY(m_pBlurEdt), TRUE);
+  gtk_table_attach_defaults(GTK_TABLE(pTbl), m_pBlurEdt, 3, 5, 2, 3);
+  g_signal_connect(G_OBJECT(m_pBlurEdt), "changed", G_CALLBACK(lsd_bluredt_changed), this);
+  gtk_widget_show(m_pBlurEdt);
+
+  FormatFloatStr(m_pLSR->cLineStyle.dBlur, buf);
+  gtk_entry_set_text(GTK_ENTRY(m_pBlurEdt), buf);
+
+  pLab = gtk_label_new(_("%"));
+  gtk_misc_set_alignment(GTK_MISC(pLab), 0, 0.5);
+  gtk_table_attach_defaults(GTK_TABLE(pTbl), pLab, 5, 6, 2, 3);
+  gtk_widget_show(pLab);
+
   pLab = gtk_label_new(_("Line pattern:"));
   gtk_misc_set_alignment(GTK_MISC(pLab), 0, 1);
   gtk_table_attach_defaults(GTK_TABLE(pTbl), pLab, 0, 3, 3, 4);
@@ -210,7 +236,7 @@ gboolean CDLineStyleDlg::ShowDialog(GtkWidget *pWndParent, PDLineStyleRec pLSR)
   pLab = gtk_label_new(_("Fill Color:"));
   gtk_misc_set_alignment(GTK_MISC(pLab), 0, 0.5);
   gtk_table_attach_defaults(GTK_TABLE(pTbl), pLab, 6, 9, 3, 4);
-  gtk_widget_show(pLab);
+  if(m_pLSR->cLineStyle.bShowFill) gtk_widget_show(pLab);
 
   GdkColor cFillCol = {0,
     (guint16)round(std::numeric_limits<guint16>::max()*((double)m_pLSR->cLineStyle.cFillColor[0]/255.0)),
@@ -222,7 +248,7 @@ gboolean CDLineStyleDlg::ShowDialog(GtkWidget *pWndParent, PDLineStyleRec pLSR)
   gtk_color_button_set_alpha(GTK_COLOR_BUTTON(m_pFillColorBtn), iAlpha);
   g_signal_connect(G_OBJECT(m_pFillColorBtn), "color-set", G_CALLBACK(lsd_fill_color_changed), this);
   gtk_table_attach_defaults(GTK_TABLE(pTbl), m_pFillColorBtn, 9, 12, 3, 4);
-  gtk_widget_show(m_pFillColorBtn);
+  if(m_pLSR->cLineStyle.bShowFill) gtk_widget_show(m_pFillColorBtn);
 
   gtk_widget_grab_default(pBtn);
   gtk_window_set_default(GTK_WINDOW(m_pDlg), pBtn);
@@ -303,6 +329,28 @@ void CDLineStyleDlg::OKBtnClick(GtkButton *button)
       }
     }
     else m_pLSR->bExcSet = false;
+  }
+
+  if(m_pLSR->bBlurChanged)
+  {
+    if(sscanf(gtk_entry_get_text(GTK_ENTRY(m_pBlurEdt)), "%f", &f) == 1)
+    {
+      if(fabs(f) < 100.0001)
+      {
+        m_pLSR->cLineStyle.dBlur = f;
+        m_pLSR->bBlurSet = true;
+      }
+      else
+      {
+        msg_dlg = gtk_message_dialog_new(GTK_WINDOW(m_pDlg), GTK_DIALOG_MODAL,
+        GTK_MESSAGE_WARNING, GTK_BUTTONS_OK, _("Blur magnitude must not exceed 100"));
+        gtk_dialog_run(GTK_DIALOG(msg_dlg));
+        gtk_widget_destroy(msg_dlg);
+        gtk_widget_grab_focus(m_pEccentEdt);
+        return;
+      }
+    }
+    else m_pLSR->bBlurSet = false;
   }
 
   if(m_pLSR->bPatChanged)
@@ -412,6 +460,12 @@ void CDLineStyleDlg::LineExcChange(GtkEntry *entry)
 {
   if(m_bSettingUp) return;
   m_pLSR->bExcChanged = TRUE;
+}
+
+void CDLineStyleDlg::LineBlurChange(GtkEntry *entry)
+{
+  if(m_bSettingUp) return;
+  m_pLSR->bBlurChanged = TRUE;
 }
 
 void CDLineStyleDlg::LinePatChange(GtkEntry *entry)

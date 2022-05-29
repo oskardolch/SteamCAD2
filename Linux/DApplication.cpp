@@ -347,7 +347,7 @@ CDApplication::CDApplication(const char *psConfDir)
   GtkWidget *edit_menu = (GtkWidget*)g_list_nth(pChilds, 2)->data;
   GtkWidget *edit_top = (GtkWidget*)gtk_menu_item_get_submenu(GTK_MENU_ITEM(edit_menu));
   GList *pMenuChilds = gtk_container_get_children(GTK_CONTAINER(edit_top));
-  GtkWidget *menu_item = (GtkWidget*)g_list_nth(pMenuChilds, 8)->data;
+  GtkWidget *menu_item = (GtkWidget*)g_list_nth(pMenuChilds, 13)->data;
   gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(menu_item), m_bPaperUnits);
 
   edit_menu = (GtkWidget*)g_list_nth(pChilds, 3)->data;
@@ -2756,6 +2756,7 @@ void CDApplication::EditLineStyleCmd(GtkWidget *widget)
     cLSRec.bJoinSet = (iMask & 16);
     cLSRec.bColorSet = (iMask & 32);
     cLSRec.bFillColorSet = (iMask & 64);
+    cLSRec.bBlurSet = (iMask & 128);
     cLSRec.bWidthChanged = FALSE;
     cLSRec.bExcChanged = FALSE;
     cLSRec.bPatChanged = FALSE;
@@ -2763,6 +2764,7 @@ void CDApplication::EditLineStyleCmd(GtkWidget *widget)
     cLSRec.bJoinChanged = FALSE;
     cLSRec.bColorChanged = FALSE;
     cLSRec.bFillColorChanged = FALSE;
+    cLSRec.bBlurChanged = FALSE;
     if(m_pLineStyleDlg->ShowDialog(widget, &cLSRec))
     {
       iMask = 0;
@@ -2773,6 +2775,7 @@ void CDApplication::EditLineStyleCmd(GtkWidget *widget)
       if(cLSRec.bJoinSet && cLSRec.bJoinChanged) iMask |= 16;
       if(cLSRec.bColorSet && cLSRec.bColorChanged) iMask |= 32;
       if(cLSRec.bFillColorSet && cLSRec.bFillColorChanged) iMask |= 64;
+      if(cLSRec.bBlurSet && cLSRec.bBlurChanged) iMask |= 128;
       if(m_pDrawObjects->SetSelectedLineStyle(iMask, &cLSRec.cLineStyle))
       {
         /*cdr.cPt1.x = -m_cViewOrigin.x/m_dUnitScale;
@@ -2827,7 +2830,7 @@ void CDApplication::EditPaperUnitsCmd(GtkWidget *widget, bool bFromAccel)
     GtkWidget *edit_menu = (GtkWidget*)g_list_nth(pChilds, 2)->data;
     GtkWidget *edit_top = (GtkWidget*)gtk_menu_item_get_submenu(GTK_MENU_ITEM(edit_menu));
     pChilds = gtk_container_get_children(GTK_CONTAINER(edit_top));
-    GtkWidget *menu_item = (GtkWidget*)g_list_nth(pChilds, 7)->data;
+    GtkWidget *menu_item = (GtkWidget*)g_list_nth(pChilds, 13)->data;
     gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(menu_item), !m_bPaperUnits);
   }
   else m_bPaperUnits = !m_bPaperUnits;
@@ -3918,7 +3921,7 @@ void CDApplication::MouseLButtonUp(GtkWidget *widget, GdkEventButton *event)
       }
       if(sscanf(gtk_entry_get_text(GTK_ENTRY(m_pStatEdt2)), "%d", &i) == 1) iCop = i;
     }
-    else if(m_iToolMode < tolDistribute)
+    else if(m_iToolMode == tolDistribute)
     {
       if(sscanf(gtk_entry_get_text(GTK_ENTRY(m_pStatEdt1)), "%d", &i) == 1) iCop = i;
       bKeepOrient = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(m_pStatChB1));
