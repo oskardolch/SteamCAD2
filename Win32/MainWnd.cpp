@@ -3105,7 +3105,9 @@ void CMainWnd::DrawObject(HWND hWnd, Graphics *graphics, PDObject pObj, int iMod
   if(cStyle.cJoinType == 2) lj = LineJoinBevel;
   else if(cStyle.cJoinType == 0) lj = LineJoinMiter;
 
-  Pen hPen(Color(EncodeColor(dwColor)), rWidth);
+  Color hLineCol(EncodeColor(dwColor));
+
+  Pen hPen(hLineCol, rWidth);
   hPen.SetLineCap(lc, lc, dc);
   hPen.SetLineJoin(lj);
 
@@ -3113,6 +3115,23 @@ void CMainWnd::DrawObject(HWND hWnd, Graphics *graphics, PDObject pObj, int iMod
   Pen hCentPen(Color(EncodeColor(0xFF888888)), 0.0);
   GraphicsPath hPath(FillModeWinding);
   SolidBrush hBrush(Color(EncodeColor(dwFillColor)));
+
+  // this does not work
+  /*if((cStyle.dBlur > g_dPrec) && (iMode < 1) && !bSel)
+  {
+    GraphicsPath hBrPath;
+    hBrPath.AddEllipse(0.0, 0.0, rWidth, rWidth);
+    PathGradientBrush pthGrBrush(&hBrPath);
+    pthGrBrush.SetCenterColor(hLineCol);
+
+    // Set the color along the entire boundary of the path to aqua.
+    //Color colors[] = {Color(cStyle.cColor[0], cStyle.cColor[1], cStyle.cColor[2], 0)};
+    Color colors[] = {hLineCol};
+    int colCnt = 1;
+    pthGrBrush.SetSurroundColors(colors, &colCnt);
+
+    hPen.SetBrush(&pthGrBrush);
+  }*/
 
   CDPrimitive cPrim;
   PDDimension pDim;

@@ -115,15 +115,17 @@ BEGIN
     END
     POPUP "&Edit"
     BEGIN
-        //MENUITEM "&Copy\tCtrl+C", IDM_EDITCOPY
-        //MENUITEM "Cu&t\tCtrl+X", IDM_EDITCUT
-        //MENUITEM "&Paste\tCtrl+V", IDM_EDITPASTE
         MENUITEM "&Copy paralel\tCtrl+C", IDM_EDITCOPYPAR
         MENUITEM "&Move\tAlt+M", IDM_EDITMOVE
         MENUITEM "&Rotate\tCtrl+R", IDM_EDITROTATE
         MENUITEM "M&irror\tAlt+I", IDM_EDITMIRROR
         MENUITEM "&Distribute\tCtrl+D", IDM_EDITDISTRIBUTE
+        MENUITEM "Create &Buffer\tAlt+F", IDM_EDITBUFFER
         MENUITEM "Line &style\tAlt+S", IDM_EDITLINESTYLE
+        MENUITEM SEPARATOR
+        MENUITEM "&Copy\tAlt+C", IDM_EDITCOPY
+        MENUITEM "Cu&t\tCtrl+X", IDM_EDITCUT
+        MENUITEM "&Paste\tCtrl+V", IDM_EDITPASTE
         MENUITEM SEPARATOR
         MENUITEM "Toggle s&nap\tAlt+N", IDM_EDITTOGGLESNAP
         MENUITEM "Paper units\tCtrl+P", IDM_EDITPAPERUNITS
@@ -196,9 +198,9 @@ BEGIN
     "^N", IDM_FILENEW
     "^O", IDM_FILEOPEN
     "^S", IDM_FILESAVE
-    //"^C", IDM_EDITCOPY
-    //"^X", IDM_EDITCUT
-    //"^V", IDM_EDITPASTE
+    "C", IDM_EDITCOPY, ALT, VIRTKEY
+    "^X", IDM_EDITCUT
+    "^V", IDM_EDITPASTE
     "^C", IDM_EDITCOPYPAR
     "^M", IDM_EDITMOVE
     "M", IDM_EDITMOVE, ALT, VIRTKEY
@@ -206,6 +208,7 @@ BEGIN
     "^I", IDM_EDITMIRROR
     "I", IDM_EDITMIRROR, ALT, VIRTKEY
     "^D", IDM_EDITDISTRIBUTE
+    "F", IDM_EDITBUFFER, ALT, VIRTKEY
     "S", IDM_EDITLINESTYLE, ALT, VIRTKEY
     "^Z", IDM_EDITUNDO
     "Z", IDM_EDITREDO, CONTROL, SHIFT, VIRTKEY
