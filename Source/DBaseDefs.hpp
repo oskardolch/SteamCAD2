@@ -19,17 +19,19 @@
 #define modParabola 6
 #define modSpline 7
 #define modEvolvent 8
+#define modRect 50
 
 #define IDM_MODESELECT 201
 #define IDM_MODELINE 202
-#define IDM_MODECIRCLE 203
-#define IDM_MODEELLIPSE 204
-#define IDM_MODEARCELLIPSE 205
-#define IDM_MODEHYPERBOLA 206
-#define IDM_MODEPARABOLA 207
-#define IDM_MODESPLINE 208
-#define IDM_MODEEVEOLVENT 209
-#define IDM_MODEDIMEN 210
+#define IDM_MODERECT 203
+#define IDM_MODECIRCLE 204
+#define IDM_MODEELLIPSE 205
+#define IDM_MODEARCELLIPSE 206
+#define IDM_MODEHYPERBOLA 207
+#define IDM_MODEPARABOLA 208
+#define IDM_MODESPLINE 209
+#define IDM_MODEEVEOLVENT 210
+#define IDM_MODEDIMEN 211
 
 #define tolNone 0
 #define tolCopyPar 1

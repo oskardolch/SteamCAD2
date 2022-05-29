@@ -19,6 +19,7 @@ enum CDDrawType
   dtEvolvent = 8,
   dtLogSpiral = 9,
   dtArchSpiral = 10,
+  dtRect = 11,
   dtPath = 100, // contains consecutive PDPathSeg objects
   //dtBorderPath = 101, // border path is a closed path solely constructed to form areas. It does not release its children
   //dtBorder = 110, // border should only contain border paths in m_pSubObjects, 1st path is the boundary, the rest are holes

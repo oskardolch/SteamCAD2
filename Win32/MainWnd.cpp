@@ -373,6 +373,8 @@ LRESULT CMainWnd::WMCommand(HWND hwnd, WORD wNotifyCode, WORD wID, HWND hwndCtl)
     return ModeCmd(hwnd, wNotifyCode, hwndCtl, modSelect);
   case IDM_MODELINE:
     return ModeCmd(hwnd, wNotifyCode, hwndCtl, modLine);
+  case IDM_MODERECT:
+    return ModeCmd(hwnd, wNotifyCode, hwndCtl, modRect);
   case IDM_MODECIRCLE:
     return ModeCmd(hwnd, wNotifyCode, hwndCtl, modCircle);
   case IDM_MODEELLIPSE:
@@ -1488,6 +1490,8 @@ UINT MapDrawModeToMenu(int iDrawMode)
     return IDM_MODESPLINE;
   case modEvolvent:
     return IDM_MODEEVEOLVENT;
+  case modRect:
+    return IDM_MODERECT;
   default:
     return IDM_MODESELECT;
   }
@@ -3995,6 +3999,16 @@ void CMainWnd::StartNewObject(HWND hWnd)
             LoadString(m_hInstance, IDS_ONECIRCFOREVOLV, sMsg, 128);
             MessageBox(hWnd, sMsg, sCap, MB_OK | MB_ICONWARNING);
         }
+        break;
+    case modRect:
+        LoadString(m_hInstance, IDS_WIDTH, m_wsStatus2Base, 64);
+        //LoadString(m_hInstance, IDS_HEIGHT, m_wsStatus3Base, 64);
+        m_pActiveObject = new CDObject(dtRect, m_cFSR.dDefLineWidth);
+        ShowWindow(m_hEdt1, SW_SHOW);
+        SendMessage(m_hEdt1, EM_SETSEL, 0, (LPARAM)-1);
+        ShowWindow(m_hEdt2, SW_SHOW);
+        SendMessage(m_hEdt2, EM_SETSEL, 0, (LPARAM)-1);
+        SetFocus(m_hEdt1);
         break;
     }
 

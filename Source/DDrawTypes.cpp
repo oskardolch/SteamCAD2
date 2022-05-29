@@ -10,6 +10,7 @@
 #include "DParabola.hpp"
 #include "DSpline.hpp"
 #include "DEvolv.hpp"
+#include "DRect.hpp"
 #include <malloc.h>
 #include <string.h>
 #include <algorithm>
@@ -459,6 +460,9 @@ bool CDObject::AddPoint(double x, double y, char iCtrl, double dRestrictVal)
     break;
   case dtEvolvent:
     bRes = AddEvolvPoint(x, y, iCtrl, m_pInputPoints, iInputLines);
+    break;
+  case dtRect:
+    bRes = AddRectPoint(x, y, iCtrl, m_pInputPoints);
     break;
   case dtLogSpiral:
   case dtArchSpiral:
