@@ -106,6 +106,7 @@ BEGIN
     BEGIN
         MENUITEM "&Select\tEsc", IDM_MODESELECT
         MENUITEM "&Line\tL", IDM_MODELINE
+        MENUITEM "&Rectangle\tR", IDM_MODERECT
         MENUITEM "&Circle\tC", IDM_MODECIRCLE
         MENUITEM "&Ellipse\tE", IDM_MODEELLIPSE
         MENUITEM "&Arc Ellipse\tA", IDM_MODEARCELLIPSE
