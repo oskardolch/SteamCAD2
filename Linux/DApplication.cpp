@@ -2321,6 +2321,19 @@ void CDApplication::StartNewObject(gboolean bShowEdit)
       gtk_widget_grab_focus(m_pStatEdt1);
     }
     break;
+  case modRectangle:
+    strcpy(m_sStatus1Base, _("Width: "));
+    m_pActiveObject = new CDObject(dtRect, m_cFSR.dDefLineWidth);
+    if(bShowEdit)
+    {
+      if(!gtk_widget_get_visible(m_pStatEdt1))
+      {
+        gtk_widget_show(m_pStatEdt1);
+        gtk_window_remove_accel_group(GTK_WINDOW(m_pMainWnd), m_pAccelGroup);
+      }
+      gtk_widget_grab_focus(m_pStatEdt1);
+    }
+    break;
   case modCircle:
     strcpy(m_sStatus1Base, _("Radius: "));
     m_pActiveObject = new CDObject(dtCircle, m_cFSR.dDefLineWidth);
@@ -2411,19 +2424,6 @@ void CDApplication::StartNewObject(gboolean bShowEdit)
         _("Exactly one circle must be selected to insert an evolventa"));
       gtk_dialog_run(GTK_DIALOG(msg_dlg));
       gtk_widget_destroy(msg_dlg);
-    }
-    break;
-  case modRect:
-    strcpy(m_sStatus1Base, _("Width: "));
-    m_pActiveObject = new CDObject(dtRect, m_cFSR.dDefLineWidth);
-    if(bShowEdit)
-    {
-      if(!gtk_widget_get_visible(m_pStatEdt1))
-      {
-        gtk_widget_show(m_pStatEdt1);
-        gtk_window_remove_accel_group(GTK_WINDOW(m_pMainWnd), m_pAccelGroup);
-      }
-      gtk_widget_grab_focus(m_pStatEdt1);
     }
     break;
   }
@@ -2592,6 +2592,9 @@ void CDApplication::ModeCommand(int iCmd, bool bFromAccel)
     break;
   case IDM_MODELINE:
     SetMode(modLine, bFromAccel);
+    break;
+  case IDM_MODERECT:
+    SetMode(modRectangle, bFromAccel);
     break;
   case IDM_MODECIRCLE:
     SetMode(modCircle, bFromAccel);
@@ -3612,19 +3615,19 @@ void CDApplication::MouseMove(GtkWidget *widget, GdkEventMotion *event, gboolean
         if((m_iDrawMode == modLine) && (iDynMode != 2))
         {
           sprintf(m_sStatus1Msg, "%s %.2f %s", m_sStatus1Base, dVal,
-          m_cFSR.cAngUnit.sAbbrev);
+            m_cFSR.cAngUnit.sAbbrev);
         }
         else
         {
           if(m_bPaperUnits)
           {
             sprintf(m_sStatus1Msg, "%s %.2f %s", m_sStatus1Base, dVal,
-            m_cFSR.cPaperUnit.sAbbrev);
+              m_cFSR.cPaperUnit.sAbbrev);
           }
           else
           {
             sprintf(m_sStatus1Msg, "%s %.2f %s", m_sStatus1Base, dVal,
-            m_cFSR.cLenUnit.sAbbrev);
+              m_cFSR.cLenUnit.sAbbrev);
           }
         }
         SetStatusBarMsg(1, m_sStatus1Msg);

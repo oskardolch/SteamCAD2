@@ -12,14 +12,14 @@
 
 #define modSelect 0
 #define modLine 1
-#define modCircle 2
-#define modEllipse 3
-#define modArcElps 4
-#define modHyperbola 5
-#define modParabola 6
-#define modSpline 7
-#define modEvolvent 8
-#define modRect 50
+#define modRectangle 2
+#define modCircle 3
+#define modEllipse 4
+#define modArcElps 5
+#define modHyperbola 6
+#define modParabola 7
+#define modSpline 8
+#define modEvolvent 9
 
 #define IDM_MODESELECT 201
 #define IDM_MODELINE 202

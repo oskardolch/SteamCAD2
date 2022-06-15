@@ -4,7 +4,7 @@
 #include "DDataTypes.hpp"
 
 bool AddRectPoint(double x, double y, char iCtrl, PDPointList pPoints);
-//bool BuildRectCache(CDLine cTmpPt, int iMode, PDPointList pPoints, PDPointList pCache, double *pdMovedDist);
+bool BuildRectCache(CDLine cTmpPt, int iMode, PDPointList pPoints, PDPointList pCache);
 //void UpdateRectCache(CDLine cTmpPt, PDPointList pPoints, PDPointList pCache);
 //int AddRectInterLine(CDPoint cPt1, CDPoint cPt2, double dOffset, PDPointList pCache, PDRefList pBounds);
 //double GetRectDistFromPt(CDPoint cPt, PDPointList pCache, PDLine pPtX);

@@ -7,7 +7,7 @@
 
 bool AddRectPoint(double x, double y, char iCtrl, PDPointList pPoints)
 {
-  if(iCtrl > 1)
+  /*if(iCtrl > 1)
   {
     if(pPoints->GetCount(-1) != 2) return false;
 
@@ -35,13 +35,13 @@ bool AddRectPoint(double x, double y, char iCtrl, PDPointList pPoints)
     pPoints->SetPoint(0, -1, cPt1.x, cPt1.y, cInPt1.iCtrl);
     pPoints->SetPoint(1, -1, cPt2.x, cPt2.y, 0);
     return true;
-  }
+  }*/
 
   pPoints->AddPoint(x, y, iCtrl);
   return (pPoints->GetCount(-1) == 2);
 }
 
-/*bool BuildLineCache(CDLine cTmpPt, int iMode, PDPointList pPoints, PDPointList pCache, double *pdMovedDist)
+bool BuildRectCache(CDLine cTmpPt, int iMode, PDPointList pPoints, PDPointList pCache)
 {
   pCache->ClearAll();
 
@@ -52,36 +52,23 @@ bool AddRectPoint(double x, double y, char iCtrl, PDPointList pPoints)
   CDInputPoint cInPt1 = pPoints->GetPoint(0, -1);
   CDPoint cPt1, cPt2;
 
-  if((iMode == 1) && cTmpPt.bIsSet) cPt1 = cTmpPt.cDirection;
-  else cPt1 = cInPt1.cPoint;
+  cPt1 = cInPt1.cPoint;
   if(iMode == 1) cPt2 = cTmpPt.cOrigin;
   else cPt2 = pPoints->GetPoint(1, -1).cPoint;
 
-  CDPoint cOrig = cPt1;
-  CDPoint cDir = cPt2 - cPt1;
-  double dNorm = GetNorm(cDir);
-  if(dNorm < g_dPrec) return false;
+  pCache->AddPoint(cPt1.x, cPt1.y, 0);
+  pCache->AddPoint(cPt2.x, cPt2.y, 0);
 
-  cDir /= dNorm;
-  if(cInPt1.iCtrl == 1)
-  {
-    cOrig = (cPt1 + cPt2)/2.0;
-    cDir = GetNormal(cDir);
-  }
-
-  pCache->AddPoint(cOrig.x, cOrig.y, 0);
-  pCache->AddPoint(cDir.x, cDir.y, 0);
-
-  if(iMode == 2)
+  /*if(iMode == 2)
   {
     cPt2 = Rotate(cTmpPt.cOrigin - cOrig, cDir, false);
     if(pdMovedDist) *pdMovedDist = fabs(cPt2.y);
     pCache->AddPoint(-cPt2.y, 0.0, 2);
-  }
+  }*/
   return true;
 }
 
-void UpdateLineCache(CDLine cTmpPt, PDPointList pPoints, PDPointList pCache)
+/*void UpdateLineCache(CDLine cTmpPt, PDPointList pPoints, PDPointList pCache)
 {
   if(pCache->GetCount(0) < 2) return;
   if(pCache->GetCount(2) > 0)

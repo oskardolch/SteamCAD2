@@ -677,6 +677,9 @@ bool CDObject::BuildCache(CDLine cTmpPt, int iMode)
   case dtEvolvent:
     bRes = BuildEvolvCache(cTmpPt, iMode, m_pInputPoints, m_pCachePoints, m_cLines);
     break;
+  case dtRect:
+    bRes = BuildRectCache(cTmpPt, iMode, m_pInputPoints, m_pCachePoints);
+    break;
   case dtPath:
   case dtGroup:
     bRes = BuildSubCache(cTmpPt, iMode);
