@@ -333,6 +333,21 @@ CDObject::CDObject(CDDrawType iType, double dWidth)
   m_sTmpDimBuf[0] = 0;
   m_bSnapTo = true;
   m_pSubObjects = new CDPtrList();
+  if(m_iType == dtRect)
+  {
+    PDPathSeg pSeg;
+    for(int i = 0; i < 4; i++)
+    {
+      pSeg = (PDPathSeg)malloc(sizeof(CDPathSeg));
+      pSeg->bReverse = false;
+      pSeg->pSegment = new CDObject(dtLine, dWidth);
+      m_pSubObjects->Add(pSeg);
+      pSeg = (PDPathSeg)malloc(sizeof(CDPathSeg));
+      pSeg->bReverse = false;
+      pSeg->pSegment = new CDObject(dtCircle, dWidth);
+      m_pSubObjects->Add(pSeg);
+    }
+  }
 }
 
 CDObject::~CDObject()
@@ -463,6 +478,7 @@ bool CDObject::AddPoint(double x, double y, char iCtrl, double dRestrictVal)
     break;
   case dtRect:
     bRes = AddRectPoint(x, y, iCtrl, m_pInputPoints);
+    if(!bRes) SetupRectCache();
     break;
   case dtLogSpiral:
   case dtArchSpiral:
@@ -506,7 +522,7 @@ bool CDObject::BuildSubCache(CDLine cTmpPt, int iMode)
   int n = m_pSubObjects->GetCount();
   bool bRes = n > 0;
   int i = 0;
-  if(m_iType == dtPath)
+  if(m_iType == dtPath || m_iType == dtRect)
   {
     if(iMode == 0)
     {
@@ -537,6 +553,166 @@ bool CDObject::BuildSubCache(CDLine cTmpPt, int iMode)
     }*/
   }
   return bRes;
+}
+
+void CDObject::SetupRectCache()
+{
+  m_dMovedDist = 0.0;
+  if(m_pInputPoints->GetCount(0) < 1) return;
+  if(m_pInputPoints->GetCount(0) < 2)
+  {
+printf("SetupRectCache\n");
+    CDPoint cPt1 = m_pInputPoints->GetPoint(0, 0).cPoint;
+    CDRefPoint cRefPt;
+    cRefPt.bIsSet = true;
+
+    PDPathSeg pSeg = (PDPathSeg)m_pSubObjects->GetItem(0);
+    pSeg->pSegment->AddPoint(cPt1.x, cPt1.y, 0, 0.0);
+    pSeg->pSegment->AddPoint(cPt1.x, cPt1.y, 0, 0.0);
+    cRefPt.dRef = 0.0;
+    pSeg->pSegment->SetBound(0, cRefPt);
+    cRefPt.dRef = 0.0;
+    pSeg->pSegment->SetBound(1, cRefPt);
+
+    pSeg = (PDPathSeg)m_pSubObjects->GetItem(1);
+    pSeg->pSegment->AddPoint(cPt1.x, cPt1.y, 0, 0.0);
+    pSeg->pSegment->AddPoint(cPt1.x, cPt1.y, 0, 0.0);
+    cRefPt.dRef = M_PI/2.0;
+    pSeg->pSegment->SetBound(0, cRefPt);
+    cRefPt.dRef = 0.0;
+    pSeg->pSegment->SetBound(1, cRefPt);
+
+    pSeg = (PDPathSeg)m_pSubObjects->GetItem(2);
+    pSeg->pSegment->AddPoint(cPt1.x, cPt1.y, 0, 0.0);
+    pSeg->pSegment->AddPoint(cPt1.x, cPt1.y, 0, 0.0);
+    cRefPt.dRef = 0.0;
+    pSeg->pSegment->SetBound(0, cRefPt);
+    cRefPt.dRef = 0.0;
+    pSeg->pSegment->SetBound(1, cRefPt);
+
+    pSeg = (PDPathSeg)m_pSubObjects->GetItem(3);
+    pSeg->pSegment->AddPoint(cPt1.x, cPt1.y, 0, 0.0);
+    pSeg->pSegment->AddPoint(cPt1.x, cPt1.y, 0, 0.0);
+    cRefPt.dRef = 0.0;
+    pSeg->pSegment->SetBound(0, cRefPt);
+    cRefPt.dRef = -M_PI/2.0;
+    pSeg->pSegment->SetBound(1, cRefPt);
+
+    pSeg = (PDPathSeg)m_pSubObjects->GetItem(4);
+    pSeg->pSegment->AddPoint(cPt1.x, cPt1.y, 0, 0.0);
+    pSeg->pSegment->AddPoint(cPt1.x, cPt1.y, 0, 0.0);
+    cRefPt.dRef = 0.0;
+    pSeg->pSegment->SetBound(0, cRefPt);
+    cRefPt.dRef = 0.0;
+    pSeg->pSegment->SetBound(1, cRefPt);
+
+    pSeg = (PDPathSeg)m_pSubObjects->GetItem(5);
+    pSeg->pSegment->AddPoint(cPt1.x, cPt1.y, 0, 0.0);
+    pSeg->pSegment->AddPoint(cPt1.x, cPt1.y, 0, 0.0);
+    cRefPt.dRef = -M_PI/2.0;
+    pSeg->pSegment->SetBound(0, cRefPt);
+    cRefPt.dRef = M_PI;
+    pSeg->pSegment->SetBound(1, cRefPt);
+
+    pSeg = (PDPathSeg)m_pSubObjects->GetItem(6);
+    pSeg->pSegment->AddPoint(cPt1.x, cPt1.y, 0, 0.0);
+    pSeg->pSegment->AddPoint(cPt1.x, cPt1.y, 0, 0.0);
+    cRefPt.dRef = 0.0;
+    pSeg->pSegment->SetBound(0, cRefPt);
+    cRefPt.dRef = 0.0;
+    pSeg->pSegment->SetBound(1, cRefPt);
+
+    pSeg = (PDPathSeg)m_pSubObjects->GetItem(7);
+    pSeg->pSegment->AddPoint(cPt1.x, cPt1.y, 0, 0.0);
+    pSeg->pSegment->AddPoint(cPt1.x, cPt1.y, 0, 0.0);
+    cRefPt.dRef = M_PI;
+    pSeg->pSegment->SetBound(0, cRefPt);
+    cRefPt.dRef = M_PI/2.0;
+    pSeg->pSegment->SetBound(1, cRefPt);
+
+    CDLine cLn;
+    cLn.bIsSet = false;
+    BuildSubCache(cLn, 0);
+  }
+  return;
+}
+
+void CDObject::UpdateRectCache()
+{
+  m_dMovedDist = 0.0;
+  if(m_pInputPoints->GetCount(0) < 1) return;
+  if(m_pInputPoints->GetCount(0) < 2)
+  {
+    if(m_pCachePoints->GetCount(0) == 2)
+    {
+printf("UpdateRectCache\n");
+      CDPoint cPt1 = m_pCachePoints->GetPoint(0, 0).cPoint;
+      CDPoint cPt2 = m_pCachePoints->GetPoint(1, 0).cPoint;
+      double dx1 = std::min(cPt1.x, cPt2.x);
+      double dx2 = std::max(cPt1.x, cPt2.x);
+      double dy1 = std::min(cPt1.y, cPt2.y);
+      double dy2 = std::max(cPt1.y, cPt2.y);
+      CDRefPoint cRefPt;
+      cRefPt.bIsSet = true;
+      CDInputPoint cPt;
+      cPt.iCtrl = 0;
+
+      PDPathSeg pSeg = (PDPathSeg)m_pSubObjects->GetItem(0);
+      cPt.cPoint.x = dx1;
+      cPt.cPoint.y = dy1;
+      pSeg->pSegment->SetPoint(0, 0, cPt);
+      cPt.cPoint.x = dx2;
+      pSeg->pSegment->SetPoint(1, 0, cPt);
+      cRefPt.dRef = 0.0;
+      pSeg->pSegment->SetBound(0, cRefPt);
+      cRefPt.dRef = dx2 - dx1;
+      pSeg->pSegment->SetBound(1, cRefPt);
+
+      pSeg = (PDPathSeg)m_pSubObjects->GetItem(1);
+      pSeg->pSegment->SetPoint(0, 0, cPt);
+      pSeg->pSegment->SetPoint(1, 0, cPt);
+
+      pSeg = (PDPathSeg)m_pSubObjects->GetItem(2);
+      pSeg->pSegment->SetPoint(0, 0, cPt);
+      cPt.cPoint.y = dy2;
+      pSeg->pSegment->SetPoint(1, 0, cPt);
+      cRefPt.dRef = 0.0;
+      pSeg->pSegment->SetBound(0, cRefPt);
+      cRefPt.dRef = dy2 - dy1;
+      pSeg->pSegment->SetBound(1, cRefPt);
+
+      pSeg = (PDPathSeg)m_pSubObjects->GetItem(3);
+      pSeg->pSegment->SetPoint(0, 0, cPt);
+      pSeg->pSegment->SetPoint(1, 0, cPt);
+
+      pSeg = (PDPathSeg)m_pSubObjects->GetItem(4);
+      pSeg->pSegment->SetPoint(0, 0, cPt);
+      cPt.cPoint.x = dx1;
+      pSeg->pSegment->SetPoint(1, 0, cPt);
+      cRefPt.dRef = 0.0;
+      pSeg->pSegment->SetBound(0, cRefPt);
+      cRefPt.dRef = dx2 - dx1;
+      pSeg->pSegment->SetBound(1, cRefPt);
+
+      pSeg = (PDPathSeg)m_pSubObjects->GetItem(5);
+      pSeg->pSegment->SetPoint(0, 0, cPt);
+      pSeg->pSegment->SetPoint(1, 0, cPt);
+
+      pSeg = (PDPathSeg)m_pSubObjects->GetItem(6);
+      pSeg->pSegment->SetPoint(0, 0, cPt);
+      cPt.cPoint.y = dy1;
+      pSeg->pSegment->SetPoint(1, 0, cPt);
+      cRefPt.dRef = 0.0;
+      pSeg->pSegment->SetBound(0, cRefPt);
+      cRefPt.dRef = dy2 - dy1;
+      pSeg->pSegment->SetBound(1, cRefPt);
+
+      pSeg = (PDPathSeg)m_pSubObjects->GetItem(7);
+      pSeg->pSegment->SetPoint(0, 0, cPt);
+      pSeg->pSegment->SetPoint(1, 0, cPt);
+    }
+    return;
+  }
 }
 
 void CDObject::UpdatePathCache()
@@ -679,6 +855,8 @@ bool CDObject::BuildCache(CDLine cTmpPt, int iMode)
     break;
   case dtRect:
     bRes = BuildRectCache(cTmpPt, iMode, m_pInputPoints, m_pCachePoints);
+    UpdateRectCache();
+    BuildSubCache(cTmpPt, iMode);
     break;
   case dtPath:
   case dtGroup:
@@ -1912,6 +2090,7 @@ int CDObject::GetViewBounds(CDLine cTmpPt, int iMode, PDRect pRect, PDRefList pB
   int iRes = 0;
   switch(m_iType)
   {
+  case dtRect:
   case dtPath:
     iRes = GetPathViewBounds(cTmpPt, iMode, pRect, pBounds, pDrawBnds, bMergeWithBounds);
     break;
@@ -3077,15 +3256,19 @@ int CDObject::GetBounds(PDPoint pBounds, double dOffset, bool bAdvancePeriod)
 
     if(m_cBounds[0].bIsSet && m_cBounds[1].bIsSet)
     {
+printf("Dobry A\n");
       cLocRefs.x = m_cBounds[0].dRef;
       cLocRefs.y = m_cBounds[1].dRef;
+printf("Dobry A1 - %f, %f\n", cLocRefs.x, cLocRefs.y);
       if(!GetPointRefDist(cLocRefs.x, dOffset, &pBounds->x)) return 0;
+printf("Dobry B\n");
       if(m_cBounds[1].dRef < m_cBounds[0].dRef - g_dPrec)
       {
         if(iRefBounds < 1) return 1;
         if(bAdvancePeriod) cLocRefs.y += (cLocBnds.y - cLocBnds.x);
       }
       if(!GetPointRefDist(cLocRefs.y, dOffset, &pBounds->y)) return 0;
+printf("Dobry C\n");
       return 3;
     }
 
@@ -3185,7 +3368,7 @@ int CDObject::GetBoundsRef(PDPoint pBounds, double dOffset, bool bAdvancePeriod)
 
 double CDObject::GetLength(double dOffset)
 {
-  if(m_iType < dtPath)
+  if((m_iType < dtPath) && (m_iType != dtRect))
   {
     CDPoint cBounds = {0.0, 0.0};
     if(GetBounds(&cBounds, dOffset, true) > 2) return cBounds.y - cBounds.x;
@@ -3194,7 +3377,7 @@ double CDObject::GetLength(double dOffset)
 
   double dTotLen = 0.0;
 
-  if(m_iType == dtPath)
+  if((m_iType == dtPath) || (m_iType == dtRect))
   {
     int n = m_pSubObjects->GetCount();
     if(n < 1) return 0.0;
@@ -3217,9 +3400,12 @@ PDPathSeg CDObject::GetPathRefSegment(double dRef, double dOffset, double *pdSeg
   if(piPos) *piPos = -1;
   int n = m_pSubObjects->GetCount();
   if(n < 1) return NULL;
+printf("Dobry 1 - %f\n", dRef);
 
   double dTotLen = GetLength(dOffset);
+printf("Dobry 2 - %f\n", dTotLen);
   bool bClosedPath = IsClosedPath();
+printf("Dobry 3 - %d\n", bClosedPath);
 
   if(dRef < -g_dPrec)
   {
@@ -3248,6 +3434,7 @@ PDPathSeg CDObject::GetPathRefSegment(double dRef, double dOffset, double *pdSeg
   else
     dLen = pSeg->pSegment->GetLength(dOffset);
   int i = 1;
+printf("Dobry 4\n");
 
   while((dLen < dRef - g_dPrec) && (i < n))
   {
@@ -3258,6 +3445,7 @@ PDPathSeg CDObject::GetPathRefSegment(double dRef, double dOffset, double *pdSeg
     else
       dLen = pSeg->pSegment->GetLength(dOffset);
   }
+printf("Dobry 5\n");
 
   if(dRef > dLen + g_dPrec) dRef = dLen;
 
@@ -3282,6 +3470,7 @@ PDPathSeg CDObject::GetPathRefSegment(double dRef, double dOffset, double *pdSeg
         dLen = pSeg->pSegment->GetLength(dOffset);
     }
   }
+printf("Dobry 6\n");
   if(dLen < g_dPrec) return NULL;
 
   PDObject pObj = pSeg->pSegment;
@@ -3299,6 +3488,7 @@ PDPathSeg CDObject::GetPathRefSegment(double dRef, double dOffset, double *pdSeg
 
     return NULL;
   }
+printf("Dobry 7\n");
 
   if(pObj->GetBounds(&cBounds, dOffset, true) < 3) return NULL;
   if(pObj->GetNativeReference(cBounds.x + dRef, dOffset, pdSegRef))
@@ -3306,6 +3496,7 @@ PDPathSeg CDObject::GetPathRefSegment(double dRef, double dOffset, double *pdSeg
     if(piPos) *piPos = i - 1;
     return pSeg;
   }
+printf("Dobry 8\n");
 
   return NULL;
 }

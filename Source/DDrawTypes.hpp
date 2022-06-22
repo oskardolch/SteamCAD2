@@ -135,6 +135,8 @@ private:
   CDObject* SplitByRef(double dRef, bool *pbRes);
   double GetMovedDist(CDLine cTmpPt, int iMode);
   void AddSegmentToPath(PDPathSeg pNewSeg, bool bInsert);
+  void SetupRectCache();
+  void UpdateRectCache();
   void UpdatePathCache();
   bool GetPathRestrictPoint(CDPoint cPt, int iMode, double dRestrictValue, PDPoint pSnapPt);
   double GetRawDistFromPt(CDPoint cPt, CDPoint cRefPt, int iSearchMask, PDLine pPtX);
