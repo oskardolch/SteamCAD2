@@ -60,9 +60,12 @@ bool BuildLineCache(CDLine cTmpPt, int iMode, PDPointList pPoints, PDPointList p
   CDPoint cOrig = cPt1;
   CDPoint cDir = cPt2 - cPt1;
   double dNorm = GetNorm(cDir);
-  if(dNorm < g_dPrec) return false;
-
-  cDir /= dNorm;
+  if(dNorm < g_dPrec)
+  {
+    cDir.x = 1.0;
+    cDir.y = 0.0;
+  }
+  else cDir /= dNorm;
   if(cInPt1.iCtrl == 1)
   {
     cOrig = (cPt1 + cPt2)/2.0;

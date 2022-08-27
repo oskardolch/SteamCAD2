@@ -136,7 +136,7 @@ private:
   double GetMovedDist(CDLine cTmpPt, int iMode);
   void AddSegmentToPath(PDPathSeg pNewSeg, bool bInsert);
   void SetupRectCache();
-  void UpdateRectCache();
+  void UpdateRectCache(CDLine cTmpPt);
   void UpdatePathCache();
   bool GetPathRestrictPoint(CDPoint cPt, int iMode, double dRestrictValue, PDPoint pSnapPt);
   double GetRawDistFromPt(CDPoint cPt, CDPoint cRefPt, int iSearchMask, PDLine pPtX);

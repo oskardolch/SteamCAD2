@@ -3284,6 +3284,8 @@ void CDApplication::MouseMove(GtkWidget *widget, GdkEventMotion *event, gboolean
 
   double dx = (xPos - m_cViewOrigin.x)/m_dUnitScale;
   double dy = (yPos - m_cViewOrigin.y)/m_dUnitScale;
+  m_cLastDrawPt.x = dx;
+  m_cLastDrawPt.y = dy;
 
   CDRect cdr;
   int iDynMode = GetDynMode();
