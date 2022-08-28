@@ -242,6 +242,7 @@ public:
   void ClearArea(bool bFreeSubObjects);
   CDPrimitive GetBBOX();
   void BuildArea(PDPtrList pBoundaries, PDLineStyle pStyle);
+  void ChangeToPath();
 } *PDObject;
 
 typedef class CDataList

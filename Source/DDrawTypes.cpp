@@ -7390,6 +7390,11 @@ void CDObject::BuildArea(PDPtrList pBoundaries, PDLineStyle pStyle)
   delete pChildList;
 }
 
+void CDObject::ChangeToPath()
+{
+  m_iType = dtPath;
+}
+
 
 // CDataList
 
@@ -7417,11 +7422,8 @@ int CDataList::GetCount()
 
 void CDataList::Add(PDObject pObject)
 {
-  if(pObject->m_iType == dtRect)
-  {
-    pObject->m_pInputPoints->Clear();
-    pObject->m_iType = dtPath;
-  }
+  if(pObject->GetType() == dtRect) pObject->ChangeToPath();
+
   // building cache is redundant in many cases, but just to be sure
   CDLine cPtX;
   cPtX.bIsSet = false;
