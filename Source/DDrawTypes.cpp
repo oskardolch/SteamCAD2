@@ -4163,35 +4163,41 @@ bool CDObject::GetPathRestrictPoint(CDPoint cPt, int iMode, double dRestrictValu
   return true;
 }
 
-bool CDObject::GetRestrictPoint(CDPoint cPt, int iMode, bool bRestrictSet, double dRestrictValue,
-  PDPoint pSnapPt)
+bool CDObject::GetRestrictPoint(CDPoint cPt, int iMode, bool *pbRestrictSet,
+  double *pdRestrictValue, PDPoint pSnapPt)
 {
   *pSnapPt = cPt;
 
-  if(!bRestrictSet) return false;
+  if(pbRestrictSet[1]) 
+    return GetRectRestrictPoint(cPt, iMode, pbRestrictSet, pdRestrictValue,
+      pSnapPt, m_pInputPoints);
+
+  if(!pbRestrictSet[0]) return false;
 
   switch(m_iType)
   {
   case dtLine:
-    return GetLineRestrictPoint(cPt, iMode, dRestrictValue, pSnapPt, m_pCachePoints);
+    return GetLineRestrictPoint(cPt, iMode, pdRestrictValue[0], pSnapPt, m_pCachePoints);
   case dtCircle:
-    return GetCircleRestrictPoint(cPt, iMode, dRestrictValue, pSnapPt, m_pCachePoints,
+    return GetCircleRestrictPoint(cPt, iMode, pdRestrictValue[0], pSnapPt, m_pCachePoints,
       m_pInputPoints, m_cLines);
   case dtEllipse:
-    return GetElpsRestrictPoint(cPt, iMode, dRestrictValue, pSnapPt, m_pCachePoints);
+    return GetElpsRestrictPoint(cPt, iMode, pdRestrictValue[0], pSnapPt, m_pCachePoints);
   case dtArcEllipse:
-    return GetArcElpsRestrictPoint(cPt, iMode, dRestrictValue, pSnapPt, m_pCachePoints);
+    return GetArcElpsRestrictPoint(cPt, iMode, pdRestrictValue[0], pSnapPt, m_pCachePoints);
   case dtHyperbola:
-    return GetHyperRestrictPoint(cPt, iMode, dRestrictValue, pSnapPt, m_pCachePoints);
+    return GetHyperRestrictPoint(cPt, iMode, pdRestrictValue[0], pSnapPt, m_pCachePoints);
   case dtParabola:
-    return GetParabRestrictPoint(cPt, iMode, dRestrictValue, pSnapPt, m_pCachePoints);
+    return GetParabRestrictPoint(cPt, iMode, pdRestrictValue[0], pSnapPt, m_pCachePoints);
   case dtSpline:
-    return GetSplineRestrictPoint(cPt, iMode, dRestrictValue, pSnapPt, m_pCachePoints);
+    return GetSplineRestrictPoint(cPt, iMode, pdRestrictValue[0], pSnapPt, m_pCachePoints);
   case dtEvolvent:
-    return GetEvolvRestrictPoint(cPt, iMode, dRestrictValue, pSnapPt, m_pCachePoints);
+    return GetEvolvRestrictPoint(cPt, iMode, pdRestrictValue[0], pSnapPt, m_pCachePoints);
   case dtRect:
+    return GetRectRestrictPoint(cPt, iMode, pbRestrictSet, pdRestrictValue,
+      pSnapPt, m_pInputPoints);
   case dtPath:
-    return GetPathRestrictPoint(cPt, iMode, dRestrictValue, pSnapPt);
+    return GetPathRestrictPoint(cPt, iMode, pdRestrictValue[0], pSnapPt);
   default:
     return false;
   }
@@ -5305,6 +5311,8 @@ bool CDObject::GetDynValue(CDPoint cPt, int iMode, double *pdVal)
     case dtCircle:
       bRes = GetCircRad(m_pCachePoints, pdVal);
       break;
+    case dtRect:
+      bRes = GetRectDimen(cPt, m_pInputPoints, pdVal);
     default:
       break;
     }

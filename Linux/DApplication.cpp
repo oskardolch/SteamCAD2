@@ -90,6 +90,11 @@ void app_edt1_changed(GtkEntry *entry, PDApplication pApp)
   pApp->Edit1Changed(entry);
 }
 
+void app_edt2_changed(GtkEntry *entry, PDApplication pApp)
+{
+  pApp->Edit2Changed(entry);
+}
+
 void app_enable_snap_mnu(GtkMenuItem *menuitem, PDApplication pApp)
 {
   pApp->EnableSnap();
@@ -231,6 +236,7 @@ CDApplication::CDApplication(const char *psConfDir)
   gtk_box_pack_start(GTK_BOX(pStatBar), m_pStatEdt2, FALSE, TRUE, 0);
   gtk_widget_set_size_request(m_pStatEdt2, 100, 23);
   //gtk_widget_show(m_pStatEdt2);
+  g_signal_connect(G_OBJECT(m_pStatEdt2), "changed", G_CALLBACK(app_edt2_changed), this);
 
   m_pStatChB1 = gtk_check_button_new_with_label("keep path orientation");
   gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(m_pStatChB1), TRUE);
@@ -329,6 +335,7 @@ CDApplication::CDApplication(const char *psConfDir)
 
   m_sStatus2Msg[0] = 0;
   m_iRestrictSet = -1;
+  m_iRestrictSet2 = -1;
   m_iLastExportType = 0;
 
   m_pFileSetupDlg = new CDFileSetupDlg();
@@ -2277,6 +2284,7 @@ void CDApplication::StartNewObject(gboolean bShowEdit)
 
   m_pActiveObject = NULL;
   m_iRestrictSet = -1;
+  m_iRestrictSet2 = -1;
 
   m_cMeasPoint1.bIsSet = false;
   m_cMeasPoint2.bIsSet = false;
@@ -2323,12 +2331,15 @@ void CDApplication::StartNewObject(gboolean bShowEdit)
     break;
   case modRectangle:
     strcpy(m_sStatus1Base, _("Width: "));
+    strcpy(m_sStatus2Base, _("Height: "));
     m_pActiveObject = new CDObject(dtRect, m_cFSR.dDefLineWidth);
     if(bShowEdit)
     {
       if(!gtk_widget_get_visible(m_pStatEdt1))
       {
         gtk_widget_show(m_pStatEdt1);
+        gtk_widget_show(m_pStatLab2);
+        gtk_widget_show(m_pStatEdt2);
         gtk_window_remove_accel_group(GTK_WINDOW(m_pMainWnd), m_pAccelGroup);
       }
       gtk_widget_grab_focus(m_pStatEdt1);
@@ -2521,6 +2532,16 @@ void CDApplication::SetMode(int iNewMode, bool bFromAccel)
     if(!gtk_widget_get_visible(m_pStatEdt1))
     {
       gtk_widget_show(m_pStatEdt1);
+      gtk_window_remove_accel_group(GTK_WINDOW(m_pMainWnd), m_pAccelGroup);
+    }
+    gtk_widget_grab_focus(m_pStatEdt1);
+    break;
+  case modRectangle:
+    if(!gtk_widget_get_visible(m_pStatEdt1))
+    {
+      gtk_widget_show(m_pStatEdt1);
+      gtk_widget_show(m_pStatLab2);
+      gtk_widget_show(m_pStatEdt2);
       gtk_window_remove_accel_group(GTK_WINDOW(m_pMainWnd), m_pAccelGroup);
     }
     gtk_widget_grab_focus(m_pStatEdt1);
@@ -2900,11 +2921,17 @@ void CDApplication::EditRedoCmd(GtkWidget *widget)
 
 void CDApplication::EditConfirmCmd(GtkWidget *widget)
 {
-  bool bConfirm = (m_iDrawMode == modLine) || (m_iDrawMode == modCircle) || (m_iToolMode == tolRound) || (m_iToolMode == tolCopyPar);
+  bool bConfirm = (m_iDrawMode == modLine) || (m_iDrawMode == modCircle) || (m_iToolMode == tolRound) ||
+    (m_iToolMode == tolCopyPar) || (m_iDrawMode == modRectangle);
   if(bConfirm)
   {
     const gchar *sBuf = gtk_entry_get_text(GTK_ENTRY(m_pStatEdt1));
     m_iRestrictSet = ParseInputString((char*)sBuf, m_pFileSetupDlg->GetUnitList(), &m_dRestrictValue);
+    if(m_iDrawMode == modRectangle)
+    {
+      sBuf = gtk_entry_get_text(GTK_ENTRY(m_pStatEdt2));
+      m_iRestrictSet2 = ParseInputString((char*)sBuf, m_pFileSetupDlg->GetUnitList(), &m_dRestrictValue2);
+    }
   }
   return;
 }
@@ -3480,8 +3507,13 @@ void CDApplication::MouseMove(GtkWidget *widget, GdkEventMotion *event, gboolean
     }
     else m_cLastDynPt.bIsSet = false;
 
-    bool bRestrict = false;
-    double dRestrictVal = m_dRestrictValue;
+    bool bRestrict[2];
+    bRestrict[0] = false;
+    bRestrict[1] = false;
+    double dRestrictVal[2];
+    dRestrictVal[0] = m_dRestrictValue;
+    dRestrictVal[1] = m_dRestrictValue2;
+
     if(bDoSnap)
     {
       m_cLastDrawPt.x = (m_cLastSnapPt.x - m_cViewOrigin.x)/m_dUnitScale;
@@ -3515,25 +3547,39 @@ void CDApplication::MouseMove(GtkWidget *widget, GdkEventMotion *event, gboolean
       {
         if((m_iDrawMode == modLine) && (iDynMode != 2))
         {
-          bRestrict = IS_ANGLE_VAL(m_iRestrictSet);
-          if(bRestrict)
+          bRestrict[0] = IS_ANGLE_VAL(m_iRestrictSet);
+          if(bRestrict[0])
           {
-            if(m_iRestrictSet == 0) dRestrictVal /= m_cFSR.cAngUnit.dBaseToUnit;
-            if(m_iRestrictSet != 3) dRestrictVal *= M_PI/180.0;
+            if(m_iRestrictSet == 0) dRestrictVal[0] /= m_cFSR.cAngUnit.dBaseToUnit;
+            if(m_iRestrictSet != 3) dRestrictVal[0] *= M_PI/180.0;
           }
         }
         else
         {
-          bRestrict = IS_LENGTH_VAL(m_iRestrictSet);
-          if(bRestrict)
+          bRestrict[0] = IS_LENGTH_VAL(m_iRestrictSet);
+          if(bRestrict[0])
           {
             if(m_iRestrictSet == 0)
             {
               if(m_bPaperUnits)
-                dRestrictVal *= m_cFSR.cPaperUnit.dBaseToUnit;
-              else dRestrictVal *= m_cFSR.cLenUnit.dBaseToUnit;
+                dRestrictVal[0] *= m_cFSR.cPaperUnit.dBaseToUnit;
+              else dRestrictVal[0] *= m_cFSR.cLenUnit.dBaseToUnit;
             }
-            if(!m_bPaperUnits) dRestrictVal *= m_dDrawScale;
+            if(!m_bPaperUnits) dRestrictVal[0] *= m_dDrawScale;
+          }
+          if(m_iDrawMode == modRectangle)
+          {
+            bRestrict[1] = IS_LENGTH_VAL(m_iRestrictSet2);
+            if(bRestrict[1])
+            {
+              if(m_iRestrictSet2 == 0)
+              {
+                if(m_bPaperUnits)
+                  dRestrictVal[1] *= m_cFSR.cPaperUnit.dBaseToUnit;
+                else dRestrictVal[1] *= m_cFSR.cLenUnit.dBaseToUnit;
+              }
+              if(!m_bPaperUnits) dRestrictVal[1] *= m_dDrawScale;
+            }
           }
         }
 
@@ -3544,15 +3590,15 @@ void CDApplication::MouseMove(GtkWidget *widget, GdkEventMotion *event, gboolean
           {
             pObj1 = m_pDrawObjects->GetSelected(0);
             pObj2 = m_pDrawObjects->GetSelected(1);
-            m_pActiveObject->BuildRound(pObj1, pObj2, m_cLastDrawPt, bRestrict, dRestrictVal);
+            m_pActiveObject->BuildRound(pObj1, pObj2, m_cLastDrawPt, bRestrict[0], dRestrictVal[0]);
           }
         }
 
-        bRestrict = m_pActiveObject->GetRestrictPoint(m_cLastDrawPt,
+        bRestrict[0] = m_pActiveObject->GetRestrictPoint(m_cLastDrawPt,
           iDynMode, bRestrict, dRestrictVal, &cSnapPt.cOrigin);
       }
 
-      if(bRestrict)
+      if(bRestrict[0])
       {
         m_cLastDrawPt = cSnapPt.cOrigin;
         m_cLastSnapPt.x = m_cViewOrigin.x + (int)Round(m_cLastDrawPt.x*m_dUnitScale);
@@ -3570,42 +3616,59 @@ void CDApplication::MouseMove(GtkWidget *widget, GdkEventMotion *event, gboolean
     {
       cPtX.cDirection.x = 0.0;
       if(event->state & GDK_SHIFT_MASK) cPtX.cDirection.x = -1.0;
-      if(bRestrict)
+      if(bRestrict[0])
       {
         cPtX.cDirection.x = 1.0;
-        cPtX.cDirection.y = dRestrictVal;
-        m_dSavedDist = dRestrictVal;
+        cPtX.cDirection.y = dRestrictVal[0];
+        m_dSavedDist = dRestrictVal[0];
       }
     }
 
     if(m_pActiveObject)
     {
-      double dVal;
-      if(!bRestrict)
+      double dVal[2];
+      if(!(bRestrict[0] || bRestrict[1]))
       {
-        if(m_pActiveObject->GetDynValue(m_cLastDrawPt, iDynMode, &dVal))
+        if(m_pActiveObject->GetDynValue(m_cLastDrawPt, iDynMode, dVal))
         {
-          m_dSavedDist = dVal;
+          m_dSavedDist = dVal[0];
           if((m_iDrawMode == modLine) && (iDynMode != 2))
           {
-            dVal *= m_cFSR.cAngUnit.dBaseToUnit*180.0/M_PI;
-            sprintf(m_sStatus1Msg, "%s %.2f %s", m_sStatus1Base, dVal,
-            m_cFSR.cAngUnit.sAbbrev);
+            dVal[0] *= m_cFSR.cAngUnit.dBaseToUnit*180.0/M_PI;
+            sprintf(m_sStatus1Msg, "%s %.2f %s", m_sStatus1Base, dVal[0],
+              m_cFSR.cAngUnit.sAbbrev);
           }
           else
           {
             if(m_bPaperUnits)
             {
-              dVal /= m_cFSR.cPaperUnit.dBaseToUnit;
-              sprintf(m_sStatus1Msg, "%s %.2f %s", m_sStatus1Base, dVal,
-              m_cFSR.cPaperUnit.sAbbrev);
+              dVal[0] /= m_cFSR.cPaperUnit.dBaseToUnit;
+              sprintf(m_sStatus1Msg, "%s %.2f %s", m_sStatus1Base, dVal[0],
+                m_cFSR.cPaperUnit.sAbbrev);
             }
             else
             {
-              dVal /= m_dDrawScale;
-              dVal /= m_cFSR.cLenUnit.dBaseToUnit;
-              sprintf(m_sStatus1Msg, "%s %.2f %s", m_sStatus1Base, dVal,
-              m_cFSR.cLenUnit.sAbbrev);
+              dVal[0] /= m_dDrawScale;
+              dVal[0] /= m_cFSR.cLenUnit.dBaseToUnit;
+              sprintf(m_sStatus1Msg, "%s %.2f %s", m_sStatus1Base, dVal[0],
+                m_cFSR.cLenUnit.sAbbrev);
+            }
+            if(m_iDrawMode == modRectangle)
+            {
+              if(m_bPaperUnits)
+              {
+                dVal[1] /= m_cFSR.cPaperUnit.dBaseToUnit;
+                sprintf(m_sStatus2Msg, "%s %.2f %s", m_sStatus2Base, dVal[1],
+                  m_cFSR.cPaperUnit.sAbbrev);
+              }
+              else
+              {
+                dVal[1] /= m_dDrawScale;
+                dVal[1] /= m_cFSR.cLenUnit.dBaseToUnit;
+                sprintf(m_sStatus2Msg, "%s %.2f %s", m_sStatus2Base, dVal[1],
+                  m_cFSR.cLenUnit.sAbbrev);
+              }
+              SetStatusBarMsg(2, m_sStatus2Msg);
             }
           }
           SetStatusBarMsg(1, m_sStatus1Msg);
@@ -3613,23 +3676,38 @@ void CDApplication::MouseMove(GtkWidget *widget, GdkEventMotion *event, gboolean
       }
       else
       {
-        dVal = m_dRestrictValue;
+        dVal[0] = m_dRestrictValue;
         if((m_iDrawMode == modLine) && (iDynMode != 2))
         {
-          sprintf(m_sStatus1Msg, "%s %.2f %s", m_sStatus1Base, dVal,
+          sprintf(m_sStatus1Msg, "%s %.2f %s", m_sStatus1Base, dVal[0],
             m_cFSR.cAngUnit.sAbbrev);
         }
         else
         {
           if(m_bPaperUnits)
           {
-            sprintf(m_sStatus1Msg, "%s %.2f %s", m_sStatus1Base, dVal,
+            sprintf(m_sStatus1Msg, "%s %.2f %s", m_sStatus1Base, dVal[0],
               m_cFSR.cPaperUnit.sAbbrev);
           }
           else
           {
-            sprintf(m_sStatus1Msg, "%s %.2f %s", m_sStatus1Base, dVal,
+            sprintf(m_sStatus1Msg, "%s %.2f %s", m_sStatus1Base, dVal[0],
               m_cFSR.cLenUnit.sAbbrev);
+          }
+          if(m_iDrawMode == modRectangle)
+          {
+            dVal[1] = m_dRestrictValue2;
+            if(m_bPaperUnits)
+            {
+              sprintf(m_sStatus2Msg, "%s %.2f %s", m_sStatus2Base, dVal[1],
+                m_cFSR.cPaperUnit.sAbbrev);
+            }
+            else
+            {
+              sprintf(m_sStatus2Msg, "%s %.2f %s", m_sStatus2Base, dVal[1],
+                m_cFSR.cLenUnit.sAbbrev);
+            }
+            SetStatusBarMsg(2, m_sStatus2Msg);
           }
         }
         SetStatusBarMsg(1, m_sStatus1Msg);
@@ -4360,6 +4438,29 @@ void CDApplication::Edit1Changed(GtkEntry *entry)
     else strcpy(m_sStatus3Msg, _("Click a point to move from"));
     SetStatusBarMsg(3, m_sStatus3Msg);
   }
+  return;
+}
+
+void CDApplication::Edit2Changed(GtkEntry *entry)
+{
+  const gchar *sBuf = gtk_entry_get_text(entry);
+
+  // Ugly hack for Ubuntu
+  if((strcmp(sBuf, "l") == 0) || (strcmp(sBuf, "c") == 0) || (strcmp(sBuf, "r") == 0))
+  {
+    gtk_entry_set_text(entry, "");
+    return;
+  }
+
+  m_iRestrictSet2 = ParseInputString((char*)sBuf, m_pFileSetupDlg->GetUnitList(), &m_dRestrictValue2);
+
+  GdkEventMotion event;
+  GtkWidget *draw = GetDrawing();
+  event.window = draw->window;
+  event.x = m_cLastSnapPt.x;
+  event.y = m_cLastSnapPt.y;
+  event.state = 0;
+  MouseMove(draw, &event, TRUE);
   return;
 }
 

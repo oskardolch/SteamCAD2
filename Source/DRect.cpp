@@ -41,7 +41,16 @@ bool AddRectPoint(double x, double y, char iCtrl, PDPointList pPoints)
   return (pPoints->GetCount(-1) == 2);
 }
 
-bool BuildRectCache(CDLine cTmpPt, int iMode, PDPointList pPoints, PDPointList pCache)
+bool GetRectDimen(CDPoint cTmpPt, PDPointList pPoints, double *pdVals)
+{
+  if(pPoints->GetCount(-1) < 1) return false;
+  CDPoint cPt1 = pPoints->GetPoint(0, -1).cPoint;
+  pdVals[0] = fabs(cPt1.x - cTmpPt.x);
+  pdVals[1] = fabs(cPt1.y - cTmpPt.y);
+  return true;
+}
+
+/*bool BuildRectCache(CDLine cTmpPt, int iMode, PDPointList pPoints, PDPointList pCache)
 {
   pCache->ClearAll();
 
@@ -59,14 +68,14 @@ bool BuildRectCache(CDLine cTmpPt, int iMode, PDPointList pPoints, PDPointList p
   pCache->AddPoint(cPt1.x, cPt1.y, 0);
   pCache->AddPoint(cPt2.x, cPt2.y, 0);
 
-  /*if(iMode == 2)
+  if(iMode == 2)
   {
     cPt2 = Rotate(cTmpPt.cOrigin - cOrig, cDir, false);
     if(pdMovedDist) *pdMovedDist = fabs(cPt2.y);
     pCache->AddPoint(-cPt2.y, 0.0, 2);
-  }*/
+  }
   return true;
-}
+}*/
 
 /*void UpdateLineCache(CDLine cTmpPt, PDPointList pPoints, PDPointList pCache)
 {
@@ -190,19 +199,16 @@ bool HasRectEnoughPoints(PDPointList pPoints)
   return pPoints->GetCount(-1) > 1;
 }
 
-bool GetRectRestrictPoint(CDPoint cPt, int iMode, double dRestrictValue, PDPoint pSnapPt,
-    PDPointList pCache)
+bool GetRectRestrictPoint(CDPoint cPt, int iMode, bool *pbRest, double *pdRestrictValue,
+  PDPoint pSnapPt, PDPointList pPoints)
 {
-  int iCnt = pCache->GetCount(0);
+  int iCnt = pPoints->GetCount(-1);
 
-  if(iMode == 2)
+  /*if(iMode == 2)
   {
-    if(iCnt != 2) return false;
+    if(iCnt != 1) return false;
 
-    CDPoint cOrig = pCache->GetPoint(0, 0).cPoint;
-    CDPoint cMainDir = pCache->GetPoint(1, 0).cPoint;
-
-    CDPoint cPt1 = Rotate(cPt - cOrig, cMainDir, false);
+    CDPoint cOrig = pCache->GetPoint(0, -1).cPoint;
 
     CDPoint cPt2;
     cPt2.x = cPt1.x;
@@ -211,13 +217,16 @@ bool GetRectRestrictPoint(CDPoint cPt, int iMode, double dRestrictValue, PDPoint
 
     *pSnapPt = cOrig + Rotate(cPt2, cMainDir, true);
     return true;
-  }
+  }*/
 
   if(iCnt < 1) return false;
 
-  CDPoint cN1 = {cos(dRestrictValue), -sin(dRestrictValue)};
-  CDInputPoint cInPt = pCache->GetPoint(0, -1);
-  GetLineProj(cPt, cInPt.cPoint, cN1, pSnapPt);
+  CDPoint cOrig = pPoints->GetPoint(0, -1).cPoint;
+  if(pdRestrictValue[0]) pSnapPt->x = cOrig.x + pdRestrictValue[0];
+  else pSnapPt->x = cPt.x;
+  if(pdRestrictValue[1]) pSnapPt->y = cOrig.y - pdRestrictValue[1];
+  else pSnapPt->y = cPt.y;
+
   return true;
 }
 

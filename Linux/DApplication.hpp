@@ -82,7 +82,9 @@ private:
   char m_sStatus2Msg[128];
   char m_sStatus3Msg[128];
   double m_dRestrictValue;
+  double m_dRestrictValue2;
   int m_iRestrictSet;
+  int m_iRestrictSet2;
 
   double m_dSavedAngle;
   double m_dSavedDist;
@@ -199,6 +201,7 @@ public:
   void MouseLDblClick(GtkWidget *widget, GdkEventButton *event);
 
   void Edit1Changed(GtkEntry *entry);
+  void Edit2Changed(GtkEntry *entry);
 
   void FileCommand(int iCmd, bool bFromAccel);
   void ModeCommand(int iCmd, bool bFromAccel);

@@ -4,13 +4,14 @@
 #include "DDataTypes.hpp"
 
 bool AddRectPoint(double x, double y, char iCtrl, PDPointList pPoints);
-bool BuildRectCache(CDLine cTmpPt, int iMode, PDPointList pPoints, PDPointList pCache);
+bool GetRectDimen(CDPoint cTmpPt, PDPointList pPoints, double *pdVals);
+//bool BuildRectCache(CDLine cTmpPt, int iMode, PDPointList pPoints, PDPointList pCache);
 //void UpdateRectCache(CDLine cTmpPt, PDPointList pPoints, PDPointList pCache);
 //int AddRectInterLine(CDPoint cPt1, CDPoint cPt2, double dOffset, PDPointList pCache, PDRefList pBounds);
 //double GetRectDistFromPt(CDPoint cPt, PDPointList pCache, PDLine pPtX);
 bool HasRectEnoughPoints(PDPointList pPoints);
-bool GetRectRestrictPoint(CDPoint cPt, int iMode, double dRestrictValue, PDPoint pSnapPt,
-  PDPointList pPoints);
+bool GetRectRestrictPoint(CDPoint cPt, int iMode, bool *pbRest, double *pdRestrictValue,
+  PDPoint pSnapPt, PDPointList pPoints);
 //double GetLineRadiusAtPt(CDPoint cPt, PDPointList pCache, PDLine pPtR, bool bNewPt);
 //bool GetLineAngle(PDPointList pCache, double *pdVal);
 //bool GetLinePointRefDist(double dRef, PDPointList pCache, double *pdDist);
