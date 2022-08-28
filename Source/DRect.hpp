@@ -10,7 +10,7 @@ bool GetRectDimen(CDPoint cTmpPt, PDPointList pPoints, double *pdVals);
 //int AddRectInterLine(CDPoint cPt1, CDPoint cPt2, double dOffset, PDPointList pCache, PDRefList pBounds);
 //double GetRectDistFromPt(CDPoint cPt, PDPointList pCache, PDLine pPtX);
 bool HasRectEnoughPoints(PDPointList pPoints);
-bool GetRectRestrictPoint(CDPoint cPt, int iMode, bool *pbRest, double *pdRestrictValue,
+int GetRectRestrictPoint(CDPoint cPt, int iMode, int iRestrictMask, double *pdRestrictValue,
   PDPoint pSnapPt, PDPointList pPoints);
 //double GetLineRadiusAtPt(CDPoint cPt, PDPointList pCache, PDLine pPtR, bool bNewPt);
 //bool GetLineAngle(PDPointList pCache, double *pdVal);

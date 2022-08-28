@@ -199,7 +199,7 @@ bool HasRectEnoughPoints(PDPointList pPoints)
   return pPoints->GetCount(-1) > 1;
 }
 
-bool GetRectRestrictPoint(CDPoint cPt, int iMode, bool *pbRest, double *pdRestrictValue,
+int GetRectRestrictPoint(CDPoint cPt, int iMode, int iRestrictMask, double *pdRestrictValue,
   PDPoint pSnapPt, PDPointList pPoints)
 {
   int iCnt = pPoints->GetCount(-1);
@@ -219,15 +219,16 @@ bool GetRectRestrictPoint(CDPoint cPt, int iMode, bool *pbRest, double *pdRestri
     return true;
   }*/
 
-  if(iCnt < 1) return false;
+  if(iCnt < 1) return 0;
+//printf("GetRectRestrictPoint - %f, %f - %d, %d\n", cPt.x, cPt.y, pbRest[0], pbRest[1]);
 
   CDPoint cOrig = pPoints->GetPoint(0, -1).cPoint;
-  if(pdRestrictValue[0]) pSnapPt->x = cOrig.x + pdRestrictValue[0];
+  if(iRestrictMask & 1) pSnapPt->x = cOrig.x + pdRestrictValue[0];
   else pSnapPt->x = cPt.x;
-  if(pdRestrictValue[1]) pSnapPt->y = cOrig.y - pdRestrictValue[1];
+  if(iRestrictMask & 2) pSnapPt->y = cOrig.y - pdRestrictValue[1];
   else pSnapPt->y = cPt.y;
 
-  return true;
+  return iRestrictMask;
 }
 
 /*double GetLineRadiusAtPt(CDPoint cPt, PDPointList pCache, PDLine pPtR, bool bNewPt)

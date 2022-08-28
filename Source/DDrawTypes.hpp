@@ -182,7 +182,7 @@ public:
   double GetDistFromPt(CDPoint cPt, CDPoint cRefPt, int iSearchMask, PDLine pPtX, int *piDimen);
   CDLineStyle GetLineStyle();
   void SetLineStyle(int iMask, CDLineStyle cStyle);
-  bool GetRestrictPoint(CDPoint cPt, int iMode, bool *pbRestrictSet, double *pdRestrictValue, PDPoint pSnapPt);
+  int GetRestrictPoint(CDPoint cPt, int iMode, int iRestrictMask, double *pdRestrictValue, PDPoint pSnapPt);
   CDObject* Copy();
   bool Split(CDPoint cPt, PDPtrList pNewObjects, PDRect pRect);
   bool Extend(CDPoint cPt, double dDist, PDRect pRect);

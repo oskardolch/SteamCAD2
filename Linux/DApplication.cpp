@@ -3507,9 +3507,7 @@ void CDApplication::MouseMove(GtkWidget *widget, GdkEventMotion *event, gboolean
     }
     else m_cLastDynPt.bIsSet = false;
 
-    bool bRestrict[2];
-    bRestrict[0] = false;
-    bRestrict[1] = false;
+    int iRestrict = 0;
     double dRestrictVal[2];
     dRestrictVal[0] = m_dRestrictValue;
     dRestrictVal[1] = m_dRestrictValue2;
@@ -3547,8 +3545,8 @@ void CDApplication::MouseMove(GtkWidget *widget, GdkEventMotion *event, gboolean
       {
         if((m_iDrawMode == modLine) && (iDynMode != 2))
         {
-          bRestrict[0] = IS_ANGLE_VAL(m_iRestrictSet);
-          if(bRestrict[0])
+          if(IS_ANGLE_VAL(m_iRestrictSet)) iRestrict |= 1;
+          if(iRestrict & 1)
           {
             if(m_iRestrictSet == 0) dRestrictVal[0] /= m_cFSR.cAngUnit.dBaseToUnit;
             if(m_iRestrictSet != 3) dRestrictVal[0] *= M_PI/180.0;
@@ -3556,8 +3554,8 @@ void CDApplication::MouseMove(GtkWidget *widget, GdkEventMotion *event, gboolean
         }
         else
         {
-          bRestrict[0] = IS_LENGTH_VAL(m_iRestrictSet);
-          if(bRestrict[0])
+          if(IS_LENGTH_VAL(m_iRestrictSet)) iRestrict |= 1;
+          if(iRestrict & 1)
           {
             if(m_iRestrictSet == 0)
             {
@@ -3569,8 +3567,8 @@ void CDApplication::MouseMove(GtkWidget *widget, GdkEventMotion *event, gboolean
           }
           if(m_iDrawMode == modRectangle)
           {
-            bRestrict[1] = IS_LENGTH_VAL(m_iRestrictSet2);
-            if(bRestrict[1])
+            if(IS_LENGTH_VAL(m_iRestrictSet2)) iRestrict |= 2;
+            if(iRestrict & 2)
             {
               if(m_iRestrictSet2 == 0)
               {
@@ -3590,15 +3588,15 @@ void CDApplication::MouseMove(GtkWidget *widget, GdkEventMotion *event, gboolean
           {
             pObj1 = m_pDrawObjects->GetSelected(0);
             pObj2 = m_pDrawObjects->GetSelected(1);
-            m_pActiveObject->BuildRound(pObj1, pObj2, m_cLastDrawPt, bRestrict[0], dRestrictVal[0]);
+            m_pActiveObject->BuildRound(pObj1, pObj2, m_cLastDrawPt, iRestrict > 0, dRestrictVal[0]);
           }
         }
 
-        bRestrict[0] = m_pActiveObject->GetRestrictPoint(m_cLastDrawPt,
-          iDynMode, bRestrict, dRestrictVal, &cSnapPt.cOrigin);
+        iRestrict = m_pActiveObject->GetRestrictPoint(m_cLastDrawPt,
+          iDynMode, iRestrict, dRestrictVal, &cSnapPt.cOrigin);
       }
 
-      if(bRestrict[0])
+      if(iRestrict > 0)
       {
         m_cLastDrawPt = cSnapPt.cOrigin;
         m_cLastSnapPt.x = m_cViewOrigin.x + (int)Round(m_cLastDrawPt.x*m_dUnitScale);
@@ -3616,7 +3614,7 @@ void CDApplication::MouseMove(GtkWidget *widget, GdkEventMotion *event, gboolean
     {
       cPtX.cDirection.x = 0.0;
       if(event->state & GDK_SHIFT_MASK) cPtX.cDirection.x = -1.0;
-      if(bRestrict[0])
+      if(iRestrict & 1)
       {
         cPtX.cDirection.x = 1.0;
         cPtX.cDirection.y = dRestrictVal[0];
@@ -3627,9 +3625,33 @@ void CDApplication::MouseMove(GtkWidget *widget, GdkEventMotion *event, gboolean
     if(m_pActiveObject)
     {
       double dVal[2];
-      if(!(bRestrict[0] || bRestrict[1]))
+      bool bDynValueSet = false;
+      if(iRestrict & 1)
       {
-        if(m_pActiveObject->GetDynValue(m_cLastDrawPt, iDynMode, dVal))
+        dVal[0] = m_dRestrictValue;
+        if((m_iDrawMode == modLine) && (iDynMode != 2))
+        {
+          sprintf(m_sStatus1Msg, "%s %.2f %s", m_sStatus1Base, dVal[0],
+            m_cFSR.cAngUnit.sAbbrev);
+        }
+        else
+        {
+          if(m_bPaperUnits)
+          {
+            sprintf(m_sStatus1Msg, "%s %.2f %s", m_sStatus1Base, dVal[0],
+              m_cFSR.cPaperUnit.sAbbrev);
+          }
+          else
+          {
+            sprintf(m_sStatus1Msg, "%s %.2f %s", m_sStatus1Base, dVal[0],
+              m_cFSR.cLenUnit.sAbbrev);
+          }
+        }
+      }
+      else
+      {
+        bDynValueSet = m_pActiveObject->GetDynValue(m_cLastDrawPt, iDynMode, dVal);
+        if(bDynValueSet)
         {
           m_dSavedDist = dVal[0];
           if((m_iDrawMode == modLine) && (iDynMode != 2))
@@ -3653,64 +3675,44 @@ void CDApplication::MouseMove(GtkWidget *widget, GdkEventMotion *event, gboolean
               sprintf(m_sStatus1Msg, "%s %.2f %s", m_sStatus1Base, dVal[0],
                 m_cFSR.cLenUnit.sAbbrev);
             }
-            if(m_iDrawMode == modRectangle)
-            {
-              if(m_bPaperUnits)
-              {
-                dVal[1] /= m_cFSR.cPaperUnit.dBaseToUnit;
-                sprintf(m_sStatus2Msg, "%s %.2f %s", m_sStatus2Base, dVal[1],
-                  m_cFSR.cPaperUnit.sAbbrev);
-              }
-              else
-              {
-                dVal[1] /= m_dDrawScale;
-                dVal[1] /= m_cFSR.cLenUnit.dBaseToUnit;
-                sprintf(m_sStatus2Msg, "%s %.2f %s", m_sStatus2Base, dVal[1],
-                  m_cFSR.cLenUnit.sAbbrev);
-              }
-              SetStatusBarMsg(2, m_sStatus2Msg);
-            }
           }
-          SetStatusBarMsg(1, m_sStatus1Msg);
+        }
+        SetStatusBarMsg(1, m_sStatus1Msg);
+      }
+      if(iRestrict & 2)
+      {
+        dVal[1] = m_dRestrictValue2;
+        if(m_bPaperUnits)
+        {
+          sprintf(m_sStatus2Msg, "%s %.2f %s", m_sStatus2Base, dVal[1],
+            m_cFSR.cPaperUnit.sAbbrev);
+        }
+        else
+        {
+          sprintf(m_sStatus2Msg, "%s %.2f %s", m_sStatus2Base, dVal[1],
+            m_cFSR.cLenUnit.sAbbrev);
         }
       }
       else
       {
-        dVal[0] = m_dRestrictValue;
-        if((m_iDrawMode == modLine) && (iDynMode != 2))
-        {
-          sprintf(m_sStatus1Msg, "%s %.2f %s", m_sStatus1Base, dVal[0],
-            m_cFSR.cAngUnit.sAbbrev);
-        }
-        else
+        if(!bDynValueSet) bDynValueSet = m_pActiveObject->GetDynValue(m_cLastDrawPt, iDynMode, dVal);
+        if(bDynValueSet)
         {
           if(m_bPaperUnits)
           {
-            sprintf(m_sStatus1Msg, "%s %.2f %s", m_sStatus1Base, dVal[0],
+            dVal[1] /= m_cFSR.cPaperUnit.dBaseToUnit;
+            sprintf(m_sStatus2Msg, "%s %.2f %s", m_sStatus2Base, dVal[1],
               m_cFSR.cPaperUnit.sAbbrev);
           }
           else
           {
-            sprintf(m_sStatus1Msg, "%s %.2f %s", m_sStatus1Base, dVal[0],
+            dVal[1] /= m_dDrawScale;
+            dVal[1] /= m_cFSR.cLenUnit.dBaseToUnit;
+            sprintf(m_sStatus2Msg, "%s %.2f %s", m_sStatus2Base, dVal[1],
               m_cFSR.cLenUnit.sAbbrev);
           }
-          if(m_iDrawMode == modRectangle)
-          {
-            dVal[1] = m_dRestrictValue2;
-            if(m_bPaperUnits)
-            {
-              sprintf(m_sStatus2Msg, "%s %.2f %s", m_sStatus2Base, dVal[1],
-                m_cFSR.cPaperUnit.sAbbrev);
-            }
-            else
-            {
-              sprintf(m_sStatus2Msg, "%s %.2f %s", m_sStatus2Base, dVal[1],
-                m_cFSR.cLenUnit.sAbbrev);
-            }
-            SetStatusBarMsg(2, m_sStatus2Msg);
-          }
         }
-        SetStatusBarMsg(1, m_sStatus1Msg);
+        SetStatusBarMsg(2, m_sStatus2Msg);
       }
 
       m_pActiveObject->BuildPrimitives(cPtX, iDynMode, &cdr, 0, NULL, NULL);
