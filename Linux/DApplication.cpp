@@ -3647,6 +3647,7 @@ void CDApplication::MouseMove(GtkWidget *widget, GdkEventMotion *event, gboolean
               m_cFSR.cLenUnit.sAbbrev);
           }
         }
+        SetStatusBarMsg(1, m_sStatus1Msg);
       }
       else
       {
@@ -3676,43 +3677,47 @@ void CDApplication::MouseMove(GtkWidget *widget, GdkEventMotion *event, gboolean
                 m_cFSR.cLenUnit.sAbbrev);
             }
           }
-        }
-        SetStatusBarMsg(1, m_sStatus1Msg);
-      }
-      if(iRestrict & 2)
-      {
-        dVal[1] = m_dRestrictValue2;
-        if(m_bPaperUnits)
-        {
-          sprintf(m_sStatus2Msg, "%s %.2f %s", m_sStatus2Base, dVal[1],
-            m_cFSR.cPaperUnit.sAbbrev);
-        }
-        else
-        {
-          sprintf(m_sStatus2Msg, "%s %.2f %s", m_sStatus2Base, dVal[1],
-            m_cFSR.cLenUnit.sAbbrev);
+          SetStatusBarMsg(1, m_sStatus1Msg);
         }
       }
-      else
+      if(m_iDrawMode == modRectangle)
       {
-        if(!bDynValueSet) bDynValueSet = m_pActiveObject->GetDynValue(m_cLastDrawPt, iDynMode, dVal);
-        if(bDynValueSet)
+        if(iRestrict & 2)
         {
+          dVal[1] = m_dRestrictValue2;
           if(m_bPaperUnits)
           {
-            dVal[1] /= m_cFSR.cPaperUnit.dBaseToUnit;
             sprintf(m_sStatus2Msg, "%s %.2f %s", m_sStatus2Base, dVal[1],
               m_cFSR.cPaperUnit.sAbbrev);
           }
           else
           {
-            dVal[1] /= m_dDrawScale;
-            dVal[1] /= m_cFSR.cLenUnit.dBaseToUnit;
             sprintf(m_sStatus2Msg, "%s %.2f %s", m_sStatus2Base, dVal[1],
               m_cFSR.cLenUnit.sAbbrev);
           }
+          SetStatusBarMsg(2, m_sStatus2Msg);
         }
-        SetStatusBarMsg(2, m_sStatus2Msg);
+        else
+        {
+          if(!bDynValueSet) bDynValueSet = m_pActiveObject->GetDynValue(m_cLastDrawPt, iDynMode, dVal);
+          if(bDynValueSet)
+          {
+            if(m_bPaperUnits)
+            {
+              dVal[1] /= m_cFSR.cPaperUnit.dBaseToUnit;
+              sprintf(m_sStatus2Msg, "%s %.2f %s", m_sStatus2Base, dVal[1],
+                m_cFSR.cPaperUnit.sAbbrev);
+            }
+            else
+            {
+              dVal[1] /= m_dDrawScale;
+              dVal[1] /= m_cFSR.cLenUnit.dBaseToUnit;
+              sprintf(m_sStatus2Msg, "%s %.2f %s", m_sStatus2Base, dVal[1],
+                m_cFSR.cLenUnit.sAbbrev);
+            }
+            SetStatusBarMsg(2, m_sStatus2Msg);
+          }
+        }
       }
 
       m_pActiveObject->BuildPrimitives(cPtX, iDynMode, &cdr, 0, NULL, NULL);
