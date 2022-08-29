@@ -81,8 +81,12 @@ private:
 
   wchar_t m_wsStatus2Base[64];
   wchar_t m_wsStatus2Msg[128];
+  wchar_t m_wsStatus3Base[64];
+  wchar_t m_wsStatus3Msg[128];
   double m_dRestrictValue;
   int m_iRestrictSet;
+  double m_dRestrictValue2;
+  int m_iRestrictSet2;
   double m_dSavedDist;
   wchar_t m_wsFileName[MAX_PATH];
 

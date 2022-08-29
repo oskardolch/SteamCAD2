@@ -176,7 +176,9 @@ CMainWnd::CMainWnd(HINSTANCE hInstance)
   wcscpy(m_cFSR.wsAngleMask, L"[r:2]\xB0");
 
   m_wsStatus2Msg[0] = 0;
+  m_wsStatus3Msg[0] = 0;
   m_iRestrictSet = -1;
+  m_iRestrictSet2 = -1;
   m_wsFileName[0] = 0;
   m_iLastExportType = 0;
 
@@ -1717,12 +1719,16 @@ LRESULT CMainWnd::EditMoveCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl)
   SendMessage(m_hStatus, SB_SETTEXT, 1, (LPARAM)m_wsStatus2Base);
   ShowWindow(m_hEdt1, SW_SHOW);
   ShowWindow(m_hEdt2, SW_SHOW);
+
+  wchar_t wBuf[64];
+  LoadString(m_hInstance, IDS_NUMCOPIES, wBuf, 64);
+  SendMessage(m_hLab1, WM_SETTEXT, 0, (LPARAM)wBuf);
+
   ShowWindow(m_hLab1, SW_SHOW);
 
   SendMessage(m_hEdt1, EM_SETSEL, 0, (LPARAM)-1);
   SetFocus(m_hEdt1);
 
-  wchar_t wBuf[64];
   SendMessage(m_hEdt1, WM_GETTEXT, 64, (LPARAM)wBuf);
   char sBuf[64];
   WideCharToMultiByte(CP_UTF8, 0, wBuf, -1, sBuf, 64, NULL, NULL);
@@ -1742,6 +1748,11 @@ LRESULT CMainWnd::EditRotateCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl)
   SendMessage(m_hStatus, SB_SETTEXT, 1, (LPARAM)m_wsStatus2Base);
   ShowWindow(m_hEdt1, SW_SHOW);
   ShowWindow(m_hEdt2, SW_SHOW);
+
+  wchar_t wBuf[64];
+  LoadString(m_hInstance, IDS_NUMCOPIES, wBuf, 64);
+  SendMessage(m_hLab1, WM_SETTEXT, 0, (LPARAM)wBuf);
+
   ShowWindow(m_hLab1, SW_SHOW);
   SendMessage(m_hEdt1, EM_SETSEL, 0, (LPARAM)-1);
   SetFocus(m_hEdt1);
@@ -1930,7 +1941,7 @@ LRESULT CMainWnd::EditRedoCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl)
 LRESULT CMainWnd::EditConfirmCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl)
 {
   bool bConfirm = (m_iDrawMode == modLine) || (m_iDrawMode == modCircle) ||
-    (m_iToolMode == tolRound) || (m_iToolMode == tolCopyPar);
+    (m_iToolMode == tolRound) || (m_iToolMode == tolCopyPar) || (m_iDrawMode == modRectangle);
   if(bConfirm)
   {
     wchar_t wBuf[64];
@@ -1938,6 +1949,12 @@ LRESULT CMainWnd::EditConfirmCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl)
     char sBuf[64];
     WideCharToMultiByte(CP_UTF8, 0, wBuf, -1, sBuf, 64, NULL, NULL);
     m_iRestrictSet = ParseInputString(sBuf, m_pFileSetupDlg->GetUnitList(), &m_dRestrictValue);
+    if(m_iDrawMode == modRectangle)
+    {
+      SendMessage(m_hEdt2, WM_GETTEXT, 64, (LPARAM)wBuf);
+      WideCharToMultiByte(CP_UTF8, 0, wBuf, -1, sBuf, 64, NULL, NULL);
+      m_iRestrictSet2 = ParseInputString(sBuf, m_pFileSetupDlg->GetUnitList(), &m_dRestrictValue2);
+    }
   }
   return 0;
 }
@@ -2578,6 +2595,10 @@ LRESULT CMainWnd::WMLButtonUp(HWND hwnd, WPARAM fwKeys, int xPos, int yPos)
         m_wsStatus2Base[0] = 0;
         wcscpy(m_wsStatus2Msg, m_wsStatus2Base);
         SendMessage(m_hStatus, SB_SETTEXT, 1, (LPARAM)m_wsStatus2Msg);
+        m_wsStatus3Base[0] = 0;
+        wcscpy(m_wsStatus3Msg, m_wsStatus3Base);
+        //SendMessage(m_hStatus, SB_SETTEXT, 2, (LPARAM)m_wsStatus3Msg);
+        SendMessage(m_hLab1, WM_SETTEXT, 0, (LPARAM)m_wsStatus3Msg);
 
         InvalidateRect(hwnd, &rc, FALSE);
         StartNewObject(hwnd);
@@ -2665,6 +2686,10 @@ LRESULT CMainWnd::WMRButtonUp(HWND hwnd, WPARAM fwKeys, int xPos, int yPos)
       m_wsStatus2Base[0] = 0;
       wcscpy(m_wsStatus2Msg, m_wsStatus2Base);
       SendMessage(m_hStatus, SB_SETTEXT, 1, (LPARAM)m_wsStatus2Msg);
+      m_wsStatus3Base[0] = 0;
+      wcscpy(m_wsStatus3Msg, m_wsStatus3Base);
+      //SendMessage(m_hStatus, SB_SETTEXT, 2, (LPARAM)m_wsStatus3Msg);
+      SendMessage(m_hLab1, WM_SETTEXT, 0, (LPARAM)m_wsStatus3Msg);
 
       InvalidateRect(hwnd, &rc, FALSE);
       StartNewObject(hwnd);
@@ -3500,8 +3525,10 @@ LRESULT CMainWnd::WMMouseMove(HWND hwnd, WPARAM fwKeys, int xPos, int yPos)
     }
     else m_cLastDynPt.bIsSet = false;
 
-    bool bRestrict = false;
-    double dRestrictVal = m_dRestrictValue;
+    int iRestrict = 0;
+    double dRestrictVal[2];
+    dRestrictVal[0] = m_dRestrictValue;
+    dRestrictVal[1] = m_dRestrictValue2;
 
     if(bDoSnap)
     {
@@ -3537,25 +3564,36 @@ LRESULT CMainWnd::WMMouseMove(HWND hwnd, WPARAM fwKeys, int xPos, int yPos)
       {
         if((m_iDrawMode == modLine) && (iDynMode != 2))
         {
-          bRestrict = IS_ANGLE_VAL(m_iRestrictSet);
-          if(bRestrict)
+          if(IS_ANGLE_VAL(m_iRestrictSet)) iRestrict |= 1;
+          if(iRestrict & 1)
           {
-            if(m_iRestrictSet == 0) dRestrictVal /= m_cFSR.cAngUnit.dBaseToUnit;
-            if(m_iRestrictSet != 3) dRestrictVal *= M_PI/180.0;
+            if(m_iRestrictSet == 0) dRestrictVal[0] /= m_cFSR.cAngUnit.dBaseToUnit;
+            if(m_iRestrictSet != 3) dRestrictVal[0] *= M_PI/180.0;
           }
         }
         else
         {
-          bRestrict = IS_LENGTH_VAL(m_iRestrictSet);
-          if(bRestrict)
+          if(IS_LENGTH_VAL(m_iRestrictSet)) iRestrict |= 1;
+          if(iRestrict & 1)
           {
             if(m_iRestrictSet == 0)
             {
               if(m_bPaperUnits)
-              dRestrictVal *= m_cFSR.cPaperUnit.dBaseToUnit;
-              else dRestrictVal *= m_cFSR.cLenUnit.dBaseToUnit;
+                dRestrictVal[0] *= m_cFSR.cPaperUnit.dBaseToUnit;
+              else dRestrictVal[0] *= m_cFSR.cLenUnit.dBaseToUnit;
             }
-            if(!m_bPaperUnits) dRestrictVal *= m_dDrawScale;
+            if(!m_bPaperUnits) dRestrictVal[0] *= m_dDrawScale;
+          }
+          if(IS_LENGTH_VAL(m_iRestrictSet2)) iRestrict |= 2;
+          if(iRestrict & 2)
+          {
+            if(m_iRestrictSet2 == 0)
+            {
+              if(m_bPaperUnits)
+                dRestrictVal[1] *= m_cFSR.cPaperUnit.dBaseToUnit;
+              else dRestrictVal[1] *= m_cFSR.cLenUnit.dBaseToUnit;
+            }
+            if(!m_bPaperUnits) dRestrictVal[1] *= m_dDrawScale;
           }
         }
 
@@ -3566,16 +3604,16 @@ LRESULT CMainWnd::WMMouseMove(HWND hwnd, WPARAM fwKeys, int xPos, int yPos)
           {
             pObj1 = m_pDrawObjects->GetSelected(0);
             pObj2 = m_pDrawObjects->GetSelected(1);
-            m_pActiveObject->BuildRound(pObj1, pObj2, m_cLastDrawPt, bRestrict,
-              dRestrictVal);
+            m_pActiveObject->BuildRound(pObj1, pObj2, m_cLastDrawPt, iRestrict & 1,
+              dRestrictVal[0]);
           }
         }
 
-        bRestrict = m_pActiveObject->GetRestrictPoint(m_cLastDrawPt,
-        iDynMode, bRestrict, dRestrictVal, &cSnapPt.cOrigin);
+        iRestrict = m_pActiveObject->GetRestrictPoint(m_cLastDrawPt,
+          iDynMode, iRestrict, dRestrictVal, &cSnapPt.cOrigin);
       }
 
-      if(bRestrict)
+      if(iRestrict > 0)
       {
         m_cLastDrawPt = cSnapPt.cOrigin;
         m_cLastSnapPt.x = m_cViewOrigin.x + m_cLastDrawPt.x*m_dUnitScale;
@@ -3603,70 +3641,114 @@ LRESULT CMainWnd::WMMouseMove(HWND hwnd, WPARAM fwKeys, int xPos, int yPos)
     {
       cPtX.cDirection.x = 0.0;
       if(fwKeys & MK_SHIFT) cPtX.cDirection.x = -1.0;
-      if(bRestrict)
+      if(iRestrict > 0)
       {
         cPtX.cDirection.x = 1.0;
-        cPtX.cDirection.y = dRestrictVal;
-        m_dSavedDist = dRestrictVal;
+        cPtX.cDirection.y = dRestrictVal[0];
+        m_dSavedDist = dRestrictVal[0];
       }
     }
 
     if(m_pActiveObject)
     {
-      double dVal;
-      if(!bRestrict)
+      double dVal[2];
+      boolean bDynValSet = false;
+      if(iRestrict & 1)
       {
-        if(m_pActiveObject->GetDynValue(m_cLastDrawPt, iDynMode, &dVal))
-        {
-          m_dSavedDist = dVal;
-
-          if((m_iDrawMode == modLine) && (iDynMode != 2))
-          {
-            dVal *= m_cFSR.cAngUnit.dBaseToUnit*180.0/M_PI;
-            swprintf(m_wsStatus2Msg, L"%s %.2f %s", m_wsStatus2Base, dVal,
-            m_cFSR.cAngUnit.wsAbbrev);
-          }
-          else
-          {
-            if(m_bPaperUnits)
-            {
-              dVal /= m_cFSR.cPaperUnit.dBaseToUnit;
-              swprintf(m_wsStatus2Msg, L"%s %.2f %s", m_wsStatus2Base, dVal,
-              m_cFSR.cPaperUnit.wsAbbrev);
-            }
-            else
-            {
-              dVal /= m_dDrawScale;
-              dVal /= m_cFSR.cLenUnit.dBaseToUnit;
-              swprintf(m_wsStatus2Msg, L"%s %.2f %s", m_wsStatus2Base, dVal,
-              m_cFSR.cLenUnit.wsAbbrev);
-            }
-          }
-          SendMessage(m_hStatus, SB_SETTEXT, 1, (LPARAM)m_wsStatus2Msg);
-        }
-      }
-      else
-      {
-        dVal = m_dRestrictValue;
+        dVal[0] = m_dRestrictValue;
         if((m_iDrawMode == modLine) && (iDynMode != 2))
         {
-          swprintf(m_wsStatus2Msg, L"%s %.2f %s", m_wsStatus2Base, dVal,
+          swprintf(m_wsStatus2Msg, L"%s %.2f %s", m_wsStatus2Base, dVal[0],
             m_cFSR.cAngUnit.wsAbbrev);
         }
         else
         {
           if(m_bPaperUnits)
           {
-            swprintf(m_wsStatus2Msg, L"%s %.2f %s", m_wsStatus2Base, dVal,
+            swprintf(m_wsStatus2Msg, L"%s %.2f %s", m_wsStatus2Base, dVal[0],
               m_cFSR.cPaperUnit.wsAbbrev);
           }
           else
           {
-            swprintf(m_wsStatus2Msg, L"%s %.2f %s", m_wsStatus2Base, dVal,
+            swprintf(m_wsStatus2Msg, L"%s %.2f %s", m_wsStatus2Base, dVal[0],
               m_cFSR.cLenUnit.wsAbbrev);
           }
         }
         SendMessage(m_hStatus, SB_SETTEXT, 1, (LPARAM)m_wsStatus2Msg);
+      }
+      else
+      {
+        bDynValSet = m_pActiveObject->GetDynValue(m_cLastDrawPt, iDynMode, dVal);
+        if(bDynValSet)
+        {
+          m_dSavedDist = dVal[0];
+
+          if((m_iDrawMode == modLine) && (iDynMode != 2))
+          {
+            dVal[0] *= m_cFSR.cAngUnit.dBaseToUnit*180.0/M_PI;
+            swprintf(m_wsStatus2Msg, L"%s %.2f %s", m_wsStatus2Base, dVal[0],
+              m_cFSR.cAngUnit.wsAbbrev);
+          }
+          else
+          {
+            if(m_bPaperUnits)
+            {
+              dVal[0] /= m_cFSR.cPaperUnit.dBaseToUnit;
+              swprintf(m_wsStatus2Msg, L"%s %.2f %s", m_wsStatus2Base, dVal[0],
+                m_cFSR.cPaperUnit.wsAbbrev);
+            }
+            else
+            {
+              dVal[0] /= m_dDrawScale;
+              dVal[0] /= m_cFSR.cLenUnit.dBaseToUnit;
+              swprintf(m_wsStatus2Msg, L"%s %.2f %s", m_wsStatus2Base, dVal[0],
+                m_cFSR.cLenUnit.wsAbbrev);
+            }
+          }
+          SendMessage(m_hStatus, SB_SETTEXT, 1, (LPARAM)m_wsStatus2Msg);
+        }
+      }
+      if(m_iDrawMode == modRectangle)
+      {
+        if(iRestrict & 2)
+        {
+          dVal[1] = m_dRestrictValue;
+          if(m_bPaperUnits)
+          {
+            swprintf(m_wsStatus3Msg, L"%s %.2f %s", m_wsStatus3Base, dVal[1],
+              m_cFSR.cPaperUnit.wsAbbrev);
+          }
+          else
+          {
+            swprintf(m_wsStatus3Msg, L"%s %.2f %s", m_wsStatus3Base, dVal[1],
+              m_cFSR.cLenUnit.wsAbbrev);
+          }
+          //SendMessage(m_hStatus, SB_SETTEXT, 2, (LPARAM)m_wsStatus3Msg);
+          SendMessage(m_hLab1, WM_SETTEXT, 0, (LPARAM)m_wsStatus3Msg);
+        }
+        else
+        {
+          bDynValSet = m_pActiveObject->GetDynValue(m_cLastDrawPt, iDynMode, dVal);
+          if(!bDynValSet) bDynValSet = m_pActiveObject->GetDynValue(m_cLastDrawPt, iDynMode, dVal);
+          if(bDynValSet)
+          {
+            if(m_bPaperUnits)
+            {
+              dVal[1] /= m_cFSR.cPaperUnit.dBaseToUnit;
+              swprintf(m_wsStatus3Msg, L"%s %.2f %s", m_wsStatus3Base, dVal[1],
+                m_cFSR.cPaperUnit.wsAbbrev);
+            }
+            else
+            {
+              dVal[1] /= m_dDrawScale;
+              dVal[1] /= m_cFSR.cLenUnit.dBaseToUnit;
+              swprintf(m_wsStatus3Msg, L"%s %.2f %s", m_wsStatus3Base, dVal[1],
+                m_cFSR.cLenUnit.wsAbbrev);
+            }
+            //SendMessage(m_hStatus, SB_SETTEXT, 2, (LPARAM)m_wsStatus3Msg);
+            SendMessage(m_hLab1, WM_SETTEXT, 0, (LPARAM)m_wsStatus3Msg);
+          }
+        }
       }
 
       cdr.cPt1.x = (rc.left - m_cViewOrigin.x)/m_dUnitScale;
@@ -3884,6 +3966,7 @@ void CMainWnd::StartNewObject(HWND hWnd)
 
     m_pActiveObject = NULL;
     m_iRestrictSet = -1;
+    m_iRestrictSet2 = -1;
 
     m_cMeasPoint1.bIsSet = false;
     m_cMeasPoint2.bIsSet = false;
@@ -4002,12 +4085,16 @@ void CMainWnd::StartNewObject(HWND hWnd)
         break;
     case modRectangle:
         LoadString(m_hInstance, IDS_WIDTH, m_wsStatus2Base, 64);
-        //LoadString(m_hInstance, IDS_HEIGHT, m_wsStatus3Base, 64);
+        LoadString(m_hInstance, IDS_HEIGHT, m_wsStatus3Base, 64);
+        wcscpy(m_wsStatus3Msg, m_wsStatus3Base);
+        //SendMessage(m_hStatus, SB_SETTEXT, 2, (LPARAM)m_wsStatus3Msg);
+        SendMessage(m_hLab1, WM_SETTEXT, 0, (LPARAM)m_wsStatus3Msg);
         m_pActiveObject = new CDObject(dtRect, m_cFSR.dDefLineWidth);
         ShowWindow(m_hEdt1, SW_SHOW);
         SendMessage(m_hEdt1, EM_SETSEL, 0, (LPARAM)-1);
         ShowWindow(m_hEdt2, SW_SHOW);
         SendMessage(m_hEdt2, EM_SETSEL, 0, (LPARAM)-1);
+        ShowWindow(m_hLab1, SW_SHOW);
         SetFocus(m_hEdt1);
         break;
     }
@@ -4076,7 +4163,18 @@ LRESULT CMainWnd::Edit1Cmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl)
 
 LRESULT CMainWnd::Edit2Cmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl)
 {
-    return 0;
+  if(wNotifyCode == EN_CHANGE)
+  {
+    wchar_t wBuf[64];
+    SendMessage(hwndCtl, WM_GETTEXT, 64, (LPARAM)wBuf);
+
+    char sBuf[64];
+    WideCharToMultiByte(CP_UTF8, 0, wBuf, -1, sBuf, 64, NULL, NULL);
+    m_iRestrictSet2 = ParseInputString(sBuf, m_pFileSetupDlg->GetUnitList(), &m_dRestrictValue2);
+
+    WMMouseMove(hwnd, 0, m_cLastSnapPt.x, m_cLastSnapPt.y);
+  }
+  return 0;
 }
 
 void CMainWnd::SetTitle(HWND hWnd, bool bForce)
