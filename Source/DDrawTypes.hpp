@@ -77,6 +77,22 @@ private:
   void SaveLine(FILE *pf, bool bSwapBytes, CDLine cLine);
   void SaveLineStyle(FILE *pf, bool bSwapBytes, CDLineStyle cLineStyle, unsigned char cVersion);
   void SaveDimension(FILE *pf, bool bSwapBytes, PDDimension pDim, unsigned char cVersion);
+
+  int GetPointStreamSize();
+  int GetInputPointStreamSize();
+  int GetRefPointStreamSize();
+  int GetLineStreamSize();
+  int GetLineStyleStreamSize(unsigned char cVersion);
+  int GetDimensionStreamSize(PDDimension pDim, unsigned char cVersion);
+
+  int SavePointToStream(unsigned char *pBuf, CDPoint cPoint);
+  int SaveInputPointToStream(unsigned char *pBuf, CDInputPoint cInPoint);
+  int SaveReferenceToStream(unsigned char *pBuf, double dRef);
+  int SaveRefPointToStream(unsigned char *pBuf, CDRefPoint cRefPoint);
+  int SaveLineToStream(unsigned char *pBuf, CDLine cLine);
+  int SaveLineStyleToStream(unsigned char *pBuf, CDLineStyle cLineStyle, unsigned char cVersion);
+  int SaveDimensionToStream(unsigned char *pBuf, PDDimension pDim, unsigned char cVersion);
+
   void LoadPoint(FILE *pf, bool bSwapBytes, PDPoint pPoint);
   void LoadInputPoint(FILE *pf, bool bSwapBytes, PDInputPoint pInPoint);
   void LoadReference(FILE *pf, bool bSwapBytes, double *pdRef);
@@ -84,6 +100,14 @@ private:
   void LoadLine(FILE *pf, bool bSwapBytes, PDLine pLine);
   void LoadLineStyle(FILE *pf, bool bSwapBytes, PDLineStyle pLineStyle, unsigned char cVersion);
   void LoadDimension(FILE *pf, bool bSwapBytes, PDDimension pDim, unsigned char cVersion);
+
+  int LoadPointFromStream(unsigned char *pBuf, PDPoint pPoint);
+  int LoadInputPointFromStream(unsigned char *pBuf, PDInputPoint pInPoint);
+  int LoadRefPointFromStream(unsigned char *pBuf, PDRefPoint pRefPoint);
+  int LoadLineFromStream(unsigned char *pBuf, PDLine pLine);
+  int LoadLineStyleFromStream(unsigned char *pBuf, PDLineStyle pLineStyle, unsigned char cVersion);
+  int LoadDimensionFromStream(unsigned char *pBuf, PDDimension pDim, unsigned char cVersion);
+
   // cAddMode:
   //   iType: mask: 0 - do not insert path marks, 1 - insert path marks, 2 - cPt1.x contains lower bound,
   //     4 - cPt1.y contains upper bound, 8 - move current point
@@ -190,6 +214,9 @@ public:
   void SetBound(int iIndex, CDRefPoint cBound);
   void SaveToFile(FILE *pf, bool bSwapBytes, unsigned char cVersion);
   bool ReadFromFile(FILE *pf, bool bSwapBytes, unsigned char cVersion);
+  int GetStreamSize(unsigned char cVersion);
+  int SaveToStream(unsigned char *pBuf, unsigned char cVersion);
+  int ReadFromStream(unsigned char *pBuf, unsigned char cVersion);
   // pPtX.bIsSet true if center is set, pPtX.cOrigin = center, pPtX.cDirection = normal
   double GetRadiusAtPt(CDLine cPtX, PDLine pPtR, bool bNewPt);
   bool GetDynValue(CDPoint cPt, int iMode, double *pdVal);
@@ -281,6 +308,9 @@ public:
   void ClearAll();
   void SaveToFile(FILE *pf, bool bSwapBytes, bool bSelectOnly, unsigned char cVersion);
   bool ReadFromFile(FILE *pf, bool bSwapBytes, bool bClear);
+  int GetStreamSize(unsigned char cVersion);
+  void SaveToStream(unsigned char *pBuf, unsigned char cVersion);
+  bool ReadFromStream(unsigned char *pBuf, unsigned char cVersion);
   void SelectByRectangle(PDRect pRect, int iMode);
   bool RotateSelected(CDPoint cOrig, double dRot, int iCop, PDRect pRect);
   bool MoveSelected(CDLine cLine, double dDist, int iCop, PDRect pRect, bool bPreserveDir);

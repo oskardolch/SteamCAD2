@@ -4942,6 +4942,289 @@ void CDObject::SaveToFile(FILE *pf, bool bSwapBytes, unsigned char cVersion)
   }
 }
 
+
+int CDObject::GetPointStreamSize()
+{
+  return 16;
+}
+
+int CDObject::GetInputPointStreamSize()
+{
+  return 1 + GetPointStreamSize();
+}
+
+int CDObject::GetRefPointStreamSize()
+{
+  return 9;
+}
+
+int CDObject::GetLineStreamSize()
+{
+  return 9 + 2*GetPointStreamSize();
+}
+
+int CDObject::GetLineStyleStreamSize(unsigned char cVersion)
+{
+  int iRes = 2*8 + 4 + 6*8 + 6;
+  if(m_iType == dtArea) iRes += 4;
+  return iRes;
+}
+
+int CDObject::GetDimensionStreamSize(PDDimension pDim, unsigned char cVersion)
+{
+  int iRes = 2*8 + 3 + 2*GetPointStreamSize() + 10;
+
+  int iLen = strlen(pDim->psFontFace);
+  iRes += iLen;
+
+  iRes += GetPointStreamSize() + 12;
+
+  unsigned long ulVal = 0;
+  if(pDim->psLab) ulVal = strlen(pDim->psLab);
+  if(pDim->psLab) iRes += ulVal;
+  return iRes;
+}
+
+int CDObject::SavePointToStream(unsigned char *pBuf, CDPoint cPoint)
+{
+  memcpy(pBuf, &cPoint.x, 8);
+  memcpy(&pBuf[8], &cPoint.y, 8);
+  return 16;
+}
+
+int CDObject::SaveInputPointToStream(unsigned char *pBuf, CDInputPoint cInPoint)
+{
+  pBuf[0] = cInPoint.iCtrl;
+  return 1 + SavePointToStream(&pBuf[1], cInPoint.cPoint);
+}
+
+int CDObject::SaveReferenceToStream(unsigned char *pBuf, double dRef)
+{
+  memcpy(pBuf, &dRef, 8);
+  return 8;
+}
+
+int CDObject::SaveRefPointToStream(unsigned char *pBuf, CDRefPoint cRefPoint)
+{
+  pBuf[0] = cRefPoint.bIsSet;
+  return 1 + SaveReferenceToStream(&pBuf[1], cRefPoint.dRef);
+}
+
+int CDObject::SaveLineToStream(unsigned char *pBuf, CDLine cLine)
+{
+  int iCurPos = 0;
+
+  pBuf[iCurPos++] = cLine.bIsSet;
+  iCurPos += SavePointToStream(&pBuf[iCurPos], cLine.cOrigin);
+  iCurPos += SavePointToStream(&pBuf[iCurPos], cLine.cDirection);
+
+  memcpy(&pBuf[iCurPos], &cLine.dRef, 8);
+  return 8 + iCurPos;
+}
+
+int CDObject::SaveLineStyleToStream(unsigned char *pBuf, CDLineStyle cLineStyle, unsigned char cVersion)
+{
+  int iCurPos = 0;
+
+  memcpy(&pBuf[iCurPos], &cLineStyle.dWidth, 8);
+  iCurPos += 8;
+
+  memcpy(&pBuf[iCurPos], &cLineStyle.dPercent, 8);
+  iCurPos += 8;
+
+  unsigned long ulVal = cLineStyle.iSegments;
+  memcpy(&pBuf[iCurPos], &ulVal, 4);
+  iCurPos += 4;
+
+  for(int i = 0; i < 6; i++)
+  {
+    memcpy(&pBuf[iCurPos], &cLineStyle.dPattern[i], 8);
+    iCurPos += 8;
+  }
+
+  pBuf[iCurPos++] = cLineStyle.cCapType;
+  pBuf[iCurPos++] = cLineStyle.cJoinType;
+  memcpy(&pBuf[iCurPos], &cLineStyle.cColor, 4);
+  iCurPos += 4;
+  if(m_iType == dtArea)
+  {
+    memcpy(&pBuf[iCurPos], &cLineStyle.cFillColor, 4);
+    iCurPos += 4;
+  }
+  return iCurPos;
+}
+
+int CDObject::SaveDimensionToStream(unsigned char *pBuf, PDDimension pDim, unsigned char cVersion)
+{
+  int iCurPos = 0;
+
+  memcpy(&pBuf[iCurPos], &pDim->dRef1, 8);
+  iCurPos += 8;
+
+  memcpy(&pBuf[iCurPos], &pDim->dRef2, 8);
+  iCurPos += 8;
+
+  pBuf[iCurPos++] = (unsigned char)pDim->iRefDir;
+  pBuf[iCurPos++] = (unsigned char)pDim->iArrowType1;
+  pBuf[iCurPos++] = (unsigned char)pDim->iArrowType2;
+
+  iCurPos += SavePointToStream(&pBuf[iCurPos], pDim->cArrowDim1);
+  iCurPos += SavePointToStream(&pBuf[iCurPos], pDim->cArrowDim2);
+
+  memcpy(&pBuf[iCurPos], &pDim->dFontSize, 8);
+  iCurPos += 8;
+
+  pBuf[iCurPos++] = (unsigned char)pDim->bFontAttrs;
+
+  int iLen = strlen(pDim->psFontFace);
+  pBuf[iCurPos++] = (unsigned char)iLen;
+  memcpy(&pBuf[iCurPos], pDim->psFontFace, iLen);
+  iCurPos += iLen;
+
+  iCurPos += SavePointToStream(&pBuf[iCurPos], pDim->cLabelPos.cPoint);
+
+  memcpy(&pBuf[iCurPos], &pDim->cLabelPos.dOrientation, 8);
+  iCurPos += 8;
+
+  unsigned long ulVal = 0;
+  if(pDim->psLab) ulVal = strlen(pDim->psLab);
+  memcpy(&pBuf[iCurPos], &ulVal, 4);
+  iCurPos += 4;
+  if(pDim->psLab)
+  {
+    memcpy(&pBuf[iCurPos], pDim->psLab, ulVal);
+    iCurPos += ulVal;
+  }
+  return iCurPos;
+}
+
+int CDObject::GetStreamSize(unsigned char cVersion)
+{
+  int iRes = 1;
+  unsigned long lCnt;
+
+  iRes += 2*GetLineStreamSize();
+  iRes += 2*GetRefPointStreamSize();
+  iRes += GetLineStyleStreamSize(cVersion);
+
+  lCnt = m_pInputPoints->GetCount(-1);
+  iRes += 4;
+  iRes += lCnt*GetInputPointStreamSize();
+
+  lCnt = m_pCrossPoints->GetCount();
+  iRes += 4;
+  iRes += lCnt*sizeof(double);
+
+  lCnt = m_pDimens->GetCount();
+  iRes += 4;
+
+  PDDimension pDim;
+  for(unsigned int i = 0; i < lCnt; i++)
+  {
+    pDim = (PDDimension)m_pDimens->GetItem(i);
+    iRes += GetDimensionStreamSize(pDim, cVersion);
+  }
+
+  lCnt = m_pSubObjects->GetCount();
+  PDObject pObj;
+  PDPathSeg pSeg;
+
+  iRes += 4;
+
+  if(m_iType < dtBorder)
+  {
+    for(unsigned int i = 0; i < lCnt; i++)
+    {
+      pSeg = (PDPathSeg)m_pSubObjects->GetItem(i);
+      iRes++;
+      iRes += pSeg->pSegment->GetStreamSize(cVersion);
+    }
+  }
+  else
+  {
+    for(unsigned int i = 0; i < lCnt; i++)
+    {
+      pObj = (PDObject)m_pSubObjects->GetItem(i);
+      iRes += pObj->GetStreamSize(cVersion);
+    }
+  }
+  return iRes;
+}
+
+int CDObject::SaveToStream(unsigned char *pBuf, unsigned char cVersion)
+{
+  int iCurPos = 0;
+  unsigned long lCnt;
+
+  pBuf[iCurPos++] = m_iType;
+
+  iCurPos += SaveLineToStream(&pBuf[iCurPos], m_cLines[0]);
+  iCurPos += SaveLineToStream(&pBuf[iCurPos], m_cLines[1]);
+  iCurPos += SaveRefPointToStream(&pBuf[iCurPos], m_cBounds[0]);
+  iCurPos += SaveRefPointToStream(&pBuf[iCurPos], m_cBounds[1]);
+
+  iCurPos += SaveLineStyleToStream(&pBuf[iCurPos], m_cLineStyle, cVersion);
+
+  lCnt = m_pInputPoints->GetCount(-1);
+  memcpy(&pBuf[iCurPos], &lCnt, 4);
+  iCurPos += 4;
+
+  CDInputPoint cInPt;
+  for(unsigned int i = 0; i < lCnt; i++)
+  {
+    cInPt = m_pInputPoints->GetPoint(i, -1);
+    iCurPos += SaveInputPointToStream(&pBuf[iCurPos], cInPt);
+  }
+
+  lCnt = m_pCrossPoints->GetCount();
+  memcpy(&pBuf[iCurPos], &lCnt, 4);
+  iCurPos += 4;
+
+  double dRef;
+  for(unsigned int i = 0; i < lCnt; i++)
+  {
+    dRef = m_pCrossPoints->GetPoint(i);
+    iCurPos += SaveReferenceToStream(&pBuf[iCurPos], dRef);
+  }
+
+  lCnt = m_pDimens->GetCount();
+  memcpy(&pBuf[iCurPos], &lCnt, 4);
+  iCurPos += 4;
+
+  PDDimension pDim;
+  for(unsigned int i = 0; i < lCnt; i++)
+  {
+    pDim = (PDDimension)m_pDimens->GetItem(i);
+    iCurPos += SaveDimensionToStream(&pBuf[iCurPos], pDim, cVersion);
+  }
+
+  lCnt = m_pSubObjects->GetCount();
+  PDObject pObj;
+  PDPathSeg pSeg;
+
+  memcpy(&pBuf[iCurPos], &lCnt, 4);
+  iCurPos += 4;
+
+  if(m_iType < dtBorder)
+  {
+    for(unsigned int i = 0; i < lCnt; i++)
+    {
+      pSeg = (PDPathSeg)m_pSubObjects->GetItem(i);
+      pBuf[iCurPos++] = (unsigned char)pSeg->bReverse;
+      iCurPos += pSeg->pSegment->SaveToStream(&pBuf[iCurPos], cVersion);
+    }
+  }
+  else
+  {
+    for(unsigned int i = 0; i < lCnt; i++)
+    {
+      pObj = (PDObject)m_pSubObjects->GetItem(i);
+      iCurPos += pObj->SaveToStream(&pBuf[iCurPos], cVersion);
+    }
+  }
+  return iCurPos;
+}
+
 void CDObject::LoadPoint(FILE *pf, bool bSwapBytes, PDPoint pPoint)
 {
   unsigned char buf[16], *pbuf;
@@ -5276,6 +5559,250 @@ bool CDObject::ReadFromFile(FILE *pf, bool bSwapBytes, unsigned char cVersion)
   }
   if(m_cBounds[0].bIsSet && m_cBounds[1].bIsSet && (fabs(m_cBounds[0].dRef - m_cBounds[1].dRef) < 0.00001)) return false;
   return true;
+}
+
+int CDObject::LoadPointFromStream(unsigned char *pBuf, PDPoint pPoint)
+{
+  memcpy(&pPoint->x, pBuf, 8);
+  memcpy(&pPoint->y, &pBuf[8], 8);
+  return 16;
+}
+
+int CDObject::LoadInputPointFromStream(unsigned char *pBuf, PDInputPoint pInPoint)
+{
+  pInPoint->iCtrl = pBuf[0];
+  return 1 + LoadPointFromStream(&pBuf[1], &pInPoint->cPoint);
+}
+
+int CDObject::LoadRefPointFromStream(unsigned char *pBuf, PDRefPoint pRefPoint)
+{
+  pRefPoint->bIsSet = pBuf[0];
+  memcpy(&pRefPoint->dRef, &pBuf[1], 8);
+  return 9;
+}
+
+int CDObject::LoadLineFromStream(unsigned char *pBuf, PDLine pLine)
+{
+  int iCurPos = 0;
+
+  pLine->bIsSet = pBuf[iCurPos++];
+  pLine->cOrigin.x = 0.0;
+  pLine->cOrigin.y = 0.0;
+  iCurPos += LoadPointFromStream(&pBuf[iCurPos], &pLine->cOrigin);
+  pLine->cDirection.x = 0.0;
+  pLine->cDirection.y = 0.0;
+  iCurPos += LoadPointFromStream(&pBuf[iCurPos], &pLine->cDirection);
+
+  pLine->dRef = 0.0;
+  memcpy(&pLine->dRef, &pBuf[iCurPos], 8);
+  return iCurPos + 8;
+}
+
+int CDObject::LoadLineStyleFromStream(unsigned char *pBuf, PDLineStyle pLineStyle, unsigned char cVersion)
+{
+  int iCurPos = 0;
+
+  pLineStyle->dWidth = 0.0;
+  memcpy(&pLineStyle->dWidth, &pBuf[iCurPos], 8);
+  iCurPos += 8;
+
+  pLineStyle->dPercent = 0.0;
+  memcpy(&pLineStyle->dPercent, &pBuf[iCurPos], 8);
+  iCurPos += 8;
+
+  unsigned long ulVal = 0;
+  memcpy(&ulVal, &pBuf[iCurPos], 4);
+  iCurPos += 4;
+  pLineStyle->iSegments = ulVal;
+
+  for(int i = 0; i < 6; i++)
+  {
+    pLineStyle->dPattern[i] = 0.0;
+    memcpy(&pLineStyle->dPattern[i], &pBuf[iCurPos], 8);
+    iCurPos += 8;
+  }
+
+  pLineStyle->cCapType = pBuf[iCurPos++];
+  pLineStyle->cJoinType = pBuf[iCurPos++];
+  memcpy(&pLineStyle->cColor, &pBuf[iCurPos], 4);
+  iCurPos += 4;
+  if(m_iType == dtArea)
+  {
+    memcpy(&pLineStyle->cFillColor, &pBuf[iCurPos], 4);
+    iCurPos += 4;
+  }
+  else
+  {
+    pLineStyle->cFillColor[0] = 127;
+    pLineStyle->cFillColor[1] = 127;
+    pLineStyle->cFillColor[2] = 127;
+    pLineStyle->cFillColor[3] = 255;
+  }
+
+  return iCurPos;
+}
+
+int CDObject::LoadDimensionFromStream(unsigned char *pBuf, PDDimension pDim, unsigned char cVersion)
+{
+  int iCurPos = 0;
+
+  memcpy(&pDim->dRef1, &pBuf[iCurPos], 8);
+  iCurPos += 8;
+
+  memcpy(&pDim->dRef2, &pBuf[iCurPos], 8);
+  iCurPos += 8;
+
+  pDim->iRefDir = pBuf[iCurPos++];
+  pDim->iArrowType1 = pBuf[iCurPos++];
+  pDim->iArrowType2 = pBuf[iCurPos++];
+
+  pDim->cArrowDim1.x = 0.0;
+  pDim->cArrowDim1.y = 0.0;
+  iCurPos += LoadPointFromStream(&pBuf[iCurPos], &pDim->cArrowDim1);
+  pDim->cArrowDim2.x = 0.0;
+  pDim->cArrowDim2.y = 0.0;
+  iCurPos += LoadPointFromStream(&pBuf[iCurPos], &pDim->cArrowDim2);
+
+  memcpy(&pDim->dFontSize, &pBuf[iCurPos], 8);
+  iCurPos += 8;
+
+  pDim->bFontAttrs = pBuf[iCurPos++];
+
+  unsigned char cLen = pBuf[iCurPos++];
+  memcpy(pDim->psFontFace, &pBuf[iCurPos], cLen);
+  pDim->psFontFace[cLen] = 0;
+  iCurPos += cLen;
+
+  pDim->cLabelPos.cPoint.x = 0.0;
+  pDim->cLabelPos.cPoint.y = 0.0;
+  iCurPos += LoadPointFromStream(&pBuf[iCurPos], &pDim->cLabelPos.cPoint);
+
+  memcpy(&pDim->cLabelPos.dOrientation, &pBuf[iCurPos], 8);
+  iCurPos += 8;
+
+  unsigned long ulVal = 0;
+  memcpy(&ulVal, &pBuf[iCurPos], 4);
+  iCurPos += 4;
+
+  pDim->psLab = NULL;
+  if(ulVal > 0)
+  {
+    pDim->psLab = (char*)malloc((ulVal + 1)*sizeof(char));
+    memcpy(pDim->psLab, &pBuf[iCurPos], ulVal);
+    pDim->psLab[ulVal] = 0;
+    iCurPos += ulVal;
+  }
+
+  pDim->bSelected = false;
+  pDim->cExt.cPt1 = 0;
+  pDim->cExt.cPt2 = 0;
+
+  return iCurPos;
+}
+
+int CDObject::ReadFromStream(unsigned char *pBuf, unsigned char cVersion)
+{
+  int iCurPos = 0;
+
+  iCurPos += LoadLineFromStream(&pBuf[iCurPos], &m_cLines[0]);
+  iCurPos += LoadLineFromStream(&pBuf[iCurPos], &m_cLines[1]);
+  iCurPos += LoadRefPointFromStream(&pBuf[iCurPos], &m_cBounds[0]);
+  iCurPos += LoadRefPointFromStream(&pBuf[iCurPos], &m_cBounds[1]);
+
+  if((m_iType == dtHyperbola) || (m_iType == dtLine))
+  {
+    if(m_cBounds[0].bIsSet && m_cBounds[1].bIsSet && (m_cBounds[0].dRef > m_cBounds[1].dRef))
+    {
+      double d1 = m_cBounds[0].dRef;
+      m_cBounds[0].dRef = m_cBounds[1].dRef;
+      m_cBounds[1].dRef = d1;
+    }
+  }
+
+  iCurPos += LoadLineStyleFromStream(&pBuf[iCurPos], &m_cLineStyle, cVersion);
+
+  unsigned long lCnt = 0;
+  memcpy(&lCnt, &pBuf[iCurPos], 4);
+  iCurPos += 4;
+
+  CDInputPoint cInPt = {0, {0.0, 0.0}};
+  for(unsigned int i = 0; i < lCnt; i++)
+  {
+    iCurPos += LoadInputPointFromStream(&pBuf[iCurPos], &cInPt);
+    m_pInputPoints->AddPoint(cInPt.cPoint.x, cInPt.cPoint.y, cInPt.iCtrl);
+  }
+
+  memcpy(&lCnt, &pBuf[iCurPos], 4);
+  iCurPos += 4;
+
+  double dRef = 0.0;
+  for(unsigned int i = 0; i < lCnt; i++)
+  {
+    memcpy(&dRef, &pBuf[iCurPos], 8);
+    iCurPos += 8;
+    m_pCrossPoints->AddPoint(dRef);
+  }
+
+  memcpy(&lCnt, &pBuf[iCurPos], 4);
+  iCurPos += 4;
+
+  PDDimension pDim;
+  for(unsigned int i = 0; i < lCnt; i++)
+  {
+    pDim = (PDDimension)malloc(sizeof(CDDimension));
+    iCurPos += LoadDimensionFromStream(&pBuf[iCurPos], pDim, cVersion);
+    m_pDimens->Add(pDim);
+  }
+
+  unsigned char cType;
+  bool bRead;
+  CDLine cPtX;
+  cPtX.bIsSet = false;
+  PDObject pObj;
+  PDPathSeg pSeg;
+  int iLen;
+
+  memcpy(&lCnt, &pBuf[iCurPos], 4);
+  iCurPos += 4;
+
+  if(m_iType < dtBorder)
+  {
+    for(unsigned int i = 0; i < lCnt; i++)
+    {
+      pSeg = (PDPathSeg)malloc(sizeof(CDPathSeg));
+      pSeg->bReverse = (bool)pBuf[iCurPos++];
+      pObj = new CDObject((CDDrawType)pBuf[iCurPos++], 0.2);
+      iLen = pObj->ReadFromStream(&pBuf[iCurPos], cVersion);
+      if(iLen > 0) bRead = pObj->BuildCache(cPtX, 0);
+      if(bRead)
+      {
+        pSeg->pSegment = pObj;
+        m_pSubObjects->Add(pSeg);
+      }
+      else
+      {
+        delete pObj;
+        free(pSeg);
+      }
+      iCurPos += iLen;
+    }
+  }
+  else
+  {
+    for(unsigned int i = 0; i < lCnt; i++)
+    {
+      cType = pBuf[iCurPos++];
+      if(cType == 101) cType = dtBorder;
+      pObj = new CDObject((CDDrawType)cType, 0.2);
+      iLen = pObj->ReadFromStream(&pBuf[iCurPos], cVersion);
+      if(iLen > 0) bRead = pObj->BuildCache(cPtX, 0);
+      if(bRead) m_pSubObjects->Add(pObj);
+      else delete pObj;
+      iCurPos += iLen;
+    }
+  }
+  //if(m_cBounds[0].bIsSet && m_cBounds[1].bIsSet && (fabs(m_cBounds[0].dRef - m_cBounds[1].dRef) < 0.00001)) return false;
+  return iCurPos;
 }
 
 double CDObject::GetRadiusAtPt(CDLine cPtX, PDLine pPtR, bool bNewPt)
@@ -7763,7 +8290,7 @@ void CDataList::SaveToFile(FILE *pf, bool bSwapBytes, bool bSelectOnly, unsigned
     for(int i = 0; i < m_iDataLen; i++)
     {
       if(m_ppObjects[i]->GetSelected())
-      m_ppObjects[i]->SaveToFile(pf, bSwapBytes, cVersion);
+        m_ppObjects[i]->SaveToFile(pf, bSwapBytes, cVersion);
     }
   }
   else
@@ -7836,6 +8363,78 @@ bool CDataList::ReadFromFile(FILE *pf, bool bSwapBytes, bool bClear)
     else delete pObj;
   }
   m_bHasChanged = !bClear;
+  return true;
+}
+
+int CDataList::GetStreamSize(unsigned char cVersion)
+{
+  int iRes = 11;
+
+  for(int i = 0; i < m_iDataLen; i++)
+  {
+    if(m_ppObjects[i]->GetSelected())
+      iRes += m_ppObjects[i]->GetStreamSize(cVersion);
+  }
+
+  return iRes;
+}
+
+void CDataList::SaveToStream(unsigned char *pBuf, unsigned char cVersion)
+{
+  int iCurPos = 11;
+
+  // magic number
+  pBuf[0] = 3;
+  pBuf[1] = 8;
+  pBuf[2] = 7;
+  pBuf[3] = 0;
+  pBuf[4] = 1;
+  pBuf[5] = 6;
+
+  // version
+  pBuf[6] = cVersion;
+
+  unsigned long lDataLen = GetSelectCount(cVersion);
+  memcpy(&pBuf[7], &lDataLen, 4);
+
+  for(int i = 0; i < m_iDataLen; i++)
+  {
+    if(m_ppObjects[i]->GetSelected())
+      iCurPos += m_ppObjects[i]->SaveToStream(&pBuf[iCurPos], cVersion);
+  }
+}
+
+bool CDataList::ReadFromStream(unsigned char *pBuf, unsigned char cVersion)
+{
+  bool bMagicOK = (pBuf[0] == 3) && (pBuf[1] == 8) && (pBuf[2] == 7) &&
+    (pBuf[3] == 0) && (pBuf[4] == 1) && (pBuf[5] == 6);
+  if(!bMagicOK) return false;
+
+  // version
+  if(pBuf[6] > 2) return false; // we don't know that version yet
+  unsigned char cVer = pBuf[6];
+
+  int iCurPos = 7;
+  int iLen;
+
+  unsigned long lDataLen = 0;
+  memcpy(&lDataLen, &pBuf[iCurPos], 4);
+  iCurPos += 4;
+
+  PDObject pObj;
+
+  for(unsigned int i = 0; i < lDataLen; i++)
+  {
+    pObj = new CDObject((CDDrawType)pBuf[iCurPos++], 0.2);
+    iLen = pObj->ReadFromStream(&pBuf[iCurPos], cVer);
+    if(iLen > 0)
+    {
+      Add(pObj);
+      iCurPos += iLen;
+    }
+    else delete pObj;
+  }
+  m_bHasChanged = true;
   return true;
 }
 

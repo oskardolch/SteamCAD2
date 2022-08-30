@@ -7,7 +7,7 @@
 
 bool AddRectPoint(double x, double y, char iCtrl, PDPointList pPoints)
 {
-  pPoints->AddPoint(x, y, iCtrl);
+  pPoints->AddPoint(x, y, 0);
   return (pPoints->GetCount(-1) == 2);
 }
 

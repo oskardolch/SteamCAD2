@@ -105,6 +105,24 @@ void app_disable_snap_mnu(GtkMenuItem *menuitem, PDApplication pApp)
   pApp->DisableSnap();
 }
 
+gboolean app_selection_clear(GtkWidget *widget, GdkEventSelection *event, PDApplication pApp)
+{
+  pApp->SelectionClear();
+  return TRUE;
+}
+
+void app_selection_received(GtkWidget *widget, GtkSelectionData *selection_data, guint time_stamp,
+  PDApplication pApp)
+{
+  pApp->SelectionReceived(selection_data);
+}
+
+void app_selection_get(GtkWidget *widget, GtkSelectionData *selection_data, guint info, guint time_stamp,
+  PDApplication pApp)
+{
+  pApp->SelectionGet(selection_data);
+}
+
 
 void CDApplication::CopyIniFiles(const char *psConfDir)
 {
@@ -386,6 +404,16 @@ CDApplication::CDApplication(const char *psConfDir)
     g_free(sIcon);
   }
 
+  // initialize the clipboard
+  m_iHasSelection = FALSE;
+  m_pClipData = NULL;
+  m_iClipDataLen = 0;
+  m_aSteamClipAtom = gdk_atom_intern("_STEAMCAD_GEOMETRY", TRUE);
+  g_signal_connect(G_OBJECT(m_pMainWnd), "selection-clear-event", G_CALLBACK(app_selection_clear), this);
+  g_signal_connect(G_OBJECT(m_pMainWnd), "selection-received", G_CALLBACK(app_selection_received), this);
+  g_signal_connect(G_OBJECT(m_pMainWnd), "selection-get", G_CALLBACK(app_selection_get), this);
+  gtk_selection_add_target(m_pMainWnd, GDK_SELECTION_PRIMARY, m_aSteamClipAtom, 1);
+
   /* always display the window as the last step so it all splashes on
   * the screen at once. */
   gtk_widget_show(m_pMainWnd);
@@ -407,6 +435,7 @@ CDApplication::~CDApplication()
   m_pcs = NULL;
   if(m_sFileName) g_free(m_sFileName);
   if(m_sLastPath) g_free(m_sLastPath);
+  if(m_iClipDataLen > 0) g_free(m_pClipData);
   delete m_pUndoObjects;
   delete m_pDrawObjects;
   delete m_pScaleDlg;
@@ -2646,6 +2675,32 @@ void CDApplication::ModeCommand(int iCmd, bool bFromAccel)
   return;
 }
 
+void CDApplication::EditCopyCmd(GtkWidget *widget, bool bFromAccel)
+{
+  m_iHasSelection = gtk_selection_owner_set(widget, GDK_SELECTION_PRIMARY, GDK_CURRENT_TIME);
+  if(m_iHasSelection)
+  {
+    if(m_iClipDataLen > 0)
+    {
+      g_free(m_pClipData);
+      m_iClipDataLen = 0;
+    }
+
+    m_iClipDataLen = m_pDrawObjects->GetStreamSize(2);
+    m_pClipData = (guchar*)g_malloc(m_iClipDataLen);
+    m_pDrawObjects->SaveToStream(m_pClipData, 2);
+  }
+}
+
+void CDApplication::EditCutCmd(GtkWidget *widget, bool bFromAccel)
+{
+}
+
+void CDApplication::EditPasteCmd(GtkWidget *widget, bool bFromAccel)
+{
+  gtk_selection_convert(widget, GDK_SELECTION_PRIMARY, m_aSteamClipAtom, GDK_CURRENT_TIME);
+}
+
 void CDApplication::EditDeleteCmd(GtkWidget *widget, bool bFromAccel)
 {
   m_pActiveObject = NULL;
@@ -2940,6 +2995,15 @@ void CDApplication::EditCommand(int iCmd, bool bFromAccel)
 {
   switch(iCmd)
   {
+  case IDM_EDITCOPY:
+    EditCopyCmd(m_pMainWnd, bFromAccel);
+    break;
+  case IDM_EDITCUT:
+    EditCutCmd(m_pMainWnd, bFromAccel);
+    break;
+  case IDM_EDITPASTE:
+    EditPasteCmd(m_pMainWnd, bFromAccel);
+    break;
   case IDM_EDITDELETE:
     EditDeleteCmd(m_pMainWnd, bFromAccel);
     break;
@@ -4619,6 +4683,36 @@ void CDApplication::PathMoveBottomCmd()
     GtkWidget *draw = GetDrawing();
     gdk_window_invalidate_rect(draw->window, NULL, FALSE);
     SetTitle(m_pMainWnd, false);
+  }
+}
+
+void CDApplication::SelectionClear()
+{
+  if(m_iClipDataLen > 0)
+  {
+    g_free(m_pClipData);
+    m_pClipData = NULL;
+    m_iClipDataLen = 0;
+  }
+  m_iHasSelection = FALSE;
+}
+
+void CDApplication::SelectionReceived(GtkSelectionData *selection_data)
+{
+  if(selection_data->length < 0) return;
+  if(selection_data->type != m_aSteamClipAtom) return;
+  if(m_pDrawObjects->ReadFromStream(selection_data->data, 2))
+  {
+    GtkWidget *draw = GetDrawing();
+    gdk_window_invalidate_rect(draw->window, NULL, FALSE);
+  }
+}
+
+void CDApplication::SelectionGet(GtkSelectionData *selection_data)
+{
+  if(m_iHasSelection && (m_iClipDataLen > 0))
+  {
+    gtk_selection_data_set(selection_data, m_aSteamClipAtom, 8, m_pClipData, m_iClipDataLen);
   }
 }
 

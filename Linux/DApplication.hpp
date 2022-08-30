@@ -102,6 +102,11 @@ private:
   GtkWidget* GetDrawing();
   GtkWidget* GetStatusBar();
 
+  GdkAtom m_aSteamClipAtom;
+  gboolean m_iHasSelection;
+  guchar *m_pClipData;
+  int m_iClipDataLen;
+
   void SetStatusBarMsg(int iPanel, const gchar *pMsg);
   void FileNewCmd(bool bFromAccel);
   void FileOpenCmd(bool bFromAccel);
@@ -113,6 +118,9 @@ private:
   void FilePropsCmd(bool bFromAccel);
   void FileQuitCmd(bool bFromAccel);
 
+  void EditCopyCmd(GtkWidget *widget, bool bFromAccel);
+  void EditCutCmd(GtkWidget *widget, bool bFromAccel);
+  void EditPasteCmd(GtkWidget *widget, bool bFromAccel);
   void EditDeleteCmd(GtkWidget *widget, bool bFromAccel);
   void EditCopyParCmd(GtkWidget *widget, bool bFromAccel);
   void EditMoveCmd(GtkWidget *widget);
@@ -212,6 +220,9 @@ public:
 
   void EnableSnap();
   void DisableSnap();
+  void SelectionClear();
+  void SelectionReceived(GtkSelectionData *selection_data);
+  void SelectionGet(GtkSelectionData *selection_data);
 } *PDApplication;
 
 #endif
