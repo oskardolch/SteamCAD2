@@ -1643,7 +1643,11 @@ LRESULT CMainWnd::EditCopyCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl)
 LRESULT CMainWnd::EditCutCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl)
 {
   EditCopyCmd(hwnd, wNotifyCode, hwndCtl);
-  if(m_pDrawObjects->DeleteSelected(m_pUndoObjects, NULL)) InvalidateRect(m_hWnd, NULL, TRUE);
+  if(m_pDrawObjects->DeleteSelected(m_pUndoObjects, NULL))
+  {
+    InvalidateRect(m_hWnd, NULL, TRUE);
+    SetTitle(m_hWnd, false);
+  }
   return 0;
 }
 
@@ -1661,7 +1665,7 @@ LRESULT CMainWnd::EditPasteCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl)
       if(m_pDrawObjects->ReadFromStream(plData, 2))
       {
         InvalidateRect(m_hWnd, NULL, TRUE);
-        SetTitle(m_hWnd, true);
+        SetTitle(m_hWnd, false);
       }
       GlobalUnlock(hglb);
     }
