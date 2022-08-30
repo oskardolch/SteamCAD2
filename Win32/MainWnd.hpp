@@ -114,6 +114,10 @@ private:
   double m_dSavedAngle;
   CDLine m_cLastDynPt;
 
+  UINT m_iClipboardFormat;
+  int m_iClipDataLen;
+  HANDLE m_hClipData;
+
   void GetAppPath();
   void LoadSettings(HWND hwnd);
   void SaveSettings(HWND hwnd);

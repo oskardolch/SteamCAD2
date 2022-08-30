@@ -195,6 +195,11 @@ CMainWnd::CMainWnd(HINSTANCE hInstance)
   m_cLastDynPt.bIsSet = false;
   m_bHasChanged = true;
 
+  // clipboard
+  m_iClipboardFormat = RegisterClipboardFormat(L"_STEAMCAD_GEOMETRY");
+  m_iClipDataLen = 0;
+  m_hClipData = 0;
+
   GdiplusStartupInput gdiplusStartupInput;
   GdiplusStartup(&m_gdiplusToken, &gdiplusStartupInput, NULL);
   CoInitialize(NULL);
@@ -216,6 +221,8 @@ CMainWnd::~CMainWnd()
   delete m_pUndoObjects;
   delete m_pDrawObjects;
   //delete m_pToolBar;
+
+  if(m_iClipDataLen > 0) GlobalFree(m_hClipData);
 
   if(m_pDrawBuffer) delete m_pDrawBuffer;
   delete m_redPen;
@@ -1605,16 +1612,61 @@ LRESULT CMainWnd::ModeCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl, int iMode)
 
 LRESULT CMainWnd::EditCopyCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl)
 {
+  if(m_iClipDataLen > 0)
+  {
+    GlobalFree(m_hClipData);
+    m_hClipData = 0;
+    m_iClipDataLen = 0;
+  }
+
+  if(!OpenClipboard(m_hWnd)) return FALSE;
+  EmptyClipboard();
+
+  int iLen = m_pDrawObjects->GetStreamSize(2);
+  m_hClipData = GlobalAlloc(GMEM_DDESHARE, iLen*sizeof(unsigned char));
+  if(m_hClipData == NULL)
+  {
+    CloseClipboard();
+    return 0;
+  }
+
+  unsigned char *pDataCopy = (unsigned char*)GlobalLock(m_hClipData);
+  m_pDrawObjects->SaveToStream(pDataCopy, 2);
+  GlobalUnlock(m_hClipData);
+
+  // Place the handle on the clipboard.
+  SetClipboardData(m_iClipboardFormat, m_hClipData);
+  CloseClipboard();
   return 0;
 }
 
 LRESULT CMainWnd::EditCutCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl)
 {
+  EditCopyCmd(hwnd, wNotifyCode, hwndCtl);
+  if(m_pDrawObjects->DeleteSelected(m_pUndoObjects, NULL)) InvalidateRect(m_hWnd, NULL, TRUE);
   return 0;
 }
 
 LRESULT CMainWnd::EditPasteCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl)
 {
+  if(!IsClipboardFormatAvailable(m_iClipboardFormat)) return 0;
+  if(!OpenClipboard(m_hWnd)) return 0;
+
+  HGLOBAL hglb = GetClipboardData(m_iClipboardFormat);
+  if(hglb != NULL)
+  {
+    unsigned char *plData = (unsigned char*)GlobalLock(hglb);
+    if(plData != NULL)
+    {
+      if(m_pDrawObjects->ReadFromStream(plData, 2))
+      {
+        InvalidateRect(m_hWnd, NULL, TRUE);
+        SetTitle(m_hWnd, true);
+      }
+      GlobalUnlock(hglb);
+    }
+  }
+  CloseClipboard();
   return 0;
 }
 
