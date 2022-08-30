@@ -2694,6 +2694,13 @@ void CDApplication::EditCopyCmd(GtkWidget *widget, bool bFromAccel)
 
 void CDApplication::EditCutCmd(GtkWidget *widget, bool bFromAccel)
 {
+  EditCopyCmd(widget, bFromAccel);
+  if(m_pDrawObjects->DeleteSelected(m_pUndoObjects, NULL))
+  {
+    GtkWidget *draw = GetDrawing();
+    gdk_window_invalidate_rect(draw->window, NULL, FALSE);
+    SetTitle(widget, false);
+  }
 }
 
 void CDApplication::EditPasteCmd(GtkWidget *widget, bool bFromAccel)
@@ -4705,6 +4712,7 @@ void CDApplication::SelectionReceived(GtkSelectionData *selection_data)
   {
     GtkWidget *draw = GetDrawing();
     gdk_window_invalidate_rect(draw->window, NULL, FALSE);
+    SetTitle(m_pMainWnd, false);
   }
 }
 
