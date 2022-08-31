@@ -3,7 +3,7 @@
 
 Placing the primitives mentioned in the chapter~\ref{chap:chap1} is usually not
 sufficient to make a meaningfull drawing. So let's discuss other tools avialbale
-in SteamCAD.
+in SteamCAD2.
 
 \section{Selection}
 \special{pdf: out 2 << /Title (\thesection. Selection) /Dest [ @thispage /FitH @ypos ] >>}
@@ -28,16 +28,13 @@ to the current selection set.
 \section{Copying Objects}\label{sec:copyobj}
 \special{pdf: out 2 << /Title (\thesection. Copying Objects) /Dest [ @thispage /FitH @ypos ] >>}
 
-SteamCAD does not utilize clipboard as it is usual for similar applications. The
-reason for not using clipboard is that SteamCAD simply draw lines, nothing more. It
-does not define areas, polylines or groups of objects. So there are no Copy and Paste
-commands. To create a copy of objects, SteamCAD provides four methods more convenient
-for technical drawing:
+SteamCAD2 provides several methods to copy objects, including the clipboard. There
+are four basic methods which simultaneously copy the object(s) and manipulate the copy:
 \begin{enumerate}
-\item \textbf{Copy Parallel}\label{sec:copypar} - this command is available with the shortcat ``Ctrl + C''.
-The selected object is coppied and placed upon left mouse click at a given distance
-from the original object. The command works for all the primitive types, so it actually
-creates a geometry equidistant from the original geometry. So for example an ellipse
+\item \textbf{Copy Parallel}\label{sec:copypar} - this command is available with the shortcat
+``Ctrl + C''. The selected object is coppied and placed upon left mouse click at a given
+distance from the original object. The command works for all the primitive types, so it
+actually creates a geometry equidistant from the original geometry. So for example an ellipse
 coppied as ``parallel'' creates a curve which is not an ellipse anymore, except when
 the distance from the original ellipse is zero. You can also copy parallel already copied
 objects.
@@ -87,6 +84,14 @@ around.
 \end{enumerate}
 
 All the copy commands keep the original select set selected.
+
+\section{Clipboard}
+\special{pdf: out 2 << /Title (\thesection. Clipboard) /Dest [ @thispage /FitH @ypos ] >>}
+
+SteamCAD2 provides standard clipboard both on Linux and Windows. Sice from SteamCAD the
+shortcut ``Ctrl + C'' is reserved for the copy parallel command, the standard Copy to
+clipboard command is invoked by ``Alt + C''. The other two accompanying commands, Cut and
+Paste, can be invoked by standard ``Ctrl + X'' and ``Ctrl + V'' shortcuts respectivelly.
 
 \section{Deleting and Undoing Changes}
 \special{pdf: out 2 << /Title (\thesection. Deleting and Undoing Changes) /Dest [ @thispage /FitH @ypos ] >>}
