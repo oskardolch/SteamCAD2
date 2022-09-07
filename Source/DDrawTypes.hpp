@@ -207,7 +207,7 @@ public:
   CDLineStyle GetLineStyle();
   void SetLineStyle(int iMask, CDLineStyle cStyle);
   int GetRestrictPoint(CDPoint cPt, int iMode, int iRestrictMask, double *pdRestrictValue, PDPoint pSnapPt);
-  CDObject* Copy();
+  CDObject* Copy(bool bReverseSegments);
   bool Split(CDPoint cPt, PDPtrList pNewObjects, PDRect pRect);
   bool Extend(CDPoint cPt, double dDist, PDRect pRect);
   void SetBound(int iIndex, CDLine cBound);

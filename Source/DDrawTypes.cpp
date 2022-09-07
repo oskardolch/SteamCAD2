@@ -4213,7 +4213,7 @@ int CDObject::GetRestrictPoint(CDPoint cPt, int iMode, int iRestrictMask,
   return iRes;
 }
 
-CDObject* CDObject::Copy()
+CDObject* CDObject::Copy(bool bReverseSegments)
 {
   PDObject pRes = new CDObject(m_iType, m_cLineStyle.dWidth);
   pRes->SetInputLine(0, m_cLines[0]);
@@ -4230,27 +4230,60 @@ CDObject* CDObject::Copy()
   cPtX.bIsSet = false;
   pRes->BuildCache(cPtX, 0);
 
-  pRes->SetBound(0, m_cBounds[0]);
-  pRes->SetBound(1, m_cBounds[1]);
+  if(bReverseSegments)
+  {
+    pRes->SetBound(0, m_cBounds[1]);
+    pRes->SetBound(1, m_cBounds[0]);
+  }
+  else
+  {
+    pRes->SetBound(0, m_cBounds[0]);
+    pRes->SetBound(1, m_cBounds[1]);
+  }
   pRes->SetLineStyle(255, m_cLineStyle);
 
   double dRef;
-  for(int i = 0; i < m_pCrossPoints->GetCount(); i++)
+  if(bReverseSegments)
   {
-    dRef = m_pCrossPoints->GetPoint(i);
-    pRes->AddCrossPoint(dRef);
+    for(int i = m_pCrossPoints->GetCount() - 1; i >= 0; i--)
+    {
+      dRef = m_pCrossPoints->GetPoint(i);
+      pRes->AddCrossPoint(dRef);
+    }
+  }
+  else
+  {
+    for(int i = 0; i < m_pCrossPoints->GetCount(); i++)
+    {
+      dRef = m_pCrossPoints->GetPoint(i);
+      pRes->AddCrossPoint(dRef);
+    }
   }
 
   if(m_iType == dtPath)
   {
     PDPathSeg pSegIn, pSegOut;
-    for(int i = 0; i < m_pSubObjects->GetCount(); i++)
+    if(bReverseSegments)
     {
-      pSegIn = (PDPathSeg)m_pSubObjects->GetItem(i);
-      pSegOut = (PDPathSeg)malloc(sizeof(CDPathSeg));
-      pSegOut->bReverse = pSegIn->bReverse;
-      pSegOut->pSegment = pSegIn->pSegment->Copy();
-      pRes->m_pSubObjects->Add(pSegOut);
+      for(int i = m_pSubObjects->GetCount() - 1; i >= 0; i--)
+      {
+        pSegIn = (PDPathSeg)m_pSubObjects->GetItem(i);
+        pSegOut = (PDPathSeg)malloc(sizeof(CDPathSeg));
+        pSegOut->bReverse = pSegIn->bReverse;
+        pSegOut->pSegment = pSegIn->pSegment->Copy(bReverseSegments);
+        pRes->m_pSubObjects->Add(pSegOut);
+      }
+    }
+    else
+    {
+      for(int i = 0; i < m_pSubObjects->GetCount(); i++)
+      {
+        pSegIn = (PDPathSeg)m_pSubObjects->GetItem(i);
+        pSegOut = (PDPathSeg)malloc(sizeof(CDPathSeg));
+        pSegOut->bReverse = pSegIn->bReverse;
+        pSegOut->pSegment = pSegIn->pSegment->Copy(bReverseSegments);
+        pRes->m_pSubObjects->Add(pSegOut);
+      }
     }
   }
   else if(m_iType > dtPath)
@@ -4259,7 +4292,7 @@ CDObject* CDObject::Copy()
     for(int i = 0; i < m_pSubObjects->GetCount(); i++)
     {
       pObj = (PDObject)m_pSubObjects->GetItem(i);
-      pRes->m_pSubObjects->Add(pObj->Copy());
+      pRes->m_pSubObjects->Add(pObj->Copy(bReverseSegments));
     }
   }
 
@@ -4436,13 +4469,13 @@ PDObject CDObject::SplitByRef(double dRef, bool *pbRes)
   {
     if(m_cBounds[1].bIsSet)
     {
-      pNewObj = Copy();
+      pNewObj = Copy(false);
       SetBound(1, cBnd);
       pNewObj->SetBound(0, cBnd);
     }
     else
     {
-      pNewObj = Copy();
+      pNewObj = Copy(false);
       SetBound(1, cBnd);
       pNewObj->SetBound(0, cBnd);
       if(iClosed > 0) pNewObj->SetBound(1, m_cBounds[0]);
@@ -4452,13 +4485,13 @@ PDObject CDObject::SplitByRef(double dRef, bool *pbRes)
   {
     if(m_cBounds[1].bIsSet)
     {
-      pNewObj = Copy();
+      pNewObj = Copy(false);
       SetBound(0, cBnd);
       pNewObj->SetBound(1, cBnd);
     }
     else if(iClosed < 1)
     {
-      pNewObj = Copy();
+      pNewObj = Copy(false);
       SetBound(0, cBnd);
       pNewObj->SetBound(1, cBnd);
     }
@@ -6220,6 +6253,7 @@ void CDObject::MirrorPoints(CDLine cLine)
     {
       pObj = (PDPathSeg)m_pSubObjects->GetItem(i++);
       pObj->pSegment->MirrorPoints(cLine);
+      //pObj->bReverse = !pObj->bReverse;
     }
     BuildCache(cPtX, 0);
     return;
@@ -8501,7 +8535,7 @@ bool CDataList::RotateSelected(CDPoint cOrig, double dRot, int iCop, PDRect pRec
       {
         for(int j = 0; j < iCop; j++)
         {
-          pObj1 = pObj->Copy();
+          pObj1 = pObj->Copy(false);
           pObj1->RotatePoints(cOrig, (j + 1)*dRotStep, 0);
           pObj1->BuildPrimitives(cLn, 0, pRect, 0, NULL, NULL);
           Add(pObj1);
@@ -8558,7 +8592,7 @@ bool CDataList::MoveSelected(CDLine cLine, double dDist, int iCop, PDRect pRect,
       {
         for(int j = 0; j < iCop; j++)
         {
-          pObj1 = pObj->Copy();
+          pObj1 = pObj->Copy(false);
           pObj1->MovePoints(cDir, (j + 1)*dDistStep, 0);
           pObj1->BuildPrimitives(cLn, 0, pRect, 0, NULL, NULL);
           Add(pObj1);
@@ -8597,7 +8631,7 @@ bool CDataList::MirrorSelected(CDLine cLine, PDRect pRect)
     if(pObj->GetSelected())
     {
       bRes = true;
-      pObj1 = pObj->Copy();
+      pObj1 = pObj->Copy(true);
       pObj1->MirrorPoints(cLine);
       pObj1->BuildPrimitives(cLn, 0, pRect, 0, NULL, NULL);
       Add(pObj1);

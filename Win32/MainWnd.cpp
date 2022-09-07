@@ -1750,7 +1750,7 @@ LRESULT CMainWnd::EditCopyParCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl)
 
   PDObject pNewObj = NULL;
   int iType = pObj->GetType();
-  pNewObj = pObj->Copy();
+  pNewObj = pObj->Copy(false);
   if(!pNewObj) return 0;
 
   m_pActiveObject = pNewObj;
