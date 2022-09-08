@@ -6249,11 +6249,16 @@ void CDObject::MirrorPoints(CDLine cLine)
     int iCnt = m_pSubObjects->GetCount();
     int i = 0;
     PDPathSeg pObj;
+    int iType;
     while(i < iCnt)
     {
       pObj = (PDPathSeg)m_pSubObjects->GetItem(i++);
+      iType = pObj->pSegment->GetType();
       pObj->pSegment->MirrorPoints(cLine);
-      //pObj->bReverse = !pObj->bReverse;
+      if((iType > dtLine) && (iType < dtPath))
+      {
+        pObj->bReverse = !pObj->bReverse;
+      }
     }
     BuildCache(cPtX, 0);
     return;
@@ -8631,7 +8636,7 @@ bool CDataList::MirrorSelected(CDLine cLine, PDRect pRect)
     if(pObj->GetSelected())
     {
       bRes = true;
-      pObj1 = pObj->Copy(true);
+      pObj1 = pObj->Copy(false);
       pObj1->MirrorPoints(cLine);
       pObj1->BuildPrimitives(cLn, 0, pRect, 0, NULL, NULL);
       Add(pObj1);
