@@ -39,9 +39,9 @@ libdxflib.a: $(dxflibobj)
 dl_writer_ascii.o : dxflib/dl_writer_ascii.cpp dxflib/dl_writer_ascii.h
 dl_dxf.o : dxflib/dl_dxf.cpp dxflib/dl_dxf.h
 
-DGuiobj = SteamCAD2.o DMenu.o DApplication.o DDataTypes.o DMath.o DTopo.o \
-  DDrawTypes.o DPrimitive.o DLine.o DCircle.o DEllipse.o DArcElps.o \
-  DHyper.o DParabola.o DSpline.o DEvolv.o DExpCairo.o DParser.o \
+DGuiobj = SteamCAD2.o DMenu.o DApplication.o DDataTypes.o DStreamUtils.o \
+  DMath.o DTopo.o DDrawTypes.o DPrimitive.o DLine.o DCircle.o DEllipse.o \
+  DArcElps.o DHyper.o DParabola.o DSpline.o DEvolv.o DExpCairo.o DParser.o \
   DFileMenu.o DModeMenu.o DEditMenu.o DViewToolsMenu.o DFileSetupDlg.o \
   DLineStyleDlg.o DDimEditDlg.o DStatDlg.o DSnapDlg.o DScaleDlg.o DExpDXF.o \
   DPathMenu.o DRect.o
@@ -80,12 +80,14 @@ $(BUILDDIR)%.o : Source/%.cpp
 
 $(BUILDDIR)DDataTypes.o : Source/DDataTypes.cpp Source/DDataTypes.hpp Source/DTopo.hpp \
   Source/DMath.hpp
+$(BUILDDIR)DStreamUtils.o : Source/DStreamUtils.cpp Source/DStreamUtils.hpp Source/DDataTypes.hpp \
+  Source/DMath.hpp
 $(BUILDDIR)DMath.o : Source/DMath.cpp Source/DMath.hpp
 $(BUILDDIR)DTopo.o : Source/DTopo.cpp Source/DTopo.hpp Source/DMath.hpp
 $(BUILDDIR)DDrawTypes.o : Source/DDrawTypes.cpp Source/DDrawTypes.hpp Source/DDataTypes.hpp \
-  Source/DLine.hpp Source/DCircle.hpp Source/DEllipse.hpp Source/DPrimitive.hpp \
-  Source/DArcElps.hpp Source/DHyper.hpp Source/DParabola.hpp Source/DSpline.hpp \
-  Source/DEvolv.hpp Source/DParser.hpp Source/DRect.hpp
+  Source/DStreamUtils.hpp Source/DLine.hpp Source/DCircle.hpp Source/DEllipse.hpp \
+  Source/DPrimitive.hpp Source/DArcElps.hpp Source/DHyper.hpp Source/DParabola.hpp \
+  Source/DSpline.hpp Source/DEvolv.hpp Source/DParser.hpp Source/DRect.hpp
 $(BUILDDIR)DPrimitive.o : Source/DPrimitive.cpp Source/DPrimitive.hpp Source/DDataTypes.hpp \
   Source/DMath.hpp
 $(BUILDDIR)DLine.o : Source/DLine.cpp Source/DLine.hpp Source/DDataTypes.hpp \

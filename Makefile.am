@@ -6,12 +6,12 @@ SteamCAD_LDADD = $(GTK_LIBS)
 
 bin_PROGRAMS = SteamCAD2
 SteamCAD_SOURCES = dxflib/dl_writer_ascii.cpp dxflib/dl_dxf.cpp \
-    Source/DDataTypes.cpp Source/DMath.cpp Source/DTopo.cpp \
-    Source/DDrawTypes.cpp Source/DPrimitive.cpp Source/DLine.cpp \
-    Source/DCircle.cpp Source/DEllipse.cpp Source/DArcElps.cpp \
-    Source/DHyper.cpp Source/DParabola.cpp Source/DSpline.cpp \
-    Source/DEvolv.cpp Source/DExpCairo.cpp Source/DParser.cpp \
-    Source/DExpDXF.cpp \
+    Source/DDataTypes.cpp Source/DStreamUtils.cpp Source/DMath.cpp \
+    Source/DTopo.cpp Source/DDrawTypes.cpp Source/DPrimitive.cpp \
+    Source/DLine.cpp Source/DCircle.cpp Source/DEllipse.cpp \
+    Source/DArcElps.cpp Source/DHyper.cpp Source/DParabola.cpp \
+    Source/DSpline.cpp Source/DEvolv.cpp Source/DRect.cpp \
+    Source/DExpCairo.cpp Source/DParser.cpp Source/DExpDXF.cpp \
     Linux/SteamCAD2.cpp Linux/DApplication.cpp Linux/DMenu.cpp \
     Linux/DFileMenu.cpp Linux/DModeMenu.cpp Linux/DEditMenu.cpp \
     Linux/DViewToolsMenu.cpp Linux/DFileSetupDlg.cpp \

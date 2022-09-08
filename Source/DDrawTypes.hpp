@@ -70,43 +70,11 @@ private:
   bool IsClosedShape();
   int GetBoundType();
   bool BuildSubCache(CDLine cTmpPt, int iMode);
-  void SavePoint(FILE *pf, bool bSwapBytes, CDPoint cPoint);
-  void SaveInputPoint(FILE *pf, bool bSwapBytes, CDInputPoint cInPoint);
-  void SaveReference(FILE *pf, bool bSwapBytes, double dRef);
-  void SaveRefPoint(FILE *pf, bool bSwapBytes, CDRefPoint cRefPoint);
-  void SaveLine(FILE *pf, bool bSwapBytes, CDLine cLine);
   void SaveLineStyle(FILE *pf, bool bSwapBytes, CDLineStyle cLineStyle, unsigned char cVersion);
-  void SaveDimension(FILE *pf, bool bSwapBytes, PDDimension pDim, unsigned char cVersion);
-
-  int GetPointStreamSize();
-  int GetInputPointStreamSize();
-  int GetRefPointStreamSize();
-  int GetLineStreamSize();
   int GetLineStyleStreamSize(unsigned char cVersion);
-  int GetDimensionStreamSize(PDDimension pDim, unsigned char cVersion);
-
-  int SavePointToStream(unsigned char *pBuf, CDPoint cPoint);
-  int SaveInputPointToStream(unsigned char *pBuf, CDInputPoint cInPoint);
-  int SaveReferenceToStream(unsigned char *pBuf, double dRef);
-  int SaveRefPointToStream(unsigned char *pBuf, CDRefPoint cRefPoint);
-  int SaveLineToStream(unsigned char *pBuf, CDLine cLine);
   int SaveLineStyleToStream(unsigned char *pBuf, CDLineStyle cLineStyle, unsigned char cVersion);
-  int SaveDimensionToStream(unsigned char *pBuf, PDDimension pDim, unsigned char cVersion);
-
-  void LoadPoint(FILE *pf, bool bSwapBytes, PDPoint pPoint);
-  void LoadInputPoint(FILE *pf, bool bSwapBytes, PDInputPoint pInPoint);
-  void LoadReference(FILE *pf, bool bSwapBytes, double *pdRef);
-  void LoadRefPoint(FILE *pf, bool bSwapBytes, PDRefPoint pRefPoint);
-  void LoadLine(FILE *pf, bool bSwapBytes, PDLine pLine);
   void LoadLineStyle(FILE *pf, bool bSwapBytes, PDLineStyle pLineStyle, unsigned char cVersion);
-  void LoadDimension(FILE *pf, bool bSwapBytes, PDDimension pDim, unsigned char cVersion);
-
-  int LoadPointFromStream(unsigned char *pBuf, PDPoint pPoint);
-  int LoadInputPointFromStream(unsigned char *pBuf, PDInputPoint pInPoint);
-  int LoadRefPointFromStream(unsigned char *pBuf, PDRefPoint pRefPoint);
-  int LoadLineFromStream(unsigned char *pBuf, PDLine pLine);
   int LoadLineStyleFromStream(unsigned char *pBuf, PDLineStyle pLineStyle, unsigned char cVersion);
-  int LoadDimensionFromStream(unsigned char *pBuf, PDDimension pDim, unsigned char cVersion);
 
   // cAddMode:
   //   iType: mask: 0 - do not insert path marks, 1 - insert path marks, 2 - cPt1.x contains lower bound,
