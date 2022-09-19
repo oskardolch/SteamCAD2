@@ -2623,7 +2623,9 @@ LRESULT CMainWnd::WMLButtonUp(HWND hwnd, WPARAM fwKeys, int xPos, int yPos)
     else
     {
       int iCtrl = 0;
-      double dOffset = m_dRestrictValue*m_dDrawScale*m_cFSR.cLenUnit.dBaseToUnit;
+      double dOffset;
+      if(m_bPaperUnits) dOffset = m_dRestrictValue*m_cFSR.cPaperUnit.dBaseToUnit;
+      else dOffset = m_dRestrictValue*m_dDrawScale*m_cFSR.cLenUnit.dBaseToUnit;
       if(m_iToolMode == tolCopyPar)
       {
         iCtrl = 2;
