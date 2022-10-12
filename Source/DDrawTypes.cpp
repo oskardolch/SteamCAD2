@@ -7991,6 +7991,8 @@ bool CDataList::ReadFromStream(unsigned char *pBuf, unsigned char cVersion)
 
   // version
   if(pBuf[6] > 2) return false; // we don't know that version yet
+
+  ClearSelection();
   unsigned char cVer = pBuf[6];
 
   int iCurPos = 7;
@@ -8008,6 +8010,7 @@ bool CDataList::ReadFromStream(unsigned char *pBuf, unsigned char cVersion)
     iLen = pObj->ReadFromStream(&pBuf[iCurPos], cVer);
     if(iLen > 0)
     {
+      pObj->SetSelected(true, false, -1);
       Add(pObj);
       iCurPos += iLen;
     }
