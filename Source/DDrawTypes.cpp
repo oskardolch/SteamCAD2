@@ -24,15 +24,6 @@ extern HWND g_hStatus;*/
 // -----
 
 
-/*void SwapBytes(unsigned char *pDest, unsigned char *pSrc, int iLen, bool bSwap)
-{
-  if(bSwap)
-  {
-    for(int i = 0; i < iLen; i++) pDest[i] = pSrc[iLen - i - 1];
-  }
-  else for(int i = 0; i < iLen; i++) pDest[i] = pSrc[i];
-}*/
-
 int CmpDbls(double d1, double d2)
 {
   if(d1 < d2 - g_dPrec) return 1;
@@ -629,10 +620,6 @@ void CDObject::SetupRectCache()
     pSeg->pSegment->SetBound(0, cRefPt);
     cRefPt.dRef = -M_PI/2.0;
     pSeg->pSegment->SetBound(1, cRefPt);
-
-    //CDLine cLn;
-    //cLn.bIsSet = false;
-    //BuildSubCache(cLn, 0);
   }
   return;
 }
@@ -1221,7 +1208,6 @@ void CDObject::AddPatSegment(double dStart, int iStart, double dEnd, int iEnd,
   double dSegLen = m_cLineStyle.dPattern[0];
   if(dSegLen < g_dDashMin) dSegLen = g_dDashMin;
   double dPatStart2 = dSegLen/2.0;
-//  int iRep;
 
   GetPointRefDist(dStart, dExt, &d1);
   GetPointRefDist(dEnd, dExt, &d2);
@@ -1269,7 +1255,6 @@ void CDObject::AddPatSegment(double dStart, int iStart, double dEnd, int iEnd,
 
     dPatScale = dDist/dStretchDist;
   }
-//  else iRep = dDist/dPatLen + 1;
 
   cAdd.iType |= 1;
   if(iStart > 0) cAdd.iType |= 2;
@@ -1285,62 +1270,6 @@ void CDObject::AddPatSegment(double dStart, int iStart, double dEnd, int iEnd,
   if(iStart > 0) cAdd.cPt3.y = d1;
   else cAdd.cPt3.y = d2;
   AddCurveSegment(cAdd, pPrimitives, pViewBnds);
-
-/*  double d1, d2;
-  int i;
-  if(iStart > 0)
-  {
-    i = 0;
-    d1 = dStart;
-    d2 = d1 + dPatScale*m_cLineStyle.dPattern[i++];
-    if(iStart < 2) d2 = d1 + dPatScale*dPatStart2;
-    cAdd.cPt1.x = d1;
-    cAdd.cPt1.y = d2;
-    AddCurveSegment(cAdd, m_pPrimitive, 0, pViewBnds);
-
-    d1 = d2 + dPatScale*m_cLineStyle.dPattern[i++];
-    for(int j = 0; j < iRep; j++)
-    {
-      while(i < m_cLineStyle.iSegments)
-      {
-        if(d1 > pBnds->y) d1 -= dPerLen;
-        d2 = d1 + dPatScale*m_cLineStyle.dPattern[i++];
-        cAdd.cPt1.x = d1;
-        cAdd.cPt1.y = d2;
-        AddCurveSegment(cAdd, m_pPrimitive, 0, pViewBnds);
-        d1 = d2 + dPatScale*m_cLineStyle.dPattern[i++];
-      }
-      i = 0;
-    }
-    if(d1 > pBnds->y) d1 -= dPerLen;
-    d2 = d1 + dPatScale*m_cLineStyle.dPattern[0];
-    if((iEnd > 0) && (iEnd < 2)) d2 = d1 + dPatScale*dPatStart2;
-    cAdd.cPt1.x = d1;
-    cAdd.cPt1.y = d2;
-    AddCurveSegment(cAdd, m_pPrimitive, 0, pViewBnds);
-  }
-  else // iEnd should be > 0
-  {
-    d2 = dEnd;
-    d1 = d2 - dPatScale*m_cLineStyle.dPattern[0];
-    if(iEnd < 2) d1 = d2 - dPatScale*dPatStart2;
-    cAdd.cPt1.x = d1;
-    cAdd.cPt1.y = d2;
-    AddCurveSegment(cAdd, m_pPrimitive, 0, pViewBnds);
-
-    for(int j = 0; j < iRep; j++)
-    {
-      i = m_cLineStyle.iSegments;
-      while(i > 0)
-      {
-        d2 = d1 - dPatScale*m_cLineStyle.dPattern[--i];
-        d1 = d2 - dPatScale*m_cLineStyle.dPattern[--i];
-        cAdd.cPt1.x = d1;
-        cAdd.cPt1.y = d2;
-        AddCurveSegment(cAdd, m_pPrimitive, 0, pViewBnds);
-      }
-    }
-  }*/
 }
 
 int CDObject::AddDimenPrimitive(int iPos, PDDimension pDim, PDPrimObject pPrimitive, PDRect pRect)
@@ -2228,8 +2157,6 @@ int CDObject::BuildPrimitives(CDLine cTmpPt, int iMode, PDRect pRect, int iTemp,
 
   if((iTemp < 1) && (iRes > 0) && (m_cLineStyle.iSegments > 0) && pRect)
   {
-    //plPrimitive->ClearLines();
-
     double dStart, dEnd;
     int iStart, iEnd;
     double d1, d2;
@@ -2928,210 +2855,210 @@ int CDObject::GetAttractors(CDPoint cPt, double dScale, PDPointList pPoints)
 
 int CDObject::GetBSplineParts()
 {
-    int iRes = 0;
-    int iCount = m_pPrimitive->GetCount();
-    if(iCount < 1) return iRes;
+  int iRes = 0;
+  int iCount = m_pPrimitive->GetCount();
+  if(iCount < 1) return iRes;
 
-    CDPrimitive cPrim1, cPrim2 = m_pPrimitive->GetPrimitive(0);
-    bool b2set = (cPrim2.iType == 4);
-    if(b2set) iRes++;
+  CDPrimitive cPrim1, cPrim2 = m_pPrimitive->GetPrimitive(0);
+  bool b2set = (cPrim2.iType == 4);
+  if(b2set) iRes++;
 
-    double dDist;
+  double dDist;
 
-    for(int i = 1; i < iCount; i++)
+  for(int i = 1; i < iCount; i++)
+  {
+    cPrim1 = m_pPrimitive->GetPrimitive(i);
+    if(cPrim1.iType != 4)
     {
-        cPrim1 = m_pPrimitive->GetPrimitive(i);
-        if(cPrim1.iType != 4)
-        {
-            b2set = false;
-        }
-        else if(b2set)
-        {
-            dDist = GetDist(cPrim2.cPt3, cPrim1.cPt1);
-            if(dDist > g_dPrec) iRes++;
-            cPrim2 = cPrim1;
-        }
-        else
-        {
-            iRes++;
-            b2set = true;
-            cPrim2 = cPrim1;
-        }
+      b2set = false;
     }
+    else if(b2set)
+    {
+      dDist = GetDist(cPrim2.cPt3, cPrim1.cPt1);
+      if(dDist > g_dPrec) iRes++;
+      cPrim2 = cPrim1;
+    }
+    else
+    {
+      iRes++;
+      b2set = true;
+      cPrim2 = cPrim1;
+    }
+  }
 
-    return iRes;
+  return iRes;
 }
 
 bool CDObject::GetBSplines(int iParts, double dScale, int *piCtrls, double **ppdKnots, PDPoint *ppPoints)
 {
-    int iCount = m_pPrimitive->GetCount();
-    int *piPairs = (int*)malloc(2*iParts*sizeof(int));
+  int iCount = m_pPrimitive->GetCount();
+  int *piPairs = (int*)malloc(2*iParts*sizeof(int));
 
-    int iCurPair = -1;
-    CDPrimitive cPrim1, cPrim2 = m_pPrimitive->GetPrimitive(0);
-    bool b2set = (cPrim2.iType == 4);
-    if(b2set)
+  int iCurPair = -1;
+  CDPrimitive cPrim1, cPrim2 = m_pPrimitive->GetPrimitive(0);
+  bool b2set = (cPrim2.iType == 4);
+  if(b2set)
+  {
+    iCurPair = 0;
+    piPairs[2*iCurPair] = 0;
+    piPairs[2*iCurPair + 1] = -1;
+  }
+
+  double dDist;
+
+  for(int i = 1; i < iCount; i++)
+  {
+    cPrim1 = m_pPrimitive->GetPrimitive(i);
+    if(cPrim1.iType != 4)
     {
-        iCurPair = 0;
-        piPairs[2*iCurPair] = 0;
+      if(b2set) piPairs[2*iCurPair + 1] = i;
+      b2set = false;
+    }
+    else if(b2set)
+    {
+      dDist = GetDist(cPrim2.cPt3, cPrim1.cPt1);
+      if(dDist > g_dPrec)
+      {
+        piPairs[2*iCurPair + 1] = i;
+        iCurPair++;
+        piPairs[2*iCurPair] = i;
         piPairs[2*iCurPair + 1] = -1;
+      }
+      cPrim2 = cPrim1;
     }
-
-    double dDist;
-
-    for(int i = 1; i < iCount; i++)
+    else
     {
-        cPrim1 = m_pPrimitive->GetPrimitive(i);
-        if(cPrim1.iType != 4)
-        {
-            if(b2set) piPairs[2*iCurPair + 1] = i;
-            b2set = false;
-        }
-        else if(b2set)
-        {
-            dDist = GetDist(cPrim2.cPt3, cPrim1.cPt1);
-            if(dDist > g_dPrec)
-            {
-                piPairs[2*iCurPair + 1] = i;
-                iCurPair++;
-                piPairs[2*iCurPair] = i;
-                piPairs[2*iCurPair + 1] = -1;
-            }
-            cPrim2 = cPrim1;
-        }
-        else
-        {
-            iCurPair++;
-            piPairs[2*iCurPair] = i;
-            piPairs[2*iCurPair + 1] = -1;
-            b2set = true;
-            cPrim2 = cPrim1;
-        }
+      iCurPair++;
+      piPairs[2*iCurPair] = i;
+      piPairs[2*iCurPair + 1] = -1;
+      b2set = true;
+      cPrim2 = cPrim1;
     }
+  }
 
-    CDPoint cPt1, cPt2;
-    double dDom, du;
-    double *pdt;
+  CDPoint cPt1, cPt2;
+  double dDom, du;
+  double *pdt;
 
-    if((IsClosed() > 0) && (iParts == 1))
+  if((IsClosed() > 0) && (iParts == 1))
+  {
+    if(piPairs[1] < 0) piPairs[1] = iCount;
+    piCtrls[0] = piPairs[1] - piPairs[0];
+    ppPoints[0] = (PDPoint)malloc(piCtrls[0]*sizeof(CDPoint));
+    ppdKnots[0] = (double*)malloc((piCtrls[0] + 4)*sizeof(double));
+
+    pdt = (double*)malloc((piCtrls[0])*sizeof(double));
+
+    cPrim1 = m_pPrimitive->GetPrimitive(piPairs[0]);
+    cPt2 = cPrim1.cPt2;
+
+    ppdKnots[0][0] = 0.0;
+    ppdKnots[0][1] = 0.0;
+    ppdKnots[0][2] = 0.0;
+
+    cPrim1 = m_pPrimitive->GetPrimitive(piPairs[1] - 1);
+    cPt2 = cPrim1.cPt2;
+
+    for(int i = piPairs[0]; i < piPairs[1]; i++)
     {
-        if(piPairs[1] < 0) piPairs[1] = iCount;
-        piCtrls[0] = piPairs[1] - piPairs[0];
-        ppPoints[0] = (PDPoint)malloc(piCtrls[0]*sizeof(CDPoint));
-        ppdKnots[0] = (double*)malloc((piCtrls[0] + 4)*sizeof(double));
+      cPt1 = cPt2;
+      cPrim1 = m_pPrimitive->GetPrimitive(i);
+      cPt2 = cPrim1.cPt2;
+      ppPoints[0][i - piPairs[0]] = dScale*cPt2;
 
-        pdt = (double*)malloc((piCtrls[0])*sizeof(double));
+      dDom = GetDist(cPt1, cPt2);
+      du = GetDist(cPt1, cPrim1.cPt1);
+      pdt[i - piPairs[0]] = du/dDom;
+    }
+    if(piCtrls[0] > 4)
+    {
+      for(int j = 1; j < piCtrls[0] - 3; j++)
+      {
+        du = pdt[j]/(1.0 - pdt[j - 1]*(1 - pdt[j]));
+        pdt[j] = du;
+      }
+    }
+    ppdKnots[0][piCtrls[0] - 1] = pdt[piCtrls[0] - 4];
+    if(piCtrls[0] > 4)
+    {
+      for(int j = piCtrls[0] - 5; j >= 0; j--)
+      {
+        ppdKnots[0][j + 3] = ppdKnots[0][j + 4]*pdt[j];
+      }
+    }
+    ppdKnots[0][piCtrls[0]] = 1.0;
+    ppdKnots[0][piCtrls[0] + 1] = 1.0 + ppdKnots[0][3];
+    ppdKnots[0][piCtrls[0] + 2] = 1.0 + ppdKnots[0][4];
 
-        cPrim1 = m_pPrimitive->GetPrimitive(piPairs[0]);
-        cPt2 = cPrim1.cPt2;
-
-        ppdKnots[0][0] = 0.0;
-        ppdKnots[0][1] = 0.0;
-        ppdKnots[0][2] = 0.0;
-
-        cPrim1 = m_pPrimitive->GetPrimitive(piPairs[1] - 1);
-        cPt2 = cPrim1.cPt2;
-
-        for(int i = piPairs[0]; i < piPairs[1]; i++)
-        {
-            cPt1 = cPt2;
-            cPrim1 = m_pPrimitive->GetPrimitive(i);
-            cPt2 = cPrim1.cPt2;
-            ppPoints[0][i - piPairs[0]] = dScale*cPt2;
-
-            dDom = GetDist(cPt1, cPt2);
-            du = GetDist(cPt1, cPrim1.cPt1);
-            pdt[i - piPairs[0]] = du/dDom;
-        }
-        if(piCtrls[0] > 4)
-        {
-            for(int j = 1; j < piCtrls[0] - 3; j++)
-            {
-                du = pdt[j]/(1.0 - pdt[j - 1]*(1 - pdt[j]));
-                pdt[j] = du;
-            }
-        }
-        ppdKnots[0][piCtrls[0] - 1] = pdt[piCtrls[0] - 4];
-        if(piCtrls[0] > 4)
-        {
-            for(int j = piCtrls[0] - 5; j >= 0; j--)
-            {
-                ppdKnots[0][j + 3] = ppdKnots[0][j + 4]*pdt[j];
-            }
-        }
-        ppdKnots[0][piCtrls[0]] = 1.0;
-        ppdKnots[0][piCtrls[0] + 1] = 1.0 + ppdKnots[0][3];
-        ppdKnots[0][piCtrls[0] + 2] = 1.0 + ppdKnots[0][4];
-
-        ppdKnots[0][0] = ppdKnots[0][piCtrls[0] - 2] - 1.0;
-        ppdKnots[0][1] = ppdKnots[0][piCtrls[0] - 1] - 1.0;
+    ppdKnots[0][0] = ppdKnots[0][piCtrls[0] - 2] - 1.0;
+    ppdKnots[0][1] = ppdKnots[0][piCtrls[0] - 1] - 1.0;
 //for(int j = 0; j < piCtrls[0] + 3; j++)
 //printf("%f\n", ppdKnots[0][j]);
 
-        free(pdt);
-        free(piPairs);
-        return true;
-    }
-
-    if(piPairs[2*iCurPair + 1] < 0) piPairs[2*iCurPair + 1] = iCount;
-
-    for(int i = 0; i < iParts; i++)
-    {
-        piCtrls[i] = piPairs[2*i + 1] - piPairs[2*i] + 2;
-        ppPoints[i] = (PDPoint)malloc(piCtrls[i]*sizeof(CDPoint));
-        cPrim1 = m_pPrimitive->GetPrimitive(piPairs[2*i]);
-        ppPoints[i][0] = dScale*cPrim1.cPt1;
-        cPrim1 = m_pPrimitive->GetPrimitive(piPairs[2*i + 1] - 1);
-        ppPoints[i][piCtrls[i] - 1] = dScale*cPrim1.cPt3;
-
-        pdt = (double*)malloc((piCtrls[i] - 3)*sizeof(double));
-
-        ppdKnots[i] = (double*)malloc((piCtrls[i] + 3)*sizeof(double));
-        ppdKnots[i][0] = 0.0;
-        ppdKnots[i][1] = 0.0;
-        ppdKnots[i][2] = 0.0;
-
-        cPrim1 = m_pPrimitive->GetPrimitive(piPairs[2*i]);
-        cPt2 = cPrim1.cPt2;
-
-        for(int j = piPairs[2*i]; j < piPairs[2*i + 1]; j++)
-        {
-            cPt1 = cPt2;
-            cPrim1 = m_pPrimitive->GetPrimitive(j);
-            cPt2 = cPrim1.cPt2;
-            ppPoints[i][j - piPairs[2*i] + 1] = dScale*cPt2;
-
-            if(j > piPairs[2*i])
-            {
-                dDom = GetDist(cPt1, cPt2);
-                du = GetDist(cPt1, cPrim1.cPt1);
-                pdt[j - piPairs[2*i] - 1] = du/dDom;
-            }
-        }
-        if(piCtrls[i] > 4)
-        {
-            for(int j = 1; j < piCtrls[i] - 3; j++)
-            {
-                du = pdt[j]/(1.0 - pdt[j - 1]*(1 - pdt[j]));
-                pdt[j] = du;
-            }
-        }
-        ppdKnots[i][piCtrls[i] - 1] = pdt[piCtrls[i] - 4];
-        if(piCtrls[i] > 4)
-        {
-            for(int j = piCtrls[i] - 5; j >= 0; j--)
-            {
-                ppdKnots[i][j + 3] = ppdKnots[i][j + 4]*pdt[j];
-            }
-        }
-        ppdKnots[i][piCtrls[i]] = 1.0;
-        ppdKnots[i][piCtrls[i] + 1] = ppdKnots[i][piCtrls[i]];
-        ppdKnots[i][piCtrls[i] + 2] = ppdKnots[i][piCtrls[i]];
-        free(pdt);
-    }
-
+    free(pdt);
     free(piPairs);
-    return false;
+    return true;
+  }
+
+  if(piPairs[2*iCurPair + 1] < 0) piPairs[2*iCurPair + 1] = iCount;
+
+  for(int i = 0; i < iParts; i++)
+  {
+    piCtrls[i] = piPairs[2*i + 1] - piPairs[2*i] + 2;
+    ppPoints[i] = (PDPoint)malloc(piCtrls[i]*sizeof(CDPoint));
+    cPrim1 = m_pPrimitive->GetPrimitive(piPairs[2*i]);
+    ppPoints[i][0] = dScale*cPrim1.cPt1;
+    cPrim1 = m_pPrimitive->GetPrimitive(piPairs[2*i + 1] - 1);
+    ppPoints[i][piCtrls[i] - 1] = dScale*cPrim1.cPt3;
+
+    pdt = (double*)malloc((piCtrls[i] - 3)*sizeof(double));
+
+    ppdKnots[i] = (double*)malloc((piCtrls[i] + 3)*sizeof(double));
+    ppdKnots[i][0] = 0.0;
+    ppdKnots[i][1] = 0.0;
+    ppdKnots[i][2] = 0.0;
+
+    cPrim1 = m_pPrimitive->GetPrimitive(piPairs[2*i]);
+    cPt2 = cPrim1.cPt2;
+
+    for(int j = piPairs[2*i]; j < piPairs[2*i + 1]; j++)
+    {
+      cPt1 = cPt2;
+      cPrim1 = m_pPrimitive->GetPrimitive(j);
+      cPt2 = cPrim1.cPt2;
+      ppPoints[i][j - piPairs[2*i] + 1] = dScale*cPt2;
+
+      if(j > piPairs[2*i])
+      {
+        dDom = GetDist(cPt1, cPt2);
+        du = GetDist(cPt1, cPrim1.cPt1);
+        pdt[j - piPairs[2*i] - 1] = du/dDom;
+      }
+    }
+    if(piCtrls[i] > 4)
+    {
+      for(int j = 1; j < piCtrls[i] - 3; j++)
+      {
+        du = pdt[j]/(1.0 - pdt[j - 1]*(1 - pdt[j]));
+        pdt[j] = du;
+      }
+    }
+    ppdKnots[i][piCtrls[i] - 1] = pdt[piCtrls[i] - 4];
+    if(piCtrls[i] > 4)
+    {
+      for(int j = piCtrls[i] - 5; j >= 0; j--)
+      {
+        ppdKnots[i][j + 3] = ppdKnots[i][j + 4]*pdt[j];
+      }
+    }
+    ppdKnots[i][piCtrls[i]] = 1.0;
+    ppdKnots[i][piCtrls[i] + 1] = ppdKnots[i][piCtrls[i]];
+    ppdKnots[i][piCtrls[i] + 2] = ppdKnots[i][piCtrls[i]];
+    free(pdt);
+  }
+
+  free(piPairs);
+  return false;
 }
 
 bool CDObject::IsNearPoint(CDPoint cPt, double dTolerance, int *piDimen)
@@ -4109,7 +4036,6 @@ CDLineStyle CDObject::GetLineStyle()
 
 void CDObject::SetLineStyle(int iMask, CDLineStyle cStyle)
 {
-  //m_cLineStyle = cStyle;
   if(iMask & 1) m_cLineStyle.dWidth = cStyle.dWidth;
   if(iMask & 2) m_cLineStyle.dPercent = cStyle.dPercent;
   if(iMask & 4)
@@ -4509,9 +4435,6 @@ PDObject CDObject::SplitByRef(double dRef, bool *pbRes)
     }
   }
 
-  //CDLine cPtX;
-  //cPtX.bIsSet = false;
-  //pNewObj->BuildCache(cPtX, 0);
   pNewObj->SetSelected(true, false, -1);
   return pNewObj;
 }
@@ -4538,112 +4461,6 @@ bool CDObject::Split(CDPoint cPt, PDPtrList pNewObjects, PDRect pRect)
   if(pNewObj) pNewObjects->Add(pNewObj);
   delete pRefs;
   return bSplitted || (pNewObjects->GetCount() > 0);
-  // ----
-
-  /*
-  *ppNewObj = NULL;
-
-  CDLine cPtX, cLn;
-  cLn.bIsSet = false;
-  double d1 = fabs(GetDistFromPt(cPt, cPt, false, &cPtX, NULL));
-  if(d1 > dDist) return false;
-  if(!cPtX.bIsSet) return false;
-
-  int iClosed = IsClosed();
-  if(iClosed == 2)
-  {
-    SetBound(0, cPtX);
-    BuildPrimitives(cLn, 0, pRect, 0, NULL);
-    AddRegions(pRegions, -1);
-    return true;
-  }
-
-  PDObject pNewObj = NULL;
-
-  if(m_cBounds[0].bIsSet)
-  {
-    if(m_cBounds[1].bIsSet)
-    {
-      pNewObj = Copy();
-      SetBound(1, cPtX);
-      pNewObj->SetBound(0, cPtX);
-    }
-    else
-    {
-      pNewObj = Copy();
-      SetBound(1, cPtX);
-      pNewObj->SetBound(0, cPtX);
-      if(iClosed > 0) pNewObj->SetBound(1, m_cBounds[0]);
-    }
-  }
-  else
-  {
-    if(m_cBounds[1].bIsSet)
-    {
-      pNewObj = Copy();
-      SetBound(0, cPtX);
-      pNewObj->SetBound(1, cPtX);
-    }
-    else if(iClosed < 1)
-    {
-      pNewObj = Copy();
-      SetBound(0, cPtX);
-      pNewObj->SetBound(1, cPtX);
-    }
-    else SetBound(0, cPtX);
-  }
-
-  PDDimension pDim;
-  int n = m_pDimens->GetCount();
-  for(int i = n - 1; i >= 0; i--)
-  {
-    pDim = (PDDimension)m_pDimens->GetItem(i);
-    if(m_cBounds[0].bIsSet && m_cBounds[1].bIsSet)
-    {
-      if(m_cBounds[0].dRef < m_cBounds[1].dRef)
-      {
-        if(pDim->dRef1 < m_cBounds[0].dRef - g_dPrec)
-        {
-          m_pDimens->Remove(i);
-          if(pDim->dRef2 < m_cBounds[0].dRef + g_dPrec) pNewObj->AddDimenPtr(pDim);
-          else free(pDim);
-        }
-        else if(pDim->dRef2 > m_cBounds[1].dRef + g_dPrec)
-        {
-          m_pDimens->Remove(i);
-          if(pDim->dRef1 > m_cBounds[1].dRef - g_dPrec) pNewObj->AddDimenPtr(pDim);
-          else free(pDim);
-        }
-      }
-    }
-    else if(m_cBounds[0].bIsSet)
-    {
-      if(pDim->dRef1 < m_cBounds[0].dRef - g_dPrec)
-      {
-        m_pDimens->Remove(i);
-        if(pDim->dRef2 < m_cBounds[0].dRef + g_dPrec) pNewObj->AddDimenPtr(pDim);
-        else free(pDim);
-      }
-    }
-    else if(m_cBounds[1].bIsSet)
-    {
-      if(pDim->dRef2 > m_cBounds[1].dRef + g_dPrec)
-      {
-        m_pDimens->Remove(i);
-        if(pDim->dRef1 > m_cBounds[1].dRef - g_dPrec) pNewObj->AddDimenPtr(pDim);
-        else free(pDim);
-      }
-    }
-  }
-
-  cPtX.bIsSet = false;
-  BuildPrimitives(cLn, 0, pRect, 0, NULL);
-  pNewObj->BuildCache(cPtX, 0);
-  pNewObj->BuildPrimitives(cLn, 0, pRect, 0, NULL);
-  pNewObj->SetSelected(true, false, -1);
-
-  *ppNewObj = pNewObj;
-  return true;*/
 }
 
 bool CDObject::Extend(CDPoint cPt, double dDist, PDRect pRect)
