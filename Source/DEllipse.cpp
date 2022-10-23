@@ -90,7 +90,7 @@ bool PtInList(CDPoint cPt, int iSize, PDPoint pList)
   bool bFound = false;
   while(!bFound && (i < iSize))
   {
-    bFound = GetDist(cPt, pList[i++]) < g_dPrec;
+    bFound = GetDist(cPt, pList[i++]) < 0.001;
   }
   return bFound;
 }
