@@ -2174,16 +2174,23 @@ LRESULT CMainWnd::ToolsCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl, int iTool)
     m_pSelForDimen = m_pDrawObjects->GetSelected(0);
   }
 
-  if(((m_iDrawMode + m_iToolMode > 0) && (iTool == 0)) ||
-    ((m_iDrawMode + m_iToolMode == 0) && (iTool > 0)))
-  {
-    DrawCross(hwnd);
-  }
+  bool bDrawCross = ((m_iDrawMode + m_iToolMode > 0) && (iTool == 0)) ||
+    ((m_iDrawMode + m_iToolMode == 0) && (iTool > 0));
 
   m_iToolMode = iTool;
   m_iDrawMode = modSelect;
 
   StartNewObject(hwnd);
+  if(!m_pActiveObject && (m_iToolMode == tolRound))
+  {
+    m_iToolMode = tolNone;
+    bDrawCross = false;
+  }
+
+  if(bDrawCross)
+  {
+    DrawCross(hwnd);
+  }
   return 0;
 }
 
