@@ -2629,6 +2629,7 @@ void CDApplication::SetTool(int iNewTool)
   m_iToolMode = iNewTool;
 
   StartNewObject(TRUE);
+  if(!m_pActiveObject && (m_iToolMode == tolRound)) m_iToolMode = tolNone;
 }
 
 void CDApplication::ModeCommand(int iCmd, bool bFromAccel)
