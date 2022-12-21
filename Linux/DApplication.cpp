@@ -1547,8 +1547,9 @@ void CDApplication::Paint(GtkWidget *widget, GdkEventExpose *event)
   int iWidth = gdk_window_get_width(event->window);
   int iHeight = gdk_window_get_height(event->window);
 
-  gboolean bNotWholeWindow = (event->area.x > 0) || (event->area.y > 0) ||
-    (event->area.width < iWidth) || (event->area.height < iHeight);
+// for debuggin purpose
+//gboolean bNotWholeWindow = (event->area.x > 0) || (event->area.y > 0) ||
+//  (event->area.width < iWidth) || (event->area.height < iHeight);
   //gboolean bOffLine = !(m_bRenderDirect || bNotWholeWindow);
 
   cairo_t *cr2 = gdk_cairo_create(event->window);
@@ -1659,13 +1660,14 @@ void CDApplication::Paint(GtkWidget *widget, GdkEventExpose *event)
   cairo_rectangle(cr, m_cViewOrigin.x, m_cViewOrigin.y, m_dUnitScale*m_dwPage, m_dUnitScale*m_dhPage);
   cairo_stroke(cr);
 
+  double dOffset = 0.0;
 // for debuggin purpose
-double dOffset = 10.0;
-if(bNotWholeWindow) dOffset = 0.0;
-cairo_set_source_rgb(cr, 0.3, 0.3, 0.3);
-cairo_new_path(cr);
-cairo_rectangle(cr, dOffset, dOffset, iWidth - 2*dOffset, iHeight - 2*dOffset);
-cairo_stroke(cr);
+//dOffset = 10.0;
+//if(bNotWholeWindow) dOffset = 0.0;
+//cairo_set_source_rgb(cr, 0.3, 0.3, 0.3);
+//cairo_new_path(cr);
+//cairo_rectangle(cr, dOffset, dOffset, iWidth - 2*dOffset, iHeight - 2*dOffset);
+//cairo_stroke(cr);
   CDRect cdr;
   cdr.cPt1.x = (event->area.x - m_cViewOrigin.x + dOffset)/m_dUnitScale;
   cdr.cPt1.y = (event->area.y - m_cViewOrigin.y + dOffset)/m_dUnitScale;
@@ -1746,7 +1748,7 @@ cairo_stroke(cr);
 
 bool CDApplication::PromptForSave(GtkWidget *widget)
 {
-return true;
+//return true;
   if(!m_pDrawObjects->GetChanged()) return true;
 
   GtkWidget *msg_dlg = gtk_message_dialog_new(GTK_WINDOW(widget), GTK_DIALOG_MODAL,
@@ -3459,22 +3461,22 @@ void CDApplication::MouseMove(GtkWidget *widget, GdkEventMotion *event, gboolean
       }
 
       // debug code for GetObjPtProj visualization
-      pNewHigh = m_pDrawObjects->GetSelected(0);
-      if(pNewHigh)
-      {
-        PDPointList pAttrPts = new CDPointList();
-        int iAttrs = pNewHigh->GetAttractors(cPt, m_dUnitScale, pAttrPts);
+      //pNewHigh = m_pDrawObjects->GetSelected(0);
+      //if(pNewHigh)
+      //{
+      //  PDPointList pAttrPts = new CDPointList();
+      //  int iAttrs = pNewHigh->GetAttractors(cPt, m_dUnitScale, pAttrPts);
 
-        cairo_set_source_rgb(cr, 1.0, 0.0, 0.0);
-        CDInputPoint cAttrPt;
-        for(int i = 0; i < iAttrs; i++)
-        {
-          cAttrPt = pAttrPts->GetPoint(i, 0);
-          cairo_arc(cr, cAttrPt.cPoint.x + m_cViewOrigin.x, cAttrPt.cPoint.y + m_cViewOrigin.y, 2, 0.0, 2.0*M_PI);
-          cairo_fill(cr);
-        }
-        delete pAttrPts;
-      }
+      //  cairo_set_source_rgb(cr, 1.0, 0.0, 0.0);
+      //  CDInputPoint cAttrPt;
+      //  for(int i = 0; i < iAttrs; i++)
+      //  {
+      //    cAttrPt = pAttrPts->GetPoint(i, 0);
+      //    cairo_arc(cr, cAttrPt.cPoint.x + m_cViewOrigin.x, cAttrPt.cPoint.y + m_cViewOrigin.y, 2, 0.0, 2.0*M_PI);
+      //    cairo_fill(cr);
+      //  }
+      //  delete pAttrPts;
+      //}
       // end debug
       cairo_destroy(cr);
     }
