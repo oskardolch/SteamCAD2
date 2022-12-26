@@ -18,5 +18,6 @@ typedef struct CDRasterCache
 bool AddRasterPoint(double x, double y, char iCtrl, PDPointList pPoints);
 bool BuildRasterCacheRaw(PDPointList pPoints, PDRasterCache pCache, int iWidth, int iHeight, FILE *pf);
 double GetRasterDistFromPt(CDPoint cPt, PDRasterCache pCache, PDLine pPtX);
+bool RegisterRasterRaw(PDPointList pPoints, PDRasterCache pCache, PDPoint pRegPoints);
 
 #endif

@@ -114,3 +114,29 @@ double GetRasterDistFromPt(CDPoint cPt, PDRasterCache pCache, PDLine pPtX)
   return dRes;
 }
 
+bool RegisterRasterRaw(PDPointList pPoints, PDRasterCache pCache, PDPoint pRegPoints)
+{
+  double dDet = pCache->cMatrixRow1.x*pCache->cMatrixRow2.y - pCache->cMatrixRow1.y*pCache->cMatrixRow2.x;
+  if(fabs(dDet) < g_dPrec) return false;
+
+  CDPoint cPt1, cPt2;
+  cPt1 = pRegPoints[0];
+  cPt2.x = (pCache->cMatrixRow2.y*(cPt1.x - pCache->cTranslate.x) - pCache->cMatrixRow2.x*(cPt1.y - pCache->cTranslate.y))/dDet;
+  cPt2.y = (pCache->cMatrixRow1.x*(cPt1.y - pCache->cTranslate.y) - pCache->cMatrixRow1.y*(cPt1.x - pCache->cTranslate.x))/dDet;
+  pPoints->SetPoint(0, 0, cPt2.x, cPt2.y, 0);
+  cPt1 = pRegPoints[2];
+  cPt2.x = (pCache->cMatrixRow2.y*(cPt1.x - pCache->cTranslate.x) - pCache->cMatrixRow2.x*(cPt1.y - pCache->cTranslate.y))/dDet;
+  cPt2.y = (pCache->cMatrixRow1.x*(cPt1.y - pCache->cTranslate.y) - pCache->cMatrixRow1.y*(cPt1.x - pCache->cTranslate.x))/dDet;
+  pPoints->SetPoint(1, 0, cPt2.x, cPt2.y, 0);
+  cPt1 = pRegPoints[4];
+  cPt2.x = (pCache->cMatrixRow2.y*(cPt1.x - pCache->cTranslate.x) - pCache->cMatrixRow2.x*(cPt1.y - pCache->cTranslate.y))/dDet;
+  cPt2.y = (pCache->cMatrixRow1.x*(cPt1.y - pCache->cTranslate.y) - pCache->cMatrixRow1.y*(cPt1.x - pCache->cTranslate.x))/dDet;
+  pPoints->SetPoint(2, 0, cPt2.x, cPt2.y, 0);
+
+  pPoints->SetPoint(0, 1, pRegPoints[1].x, pRegPoints[1].y, 1);
+  pPoints->SetPoint(1, 1, pRegPoints[3].x, pRegPoints[3].y, 1);
+  pPoints->SetPoint(2, 1, pRegPoints[5].x, pRegPoints[5].y, 1);
+
+  return BuildRasterCacheRaw(pPoints, pCache, 0, 0, NULL);
+}
+

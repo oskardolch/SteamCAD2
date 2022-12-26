@@ -20,6 +20,7 @@
 #define modParabola 7
 #define modSpline 8
 #define modEvolvent 9
+#define modRegRaster 10
 
 #define IDM_MODESELECT 201
 #define IDM_MODELINE 202

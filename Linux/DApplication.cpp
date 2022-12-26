@@ -281,6 +281,7 @@ CDApplication::CDApplication(const char *psConfDir)
   m_pHighObject = NULL;
   m_pSelForDimen = NULL;
   m_iRedoCount = 0;
+  m_iRegRasterCount = 0;
 
   strcpy(m_cFSR.cPaperSize.sPaperSizeName, "A4");
   m_cFSR.cPaperSize.dPaperWidth = 210.0;
@@ -4317,6 +4318,19 @@ void CDApplication::MouseLButtonUp(GtkWidget *widget, GdkEventButton *event)
         SetTitle(m_pMainWnd, false);
       }
     }
+    else if(m_iDrawMode == modRegRaster)
+    {
+      if(m_iRegRasterCount < 6)
+      {
+        m_cRegRasterPoints[m_iRegRasterCount++] = m_cLastDrawPt;
+      }
+      if(m_iRegRasterCount == 6)
+      {
+        PDObject pImage = m_pDrawObjects->GetSelected(0);
+        pImage->RegisterRaster(m_cRegRasterPoints);
+        m_iRegRasterCount = 0;
+      }
+    }
     else
     {
       int iCtrl = 0;
@@ -4811,30 +4825,6 @@ void CDApplication::RasterImportCmd()
     GtkWidget *draw = GetDrawing();
     gdk_window_invalidate_rect(draw->window, NULL, FALSE);
     SetTitle(m_pMainWnd, true);
-
-    /*if(m_sLastPath) g_free(m_sLastPath);
-    if(*psFile) g_free(*psFile);
-    *psFile = gtk_file_chooser_get_filename((GtkFileChooser*)dialog);
-    m_sLastPath = gtk_file_chooser_get_current_folder((GtkFileChooser*)dialog);
-
-    // load the file
-    FILE *pf = fopen(*psFile, "rb");
-    bRead = m_pDrawObjects->ReadFromFile(pf, true, bClear);
-    fclose(pf);
-    if(bRead)
-    {
-      if(bClear)
-      {
-        DataToFileProps();
-        GetPageDims();
-        m_pUndoObjects->ClearAll();
-        m_iRedoCount = 0;
-      }
-
-      GtkWidget *draw = GetDrawing();
-      gdk_window_invalidate_rect(draw->window, NULL, FALSE);
-      SetTitle(widget, true);
-    }*/
   }
 
   gtk_widget_destroy(dialog);
@@ -4842,6 +4832,22 @@ void CDApplication::RasterImportCmd()
 
 void CDApplication::RasterRegisterCmd()
 {
+  PDObject pImage = NULL;
+  int iSel = m_pDrawObjects->GetSelectCount(2);
+  if(iSel == 1)
+  {
+    pImage = m_pDrawObjects->GetSelected(0);
+  }
+  if(!pImage || (pImage->GetType() != dtRaster))
+  {
+    GtkWidget *msg_dlg = gtk_message_dialog_new(GTK_WINDOW(m_pMainWnd), GTK_DIALOG_MODAL,
+      GTK_MESSAGE_WARNING, GTK_BUTTONS_OK,
+      _("Exactly one image must be selected to register raster"));
+    gtk_dialog_run(GTK_DIALOG(msg_dlg));
+    gtk_widget_destroy(msg_dlg);
+    return;
+  }
+  m_iDrawMode = modRegRaster;
 }
 
 void CDApplication::SelectionClear()

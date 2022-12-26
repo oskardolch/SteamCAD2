@@ -107,6 +107,9 @@ private:
   guchar *m_pClipData;
   int m_iClipDataLen;
 
+  int m_iRegRasterCount;
+  CDPoint m_cRegRasterPoints[6];
+
   void SetStatusBarMsg(int iPanel, const gchar *pMsg);
   void FileNewCmd(bool bFromAccel);
   void FileOpenCmd(bool bFromAccel);

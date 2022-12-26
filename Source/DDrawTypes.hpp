@@ -245,6 +245,7 @@ public:
   void BuildArea(PDPtrList pBoundaries, PDLineStyle pStyle);
   void ChangeToPath();
   GInputStream* GetRasterData();
+  void RegisterRaster(PDPoint pPoints);
 } *PDObject;
 
 typedef class CDataList

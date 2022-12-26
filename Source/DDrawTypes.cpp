@@ -7509,6 +7509,10 @@ GInputStream* CDObject::GetRasterData()
   return g_memory_input_stream_new_from_data(m_pRasterCache->pData, m_pRasterCache->iFileSize, NULL);
 }
 
+void CDObject::RegisterRaster(PDPoint pPoints)
+{
+  RegisterRasterRaw(m_pInputPoints, m_pRasterCache, pPoints);
+}
 
 // CDataList
 
