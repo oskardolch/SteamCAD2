@@ -340,10 +340,25 @@ CDObject::CDObject(CDDrawType iType, double dWidth)
       m_pSubObjects->Add(pSeg);
     }
   }
+  m_pRasterCache = NULL;
+  if(m_iType == dtRaster)
+  {
+    m_pRasterCache = (PDRasterCache)malloc(sizeof(CDRasterCache));
+    m_pRasterCache->iImageWidth = 0;
+    m_pRasterCache->iImageHeight = 0;
+    m_pRasterCache->iFileSize = 0;
+    m_pRasterCache->pData = NULL;
+  }
 }
 
 CDObject::~CDObject()
 {
+  if(m_iType == dtRaster)
+  {
+    if(m_pRasterCache->iFileSize > 0) free(m_pRasterCache->pData);
+    free(m_pRasterCache);
+  }
+
   if(m_iType < dtBorder)
   {
     PDPathSeg pSubObj;
@@ -478,6 +493,9 @@ bool CDObject::AddPoint(double x, double y, char iCtrl, double dRestrictVal)
   case dtBorder:
   case dtArea:
   case dtGroup:
+    break;
+  case dtRaster:
+    bRes = AddRasterPoint(x, y, iCtrl, m_pInputPoints);
     break;
   }
 
@@ -875,6 +893,12 @@ bool CDObject::BuildCache(CDLine cTmpPt, int iMode)
     if(iMode == 2) m_dMovedDist = dDist;
   }
   return bRes;
+}
+
+bool CDObject::BuildRasterCache(int iWidth, int iHeight, FILE *pf)
+{
+  if(m_iType != dtRaster) return false;
+  return BuildRasterCacheRaw(m_pInputPoints, m_pRasterCache, iWidth, iHeight, pf);
 }
 
 void CDObject::AddSimpleSegment(double dt1, double dt2, double dExt, bool bReverse, PDPrimObject pPrimList)
@@ -1401,6 +1425,7 @@ int CDObject::AddLineIntersects(CDPoint cPt1, CDPoint cPt2, double dOffset, PDRe
   case dtBorder:
   case dtArea:
   case dtGroup:
+  case dtRaster:
     break;
   }
   return iRes;
@@ -1740,6 +1765,7 @@ void CDObject::AddExtraPrimitives(PDRect pRect, PDPrimObject pPrimList)
   case dtBorder:
   case dtArea:
   case dtGroup:
+  case dtRaster:
     break;
   }
 }
@@ -2123,10 +2149,81 @@ int CDObject::BuildGroupPrimitives(CDLine cTmpPt, int iMode, PDRect pRect, PDFil
   return iRes;
 }
 
+int CDObject::BuildRasterPrimitives(CDLine cTmpPt, int iMode, PDRect pRect, PDFileAttrs pAttrs)
+{
+  m_pPrimitive->Clear();
+  CDPrimitive cPrim;
+  cPrim.iType = 13;
+  cPrim.cPt1 = m_pRasterCache->cMatrixRow1;
+  cPrim.cPt2 = m_pRasterCache->cMatrixRow2;
+  cPrim.cPt3 = m_pRasterCache->cTranslate;
+  cPrim.cPt4.x = (double)m_pRasterCache->iImageWidth;
+  cPrim.cPt4.y = (double)m_pRasterCache->iImageHeight;
+  m_pPrimitive->AddPrimitive(cPrim);
+  int iRes = 1;
+  //if(iMode > 0)
+  {
+    CDPoint cCorner;
+
+    cCorner.x = 0.0;
+    cCorner.y = 0.0;
+
+    cPrim.iType = 11;
+    cPrim.cPt1 = 0;
+    cPrim.cPt2 = 0;
+    cPrim.cPt1.x = 1.0;
+    cPrim.cPt2.x = 1.0;
+    cPrim.cPt3.x = m_pRasterCache->cMatrixRow1*cCorner + m_pRasterCache->cTranslate.x;
+    cPrim.cPt3.y = m_pRasterCache->cMatrixRow2*cCorner + m_pRasterCache->cTranslate.y;
+    m_pPrimitive->AddPrimitive(cPrim);
+    iRes++;
+
+    cPrim.iType = 1;
+    cPrim.cPt1 = cPrim.cPt3;
+    cCorner.x = (double)m_pRasterCache->iImageWidth;
+    cPrim.cPt2.x = m_pRasterCache->cMatrixRow1*cCorner + m_pRasterCache->cTranslate.x;
+    cPrim.cPt2.y = m_pRasterCache->cMatrixRow2*cCorner + m_pRasterCache->cTranslate.y;
+    m_pPrimitive->AddPrimitive(cPrim);
+    iRes++;
+
+    cPrim.cPt1 = cPrim.cPt2;
+    cCorner.y = (double)m_pRasterCache->iImageHeight;
+    cPrim.cPt2.x = m_pRasterCache->cMatrixRow1*cCorner + m_pRasterCache->cTranslate.x;
+    cPrim.cPt2.y = m_pRasterCache->cMatrixRow2*cCorner + m_pRasterCache->cTranslate.y;
+    m_pPrimitive->AddPrimitive(cPrim);
+    iRes++;
+
+    cPrim.cPt1 = cPrim.cPt2;
+    cCorner.x = 0.0;
+    cPrim.cPt2.x = m_pRasterCache->cMatrixRow1*cCorner + m_pRasterCache->cTranslate.x;
+    cPrim.cPt2.y = m_pRasterCache->cMatrixRow2*cCorner + m_pRasterCache->cTranslate.y;
+    m_pPrimitive->AddPrimitive(cPrim);
+    iRes++;
+
+    cPrim.cPt1 = cPrim.cPt2;
+    cCorner.y = 0.0;
+    cPrim.cPt2.x = m_pRasterCache->cMatrixRow1*cCorner + m_pRasterCache->cTranslate.x;
+    cPrim.cPt2.y = m_pRasterCache->cMatrixRow2*cCorner + m_pRasterCache->cTranslate.y;
+    m_pPrimitive->AddPrimitive(cPrim);
+    iRes++;
+
+    cPrim.iType = 11;
+    cPrim.cPt1 = 0;
+    cPrim.cPt2 = 0;
+    cPrim.cPt1.x = 2.0;
+    cPrim.cPt2.x = -1.0;
+    cPrim.cPt3 = 0;
+    m_pPrimitive->AddPrimitive(cPrim);
+    iRes++;
+  }
+  return iRes;
+}
+
 int CDObject::BuildPrimitives(CDLine cTmpPt, int iMode, PDRect pRect, int iTemp, PDFileAttrs pAttrs, PDPrimObject pPrimitives)
 {
   if(m_iType == dtArea) return BuildAreaPrimitives(cTmpPt, iMode, pRect, pAttrs);
   else if(m_iType == dtGroup) return BuildGroupPrimitives(cTmpPt, iMode, pRect, pAttrs);
+  else if(m_iType == dtRaster) return BuildRasterPrimitives(cTmpPt, iMode, pRect, pAttrs);
 
   PDPrimObject plPrimitive = m_pPrimitive;
   if(pPrimitives) plPrimitive = pPrimitives;
@@ -2773,7 +2870,7 @@ void CDObject::GetNextPrimitive(PDPrimitive pPrim, double dScale, int iDimen)
   while(!bFound && (i < iDimCount))
   {
     cStPrim = m_pPrimitive->GetPrimitive(i++);
-    if(iDimen < -1) bFound = (cStPrim.iType < 9) || (cStPrim.iType == 11) || (cStPrim.iType == 12);
+    if(iDimen < -1) bFound = (cStPrim.iType < 9) || (cStPrim.iType == 11) || (cStPrim.iType == 12) || (cStPrim.iType == 13);
     else
     {
       if(cStPrim.iType == 9)
@@ -2807,6 +2904,13 @@ void CDObject::GetNextPrimitive(PDPrimitive pPrim, double dScale, int iDimen)
       //pPrim->cPt2.x = cStPrim.cPt2.x;
       //pPrim->cPt2.y = dScale*cStPrim.cPt2.y;
       //pPrim->cPt3 = dScale*cStPrim.cPt3;
+    }
+    else if(cStPrim.iType == 13)
+    {
+      pPrim->cPt1 = dScale*cStPrim.cPt1;
+      pPrim->cPt2 = dScale*cStPrim.cPt2;
+      pPrim->cPt3 = dScale*cStPrim.cPt3;
+      pPrim->cPt4 = cStPrim.cPt3;
     }
     else
     {
@@ -3935,6 +4039,9 @@ double CDObject::GetRawDistFromPt(CDPoint cPt, CDPoint cRefPt, int iSearchMask, 
   case dtGroup:
     dRes = GetGroupDistFromPt(cPt, pPtX);
     break;
+  case dtRaster:
+    dRes = GetRasterDistFromPt(cPt, m_pRasterCache, pPtX);
+    break;
   }
   return dRes;
 }
@@ -4151,6 +4258,19 @@ CDObject* CDObject::Copy()
   {
     cInPt = m_pInputPoints->GetPoint(i, -1);
     pRes->AddPoint(cInPt.cPoint.x, cInPt.cPoint.y, cInPt.iCtrl, cInPt.cPoint.x);
+  }
+
+  if(m_iType == dtRaster)
+  {
+    pRes->m_pRasterCache->cMatrixRow1 = m_pRasterCache->cMatrixRow1;
+    pRes->m_pRasterCache->cMatrixRow2 = m_pRasterCache->cMatrixRow2;
+    pRes->m_pRasterCache->cTranslate = m_pRasterCache->cTranslate;
+    pRes->m_pRasterCache->iImageWidth = m_pRasterCache->iImageWidth;
+    pRes->m_pRasterCache->iImageHeight = m_pRasterCache->iImageHeight;
+    pRes->m_pRasterCache->iFileSize = m_pRasterCache->iFileSize;
+    pRes->m_pRasterCache->pData = (unsigned char*)malloc(pRes->m_pRasterCache->iFileSize);
+    memcpy(pRes->m_pRasterCache->pData, m_pRasterCache->pData, pRes->m_pRasterCache->iFileSize);
+    return pRes;
   }
 
   CDLine cPtX;
@@ -5361,6 +5481,30 @@ bool CDObject::RotatePoints(CDPoint cOrig, double dRot, int iDimFlag)
     BuildCache(cPtX, 0);
     return bRes;
   }
+  else if(m_iType == dtRaster)
+  {
+    CDPoint cDir, cPt1, cPt2;
+    double dNorm;
+    CDInputPoint cInPt;
+    cPt1.x = cos(dRot);
+    cPt1.y = sin(dRot);
+    for(int i = 0; i < 3; i++)
+    {
+      cInPt = m_pInputPoints->GetPoint(i, 1);
+      if(cInPt.iCtrl < 2)
+      {
+        cDir = cInPt.cPoint - cOrig;
+        dNorm = GetNorm(cDir);
+        if(dNorm > g_dPrec)
+        {
+          cPt2 = cOrig + Rotate(dNorm*cPt1, cDir/dNorm, true);
+          m_pInputPoints->SetPoint(i, 1, cPt2.x, cPt2.y, 1);
+        }
+      }
+    }
+    BuildRasterCacheRaw(m_pInputPoints, m_pRasterCache, 0, 0, NULL);
+    return true;
+  }
 
   PDDimension pDim;
   if(iDimFlag == 1)
@@ -5506,6 +5650,17 @@ bool CDObject::MovePoints(CDPoint cDir, double dDist, int iDimFlag)
     BuildCache(cPtX, 0);
     return bRes;
   }
+  else if(m_iType == dtRaster)
+  {
+    CDPoint cPt = m_pInputPoints->GetPoint(0, 1).cPoint;
+    m_pInputPoints->SetPoint(0, 1, cPt.x + cDir.x*dDist, cPt.y + cDir.y*dDist, 1);
+    cPt = m_pInputPoints->GetPoint(1, 1).cPoint;
+    m_pInputPoints->SetPoint(1, 1, cPt.x + cDir.x*dDist, cPt.y + cDir.y*dDist, 1);
+    cPt = m_pInputPoints->GetPoint(2, 1).cPoint;
+    m_pInputPoints->SetPoint(2, 1, cPt.x + cDir.x*dDist, cPt.y + cDir.y*dDist, 1);
+    BuildRasterCacheRaw(m_pInputPoints, m_pRasterCache, 0, 0, NULL);
+    return true;
+  }
 
   PDDimension pDim;
   if(iDimFlag == 1)
@@ -5634,6 +5789,19 @@ void CDObject::MirrorPoints(CDLine cLine)
       pObj->MirrorPoints(cLine);
     }
     BuildCache(cPtX, 0);
+    return;
+  }
+  else if(m_iType == dtRaster)
+  {
+    CDInputPoint cInPt;
+    CDPoint cPt1;
+    for(int i = 0; i < 3; i++)
+    {
+      cInPt = m_pInputPoints->GetPoint(i, 1);
+      cPt1 = Mirror(cInPt.cPoint, cLine);
+      m_pInputPoints->SetPoint(i, 1, cPt1.x, cPt1.y, 1);
+    }
+    BuildRasterCacheRaw(m_pInputPoints, m_pRasterCache, 0, 0, NULL);
     return;
   }
 
@@ -7334,6 +7502,11 @@ void CDObject::BuildArea(PDPtrList pBoundaries, PDLineStyle pStyle)
 void CDObject::ChangeToPath()
 {
   m_iType = dtPath;
+}
+
+GInputStream* CDObject::GetRasterData()
+{
+  return g_memory_input_stream_new_from_data(m_pRasterCache->pData, m_pRasterCache->iFileSize, NULL);
 }
 
 

@@ -4,6 +4,8 @@
 #include "DDataTypes.hpp"
 #include <stdio.h>
 #include "DParser.hpp"
+#include "DRaster.hpp"
+#include <gio/gio.h>
 
 class CDObject;
 
@@ -25,6 +27,7 @@ enum CDDrawType
   //dtBorder = 110, // border should only contain border paths in m_pSubObjects, 1st path is the boundary, the rest are holes
   dtBorder = 110, // border contains paths or closed shapes in m_pSubObjects, 1st path is the boundary, the rest are holes
   dtArea = 111, // m_pSubObjects contain one or more dtBorder objects
+  dtRaster = 112, // raster image, behaves like area in serveral aspects
   dtGroup = 120 // contains dtArea, dtPath or any of the base types
 };
 
@@ -52,6 +55,7 @@ private:
   PDRefList m_pCrossPoints;
   PDPtrList m_pDimens;
   int m_iPrimitiveRequested;
+  PDRasterCache m_pRasterCache;
 
   PDPrimObject m_pPrimitive;
   bool m_bSelected;
@@ -141,6 +145,7 @@ private:
   bool ContainsObject(CDObject *pObj);
   int BuildAreaPrimitives(CDLine cTmpPt, int iMode, PDRect pRect, PDFileAttrs pAttrs);
   int BuildGroupPrimitives(CDLine cTmpPt, int iMode, PDRect pRect, PDFileAttrs pAttrs);
+  int BuildRasterPrimitives(CDLine cTmpPt, int iMode, PDRect pRect, PDFileAttrs pAttrs);
 public:
   CDObject(CDDrawType iType, double dWidth);
   ~CDObject();
@@ -150,6 +155,7 @@ public:
   void Redo();
   // iMode: 0 - normal, 1 - inserting, 2 - buffering, 3 - rounding
   bool BuildCache(CDLine cTmpPt, int iMode);
+  bool BuildRasterCache(int iWidth, int iHeight, FILE *pf);
   int GetViewBounds(CDLine cTmpPt, int iMode, PDRect pRect, PDRefList pBounds, PDPoint pDrawBnds, bool bMergeWithBounds);
   // returns 0 - not in rect, 1 - partially in rect, 2 - full in rect
   int BuildPrimitives(CDLine cTmpPt, int iMode, PDRect pRect, int iTemp, PDFileAttrs pAttrs, PDPrimObject pPrimitives);
@@ -238,6 +244,7 @@ public:
   CDPrimitive GetBBOX();
   void BuildArea(PDPtrList pBoundaries, PDLineStyle pStyle);
   void ChangeToPath();
+  GInputStream* GetRasterData();
 } *PDObject;
 
 typedef class CDataList

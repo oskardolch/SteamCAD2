@@ -169,6 +169,9 @@ private:
   void PathMoveTopCmd();
   void PathMoveBottomCmd();
 
+  void RasterImportCmd();
+  void RasterRegisterCmd();
+
   void DrawCross(cairo_t *cr);
 
   int GetDynMode();
@@ -217,6 +220,7 @@ public:
   void ViewCommand(int iCmd, bool bFromAccel);
   void ToolsCommand(int iCmd, bool bFromAccel);
   void PathCommand(int iCmd, bool bFromAccel);
+  void RasterCommand(int iCmd, bool bFromAccel);
 
   void EnableSnap();
   void DisableSnap();

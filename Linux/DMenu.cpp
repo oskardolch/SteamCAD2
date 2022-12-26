@@ -9,6 +9,7 @@
 #include "DEditMenu.hpp"
 #include "DViewToolsMenu.hpp"
 #include "DPathMenu.hpp"
+#include "DRasterMenu.hpp"
 
 GtkWidget* GetMenuGroup(GtkWidget *pMenuBar, char *sName)
 {
@@ -72,6 +73,7 @@ GtkAccelGroup* InitMenu(GtkWidget *wBox, GtkAccelGroup *pAccelGroup, void *pPtr)
   CreateViewMenu(pPtr, GTK_MENU_SHELL(menu_bar), pAccelGroup);
   CreateToolsMenu(pPtr, GTK_MENU_SHELL(menu_bar), pAccelGroup);
   CreatePathMenu(pPtr, GTK_MENU_SHELL(menu_bar), pAccelGroup);
+  CreateRasterMenu(pPtr, GTK_MENU_SHELL(menu_bar), pAccelGroup);
 
   gtk_widget_show(menu_bar);
   gtk_widget_show(stat_bar);

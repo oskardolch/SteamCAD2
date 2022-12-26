@@ -3,6 +3,7 @@
 #include <glib/gstdio.h>
 #include <gdk/gdk.h>
 #include <gdk/gdkkeysyms.h>
+#include <gdk/gdkpixbuf.h>
 #include <math.h>
 #include <malloc.h>
 
@@ -1491,6 +1492,32 @@ void CDApplication::DrawObject(cairo_t *cr, PDObject pObj, int iMode, int iDimen
           SetLColor(cr, dwColor);
         }
       }
+      else if(cPrim.iType == 13) // raster image
+      {
+        if(iMode < 1)
+        {
+          GInputStream *pStream = pObj->GetRasterData();
+          GError *pErr = NULL;
+          GdkPixbuf *pPixBuf = gdk_pixbuf_new_from_stream(pStream, NULL, &pErr);
+          if(pPixBuf)
+          {
+            cairo_matrix_t cMat = {cPrim.cPt1.x, cPrim.cPt2.x, cPrim.cPt1.y, cPrim.cPt2.y,
+              cPrim.cPt3.x + m_cViewOrigin.x, cPrim.cPt3.y + m_cViewOrigin.y};
+            cairo_t *cr2 = cairo_create(m_pcs);
+            cairo_set_matrix(cr2, &cMat);
+            gdk_cairo_set_source_pixbuf(cr2, pPixBuf, 0.0, 0.0);
+            cairo_identity_matrix(cr2);
+            cairo_paint(cr2);
+            g_object_unref(pPixBuf);
+            cairo_destroy(cr2);
+          }
+          else
+          {
+            // handle error
+            g_error_free(pErr);
+          }
+        }
+      }
       else
       {
         DrawPrimitive(cr, &cPrim);
@@ -1991,8 +2018,8 @@ bool CDApplication::LoadFile(GtkWidget *widget, gchar **psFile, bool bClear)
   bool bRead = false;
 
   GtkWidget *dialog = gtk_file_chooser_dialog_new(_("Open File"),
-  GTK_WINDOW(widget), GTK_FILE_CHOOSER_ACTION_OPEN, GTK_STOCK_CANCEL,
-  GTK_RESPONSE_CANCEL, GTK_STOCK_OPEN, GTK_RESPONSE_ACCEPT, NULL);
+    GTK_WINDOW(widget), GTK_FILE_CHOOSER_ACTION_OPEN, GTK_STOCK_CANCEL,
+    GTK_RESPONSE_CANCEL, GTK_STOCK_OPEN, GTK_RESPONSE_ACCEPT, NULL);
   GtkFileFilter *flt = gtk_file_filter_new();
   gtk_file_filter_set_name(flt, _("SteamCAD2 Files"));
   gtk_file_filter_add_pattern(flt, "*.sc2");
@@ -3161,6 +3188,20 @@ void CDApplication::PathCommand(int iCmd, bool bFromAccel)
     break;
   case IDM_PATHMOVEBOTTOM:
     PathMoveBottomCmd();
+    break;
+  }
+  return;
+}
+
+void CDApplication::RasterCommand(int iCmd, bool bFromAccel)
+{
+  switch(iCmd)
+  {
+  case IDM_RASTERIMPORT:
+    RasterImportCmd();
+    break;
+  case IDM_RASTERREGISTER:
+    RasterRegisterCmd();
     break;
   }
   return;
@@ -4696,6 +4737,111 @@ void CDApplication::PathMoveBottomCmd()
     gdk_window_invalidate_rect(draw->window, NULL, FALSE);
     SetTitle(m_pMainWnd, false);
   }
+}
+
+void CDApplication::RasterImportCmd()
+{
+  GtkWidget *dialog = gtk_file_chooser_dialog_new(_("Import Raster"),
+    GTK_WINDOW(m_pMainWnd), GTK_FILE_CHOOSER_ACTION_OPEN, GTK_STOCK_CANCEL,
+    GTK_RESPONSE_CANCEL, GTK_STOCK_OPEN, GTK_RESPONSE_ACCEPT, NULL);
+  GtkFileFilter *flt = gtk_file_filter_new();
+  gtk_file_filter_set_name(flt, _("PNG Files"));
+  gtk_file_filter_add_pattern(flt, "*.png");
+  gtk_file_chooser_add_filter((GtkFileChooser*)dialog, flt);
+  flt = gtk_file_filter_new();
+  gtk_file_filter_set_name(flt, _("JPEG Files"));
+  gtk_file_filter_add_pattern(flt, "*.jpg");
+  gtk_file_filter_add_pattern(flt, "*.jpeg");
+  gtk_file_chooser_add_filter((GtkFileChooser*)dialog, flt);
+  flt = gtk_file_filter_new();
+  gtk_file_filter_set_name(flt, _("All files"));
+  gtk_file_filter_add_pattern(flt, "*");
+  gtk_file_chooser_add_filter((GtkFileChooser*)dialog, flt);
+  if(m_sLastPath)
+    gtk_file_chooser_set_current_folder((GtkFileChooser*)dialog, m_sLastPath);
+
+  if(gtk_dialog_run(GTK_DIALOG(dialog)) == GTK_RESPONSE_ACCEPT)
+  {
+    gchar *psFileName = gtk_file_chooser_get_filename((GtkFileChooser*)dialog);
+    GError *pError = NULL;
+    GdkPixbuf *pPixBuf = gdk_pixbuf_new_from_file(psFileName, &pError);
+
+    int iw = (double)gdk_pixbuf_get_width(pPixBuf);
+    int ih = (double)gdk_pixbuf_get_height(pPixBuf);
+    if((iw < 1) || (ih < 1))
+    {
+      g_free(psFileName);
+      g_object_unref(pPixBuf);
+      return;
+    }
+
+    double dx = m_cFSR.cPaperSize.dPaperWidth;
+    double dy = m_cFSR.cPaperSize.dPaperHeight;
+    if(!m_cFSR.bPortrait)
+    {
+      dx = m_cFSR.cPaperSize.dPaperHeight;
+      dy = m_cFSR.cPaperSize.dPaperWidth;
+    }
+    double dOff = 0.1*dx;
+    if(dy < dx) dOff = 0.1*dy;
+    double dImageWidth = dx - 2.0*dOff;
+    double dImageHeight = dImageWidth*(double)ih/(double)iw;
+    if(dImageHeight > dy - 2.0*dOff)
+    {
+      dImageHeight = dy - 2.0*dOff;
+      dImageWidth = dImageHeight*(double)iw/(double)ih;
+    }
+
+    PDObject pImage = new CDObject(dtRaster, m_cFSR.dDefLineWidth);
+    pImage->AddPoint(0.0, 0.0, 0, 0.0);
+    pImage->AddPoint(dOff, dOff, 1, 0.0);
+    pImage->AddPoint((double)iw, 0.0, 0, 0.0);
+    pImage->AddPoint(dOff + dImageWidth, dOff, 1, 0.0);
+    pImage->AddPoint(0.0, (double)ih, 0, 0.0);
+    pImage->AddPoint(dOff, dOff + dImageHeight, 1, 0.0);
+
+    g_object_unref(pPixBuf);
+
+    FILE *pf = fopen(psFileName, "rb");
+    pImage->BuildRasterCache(iw, ih, pf);
+    g_free(psFileName);
+
+    m_pDrawObjects->Add(pImage);
+
+    GtkWidget *draw = GetDrawing();
+    gdk_window_invalidate_rect(draw->window, NULL, FALSE);
+    SetTitle(m_pMainWnd, true);
+
+    /*if(m_sLastPath) g_free(m_sLastPath);
+    if(*psFile) g_free(*psFile);
+    *psFile = gtk_file_chooser_get_filename((GtkFileChooser*)dialog);
+    m_sLastPath = gtk_file_chooser_get_current_folder((GtkFileChooser*)dialog);
+
+    // load the file
+    FILE *pf = fopen(*psFile, "rb");
+    bRead = m_pDrawObjects->ReadFromFile(pf, true, bClear);
+    fclose(pf);
+    if(bRead)
+    {
+      if(bClear)
+      {
+        DataToFileProps();
+        GetPageDims();
+        m_pUndoObjects->ClearAll();
+        m_iRedoCount = 0;
+      }
+
+      GtkWidget *draw = GetDrawing();
+      gdk_window_invalidate_rect(draw->window, NULL, FALSE);
+      SetTitle(widget, true);
+    }*/
+  }
+
+  gtk_widget_destroy(dialog);
+}
+
+void CDApplication::RasterRegisterCmd()
+{
 }
 
 void CDApplication::SelectionClear()

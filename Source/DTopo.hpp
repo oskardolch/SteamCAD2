@@ -35,7 +35,7 @@ int CircXLine(bool b01, CDPoint p11, double dRad, CDPoint p21, CDPoint p22, PDPo
 int QuadXSeg(PDPoint pQuad, CDPoint cPt1, CDPoint cPt2, PDPoint pRes, double *pdTs);
 int QuadXLine(PDPoint pQuad, CDPoint cLnOrg, CDPoint cLnDir, PDPoint pRes, double *pdTs);
 int BezXLine(CDPoint p11, CDPoint p12, CDPoint p13, CDPoint p14,
-    CDPoint p21, CDPoint p22, PDPoint pRes, double *pdTs);
+  CDPoint p21, CDPoint p22, PDPoint pRes, double *pdTs);
 
 double GetCircOrigin(CDPoint cp1, CDPoint cp2, CDPoint cp3, PDPoint pRes);
 

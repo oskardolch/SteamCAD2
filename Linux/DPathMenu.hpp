@@ -1,5 +1,5 @@
-#ifndef _DVIEWTOOLSTMENU_HPP_
-#define _DVIEWTOOLSMENU_HPP_
+#ifndef _DPATHMENU_HPP_
+#define _DPATHMENU_HPP_
 
 #include <gtk/gtk.h>
 

@@ -202,7 +202,7 @@ typedef struct CDGetBoundsRec
 typedef struct CDPrimitive
 {
   int iType; // 1 line, 2 circ arc, 3 circle, 4 quad, 5 bezier, 6 bound points, 7 center points,
-    // 8 - cross point, 9 - dim arrow, 10 - dim text, 11 - path
+    // 8 - cross point, 9 - dim arrow, 10 - dim text, 11 - path, 12 - area, 13 - raster
     // 0 no other primitive available
     // in case of path (11) the points have special meaning:
     //   cPt1.x:

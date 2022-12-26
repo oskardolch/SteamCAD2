@@ -44,7 +44,7 @@ DGuiobj = SteamCAD2.o DMenu.o DApplication.o DDataTypes.o DStreamUtils.o \
   DArcElps.o DHyper.o DParabola.o DSpline.o DEvolv.o DExpCairo.o DParser.o \
   DFileMenu.o DModeMenu.o DEditMenu.o DViewToolsMenu.o DFileSetupDlg.o \
   DLineStyleDlg.o DDimEditDlg.o DStatDlg.o DSnapDlg.o DScaleDlg.o DExpDXF.o \
-  DPathMenu.o DRect.o
+  DPathMenu.o DRasterMenu.o DRect.o DRaster.o
 DBuildobj = $(addprefix $(BUILDDIR), $(DGuiobj))
 DGuimod = -L./Build -Wl,-rpath,.
 
@@ -58,12 +58,14 @@ $(BUILDDIR)DApplication.o : Linux/DApplication.cpp Linux/DApplication.hpp Linux/
   Linux/DSnapDlg.hpp Linux/DScaleDlg.hpp Source/DExpDXF.hpp Source/DBaseDefs.hpp
 $(BUILDDIR)DMenu.o : Linux/DMenu.cpp Linux/DMenu.hpp Linux/DApplication.hpp \
   Linux/DFileMenu.hpp Linux/DModeMenu.hpp Linux/DEditMenu.hpp \
-  Linux/DViewToolsMenu.hpp Linux/DPathMenu.hpp Source/DBaseDefs.hpp
+  Linux/DViewToolsMenu.hpp Linux/DPathMenu.hpp Linux/DRasterMenu.hpp \
+  Source/DBaseDefs.hpp
 $(BUILDDIR)DFileMenu.o : Linux/DFileMenu.cpp Linux/DFileMenu.hpp Linux/DLxBaseDefs.h
 $(BUILDDIR)DModeMenu.o : Linux/DModeMenu.cpp Linux/DModeMenu.hpp Linux/DLxBaseDefs.h
 $(BUILDDIR)DEditMenu.o : Linux/DEditMenu.cpp Linux/DEditMenu.hpp Linux/DLxBaseDefs.h
 $(BUILDDIR)DViewToolsMenu.o : Linux/DViewToolsMenu.cpp Linux/DViewToolsMenu.hpp Linux/DLxBaseDefs.h
 $(BUILDDIR)DPathMenu.o : Linux/DPathMenu.cpp Linux/DPathMenu.hpp Linux/DLxBaseDefs.h
+$(BUILDDIR)DrasterMenu.o : Linux/DRasterMenu.cpp Linux/DRasterMenu.hpp Linux/DLxBaseDefs.h
 $(BUILDDIR)DFileSetupDlg.o : Linux/DFileSetupDlg.cpp Linux/DFileSetupDlg.hpp Source/DParser.hpp \
   Linux/DLxBaseDefs.h
 $(BUILDDIR)DLineStyleDlg.o : Linux/DLineStyleDlg.cpp Linux/DLineStyleDlg.hpp Source/DDataTypes.hpp \
@@ -87,7 +89,7 @@ $(BUILDDIR)DTopo.o : Source/DTopo.cpp Source/DTopo.hpp Source/DMath.hpp
 $(BUILDDIR)DDrawTypes.o : Source/DDrawTypes.cpp Source/DDrawTypes.hpp Source/DDataTypes.hpp \
   Source/DStreamUtils.hpp Source/DLine.hpp Source/DCircle.hpp Source/DEllipse.hpp \
   Source/DPrimitive.hpp Source/DArcElps.hpp Source/DHyper.hpp Source/DParabola.hpp \
-  Source/DSpline.hpp Source/DEvolv.hpp Source/DParser.hpp Source/DRect.hpp
+  Source/DSpline.hpp Source/DEvolv.hpp Source/DParser.hpp Source/DRect.hpp Source/DRaster.hpp
 $(BUILDDIR)DPrimitive.o : Source/DPrimitive.cpp Source/DPrimitive.hpp Source/DDataTypes.hpp \
   Source/DMath.hpp
 $(BUILDDIR)DLine.o : Source/DLine.cpp Source/DLine.hpp Source/DDataTypes.hpp \
@@ -108,6 +110,7 @@ $(BUILDDIR)DEvolv.o : Source/DEvolv.cpp Source/DEvolv.hpp Source/DDataTypes.hpp 
   Source/DPrimitive.hpp Source/DMath.hpp
 $(BUILDDIR)DRect.o : Source/DRect.cpp Source/DRect.hpp Source/DDataTypes.hpp \
   Source/DPrimitive.hpp Source/DMath.hpp
+$(BUILDDIR)DRaster.o : Source/DRaster.cpp Source/DRaster.hpp Source/DDataTypes.hpp
 $(BUILDDIR)DExpCairo.o : Source/DExpCairo.cpp Source/DExpCairo.hpp Source/DDataTypes.hpp \
   Source/DDrawTypes.hpp Source/DPrimitive.hpp Source/DParser.hpp
 $(BUILDDIR)DParser.o : Source/DParser.cpp Source/DParser.hpp Source/DMath.hpp Source/DDataTypes.hpp

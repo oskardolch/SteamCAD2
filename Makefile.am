@@ -11,10 +11,11 @@ SteamCAD_SOURCES = dxflib/dl_writer_ascii.cpp dxflib/dl_dxf.cpp \
     Source/DLine.cpp Source/DCircle.cpp Source/DEllipse.cpp \
     Source/DArcElps.cpp Source/DHyper.cpp Source/DParabola.cpp \
     Source/DSpline.cpp Source/DEvolv.cpp Source/DRect.cpp \
+    Source/DRaster.cpp \
     Source/DExpCairo.cpp Source/DParser.cpp Source/DExpDXF.cpp \
     Linux/SteamCAD2.cpp Linux/DApplication.cpp Linux/DMenu.cpp \
     Linux/DFileMenu.cpp Linux/DModeMenu.cpp Linux/DEditMenu.cpp \
-    Linux/DViewToolsMenu.cpp Linux/DFileSetupDlg.cpp \
-    Linux/DLineStyleDlg.cpp Linux/DDimEditDlg.cpp Linux/DStatDlg.cpp \
-    Linux/DSnapDlg.cpp Linux/DScaleDlg.cpp
+    Linux/DViewToolsMenu.cpp Linux/DPathMenu.cpp Linux/DRasterMenu.cpp \
+    Linux/DFileSetupDlg.cpp Linux/DLineStyleDlg.cpp Linux/DDimEditDlg.cpp \
+    Linux/DStatDlg.cpp Linux/DSnapDlg.cpp Linux/DScaleDlg.cpp
 
