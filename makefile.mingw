@@ -26,7 +26,7 @@ Drawobj = SteamCAD2.o MainWnd.o SteamCAD2_res.o DDataTypes.o DStreamUtils.o \
   XMLUtils.o DFileSetupDlg.o DMath.o DTopo.o DDrawTypes.o DLine.o DCircle.o \
 	DEllipse.o DPrimitive.o DArcElps.o DHyper.o DParabola.o DSpline.o \
 	DEvolv.o DLineStyleDlg.o DDimEditDlg.o DExpCairo.o DScaleDlg.o \
-	DStatDlg.o DParser.o DSnapDlg.o DExpDXF.o DRect.o
+	DStatDlg.o DParser.o DSnapDlg.o DExpDXF.o DRect.o DRaster.o
 #	DToolBar.o
 Drawmod = $(addprefix $(BUILDDIR)/, $(Drawobj)) \
 	-lgdi32 -lcomctl32 -lole32 -loleaut32 -luuid -lgdiplus -lcairo.dll -ldxflib
@@ -66,7 +66,7 @@ DTopo.o : Source/DTopo.cpp Source/DTopo.hpp Source/DMath.hpp
 DDrawTypes.o : Source/DDrawTypes.cpp Source/DDrawTypes.hpp Source/DDataTypes.hpp \
 	Source/DLine.hpp Source/DCircle.hpp Source/DEllipse.hpp Source/DPrimitive.hpp \
 	Source/DArcElps.hpp Source/DHyper.hpp Source/DParabola.hpp Source/DSpline.hpp \
-	Source/DEvolv.hpp Source/DParser.hpp Source/DRect.hpp
+	Source/DEvolv.hpp Source/DParser.hpp Source/DRect.hpp Source/DRaster.hpp
 DPrimitive.o : Source/DPrimitive.cpp Source/DPrimitive.hpp Source/DDataTypes.hpp \
 	Source/DMath.hpp
 DLine.o : Source/DLine.cpp Source/DLine.hpp Source/DDataTypes.hpp \
@@ -86,6 +86,8 @@ DSpline.o : Source/DSpline.cpp Source/DSpline.hpp Source/DDataTypes.hpp \
 DEvolv.o : Source/DEvolv.cpp Source/DEvolv.hpp Source/DDataTypes.hpp \
 	Source/DPrimitive.hpp Source/DMath.hpp
 DRect.o : Source/DRect.cpp Source/DRect.hpp Source/DDataTypes.hpp \
+	Source/DPrimitive.hpp Source/DMath.hpp
+DRaster.o : Source/DRaster.cpp Source/DRaster.hpp Source/DDataTypes.hpp \
 	Source/DPrimitive.hpp Source/DMath.hpp
 DExpCairo.o : Source/DExpCairo.cpp Source/DExpCairo.hpp Source/DDataTypes.hpp \
 	Source/DDrawTypes.hpp Source/DPrimitive.hpp Source/DParser.hpp
