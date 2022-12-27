@@ -5,7 +5,7 @@
 #include <stdio.h>
 #include "DParser.hpp"
 #include "DRaster.hpp"
-#include <gio/gio.h>
+//#include <gio/gio.h>
 
 class CDObject;
 
@@ -244,7 +244,7 @@ public:
   CDPrimitive GetBBOX();
   void BuildArea(PDPtrList pBoundaries, PDLineStyle pStyle);
   void ChangeToPath();
-  GInputStream* GetRasterData();
+  unsigned char* GetRasterData(int *piDataSize);
   void RegisterRaster(PDPoint pPoints);
 } *PDObject;
 

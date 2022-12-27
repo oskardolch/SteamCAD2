@@ -110,7 +110,8 @@ $(BUILDDIR)DEvolv.o : Source/DEvolv.cpp Source/DEvolv.hpp Source/DDataTypes.hpp 
   Source/DPrimitive.hpp Source/DMath.hpp
 $(BUILDDIR)DRect.o : Source/DRect.cpp Source/DRect.hpp Source/DDataTypes.hpp \
   Source/DPrimitive.hpp Source/DMath.hpp
-$(BUILDDIR)DRaster.o : Source/DRaster.cpp Source/DRaster.hpp Source/DDataTypes.hpp
+$(BUILDDIR)DRaster.o : Source/DRaster.cpp Source/DRaster.hpp Source/DDataTypes.hpp \
+  Source/DPrimitive.hpp Source/DMath.hpp
 $(BUILDDIR)DExpCairo.o : Source/DExpCairo.cpp Source/DExpCairo.hpp Source/DDataTypes.hpp \
   Source/DDrawTypes.hpp Source/DPrimitive.hpp Source/DParser.hpp
 $(BUILDDIR)DParser.o : Source/DParser.cpp Source/DParser.hpp Source/DMath.hpp Source/DDataTypes.hpp

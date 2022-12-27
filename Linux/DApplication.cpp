@@ -1497,7 +1497,9 @@ void CDApplication::DrawObject(cairo_t *cr, PDObject pObj, int iMode, int iDimen
       {
         if(iMode < 1)
         {
-          GInputStream *pStream = pObj->GetRasterData();
+          int iDataSize = 0;
+          unsigned char *pData = pObj->GetRasterData(&iDataSize);
+          GInputStream *pStream = g_memory_input_stream_new_from_data(pData, iDataSize, NULL);
           GError *pErr = NULL;
           GdkPixbuf *pPixBuf = gdk_pixbuf_new_from_stream(pStream, NULL, &pErr);
           if(pPixBuf)
@@ -1517,6 +1519,7 @@ void CDApplication::DrawObject(cairo_t *cr, PDObject pObj, int iMode, int iDimen
             // handle error
             g_error_free(pErr);
           }
+          g_input_stream_close(pStream, NULL, NULL);
         }
       }
       else

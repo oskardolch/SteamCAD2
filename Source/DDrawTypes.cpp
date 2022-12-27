@@ -7562,9 +7562,10 @@ void CDObject::ChangeToPath()
   m_iType = dtPath;
 }
 
-GInputStream* CDObject::GetRasterData()
+unsigned char* CDObject::GetRasterData(int *piDataSize)
 {
-  return g_memory_input_stream_new_from_data(m_pRasterCache->pData, m_pRasterCache->iFileSize, NULL);
+  *piDataSize = m_pRasterCache->iFileSize;
+  return m_pRasterCache->pData;
 }
 
 void CDObject::RegisterRaster(PDPoint pPoints)
