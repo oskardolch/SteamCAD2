@@ -6,6 +6,8 @@
 #include <cairo-ps.h>
 #include <cairo-svg.h>
 #include <string.h>
+#include <gdk/gdk.h>
+#include <gdk/gdkpixbuf.h>
 
 const double dMmToIn = 25.4;
 const double dPtToIn = 72.0;
@@ -354,6 +356,29 @@ void ExportObject(PDObject pObj, cairo_t *pct, PDFileAttrs pFileAttrs, double dR
           cairo_set_fill_rule(pct, CAIRO_FILL_RULE_EVEN_ODD);
           cairo_fill(pct);
           ExpSetLColor(pct, cStyle.cColor);
+        }
+      }
+      else if(cPrim.iType == 13) // raster image
+      {
+        GInputStream *pStream = pObj->GetRasterData();
+        GError *pErr = NULL;
+        GdkPixbuf *pPixBuf = gdk_pixbuf_new_from_stream(pStream, NULL, &pErr);
+        if(pPixBuf)
+        {
+          cairo_matrix_t cMat = {cPrim.cPt1.x, cPrim.cPt2.x, cPrim.cPt1.y, cPrim.cPt2.y,
+            cPrim.cPt3.x, cPrim.cPt3.y};
+          //cairo_t *cr2 = cairo_create(m_pcs);
+          cairo_set_matrix(pct, &cMat);
+          gdk_cairo_set_source_pixbuf(pct, pPixBuf, 0.0, 0.0);
+          cairo_identity_matrix(pct);
+          cairo_paint(pct);
+          g_object_unref(pPixBuf);
+          //cairo_destroy(cr2);
+        }
+        else
+        {
+          // handle error
+          g_error_free(pErr);
         }
       }
       else ExportPrimitive(pct, &cPrim);

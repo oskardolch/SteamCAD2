@@ -1570,6 +1570,28 @@ void CDApplication::DrawObject(cairo_t *cr, PDObject pObj, int iMode, int iDimen
   }
 }
 
+void CDApplication::DrawRegRasterLine(cairo_t *cr, CDPoint cPt1, CDPoint cPt2)
+{
+  CDPoint cPt3, cPt4;
+  cairo_move_to(cr, cPt1.x, cPt1.y);
+  cairo_line_to(cr, cPt2.x, cPt2.y);
+  CDPoint cDir = cPt2 - cPt1;
+  double dDist = GetNorm(cDir);
+  if(dDist > g_dPrec)
+  {
+    cDir /= dDist;
+    cPt3.x = -10.0;
+    cPt3.y = 4.0;
+    cPt4 = cPt2 + Rotate(cPt3, cDir, true);
+    cairo_move_to(cr, cPt4.x, cPt4.y);
+    cairo_line_to(cr, cPt2.x, cPt2.y);
+    cPt3.y = -4.0;
+    cPt4 = cPt2 + Rotate(cPt3, cDir, true);
+    cairo_line_to(cr, cPt4.x, cPt4.y);
+  }
+  cairo_stroke(cr);
+}
+
 void CDApplication::Paint(GtkWidget *widget, GdkEventExpose *event)
 {
   int iWidth = gdk_window_get_width(event->window);
@@ -1750,6 +1772,28 @@ void CDApplication::Paint(GtkWidget *widget, GdkEventExpose *event)
 
     cairo_identity_matrix(cr2);
     DrawCross(cr2);
+  }
+
+  if(m_iDrawMode == modRegRaster)
+  {
+    CDPoint cPt1, cPt2;
+    cairo_set_source_rgb(cr2, 0.0, 1.0, 0.0);
+    for(int i = 0; i < m_iRegRasterCount/2; i++)
+    {
+      cPt1.x = m_cViewOrigin.x + m_dUnitScale*m_cRegRasterPoints[2*i].x;
+      cPt1.y = m_cViewOrigin.y + m_dUnitScale*m_cRegRasterPoints[2*i].y;
+      cPt2.x = m_cViewOrigin.x + m_dUnitScale*m_cRegRasterPoints[2*i + 1].x;
+      cPt2.y = m_cViewOrigin.y + m_dUnitScale*m_cRegRasterPoints[2*i + 1].y;
+      DrawRegRasterLine(cr2, cPt1, cPt2);
+    }
+    if((m_iRegRasterCount % 2) > 0)
+    {
+      cPt1.x = m_cViewOrigin.x + m_dUnitScale*m_cRegRasterPoints[m_iRegRasterCount - 1].x;
+      cPt1.y = m_cViewOrigin.y + m_dUnitScale*m_cRegRasterPoints[m_iRegRasterCount - 1].y;
+      cPt2.x = m_cViewOrigin.x + m_dUnitScale*m_cLastDrawPt.x;
+      cPt2.y = m_cViewOrigin.y + m_dUnitScale*m_cLastDrawPt.y;
+      DrawRegRasterLine(cr2, cPt1, cPt2);
+    }
   }
 
   cairo_destroy(cr2);
@@ -2564,6 +2608,7 @@ void CDApplication::SetMode(int iNewMode, bool bFromAccel)
   m_iToolMode = tolNone;
   int iCurMode = m_iDrawMode;
   m_iDrawMode = iNewMode;
+  m_iRegRasterCount = 0;
 
   StartNewObject(FALSE);
   if(!m_pActiveObject && (m_iDrawMode > modSelect)) m_iDrawMode = modSelect;
@@ -2630,6 +2675,7 @@ void CDApplication::SetTool(int iNewTool)
   }
 
   m_iDrawMode = modSelect;
+  m_iRegRasterCount = 0;
   m_iToolMode = tolNone;
 
   if(iNewTool == tolDimen)
@@ -3857,6 +3903,28 @@ void CDApplication::MouseMove(GtkWidget *widget, GdkEventMotion *event, gboolean
       }
     }
 
+    if(m_iDrawMode == modRegRaster)
+    {
+      CDPoint cPt1, cPt2;
+      cairo_set_source_rgb(cr, 0.0, 1.0, 0.0);
+      for(int i = 0; i < m_iRegRasterCount/2; i++)
+      {
+        cPt1.x = m_cViewOrigin.x + m_dUnitScale*m_cRegRasterPoints[2*i].x;
+        cPt1.y = m_cViewOrigin.y + m_dUnitScale*m_cRegRasterPoints[2*i].y;
+        cPt2.x = m_cViewOrigin.x + m_dUnitScale*m_cRegRasterPoints[2*i + 1].x;
+        cPt2.y = m_cViewOrigin.y + m_dUnitScale*m_cRegRasterPoints[2*i + 1].y;
+        DrawRegRasterLine(cr, cPt1, cPt2);
+      }
+      if((m_iRegRasterCount % 2) > 0)
+      {
+        cPt1.x = m_cViewOrigin.x + m_dUnitScale*m_cRegRasterPoints[m_iRegRasterCount - 1].x;
+        cPt1.y = m_cViewOrigin.y + m_dUnitScale*m_cRegRasterPoints[m_iRegRasterCount - 1].y;
+        cPt2.x = m_cViewOrigin.x + m_dUnitScale*m_cLastDrawPt.x;
+        cPt2.y = m_cViewOrigin.y + m_dUnitScale*m_cLastDrawPt.y;
+        DrawRegRasterLine(cr, cPt1, cPt2);
+      }
+    }
+
     DrawCross(cr);
 
     cairo_destroy(cr);
@@ -4329,6 +4397,8 @@ void CDApplication::MouseLButtonUp(GtkWidget *widget, GdkEventButton *event)
         PDObject pImage = m_pDrawObjects->GetSelected(0);
         pImage->RegisterRaster(m_cRegRasterPoints);
         m_iRegRasterCount = 0;
+        m_iDrawMode = modSelect;
+        gdk_window_invalidate_rect(event->window, NULL, FALSE);
       }
     }
     else

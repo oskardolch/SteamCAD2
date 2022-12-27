@@ -4758,6 +4758,19 @@ void CDObject::SaveToFile(FILE *pf, bool bSwapBytes, unsigned char cVersion)
         pSeg->pSegment->SaveToFile(pf, bSwapBytes, cVersion);
       }
     }
+    else if(m_iType == dtRaster)
+    {
+      pbuf = (unsigned char*)&m_pRasterCache->iImageWidth;
+      SwapBytes(buf, pbuf, 4, bSwapBytes);
+      fwrite(buf, 1, 4, pf);
+      pbuf = (unsigned char*)&m_pRasterCache->iImageHeight;
+      SwapBytes(buf, pbuf, 4, bSwapBytes);
+      fwrite(buf, 1, 4, pf);
+      pbuf = (unsigned char*)&m_pRasterCache->iFileSize;
+      SwapBytes(buf, pbuf, 4, bSwapBytes);
+      fwrite(buf, 1, 4, pf);
+      fwrite(m_pRasterCache->pData, 1, m_pRasterCache->iFileSize, pf);
+    }
     else
     {
       for(unsigned int i = 0; i < lCnt; i++)
@@ -4860,6 +4873,10 @@ int CDObject::GetStreamSize(unsigned char cVersion)
       iRes += pSeg->pSegment->GetStreamSize(cVersion);
     }
   }
+  else if(m_iType == dtRaster)
+  {
+    iRes += (12 + m_pRasterCache->iFileSize);
+  }
   else
   {
     for(unsigned int i = 0; i < lCnt; i++)
@@ -4933,6 +4950,17 @@ int CDObject::SaveToStream(unsigned char *pBuf, unsigned char cVersion)
       pBuf[iCurPos++] = (unsigned char)pSeg->bReverse;
       iCurPos += pSeg->pSegment->SaveToStream(&pBuf[iCurPos], cVersion);
     }
+  }
+  else if(m_iType == dtRaster)
+  {
+    memcpy(&pBuf[iCurPos], &m_pRasterCache->iImageWidth, 4);
+    iCurPos += 4;
+    memcpy(&pBuf[iCurPos], &m_pRasterCache->iImageHeight, 4);
+    iCurPos += 4;
+    memcpy(&pBuf[iCurPos], &m_pRasterCache->iFileSize, 4);
+    iCurPos += 4;
+    memcpy(&pBuf[iCurPos], m_pRasterCache->pData, m_pRasterCache->iFileSize);
+    iCurPos += m_pRasterCache->iFileSize;
   }
   else
   {
@@ -5120,6 +5148,23 @@ bool CDObject::ReadFromFile(FILE *pf, bool bSwapBytes, unsigned char cVersion)
         }
       }
     }
+    else if(m_iType == dtRaster)
+    {
+      fread(buf, 1, 4, pf);
+      pbuf = (unsigned char*)&m_pRasterCache->iImageWidth;
+      SwapBytes(pbuf, buf, 4, bSwapBytes);
+      fread(buf, 1, 4, pf);
+      pbuf = (unsigned char*)&m_pRasterCache->iImageHeight;
+      SwapBytes(pbuf, buf, 4, bSwapBytes);
+      fread(buf, 1, 4, pf);
+      pbuf = (unsigned char*)&m_pRasterCache->iFileSize;
+      SwapBytes(pbuf, buf, 4, bSwapBytes);
+
+      m_pRasterCache->pData = (unsigned char*)malloc(m_pRasterCache->iFileSize);
+      fread(m_pRasterCache->pData, 1, m_pRasterCache->iFileSize, pf);
+
+      BuildRasterCacheRaw(m_pInputPoints, m_pRasterCache, 0, 0, NULL);
+    }
     else
     {
       for(unsigned int i = 0; i < lCnt; i++)
@@ -5269,6 +5314,19 @@ int CDObject::ReadFromStream(unsigned char *pBuf, unsigned char cVersion)
       }
       iCurPos += iLen;
     }
+  }
+  else if(m_iType == dtRaster)
+  {
+    memcpy(&m_pRasterCache->iImageWidth, &pBuf[iCurPos], 4);
+    iCurPos += 4;
+    memcpy(&m_pRasterCache->iImageHeight, &pBuf[iCurPos], 4);
+    iCurPos += 4;
+    memcpy(&m_pRasterCache->iFileSize, &pBuf[iCurPos], 4);
+    iCurPos += 4;
+    m_pRasterCache->pData = (unsigned char*)malloc(m_pRasterCache->iFileSize);
+    memcpy(m_pRasterCache->pData, &pBuf[iCurPos], m_pRasterCache->iFileSize);
+    iCurPos += m_pRasterCache->iFileSize;
+    BuildRasterCacheRaw(m_pInputPoints, m_pRasterCache, 0, 0, NULL);
   }
   else
   {

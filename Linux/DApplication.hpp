@@ -156,6 +156,7 @@ private:
   void DrawDimText(cairo_t *cr, PDPrimitive pPrim, PDObject pObj, long dwColor, double dLineWidth);
   void DrawPrimitive(cairo_t *cr, PDPrimitive pPrim);
   void DrawObject(cairo_t *cr, PDObject pObj, int iMode, int iDimen);
+  void DrawRegRasterLine(cairo_t *cr, CDPoint cPt1, CDPoint cPt2);
 
   void SetMode(int iNewMode, bool bFromAccel);
   void SetTool(int iNewTool);
