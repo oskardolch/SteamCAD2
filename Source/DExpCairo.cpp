@@ -553,9 +553,6 @@ void ExportCairoFile(int iType, FILE *pFile, PDataList pDrawData, PDUnitList pUn
   {
     cairo_surface_write_to_png_stream(pcs, WriteCairoStream, pFile);
   }
-MessageBox(0, L"Dobry 1", L"Debug", MB_OK);
   cairo_surface_finish(pcs);
-MessageBox(0, L"Dobry 2", L"Debug", MB_OK);
   cairo_surface_destroy(pcs);
-MessageBox(0, L"Dobry 3", L"Debug", MB_OK);
 }
