@@ -200,6 +200,8 @@ CMainWnd::CMainWnd(HINSTANCE hInstance)
   m_iClipDataLen = 0;
   m_hClipData = 0;
 
+  m_iRegRasterCount = 0;
+
   GdiplusStartupInput gdiplusStartupInput;
   GdiplusStartup(&m_gdiplusToken, &gdiplusStartupInput, NULL);
   CoInitialize(NULL);
@@ -483,6 +485,10 @@ LRESULT CMainWnd::WMCommand(HWND hwnd, WORD wNotifyCode, WORD wID, HWND hwndCtl)
     return PathMoveTopCmd(hwnd, wNotifyCode, hwndCtl);
   case IDM_PATHMOVEBOTTOM:
     return PathMoveBottomCmd(hwnd, wNotifyCode, hwndCtl);
+  case IDM_RASTERIMPORT:
+    return RasterImportCmd(hwnd, wNotifyCode, hwndCtl);
+  case IDM_RASTERREGISTER:
+    return RasterRegisterCmd(hwnd, wNotifyCode, hwndCtl);
   case IDM_HELPCONTENT:
     return HelpContentCmd(hwnd, wNotifyCode, hwndCtl);
   case IDC_EDT1:
@@ -931,6 +937,28 @@ LRESULT CMainWnd::WMPaint(HWND hwnd, HDC hdc)
     {
       m_pActiveObject->BuildPrimitives(cPtX, iDynMode, &cdr, 0, NULL, NULL);
       DrawObject(hwnd, &dstgraph, m_pActiveObject, 1, -2);
+    }
+  }
+
+  if(m_iDrawMode == modRegRaster)
+  {
+    CDPoint cPt1, cPt2;
+    Pen greenPen(Color(255, 0, 255, 0), 1);
+    for(int i = 0; i < m_iRegRasterCount/2; i++)
+    {
+      cPt1.x = m_cViewOrigin.x + m_dUnitScale*m_cRegRasterPoints[2*i].x;
+      cPt1.y = m_cViewOrigin.y + m_dUnitScale*m_cRegRasterPoints[2*i].y;
+      cPt2.x = m_cViewOrigin.x + m_dUnitScale*m_cRegRasterPoints[2*i + 1].x;
+      cPt2.y = m_cViewOrigin.y + m_dUnitScale*m_cRegRasterPoints[2*i + 1].y;
+      DrawRegRasterLine(&dstgraph, &greenPen, cPt1, cPt2);
+    }
+    if((m_iRegRasterCount % 2) > 0)
+    {
+      cPt1.x = m_cViewOrigin.x + m_dUnitScale*m_cRegRasterPoints[m_iRegRasterCount - 1].x;
+      cPt1.y = m_cViewOrigin.y + m_dUnitScale*m_cRegRasterPoints[m_iRegRasterCount - 1].y;
+      cPt2.x = m_cViewOrigin.x + m_dUnitScale*m_cLastDrawPt.x;
+      cPt2.y = m_cViewOrigin.y + m_dUnitScale*m_cLastDrawPt.y;
+      DrawRegRasterLine(&dstgraph, &greenPen, cPt1, cPt2);
     }
   }
 
@@ -1597,6 +1625,7 @@ LRESULT CMainWnd::ModeCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl, int iMode)
   CheckMenuItem(hMenu, MapDrawModeToMenu(m_iDrawMode), uCheck);
 
   m_iDrawMode = iMode;
+  m_iRegRasterCount = 0;
 
   StartNewObject(hwnd);
   if(!m_pActiveObject && (m_iDrawMode))
@@ -2627,6 +2656,23 @@ LRESULT CMainWnd::WMLButtonUp(HWND hwnd, WPARAM fwKeys, int xPos, int yPos)
         SetTitle(hwnd, false);
       }
     }
+    else if(m_iDrawMode == modRegRaster)
+    {
+      if(m_iRegRasterCount < 6)
+      {
+        m_cRegRasterPoints[m_iRegRasterCount++] = m_cLastDrawPt;
+      }
+      if(m_iRegRasterCount == 6)
+      {
+        PDObject pImage = m_pDrawObjects->GetSelected(0);
+        pImage->RegisterRaster(m_cRegRasterPoints);
+        m_iRegRasterCount = 0;
+        m_iDrawMode = modSelect;
+        m_pDrawObjects->SetChanged();
+        InvalidateRect(hwnd, &rc, FALSE);
+        SetTitle(hwnd, false);
+      }
+    }
     else
     {
       int iCtrl = 0;
@@ -3151,6 +3197,25 @@ void CMainWnd::DrawPrimitive(Graphics *graphics, Pen *pen, GraphicsPath *path, P
   }
 }
 
+void CMainWnd::DrawRegRasterLine(Graphics *graphics, Pen *pen, CDPoint cPt1, CDPoint cPt2)
+{
+  graphics->DrawLine(pen, (REAL)cPt1.x, (REAL)cPt1.y, (REAL)cPt2.x, (REAL)cPt2.y);
+  CDPoint cDir = cPt2 - cPt1;
+  double dDist = GetNorm(cDir);
+  if(dDist > g_dPrec)
+  {
+    CDPoint cPt3, cPt4;
+    cDir /= dDist;
+    cPt3.x = -10.0;
+    cPt3.y = 4.0;
+    cPt4 = cPt2 + Rotate(cPt3, cDir, true);
+    graphics->DrawLine(pen, (REAL)cPt4.x, (REAL)cPt4.y, (REAL)cPt2.x, (REAL)cPt2.y);
+    cPt3.y = -4.0;
+    cPt4 = cPt2 + Rotate(cPt3, cDir, true);
+    graphics->DrawLine(pen, (REAL)cPt4.x, (REAL)cPt4.y, (REAL)cPt2.x, (REAL)cPt2.y);
+  }
+}
+
 DWORD CodeRGBAColor(unsigned char *pColor)
 {
   return pColor[0] | (pColor[1] << 8) | (pColor[2] << 16) | (pColor[3] << 24);
@@ -3348,6 +3413,32 @@ void CMainWnd::DrawObject(HWND hWnd, Graphics *graphics, PDObject pObj, int iMod
           hPath.CloseFigure();
           graphics->FillPath(&hBrush, &hPath);
           hPath.Reset();
+        }
+      }
+      else if(cPrim.iType == 13)
+      {
+        if(iMode < 1)
+        {
+          int iImageSize = 0;
+          unsigned char *pImageData = pObj->GetRasterData(&iImageSize);
+          HGLOBAL hGlobal = GlobalAlloc(GMEM_MOVEABLE, iImageSize);
+          void *ptr = GlobalLock(hGlobal);
+          memcpy(ptr, pImageData, iImageSize);
+          GlobalUnlock(hGlobal);
+          IStream *pStream = NULL;
+          CreateStreamOnHGlobal(hGlobal, TRUE, &pStream);
+          Gdiplus::Image *image = Gdiplus::Image::FromStream(pStream);
+
+          double dScaleFactor = 3.125;
+          Matrix *matrix = new Matrix(dScaleFactor*cPrim.cPt1.x, dScaleFactor*cPrim.cPt2.x,
+            dScaleFactor*cPrim.cPt1.y, dScaleFactor*cPrim.cPt2.y,
+            cPrim.cPt3.x + m_cViewOrigin.x, cPrim.cPt3.y + m_cViewOrigin.y);
+          graphics->SetTransform(matrix);
+          graphics->DrawImage(image, (REAL)0.0, (REAL)0.0);
+          graphics->ResetTransform();
+          pStream->Release();
+          delete image;
+          delete matrix;
         }
       }
       else DrawPrimitive(graphics, &hPen, &hPath, &cPrim);
@@ -3845,6 +3936,28 @@ LRESULT CMainWnd::WMMouseMove(HWND hwnd, WPARAM fwKeys, int xPos, int yPos)
 
         pObj1->BuildPrimitives(cPtX, iDynMode, &cdr, 0, &cFAttrs, NULL);
         DrawObject(hwnd, &graphics, pObj1, 1, -1);
+      }
+    }
+
+    if(m_iDrawMode == modRegRaster)
+    {
+      CDPoint cPt1, cPt2;
+      Pen greenPen(Color(255, 0, 255, 0), 1.0f);
+      for(int i = 0; i < m_iRegRasterCount/2; i++)
+      {
+        cPt1.x = m_cViewOrigin.x + m_dUnitScale*m_cRegRasterPoints[2*i].x;
+        cPt1.y = m_cViewOrigin.y + m_dUnitScale*m_cRegRasterPoints[2*i].y;
+        cPt2.x = m_cViewOrigin.x + m_dUnitScale*m_cRegRasterPoints[2*i + 1].x;
+        cPt2.y = m_cViewOrigin.y + m_dUnitScale*m_cRegRasterPoints[2*i + 1].y;
+        DrawRegRasterLine(&graphics, &greenPen, cPt1, cPt2);
+      }
+      if((m_iRegRasterCount % 2) > 0)
+      {
+        cPt1.x = m_cViewOrigin.x + m_dUnitScale*m_cRegRasterPoints[m_iRegRasterCount - 1].x;
+        cPt1.y = m_cViewOrigin.y + m_dUnitScale*m_cRegRasterPoints[m_iRegRasterCount - 1].y;
+        cPt2.x = m_cViewOrigin.x + m_dUnitScale*m_cLastDrawPt.x;
+        cPt2.y = m_cViewOrigin.y + m_dUnitScale*m_cLastDrawPt.y;
+        DrawRegRasterLine(&graphics, &greenPen, cPt1, cPt2);
       }
     }
 
@@ -4462,5 +4575,154 @@ LRESULT CMainWnd::PathMoveBottomCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl)
     InvalidateRect(hwnd, NULL, FALSE);
     SetTitle(hwnd, false);
   }
+  return 0;
+}
+
+LRESULT CMainWnd::RasterImportCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl)
+{
+  IFileOpenDialog *pFileOpen = NULL;
+  HRESULT hr = CoCreateInstance(CLSID_FileOpenDialog, NULL, CLSCTX_INPROC_SERVER, IID_IFileOpenDialog, (void**)&pFileOpen);
+  if(SUCCEEDED(hr))
+  {
+    wchar_t wsFilter[128];
+    LoadString(m_hInstance, IDS_RASTERFORMATFILTER, wsFilter, 128);
+
+    int iFilterLen = 0;
+    int n = wcslen(wsFilter);
+    for(int i = 0; i < n; i++)
+    {
+      if(wsFilter[i] == 1) iFilterLen++;
+    }
+    iFilterLen /= 2;
+    COMDLG_FILTERSPEC *pFilter = NULL;
+    if(iFilterLen > 0)
+    {
+      pFilter = (COMDLG_FILTERSPEC*)malloc(iFilterLen*sizeof(COMDLG_FILTERSPEC));
+      int iFilterPos = 0;
+      pFilter[iFilterPos++].pszName = wsFilter;
+      for(int i = 0; i < n; i++)
+      {
+        if(wsFilter[i] == 1)
+        {
+          wsFilter[i] = 0;
+          if(iFilterPos < 2*iFilterLen)
+          {
+            if(iFilterPos % 2 > 0) pFilter[iFilterPos/2].pszSpec = &wsFilter[i + 1];
+            else pFilter[iFilterPos/2].pszName = &wsFilter[i + 1];
+            iFilterPos++;
+          }
+        }
+      }
+      pFileOpen->SetFileTypes(iFilterLen, pFilter);
+    }
+    hr = pFileOpen->Show(NULL);
+    if(SUCCEEDED(hr))
+    {
+      IShellItem *pItem;
+      hr = pFileOpen->GetResult(&pItem);
+      if(SUCCEEDED(hr))
+      {
+        PWSTR pszFilePath;
+        hr = pItem->GetDisplayName(SIGDN_FILESYSPATH, &pszFilePath);
+        if(SUCCEEDED(hr))
+        {
+          Gdiplus::Image *image = Gdiplus::Image::FromFile(pszFilePath);
+
+          int iw = image->GetWidth();
+          int ih = image->GetHeight();
+          if((iw > 0) && (ih > 0))
+          {
+            double dx = m_cFSR.cPaperSize.dPaperWidth;
+            double dy = m_cFSR.cPaperSize.dPaperHeight;
+            if(!m_cFSR.bPortrait)
+            {
+              dx = m_cFSR.cPaperSize.dPaperHeight;
+              dy = m_cFSR.cPaperSize.dPaperWidth;
+            }
+            double dOff = 0.1*dx;
+            if(dy < dx) dOff = 0.1*dy;
+            double dImageWidth = dx - 2.0*dOff;
+            double dImageHeight = dImageWidth*(double)ih/(double)iw;
+            if(dImageHeight > dy - 2.0*dOff)
+            {
+              dImageHeight = dy - 2.0*dOff;
+              dImageWidth = dImageHeight*(double)iw/(double)ih;
+            }
+
+            PDObject pImage = new CDObject(dtRaster, m_cFSR.dDefLineWidth);
+            pImage->AddPoint(0.0, 0.0, 0, 0.0);
+            pImage->AddPoint(dOff, dOff, 1, 0.0);
+            pImage->AddPoint((double)iw, 0.0, 0, 0.0);
+            pImage->AddPoint(dOff + dImageWidth, dOff, 1, 0.0);
+            pImage->AddPoint(0.0, (double)ih, 0, 0.0);
+            pImage->AddPoint(dOff, dOff + dImageHeight, 1, 0.0);
+
+            FILE *pf = _wfopen(pszFilePath, L"rb");
+            pImage->BuildRasterCache(iw, ih, pf);
+            fclose(pf);
+
+            m_pDrawObjects->Add(pImage);
+
+            RECT rc;
+            GetClientRect(hwnd, &rc);
+            rc.top += m_iToolBarHeight;
+            rc.bottom -= m_iStatusHeight;
+
+            InvalidateRect(hwnd, &rc, FALSE);
+            SetTitle(hwnd, true);
+          }
+
+          // load the file
+          /*FILE *pf = _wfopen(pszFilePath, L"rb");
+          bool bRead = m_pDrawObjects->ReadFromFile(pf, true, bClear);
+          fclose(pf);
+          if(bRead)
+          {
+            wcscpy(wsFile, pszFilePath);
+            if(bClear)
+            {
+              DataToFileProps();
+              GetPageDims();
+              m_pUndoObjects->ClearAll();
+              m_iRedoCount = 0;
+            }
+
+            RECT rc;
+            GetClientRect(hWnd, &rc);
+            rc.top += m_iToolBarHeight;
+            rc.bottom -= m_iStatusHeight;
+
+            InvalidateRect(hWnd, &rc, FALSE);
+            SetTitle(hWnd, true);
+          }*/
+          CoTaskMemFree(pszFilePath);
+        }
+        pItem->Release();
+      }
+    }
+    if(pFilter) free(pFilter);
+    pFileOpen->Release();
+  }
+  return 0;
+}
+
+LRESULT CMainWnd::RasterRegisterCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl)
+{
+  PDObject pImage = NULL;
+  int iSel = m_pDrawObjects->GetSelectCount(2);
+  if(iSel == 1)
+  {
+    pImage = m_pDrawObjects->GetSelected(0);
+  }
+  if(!pImage || (pImage->GetType() != dtRaster))
+  {
+    wchar_t sCaption[64];
+    wchar_t sMessage[128];
+    LoadString(m_hInstance, IDS_WARNING, sCaption, 64);
+    LoadString(m_hInstance, IDS_ONERASTERFORREG, sMessage, 128);
+    MessageBox(hwnd, sMessage, sCaption, MB_OK);
+    return 0;
+  }
+  m_iDrawMode = modRegRaster;
   return 0;
 }

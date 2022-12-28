@@ -4401,6 +4401,7 @@ void CDApplication::MouseLButtonUp(GtkWidget *widget, GdkEventButton *event)
         pImage->RegisterRaster(m_cRegRasterPoints);
         m_iRegRasterCount = 0;
         m_iDrawMode = modSelect;
+        m_pDrawObjects->SetChanged();
         gdk_window_invalidate_rect(event->window, NULL, FALSE);
       }
     }
@@ -4853,8 +4854,8 @@ void CDApplication::RasterImportCmd()
     GError *pError = NULL;
     GdkPixbuf *pPixBuf = gdk_pixbuf_new_from_file(psFileName, &pError);
 
-    int iw = (double)gdk_pixbuf_get_width(pPixBuf);
-    int ih = (double)gdk_pixbuf_get_height(pPixBuf);
+    int iw = gdk_pixbuf_get_width(pPixBuf);
+    int ih = gdk_pixbuf_get_height(pPixBuf);
     if((iw < 1) || (ih < 1))
     {
       g_free(psFileName);
@@ -4891,6 +4892,7 @@ void CDApplication::RasterImportCmd()
 
     FILE *pf = fopen(psFileName, "rb");
     pImage->BuildRasterCache(iw, ih, pf);
+    fclose(pf);
     g_free(psFileName);
 
     m_pDrawObjects->Add(pImage);

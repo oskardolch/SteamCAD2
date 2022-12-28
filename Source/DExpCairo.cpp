@@ -6,8 +6,17 @@
 #include <cairo-ps.h>
 #include <cairo-svg.h>
 #include <string.h>
+
+#ifdef WIN32
+#include <windows.h>
+#include <winbase.h>
+#include <commctrl.h>
+#include <shobjidl.h>
+#include <gdiplus.h>
+#else
 #include <gdk/gdk.h>
 #include <gdk/gdkpixbuf.h>
+#endif
 
 const double dMmToIn = 25.4;
 const double dPtToIn = 72.0;
@@ -244,6 +253,48 @@ void ExportDimText(cairo_t *pct, PDPrimitive pPrim, PDObject pObj, double dScale
   if(iLen > 0) free(psBuf);
 }
 
+#ifdef WIN32
+cairo_format_t GetCairoFormat(Gdiplus::PixelFormat cFormat)
+{
+  cairo_format_t cRes = CAIRO_FORMAT_INVALID;
+  switch(cFormat)
+  {
+  case PixelFormat1bppIndexed:
+    cRes = CAIRO_FORMAT_A1;
+    break;
+  case PixelFormat4bppIndexed:
+    break;
+  case PixelFormat8bppIndexed:
+    cRes = CAIRO_FORMAT_A8;
+    break;
+  case PixelFormat16bppARGB1555:
+  case PixelFormat16bppGrayScale:
+    break;
+  case PixelFormat16bppRGB555:
+    break;
+  case PixelFormat16bppRGB565:
+    cRes = CAIRO_FORMAT_RGB16_565;
+    break;
+  case PixelFormat24bppRGB:
+    cRes = CAIRO_FORMAT_RGB24;
+    break;
+  case PixelFormat32bppARGB:
+    cRes = CAIRO_FORMAT_ARGB32;
+    break;
+  case PixelFormat32bppPARGB:
+    break;
+  case PixelFormat32bppRGB:
+    cRes = CAIRO_FORMAT_ARGB32;
+    break;
+  case PixelFormat48bppRGB:
+  case PixelFormat64bppARGB:
+  case PixelFormat64bppPARGB:
+    break;
+  }
+  return cRes;
+}
+#endif
+
 void ExportObject(PDObject pObj, cairo_t *pct, PDFileAttrs pFileAttrs, double dRat,
   PDUnitList pUnits)
 {
@@ -362,6 +413,43 @@ void ExportObject(PDObject pObj, cairo_t *pct, PDFileAttrs pFileAttrs, double dR
       {
         int iDataSize = 0;
         unsigned char *pData = pObj->GetRasterData(&iDataSize);
+#ifdef WIN32
+        HGLOBAL hGlobal = GlobalAlloc(GMEM_MOVEABLE, iDataSize);
+        void *ptr = GlobalLock(hGlobal);
+        memcpy(ptr, pData, iDataSize);
+        GlobalUnlock(hGlobal);
+        IStream *pStream = NULL;
+        CreateStreamOnHGlobal(hGlobal, TRUE, &pStream);
+        Gdiplus::Image *image = Gdiplus::Image::FromStream(pStream);
+        int iw = image->GetWidth();
+        int ih = image->GetHeight();
+        Gdiplus::PixelFormat gdiFormat = image->GetPixelFormat();
+        Gdiplus::Graphics *pgraph = Gdiplus::Graphics::FromImage(image);
+        pgraph->DrawImage(image, 0, 0);
+        pgraph->Flush();
+        Gdiplus::Bitmap *bmp = new Gdiplus::Bitmap(iw, ih, pgraph);
+        Gdiplus::BitmapData pBmpData;
+        Gdiplus::Rect *rc = new Gdiplus::Rect(0, 0, iw, ih);
+        bmp->LockBits(rc, Gdiplus::ImageLockModeRead, gdiFormat, &pBmpData);
+        cairo_format_t cFormat = GetCairoFormat(pBmpData.PixelFormat);
+        if(cFormat != CAIRO_FORMAT_INVALID)
+        {
+          int iStride = cairo_format_stride_for_width(cFormat, iw);
+          cairo_surface_t *cs = cairo_image_surface_create_for_data((unsigned char*)pBmpData.Scan0, cFormat, iw, ih, iStride);
+          cairo_matrix_t cMat = {cPrim.cPt1.x, cPrim.cPt2.x, cPrim.cPt1.y, cPrim.cPt2.y,
+            cPrim.cPt3.x, cPrim.cPt3.y};
+          cairo_set_matrix(pct, &cMat);
+          cairo_set_source_surface(pct, cs, 0.0, 0.0);
+          cairo_identity_matrix(pct);
+          cairo_paint(pct);
+        }
+        //bmp->UnlockBits(&pBmpData);
+        //delete rc;
+        //delete bmp;
+        //delete pgraph;
+        //pStream->Release();
+        //delete image;
+#else
         GInputStream *pStream = g_memory_input_stream_new_from_data(pData, iDataSize, NULL);
         GError *pErr = NULL;
         GdkPixbuf *pPixBuf = gdk_pixbuf_new_from_stream(pStream, NULL, &pErr);
@@ -381,6 +469,7 @@ void ExportObject(PDObject pObj, cairo_t *pct, PDFileAttrs pFileAttrs, double dR
           g_error_free(pErr);
         }
         g_input_stream_close(pStream, NULL, NULL);
+#endif
       }
       else ExportPrimitive(pct, &cPrim);
     }
@@ -464,7 +553,9 @@ void ExportCairoFile(int iType, FILE *pFile, PDataList pDrawData, PDUnitList pUn
   {
     cairo_surface_write_to_png_stream(pcs, WriteCairoStream, pFile);
   }
+MessageBox(0, L"Dobry 1", L"Debug", MB_OK);
   cairo_surface_finish(pcs);
+MessageBox(0, L"Dobry 2", L"Debug", MB_OK);
   cairo_surface_destroy(pcs);
+MessageBox(0, L"Dobry 3", L"Debug", MB_OK);
 }
-

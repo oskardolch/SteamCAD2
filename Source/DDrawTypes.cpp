@@ -5491,77 +5491,80 @@ bool CDObject::RotatePoints(CDPoint cOrig, double dRot, int iDimFlag)
 
   BuildCache(cPtX, 0);
 
-  if(m_iType == dtPath)
+  if(iDimFlag != 1)
   {
-    bRes = true;
-    iCnt = m_pSubObjects->GetCount();
-    int i = 0;
-    PDPathSeg pObj;
-    while(bRes && (i < iCnt))
+    if(m_iType == dtPath)
     {
-      pObj = (PDPathSeg)m_pSubObjects->GetItem(i++);
-      bRes &= pObj->pSegment->RotatePoints(cOrig, dRot, iDimFlag);
-    }
-    BuildCache(cPtX, 0);
-    return bRes;
-  }
-  else if(m_iType == dtArea)
-  {
-    bRes = true;
-    iCnt = m_pSubObjects->GetCount();
-    int i = 0, j, n1;
-    PDObject pObj, pObj1;
-    while(bRes && (i < iCnt))
-    {
-      pObj = (PDObject)m_pSubObjects->GetItem(i++);
-      n1 = pObj->m_pSubObjects->GetCount();
-      j = 0;
-      while(bRes && (j < n1))
+      bRes = true;
+      iCnt = m_pSubObjects->GetCount();
+      int i = 0;
+      PDPathSeg pObj;
+      while(bRes && (i < iCnt))
       {
-        pObj1 = (PDObject)pObj->m_pSubObjects->GetItem(j++);
-        bRes &= pObj1->RotatePoints(cOrig, dRot, iDimFlag);
+        pObj = (PDPathSeg)m_pSubObjects->GetItem(i++);
+        bRes &= pObj->pSegment->RotatePoints(cOrig, dRot, iDimFlag);
       }
+      BuildCache(cPtX, 0);
+      return bRes;
     }
-    BuildCache(cPtX, 0);
-    return bRes;
-  }
-  else if(m_iType == dtGroup)
-  {
-    bRes = true;
-    iCnt = m_pSubObjects->GetCount();
-    int i = 0;
-    PDObject pObj;
-    while(bRes && (i < iCnt))
+    else if(m_iType == dtArea)
     {
-      pObj = (PDObject)m_pSubObjects->GetItem(i++);
-      bRes &= pObj->RotatePoints(cOrig, dRot, iDimFlag);
-    }
-    BuildCache(cPtX, 0);
-    return bRes;
-  }
-  else if(m_iType == dtRaster)
-  {
-    CDPoint cDir, cPt1, cPt2;
-    double dNorm;
-    CDInputPoint cInPt;
-    cPt1.x = cos(dRot);
-    cPt1.y = sin(dRot);
-    for(int i = 0; i < 3; i++)
-    {
-      cInPt = m_pInputPoints->GetPoint(i, 1);
-      if(cInPt.iCtrl < 2)
+      bRes = true;
+      iCnt = m_pSubObjects->GetCount();
+      int i = 0, j, n1;
+      PDObject pObj, pObj1;
+      while(bRes && (i < iCnt))
       {
-        cDir = cInPt.cPoint - cOrig;
-        dNorm = GetNorm(cDir);
-        if(dNorm > g_dPrec)
+        pObj = (PDObject)m_pSubObjects->GetItem(i++);
+        n1 = pObj->m_pSubObjects->GetCount();
+        j = 0;
+        while(bRes && (j < n1))
         {
-          cPt2 = cOrig + Rotate(dNorm*cPt1, cDir/dNorm, true);
-          m_pInputPoints->SetPoint(i, 1, cPt2.x, cPt2.y, 1);
+          pObj1 = (PDObject)pObj->m_pSubObjects->GetItem(j++);
+          bRes &= pObj1->RotatePoints(cOrig, dRot, iDimFlag);
         }
       }
+      BuildCache(cPtX, 0);
+      return bRes;
     }
-    BuildRasterCacheRaw(m_pInputPoints, m_pRasterCache, 0, 0, NULL);
-    return true;
+    else if(m_iType == dtGroup)
+    {
+      bRes = true;
+      iCnt = m_pSubObjects->GetCount();
+      int i = 0;
+      PDObject pObj;
+      while(bRes && (i < iCnt))
+      {
+        pObj = (PDObject)m_pSubObjects->GetItem(i++);
+        bRes &= pObj->RotatePoints(cOrig, dRot, iDimFlag);
+      }
+      BuildCache(cPtX, 0);
+      return bRes;
+    }
+    else if(m_iType == dtRaster)
+    {
+      CDPoint cDir, cPt1, cPt2;
+      double dNorm;
+      CDInputPoint cInPt;
+      cPt1.x = cos(dRot);
+      cPt1.y = sin(dRot);
+      for(int i = 0; i < 3; i++)
+      {
+        cInPt = m_pInputPoints->GetPoint(i, 1);
+        if(cInPt.iCtrl < 2)
+        {
+          cDir = cInPt.cPoint - cOrig;
+          dNorm = GetNorm(cDir);
+          if(dNorm > g_dPrec)
+          {
+            cPt2 = cOrig + Rotate(dNorm*cPt1, cDir/dNorm, true);
+            m_pInputPoints->SetPoint(i, 1, cPt2.x, cPt2.y, 1);
+          }
+        }
+      }
+      BuildRasterCacheRaw(m_pInputPoints, m_pRasterCache, 0, 0, NULL);
+      return true;
+    }
   }
 
   PDDimension pDim;
@@ -5660,64 +5663,67 @@ bool CDObject::MovePoints(CDPoint cDir, double dDist, int iDimFlag)
   int iCnt;
   CDLine cPtX;
 
-  if(m_iType == dtPath)
+  if(iDimFlag != 1)
   {
-    bRes = true;
-    iCnt = m_pSubObjects->GetCount();
-    int i = 0;
-    PDPathSeg pObj;
-    while(bRes && (i < iCnt))
+    if(m_iType == dtPath)
     {
-      pObj = (PDPathSeg)m_pSubObjects->GetItem(i++);
-      bRes &= pObj->pSegment->MovePoints(cDir, dDist, iDimFlag);
-    }
-    BuildCache(cPtX, 0);
-    return bRes;
-  }
-  else if(m_iType == dtArea)
-  {
-    bRes = true;
-    iCnt = m_pSubObjects->GetCount();
-    int i = 0, j, n1;
-    PDObject pObj, pObj1;
-    while(bRes && (i < iCnt))
-    {
-      pObj = (PDObject)m_pSubObjects->GetItem(i++);
-      n1 = pObj->m_pSubObjects->GetCount();
-      j = 0;
-      while(bRes && (j < n1))
+      bRes = true;
+      iCnt = m_pSubObjects->GetCount();
+      int i = 0;
+      PDPathSeg pObj;
+      while(bRes && (i < iCnt))
       {
-        pObj1 = (PDObject)pObj->m_pSubObjects->GetItem(j++);
-        bRes &= pObj1->MovePoints(cDir, dDist, iDimFlag);
+        pObj = (PDPathSeg)m_pSubObjects->GetItem(i++);
+        bRes &= pObj->pSegment->MovePoints(cDir, dDist, iDimFlag);
       }
+      BuildCache(cPtX, 0);
+      return bRes;
     }
-    BuildCache(cPtX, 0);
-    return bRes;
-  }
-  else if(m_iType == dtGroup)
-  {
-    bRes = true;
-    iCnt = m_pSubObjects->GetCount();
-    int i = 0;
-    PDObject pObj;
-    while(bRes && (i < iCnt))
+    else if(m_iType == dtArea)
     {
-      pObj = (PDObject)m_pSubObjects->GetItem(i++);
-      bRes &= pObj->MovePoints(cDir, dDist, iDimFlag);
+      bRes = true;
+      iCnt = m_pSubObjects->GetCount();
+      int i = 0, j, n1;
+      PDObject pObj, pObj1;
+      while(bRes && (i < iCnt))
+      {
+        pObj = (PDObject)m_pSubObjects->GetItem(i++);
+        n1 = pObj->m_pSubObjects->GetCount();
+        j = 0;
+        while(bRes && (j < n1))
+        {
+          pObj1 = (PDObject)pObj->m_pSubObjects->GetItem(j++);
+          bRes &= pObj1->MovePoints(cDir, dDist, iDimFlag);
+        }
+      }
+      BuildCache(cPtX, 0);
+      return bRes;
     }
-    BuildCache(cPtX, 0);
-    return bRes;
-  }
-  else if(m_iType == dtRaster)
-  {
-    CDPoint cPt = m_pInputPoints->GetPoint(0, 1).cPoint;
-    m_pInputPoints->SetPoint(0, 1, cPt.x + cDir.x*dDist, cPt.y + cDir.y*dDist, 1);
-    cPt = m_pInputPoints->GetPoint(1, 1).cPoint;
-    m_pInputPoints->SetPoint(1, 1, cPt.x + cDir.x*dDist, cPt.y + cDir.y*dDist, 1);
-    cPt = m_pInputPoints->GetPoint(2, 1).cPoint;
-    m_pInputPoints->SetPoint(2, 1, cPt.x + cDir.x*dDist, cPt.y + cDir.y*dDist, 1);
-    BuildRasterCacheRaw(m_pInputPoints, m_pRasterCache, 0, 0, NULL);
-    return true;
+    else if(m_iType == dtGroup)
+    {
+      bRes = true;
+      iCnt = m_pSubObjects->GetCount();
+      int i = 0;
+      PDObject pObj;
+      while(bRes && (i < iCnt))
+      {
+        pObj = (PDObject)m_pSubObjects->GetItem(i++);
+        bRes &= pObj->MovePoints(cDir, dDist, iDimFlag);
+      }
+      BuildCache(cPtX, 0);
+      return bRes;
+    }
+    else if(m_iType == dtRaster)
+    {
+      CDPoint cPt = m_pInputPoints->GetPoint(0, 1).cPoint;
+      m_pInputPoints->SetPoint(0, 1, cPt.x + cDir.x*dDist, cPt.y + cDir.y*dDist, 1);
+      cPt = m_pInputPoints->GetPoint(1, 1).cPoint;
+      m_pInputPoints->SetPoint(1, 1, cPt.x + cDir.x*dDist, cPt.y + cDir.y*dDist, 1);
+      cPt = m_pInputPoints->GetPoint(2, 1).cPoint;
+      m_pInputPoints->SetPoint(2, 1, cPt.x + cDir.x*dDist, cPt.y + cDir.y*dDist, 1);
+      BuildRasterCacheRaw(m_pInputPoints, m_pRasterCache, 0, 0, NULL);
+      return true;
+    }
   }
 
   PDDimension pDim;

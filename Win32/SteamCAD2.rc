@@ -57,6 +57,7 @@ BEGIN
     IDS_LINEJOINBEVEL "Bevel"
     IDS_WIDTH "Width: "
     IDS_HEIGHT "Height: "
+    IDS_RASTERFORMATFILTER "All image files\1*.gif;*.jpeg;*.jpg;*.png\1All files\1*.*\1\1"
     IDS_ERRORBASE "Error"
     IDS_EINVALIDNUMBER "Invalid number"
     IDS_EECCENTTOOBIG "Eccentricity magnitude must not exceed 100"
@@ -80,6 +81,7 @@ BEGIN
     IDS_BOUNDOBJFORDIST "The object to be distributed must be single bound object or path"
     IDS_BOUNDPATHTODISTR "The path to distribute about must be bound"
     IDS_NOCLOSEDPATHFORRUBBER "Closed path cannot be distributed in rubber mode"
+    IDS_ONERASTERFORREG "Exactly one image must be selected to register raster"
     IDS_INFOBASE "Information"
 END
 
@@ -177,6 +179,11 @@ BEGIN
         MENUITEM "Move &down\tPage Down", IDM_PATHMOVEDOWN
         MENUITEM "Move &top\tHome", IDM_PATHMOVETOP
         MENUITEM "Move &bottom\tEnd", IDM_PATHMOVEBOTTOM
+    END
+    POPUP "&Rasters"
+    BEGIN
+        MENUITEM "&Import raster", IDM_RASTERIMPORT
+        MENUITEM "&Register raster", IDM_RASTERREGISTER
     END
     //POPUP "&Help" HELP
     //BEGIN

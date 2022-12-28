@@ -118,6 +118,9 @@ private:
   int m_iClipDataLen;
   HANDLE m_hClipData;
 
+  int m_iRegRasterCount;
+  CDPoint m_cRegRasterPoints[6];
+
   void GetAppPath();
   void LoadSettings(HWND hwnd);
   void SaveSettings(HWND hwnd);
@@ -165,6 +168,8 @@ private:
   LRESULT PathMoveDownCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl);
   LRESULT PathMoveTopCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl);
   LRESULT PathMoveBottomCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl);
+  LRESULT RasterImportCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl);
+  LRESULT RasterRegisterCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl);
   LRESULT HelpContentCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl);
   LRESULT Edit1Cmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl);
   LRESULT Edit2Cmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl);
@@ -174,6 +179,7 @@ private:
   //void DrawDimArrow(HDC hdc, PDPrimitive pPrim);
   void DrawDimArrow(Graphics *graphics, Pen *pen, GraphicsPath *path, PDPrimitive pPrim);
   void DrawPrimitive(Graphics *graphics, Pen *pen, GraphicsPath *path, PDPrimitive pPrim);
+  void DrawRegRasterLine(Graphics *graphics, Pen *pen, CDPoint cPt1, CDPoint cPt2);
   void DrawObject(HWND hWnd, Graphics *graphics, PDObject pObj, int iMode, int iDimen);
   void StartNewObject(HWND hWnd);
   void GetDeviceToUnitScale(HWND hWnd);
