@@ -295,8 +295,8 @@ cairo_format_t GetCairoFormat(Gdiplus::PixelFormat cFormat)
 }
 #endif
 
-void ExportObject(PDObject pObj, cairo_t *pct, PDFileAttrs pFileAttrs, double dRat,
-  PDUnitList pUnits)
+void ExportObject(PDObject pObj, cairo_t *pct, cairo_surface_t *pcs, PDFileAttrs pFileAttrs,
+  double dRat, PDUnitList pUnits)
 {
   if(pObj->GetType() == dtGroup)
   {
@@ -306,7 +306,7 @@ void ExportObject(PDObject pObj, cairo_t *pct, PDFileAttrs pFileAttrs, double dR
     for(int i = 0; i < n; i++)
     {
       pObj1 = pObj->GetSubObject(i);
-      ExportObject(pObj1, pct, pFileAttrs, dRat, pUnits);
+      ExportObject(pObj1, pct, pcs, pFileAttrs, dRat, pUnits);
     }
     //cairo_pop_group(pct);
     return;
@@ -423,32 +423,49 @@ void ExportObject(PDObject pObj, cairo_t *pct, PDFileAttrs pFileAttrs, double dR
         Gdiplus::Image *image = Gdiplus::Image::FromStream(pStream);
         int iw = image->GetWidth();
         int ih = image->GetHeight();
+
+        //double dScaleFactor = 1.043002;
+        double dScaleFactor = 1.103;
+        double dScaleFactorX = dScaleFactor*image->GetHorizontalResolution()/300.0;
+        double dScaleFactorY = dScaleFactor*image->GetVerticalResolution()/300.0;
+        double dw = (double)iw/dScaleFactorX;
+        double dh = (double)ih/dScaleFactorY;
+
         Gdiplus::PixelFormat gdiFormat = image->GetPixelFormat();
-        Gdiplus::Graphics *pgraph = Gdiplus::Graphics::FromImage(image);
+        Gdiplus::Bitmap *bmp = new Gdiplus::Bitmap((int)dw, (int)dh, PixelFormat32bppARGB);
+        Gdiplus::Graphics *pgraph = Gdiplus::Graphics::FromImage(bmp);
+
+        Gdiplus::Matrix *matrix = new Gdiplus::Matrix(dScaleFactorX, 0.0f, 0.0f, dScaleFactorY, 0.0f, 0.0f);
+        pgraph->SetTransform(matrix);
         pgraph->DrawImage(image, 0, 0);
+        pgraph->ResetTransform();
         pgraph->Flush();
-        Gdiplus::Bitmap *bmp = new Gdiplus::Bitmap(iw, ih, pgraph);
         Gdiplus::BitmapData pBmpData;
-        Gdiplus::Rect *rc = new Gdiplus::Rect(0, 0, iw, ih);
-        bmp->LockBits(rc, Gdiplus::ImageLockModeRead, gdiFormat, &pBmpData);
-        cairo_format_t cFormat = GetCairoFormat(pBmpData.PixelFormat);
+        Gdiplus::Rect *rc = new Gdiplus::Rect(0, 0, (int)dw, (int)dh);
+        bmp->LockBits(rc, Gdiplus::ImageLockModeRead, PixelFormat32bppARGB, &pBmpData);
+        cairo_format_t cFormat = GetCairoFormat(PixelFormat32bppARGB);
         if(cFormat != CAIRO_FORMAT_INVALID)
         {
-          int iStride = cairo_format_stride_for_width(cFormat, iw);
-          cairo_surface_t *cs = cairo_image_surface_create_for_data((unsigned char*)pBmpData.Scan0, cFormat, iw, ih, iStride);
-          cairo_matrix_t cMat = {cPrim.cPt1.x, cPrim.cPt2.x, cPrim.cPt1.y, cPrim.cPt2.y,
+          cairo_surface_t *cs = cairo_image_surface_create_for_data((unsigned char*)pBmpData.Scan0, cFormat,
+            pBmpData.Width, pBmpData.Height, pBmpData.Stride);
+          cairo_t *cr2 = cairo_create(pcs);
+
+          cairo_matrix_t cMat = {dRat*cPrim.cPt1.x, dRat*cPrim.cPt2.x,
+            dRat*cPrim.cPt1.y, dRat*cPrim.cPt2.y,
             cPrim.cPt3.x, cPrim.cPt3.y};
-          cairo_set_matrix(pct, &cMat);
-          cairo_set_source_surface(pct, cs, 0.0, 0.0);
-          cairo_identity_matrix(pct);
-          cairo_paint(pct);
+          cairo_set_matrix(cr2, &cMat);
+          cairo_set_source_surface(cr2, cs, 0.0, 0.0);
+          cairo_identity_matrix(cr2);
+          cairo_paint(cr2);
+          cairo_destroy(cr2);
         }
-        //bmp->UnlockBits(&pBmpData);
-        //delete rc;
-        //delete bmp;
+        bmp->UnlockBits(&pBmpData);
+        delete bmp;
+        delete rc;
+        delete image;
+        delete matrix;
         //delete pgraph;
-        //pStream->Release();
-        //delete image;
+        pStream->Release();
 #else
         GInputStream *pStream = g_memory_input_stream_new_from_data(pData, iDataSize, NULL);
         GError *pErr = NULL;
@@ -541,12 +558,12 @@ void ExportCairoFile(int iType, FILE *pFile, PDataList pDrawData, PDUnitList pUn
   for(int i = 0; i < n; i++)
   {
     pObj = pDrawData->GetItem(i);
-    ExportObject(pObj, pct, &cFileAttrs, dMmToPt, pUnits);
+    ExportObject(pObj, pct, pcs, &cFileAttrs, dMmToPt, pUnits);
   }
 
   cairo_identity_matrix(pct);
 
-  cairo_save(pct);
+  //cairo_save(pct);
   cairo_destroy(pct);
   cairo_surface_flush(pcs);
   if(iType == 3)

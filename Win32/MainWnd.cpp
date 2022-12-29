@@ -3429,9 +3429,12 @@ void CMainWnd::DrawObject(HWND hWnd, Graphics *graphics, PDObject pObj, int iMod
           CreateStreamOnHGlobal(hGlobal, TRUE, &pStream);
           Gdiplus::Image *image = Gdiplus::Image::FromStream(pStream);
 
-          double dScaleFactor = 3.125;
-          Matrix *matrix = new Matrix(dScaleFactor*cPrim.cPt1.x, dScaleFactor*cPrim.cPt2.x,
-            dScaleFactor*cPrim.cPt1.y, dScaleFactor*cPrim.cPt2.y,
+          //double dScaleFactor = 3.125;
+          double dScaleFactor = 1.043002;
+          double dScaleFactorX = dScaleFactor*image->GetHorizontalResolution()/100.0;
+          double dScaleFactorY = dScaleFactor*image->GetVerticalResolution()/100.0;
+          Matrix *matrix = new Matrix(dScaleFactorX*cPrim.cPt1.x, dScaleFactorX*cPrim.cPt2.x,
+            dScaleFactorY*cPrim.cPt1.y, dScaleFactorY*cPrim.cPt2.y,
             cPrim.cPt3.x + m_cViewOrigin.x, cPrim.cPt3.y + m_cViewOrigin.y);
           graphics->SetTransform(matrix);
           graphics->DrawImage(image, (REAL)0.0, (REAL)0.0);
@@ -4627,25 +4630,20 @@ LRESULT CMainWnd::RasterImportCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl)
         if(SUCCEEDED(hr))
         {
           Gdiplus::Image *image = Gdiplus::Image::FromFile(pszFilePath);
+          SizeF cSize;
+          image->GetPhysicalDimension(&cSize);
 
           int iw = image->GetWidth();
           int ih = image->GetHeight();
           if((iw > 0) && (ih > 0))
           {
-            double dx = m_cFSR.cPaperSize.dPaperWidth;
-            double dy = m_cFSR.cPaperSize.dPaperHeight;
-            if(!m_cFSR.bPortrait)
-            {
-              dx = m_cFSR.cPaperSize.dPaperHeight;
-              dy = m_cFSR.cPaperSize.dPaperWidth;
-            }
-            double dOff = 0.1*dx;
-            if(dy < dx) dOff = 0.1*dy;
-            double dImageWidth = dx - 2.0*dOff;
+            double dOff = 0.1*m_dwPage;
+            if(m_dhPage < m_dwPage) dOff = 0.1*m_dhPage;
+            double dImageWidth = m_dwPage - 2.0*dOff;
             double dImageHeight = dImageWidth*(double)ih/(double)iw;
-            if(dImageHeight > dy - 2.0*dOff)
+            if(dImageHeight > m_dhPage - 2.0*dOff)
             {
-              dImageHeight = dy - 2.0*dOff;
+              dImageHeight = m_dhPage - 2.0*dOff;
               dImageWidth = dImageHeight*(double)iw/(double)ih;
             }
 
@@ -4671,30 +4669,6 @@ LRESULT CMainWnd::RasterImportCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl)
             InvalidateRect(hwnd, &rc, FALSE);
             SetTitle(hwnd, true);
           }
-
-          // load the file
-          /*FILE *pf = _wfopen(pszFilePath, L"rb");
-          bool bRead = m_pDrawObjects->ReadFromFile(pf, true, bClear);
-          fclose(pf);
-          if(bRead)
-          {
-            wcscpy(wsFile, pszFilePath);
-            if(bClear)
-            {
-              DataToFileProps();
-              GetPageDims();
-              m_pUndoObjects->ClearAll();
-              m_iRedoCount = 0;
-            }
-
-            RECT rc;
-            GetClientRect(hWnd, &rc);
-            rc.top += m_iToolBarHeight;
-            rc.bottom -= m_iStatusHeight;
-
-            InvalidateRect(hWnd, &rc, FALSE);
-            SetTitle(hWnd, true);
-          }*/
           CoTaskMemFree(pszFilePath);
         }
         pItem->Release();
