@@ -472,12 +472,14 @@ void ExportObject(PDObject pObj, cairo_t *pct, cairo_surface_t *pcs, PDFileAttrs
         GdkPixbuf *pPixBuf = gdk_pixbuf_new_from_stream(pStream, NULL, &pErr);
         if(pPixBuf)
         {
+          cairo_t *cr2 = cairo_create(pcs);
           cairo_matrix_t cMat = {cPrim.cPt1.x, cPrim.cPt2.x, cPrim.cPt1.y, cPrim.cPt2.y,
             cPrim.cPt3.x, cPrim.cPt3.y};
-          cairo_set_matrix(pct, &cMat);
-          gdk_cairo_set_source_pixbuf(pct, pPixBuf, 0.0, 0.0);
-          cairo_identity_matrix(pct);
-          cairo_paint(pct);
+          cairo_set_matrix(cr2, &cMat);
+          gdk_cairo_set_source_pixbuf(cr2, pPixBuf, 0.0, 0.0);
+          cairo_identity_matrix(cr2);
+          cairo_paint(cr2);
+          cairo_destroy(cr2);
           g_object_unref(pPixBuf);
         }
         else

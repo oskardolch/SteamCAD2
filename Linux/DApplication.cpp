@@ -4863,20 +4863,13 @@ void CDApplication::RasterImportCmd()
       return;
     }
 
-    double dx = m_cFSR.cPaperSize.dPaperWidth;
-    double dy = m_cFSR.cPaperSize.dPaperHeight;
-    if(!m_cFSR.bPortrait)
-    {
-      dx = m_cFSR.cPaperSize.dPaperHeight;
-      dy = m_cFSR.cPaperSize.dPaperWidth;
-    }
-    double dOff = 0.1*dx;
-    if(dy < dx) dOff = 0.1*dy;
-    double dImageWidth = dx - 2.0*dOff;
+    double dOff = 0.1*m_dwPage;
+    if(m_dhPage < m_dwPage) dOff = 0.1*m_dhPage;
+    double dImageWidth = m_dwPage - 2.0*dOff;
     double dImageHeight = dImageWidth*(double)ih/(double)iw;
-    if(dImageHeight > dy - 2.0*dOff)
+    if(dImageHeight > m_dhPage - 2.0*dOff)
     {
-      dImageHeight = dy - 2.0*dOff;
+      dImageHeight = m_dhPage - 2.0*dOff;
       dImageWidth = dImageHeight*(double)iw/(double)ih;
     }
 
