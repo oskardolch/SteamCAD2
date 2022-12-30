@@ -4402,7 +4402,15 @@ void CDApplication::MouseLButtonUp(GtkWidget *widget, GdkEventButton *event)
         m_iRegRasterCount = 0;
         m_iDrawMode = modSelect;
         m_pDrawObjects->SetChanged();
+        SetStatusBarMsg(1, "");
         gdk_window_invalidate_rect(event->window, NULL, FALSE);
+      }
+      else
+      {
+        if(m_iRegRasterCount < 2) sprintf(m_sStatus1Msg, _("Draw first line to connect image"));
+        else if(m_iRegRasterCount < 4) sprintf(m_sStatus1Msg, _("Draw second line to connect image"));
+        else sprintf(m_sStatus1Msg, _("Draw third line to connect image"));
+        SetStatusBarMsg(1, m_sStatus1Msg);
       }
     }
     else
@@ -4833,6 +4841,15 @@ void CDApplication::RasterImportCmd()
     GTK_WINDOW(m_pMainWnd), GTK_FILE_CHOOSER_ACTION_OPEN, GTK_STOCK_CANCEL,
     GTK_RESPONSE_CANCEL, GTK_STOCK_OPEN, GTK_RESPONSE_ACCEPT, NULL);
   GtkFileFilter *flt = gtk_file_filter_new();
+  gtk_file_filter_set_name(flt, _("All image files"));
+  gtk_file_filter_add_pattern(flt, "*.png");
+  gtk_file_filter_add_pattern(flt, "*.jpg");
+  gtk_file_filter_add_pattern(flt, "*.jpeg");
+  gtk_file_filter_add_pattern(flt, "*.tif");
+  gtk_file_filter_add_pattern(flt, "*.tiff");
+  gtk_file_filter_add_pattern(flt, "*.gif");
+  gtk_file_chooser_add_filter((GtkFileChooser*)dialog, flt);
+  flt = gtk_file_filter_new();
   gtk_file_filter_set_name(flt, _("PNG Files"));
   gtk_file_filter_add_pattern(flt, "*.png");
   gtk_file_chooser_add_filter((GtkFileChooser*)dialog, flt);
@@ -4915,6 +4932,9 @@ void CDApplication::RasterRegisterCmd()
     gtk_widget_destroy(msg_dlg);
     return;
   }
+  m_iRegRasterCount = 0;
+  sprintf(m_sStatus1Msg, _("Draw first line to connect image"));
+  SetStatusBarMsg(1, m_sStatus1Msg);
   m_iDrawMode = modRegRaster;
 }
 
