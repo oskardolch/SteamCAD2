@@ -2671,6 +2671,15 @@ LRESULT CMainWnd::WMLButtonUp(HWND hwnd, WPARAM fwKeys, int xPos, int yPos)
         m_pDrawObjects->SetChanged();
         InvalidateRect(hwnd, &rc, FALSE);
         SetTitle(hwnd, false);
+        SendMessage(m_hStatus, SB_SETTEXT, 1, (LPARAM)L"");
+      }
+      else
+      {
+        wchar_t sMessage[128];
+        if(m_iRegRasterCount < 2) LoadString(m_hInstance, IDS_REGFIRSTLINE, sMessage, 64);
+        else if(m_iRegRasterCount < 4) LoadString(m_hInstance, IDS_REGSECONDLINE, sMessage, 64);
+        else LoadString(m_hInstance, IDS_REGTHIRDLINE, sMessage, 64);
+        SendMessage(m_hStatus, SB_SETTEXT, 1, (LPARAM)sMessage);
       }
     }
     else
@@ -4688,15 +4697,18 @@ LRESULT CMainWnd::RasterRegisterCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl)
   {
     pImage = m_pDrawObjects->GetSelected(0);
   }
+  wchar_t sMessage[128];
   if(!pImage || (pImage->GetType() != dtRaster))
   {
     wchar_t sCaption[64];
-    wchar_t sMessage[128];
     LoadString(m_hInstance, IDS_WARNING, sCaption, 64);
     LoadString(m_hInstance, IDS_ONERASTERFORREG, sMessage, 128);
     MessageBox(hwnd, sMessage, sCaption, MB_OK);
     return 0;
   }
+  m_iRegRasterCount = 0;
+  LoadString(m_hInstance, IDS_REGFIRSTLINE, sMessage, 64);
+  SendMessage(m_hStatus, SB_SETTEXT, 1, (LPARAM)sMessage);
   m_iDrawMode = modRegRaster;
   return 0;
 }
