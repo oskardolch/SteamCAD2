@@ -1,35 +1,45 @@
-\chapter{Conclusion}\label{chap:chap4}
-\special{pdf: out 1 << /Title (\thechapter. Conclusion) /Dest [ @thispage /FitH @ypos ] >>}
+\chapter{Paths, Areas and Groups}\label{chap:chap4}
+\special{pdf: out 1 << /Title (\thechapter. Paths, Areas and Groups) /Dest [ @thispage /FitH @ypos ] >>}
 
-\section{What Next?}\label{sec:next}
-\special{pdf: out 2 << /Title (\thesection. What Next?) /Dest [ @thispage /FitH @ypos ] >>}
+SteamCAD2 introduces new types of objects - paths, areas and groups. The path consists of
+two or more connected line segments. The aim of path is to produce better layout of hash patterns.
+The area consists of one or more closed paths. It can be filled with a solid color. Translucency
+is also supported. A group is simply a collection of independent objects, for better manipulation
+such as copying, moving etc.
 
-Some people may be interested in what are the future plans with SteamCAD. The answer is
-there are none. SteamCAD is finished software (the only one in the whole computer world?),
-there are no plans to extend it. It does everything it was supposed to do, if there are
-bugs in the software, they are now the features of the software.
+\section{Create path}\label{sec:createpath}
+\special{pdf: out 2 << /Title (\thesection. Create path) /Dest [ @thispage /FitH @ypos ] >>}
 
-Well, not quite so. Of course, if the software need some adjustment in the future to
-work on new operating systems, it will be updated.
+Attempts to create path from selected segments. It can create one or more paths depending on
+the segments connectivity. A path can also be among the selected segments, and if possible,
+it will be extended by other segments.
 
-I have some plans to use the SteamCAD engine as a base for a 3D CAD, but it would be
-a different software with different name. And there is definitively no timeframe when this
-might occurr.
+\section{Create area}\label{sec:createarea}
+\special{pdf: out 2 << /Title (\thesection. Create area) /Dest [ @thispage /FitH @ypos ] >>}
 
-\section{SteamCAD Update 1}
-Despite of what was written in the section ~\ref{sec:next}, we have published a bunch of
-patches in November 2018. The patch includes several bug fixes, improved precision when
-snapping to objects and improved handling of paralel curve copies when the distance goes
-beyond the smalles curve radius.
+Attempts to create area from selected paths or segments. First it attempts to create paths,
+then area object. The winding rule is alternative, the paths should not cross. For selfcrossing
+paths or crossing paths, the result is unpredicable.
 
-It also includes an update of this guide.
+\section{Break apart}\label{sec:breakapart}
+\special{pdf: out 2 << /Title (\thesection. Create area) /Dest [ @thispage /FitH @ypos ] >>}
 
-\section{Troubleshooting}
-\special{pdf: out 2 << /Title (\thesection. Troubleshooting) /Dest [ @thispage /FitH @ypos ] >>}
+Breaks a path or area. In case of a path, it is decomposed to the original segments. An area
+is decomposed to the paths which defines it.
 
-\subsection{What to do if snap does not seem to work?}
-It may happen that the cursor snaps to one line but strictly ignores another line
-intersecting the first one. You checked all the lines involved and all have snap enabled.
-This may happen if for some reason a line is doubled. Try to delete the line, where the
-snap works to see, if there is not another line at the same place.
+\section{Group}\label{sec:group}
+\special{pdf: out 2 << /Title (\thesection. Group) /Dest [ @thispage /FitH @ypos ] >>}
 
+Groups selected objects into a single group object. Groups can be nested.
+
+\section{Ungroup}\label{sec:ungroup}
+\special{pdf: out 2 << /Title (\thesection. Ungroup) /Dest [ @thispage /FitH @ypos ] >>}
+
+Ungroup a group. If the group contained other groups, the subgroups would not be affected.
+
+\section{Move up, down, top and bottom}\label{sec:moveupdown}
+\special{pdf: out 2 << /Title (\thesection. Move up, down, top and bottom) /Dest [ @thispage /FitH @ypos ] >>}
+
+With presence of groups and areas, the drawing orger of the objects becomes important.
+These commands can be used to move objects in the drawing list, thus makes them
+appearing above or under other objects.

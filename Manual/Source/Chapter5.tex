@@ -1,0 +1,45 @@
+\chapter{Rasters}\label{chap:chap5}
+\special{pdf: out 1 << /Title (\thechapter. Rasters) /Dest [ @thispage /FitH @ypos ] >>}
+
+SteamCAD2 also allows a raster image to be inserted and registered. Registering a raster
+means to draw three lines, selecting one point wherever on the image and connecting it
+to a point in your vector drawing space. Three points allow an affine transformation
+to be applied on the raster image and fit your vector drawing.
+
+\section{Importing rasters}\label{sec:impraster}
+\special{pdf: out 2 << /Title (\thesection. Importing rasters) /Dest [ @thispage /FitH @ypos ] >>}
+
+Selecting this menu will open a file chooser dialog, with default filter for selecting
+images of type PNG, JPEG, GIF and TIFF. Other images, such as Windows bitmaps may also
+be loaded, but there is a risk of the saved file not to be portable to other operating
+systems.
+
+Also note that the memory handling of the raster images is not any sophisticated, so don't
+attempt to load a big files. Use a 3rd party image manipulation programs, such as GIMP, to
+reduce the image size and possibly to convert it to a suitable format.
+
+Once an image is imported, it can be selected (by its border) and manipulated as most
+of other objects - can be moved, rotated and mirrored. However, the most useful
+operation is probably registering the image. This is a process when the image gets
+properly alligned with other drawing objects.
+
+\section{Registering rasters}\label{sec:regraster}
+\special{pdf: out 2 << /Title (\thesection. Registering rasters) /Dest [ @thispage /FitH @ypos ] >>}
+
+To register a raster, you need to select one raster image in your drawing. The raster
+images can only be selected by its border. Although it reminds an area object in some
+aspects, it is not possible to select it by clicking inside the image area. The reason
+is simple - you most likely need to insert an image as a background for your drawing.
+So it is necessary to draw over the image as if there is no image. If the image is
+selectable by the interior, all the snaping and selecting objects above the image would
+be very inconvenient.
+
+Once you enter the menu command, you will be prompted to draw three lines, which connect
+three points on the image (can actually be also outside the image, but it would most
+likely have no meaning) with three points in your drawing. The points on the image
+must not lie in one line, otherwise the transformation matrix gets singular and cannot
+be inverted.
+
+After you finish the third line, the image gets transformed by an affine transformation
+so that it fits the three points on the drawing best.
+
