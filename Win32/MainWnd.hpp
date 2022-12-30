@@ -170,6 +170,8 @@ private:
   LRESULT PathMoveBottomCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl);
   LRESULT RasterImportCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl);
   LRESULT RasterRegisterCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl);
+  LRESULT RasterHideCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl);
+  LRESULT RasterShowCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl);
   LRESULT HelpContentCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl);
   LRESULT Edit1Cmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl);
   LRESULT Edit2Cmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl);

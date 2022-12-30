@@ -489,6 +489,10 @@ LRESULT CMainWnd::WMCommand(HWND hwnd, WORD wNotifyCode, WORD wID, HWND hwndCtl)
     return RasterImportCmd(hwnd, wNotifyCode, hwndCtl);
   case IDM_RASTERREGISTER:
     return RasterRegisterCmd(hwnd, wNotifyCode, hwndCtl);
+  case IDM_RASTERHIDE:
+    return RasterHideCmd(hwnd, wNotifyCode, hwndCtl);
+  case IDM_RASTERSHOW:
+    return RasterShowCmd(hwnd, wNotifyCode, hwndCtl);
   case IDM_HELPCONTENT:
     return HelpContentCmd(hwnd, wNotifyCode, hwndCtl);
   case IDC_EDT1:
@@ -3426,7 +3430,8 @@ void CMainWnd::DrawObject(HWND hWnd, Graphics *graphics, PDObject pObj, int iMod
       }
       else if(cPrim.iType == 13)
       {
-        if(iMode < 1)
+        int iVisible = pObj->GetAuxInt();
+        if((iMode < 1) && (iVisible < 1))
         {
           int iImageSize = 0;
           unsigned char *pImageData = pObj->GetRasterData(&iImageSize);
@@ -4710,5 +4715,49 @@ LRESULT CMainWnd::RasterRegisterCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl)
   LoadString(m_hInstance, IDS_REGFIRSTLINE, sMessage, 64);
   SendMessage(m_hStatus, SB_SETTEXT, 1, (LPARAM)sMessage);
   m_iDrawMode = modRegRaster;
+  return 0;
+}
+
+LRESULT CMainWnd::RasterHideCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl)
+{
+  PDObject pImage = NULL;
+  int iSel = m_pDrawObjects->GetSelectCount(2);
+  if(iSel == 1)
+  {
+    pImage = m_pDrawObjects->GetSelected(0);
+  }
+  if(!pImage || (pImage->GetType() != dtRaster)) return 0;
+
+  pImage->SetAuxInt(1);
+
+  RECT rc;
+  GetClientRect(hwnd, &rc);
+  rc.top += m_iToolBarHeight;
+  rc.bottom -= m_iStatusHeight;
+
+  InvalidateRect(hwnd, &rc, FALSE);
+  SetTitle(hwnd, true);
+  return 0;
+}
+
+LRESULT CMainWnd::RasterShowCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl)
+{
+  PDObject pImage = NULL;
+  int iSel = m_pDrawObjects->GetSelectCount(2);
+  if(iSel == 1)
+  {
+    pImage = m_pDrawObjects->GetSelected(0);
+  }
+  if(!pImage || (pImage->GetType() != dtRaster)) return 0;
+
+  pImage->SetAuxInt(0);
+
+  RECT rc;
+  GetClientRect(hwnd, &rc);
+  rc.top += m_iToolBarHeight;
+  rc.bottom -= m_iStatusHeight;
+
+  InvalidateRect(hwnd, &rc, FALSE);
+  SetTitle(hwnd, true);
   return 0;
 }
