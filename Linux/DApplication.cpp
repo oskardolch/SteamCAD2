@@ -1495,7 +1495,8 @@ void CDApplication::DrawObject(cairo_t *cr, PDObject pObj, int iMode, int iDimen
       }
       else if(cPrim.iType == 13) // raster image
       {
-        if(iMode < 1)
+        int iVisible = pObj->GetAuxInt();
+        if((iMode < 1) && (iVisible < 1))
         {
           int iDataSize = 0;
           unsigned char *pData = pObj->GetRasterData(&iDataSize);
@@ -3253,6 +3254,12 @@ void CDApplication::RasterCommand(int iCmd, bool bFromAccel)
   case IDM_RASTERREGISTER:
     RasterRegisterCmd();
     break;
+  case IDM_RASTERHIDE:
+    RasterHideCmd();
+    break;
+  case IDM_RASTERSHOW:
+    RasterShowCmd();
+    break;
   }
   return;
 }
@@ -4936,6 +4943,40 @@ void CDApplication::RasterRegisterCmd()
   sprintf(m_sStatus1Msg, _("Draw first line to connect image"));
   SetStatusBarMsg(1, m_sStatus1Msg);
   m_iDrawMode = modRegRaster;
+}
+
+void CDApplication::RasterHideCmd()
+{
+  PDObject pImage = NULL;
+  int iSel = m_pDrawObjects->GetSelectCount(2);
+  if(iSel == 1)
+  {
+    pImage = m_pDrawObjects->GetSelected(0);
+  }
+  if(!pImage || (pImage->GetType() != dtRaster)) return;
+
+  pImage->SetAuxInt(1);
+
+  GtkWidget *draw = GetDrawing();
+  gdk_window_invalidate_rect(draw->window, NULL, FALSE);
+  SetTitle(m_pMainWnd, true);
+}
+
+void CDApplication::RasterShowCmd()
+{
+  PDObject pImage = NULL;
+  int iSel = m_pDrawObjects->GetSelectCount(2);
+  if(iSel == 1)
+  {
+    pImage = m_pDrawObjects->GetSelected(0);
+  }
+  if(!pImage || (pImage->GetType() != dtRaster)) return;
+
+  pImage->SetAuxInt(0);
+
+  GtkWidget *draw = GetDrawing();
+  gdk_window_invalidate_rect(draw->window, NULL, FALSE);
+  SetTitle(m_pMainWnd, true);
 }
 
 void CDApplication::SelectionClear()

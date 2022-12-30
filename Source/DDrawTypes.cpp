@@ -290,6 +290,7 @@ int GetSnapPointFromList(int iSnapMask, CDPoint cPt, double dDist, PDLine pSnapP
 CDObject::CDObject(CDDrawType iType, double dWidth)
 {
   m_iType = iType;
+  m_iAuxInt = 0;
   m_pInputPoints = new CDPointList();
   m_pUndoPoints = new CDPointList();
   m_pCachePoints = new CDPointList();

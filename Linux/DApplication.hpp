@@ -175,6 +175,8 @@ private:
 
   void RasterImportCmd();
   void RasterRegisterCmd();
+  void RasterHideCmd();
+  void RasterShowCmd();
 
   void DrawCross(cairo_t *cr);
 
