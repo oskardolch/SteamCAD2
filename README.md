@@ -16,10 +16,12 @@ nearly the same experience like the Linux users
 * the previous point allowed to use the internal backend dash line rendering, which
 will improve the performance and also the postprocessing in export formats
 * the lines can have an arbitrary colour in SteamCAD2
+* filled areas can be created
+* raster images can be imported and registered for the drawing
 
 SteamCAD2 is 2D CAD especially designed to draw steam locomotives like this example:
 ![264.0](/Images/264_0.svg)
 
-[SteamCAD.pdf](/SteamCAD.pdf) is the full manual
+[SteamCAD2.pdf](/SteamCAD2.pdf) is the full manual
 
 Sample drawings can be found in the Samples folder
