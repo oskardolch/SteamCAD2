@@ -1709,7 +1709,12 @@ LRESULT CMainWnd::EditPasteCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl)
 
 LRESULT CMainWnd::EditDeleteCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl)
 {
-//MessageBox(hwnd, L"Dobry", L"Debug", MB_OK);
+  if(m_iDrawMode == modSpline)
+  {
+    m_pActiveObject->RemoveLastPoint();
+    return 0;
+  }
+
   if(m_iDrawMode + m_iToolMode > 0)
   {
     HWND hFocus = GetFocus();
@@ -2029,6 +2034,35 @@ LRESULT CMainWnd::EditRedoCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl)
 
 LRESULT CMainWnd::EditConfirmCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl)
 {
+  if(m_iDrawMode == modSpline)
+  {
+    if(m_pActiveObject)
+    {
+      if(m_pActiveObject->HasEnoughPoints())
+      {
+        CDLine cTmpPt;
+        cTmpPt.bIsSet = false;
+        m_pActiveObject->BuildCache(cTmpPt, 0);
+        if(m_iToolMode != tolEditSpline)
+        {
+          m_pDrawObjects->Add(m_pActiveObject);
+          m_pActiveObject = NULL;
+          StartNewObject(hwnd);
+        }
+        else
+        {
+          m_pActiveObject = NULL;
+          m_pDrawObjects->SetChanged();
+          m_iDrawMode = modSelect;
+          m_iToolMode = tolNone;
+        }
+        SetTitle(hwnd, false);
+        InvalidateRect(hwnd, NULL, FALSE);
+      }
+      return 0;
+    }
+  }
+
   bool bConfirm = (m_iDrawMode == modLine) || (m_iDrawMode == modCircle) ||
     (m_iToolMode == tolRound) || (m_iToolMode == tolCopyPar) || (m_iDrawMode == modRectangle);
   if(bConfirm)
