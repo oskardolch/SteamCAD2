@@ -3082,7 +3082,6 @@ void CDApplication::EditConfirmCmd(GtkWidget *widget)
         if(m_iToolMode != tolEditSpline)
         {
           m_pDrawObjects->Add(m_pActiveObject);
-          SetTitle(m_pMainWnd, false);
           m_pActiveObject = NULL;
           StartNewObject(TRUE);
         }
@@ -3090,10 +3089,10 @@ void CDApplication::EditConfirmCmd(GtkWidget *widget)
         {
           m_pActiveObject = NULL;
           m_pDrawObjects->SetChanged();
-          SetTitle(m_pMainWnd, false);
           m_iDrawMode = modSelect;
           m_iToolMode = tolNone;
         }
+        SetTitle(m_pMainWnd, false);
         gdk_window_invalidate_rect(GetDrawing()->window, NULL, FALSE);
       }
       return;
