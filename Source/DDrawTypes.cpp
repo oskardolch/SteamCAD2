@@ -508,9 +508,23 @@ void CDObject::RemoveLastPoint()
   int iCnt = m_pInputPoints->GetCount(-1);
   if(iCnt < 1) return;
 
-  CDInputPoint cInPt = m_pInputPoints->GetPoint(iCnt - 1, -1);
+  int i = iCnt - 1;
+  CDInputPoint cInPt;
+  if(m_iType == dtSpline)
+  {
+    bool bFound = false;
+    while(!(bFound) && (i >= 0))
+    {
+      cInPt = m_pInputPoints->GetPoint(i--, -1);
+      bFound = (cInPt.iCtrl == 0);
+    }
+    if(bFound) i++;
+    else return;
+  }
+
+  cInPt = m_pInputPoints->GetPoint(i, -1);
   m_pUndoPoints->AddPoint(cInPt.cPoint.x, cInPt.cPoint.y, cInPt.iCtrl);
-  m_pInputPoints->Remove(iCnt - 1, -1);
+  m_pInputPoints->Remove(i, -1);
 }
 
 void CDObject::Undo()

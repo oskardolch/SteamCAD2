@@ -40,6 +40,7 @@
 #define tolRotate 3
 #define tolMirror 4
 #define tolDistribute 5
+#define tolEditSpline 6
 
 #define tolDimen 11
 

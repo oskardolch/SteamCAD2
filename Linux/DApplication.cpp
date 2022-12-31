@@ -2791,6 +2791,12 @@ void CDApplication::EditPasteCmd(GtkWidget *widget, bool bFromAccel)
 
 void CDApplication::EditDeleteCmd(GtkWidget *widget, bool bFromAccel)
 {
+  if(m_iDrawMode > modSelect)
+  {
+    m_pActiveObject->RemoveLastPoint();
+    return;
+  }
+
   m_pActiveObject = NULL;
   m_pHighObject = NULL;
 
@@ -3064,6 +3070,36 @@ void CDApplication::EditRedoCmd(GtkWidget *widget)
 
 void CDApplication::EditConfirmCmd(GtkWidget *widget)
 {
+  if(m_iDrawMode == modSpline)
+  {
+    if(m_pActiveObject)
+    {
+      if(m_pActiveObject->HasEnoughPoints())
+      {
+        CDLine cTmpPt;
+        cTmpPt.bIsSet = false;
+        m_pActiveObject->BuildCache(cTmpPt, 0);
+        if(m_iToolMode != tolEditSpline)
+        {
+          m_pDrawObjects->Add(m_pActiveObject);
+          SetTitle(m_pMainWnd, false);
+          m_pActiveObject = NULL;
+          StartNewObject(TRUE);
+        }
+        else
+        {
+          m_pActiveObject = NULL;
+          m_pDrawObjects->SetChanged();
+          SetTitle(m_pMainWnd, false);
+          m_iDrawMode = modSelect;
+          m_iToolMode = tolNone;
+        }
+        gdk_window_invalidate_rect(GetDrawing()->window, NULL, FALSE);
+      }
+      return;
+    }
+  }
+
   bool bConfirm = (m_iDrawMode == modLine) || (m_iDrawMode == modCircle) || (m_iToolMode == tolRound) ||
     (m_iToolMode == tolCopyPar) || (m_iDrawMode == modRectangle);
   if(bConfirm)
