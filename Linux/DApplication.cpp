@@ -2591,7 +2591,8 @@ void CDApplication::SetMode(int iNewMode, bool bFromAccel)
 
   if(m_pActiveObject)
   {
-    delete m_pActiveObject;
+    if(m_iToolMode == tolExtend) m_pActiveObject->CancelSplineEdit();
+    else delete m_pActiveObject;
     m_pActiveObject = NULL;
   }
   else if(m_pSelForDimen)
@@ -3079,7 +3080,7 @@ void CDApplication::EditConfirmCmd(GtkWidget *widget)
         CDLine cTmpPt;
         cTmpPt.bIsSet = false;
         m_pActiveObject->BuildCache(cTmpPt, 0);
-        if(m_iToolMode != tolEditSpline)
+        if((m_iToolMode != tolEditSpline) && (m_iToolMode != tolExtend))
         {
           m_pDrawObjects->Add(m_pActiveObject);
           m_pActiveObject = NULL;
@@ -4099,9 +4100,11 @@ void CDApplication::MouseLButtonUp(GtkWidget *widget, GdkEventButton *event)
 
     gdk_window_invalidate_rect(event->window, NULL, FALSE);
   }
-  else if((m_iToolMode > 20) && (m_iToolMode != tolRound))
+  else if((m_iToolMode > 20) && (m_iToolMode != tolRound) && (m_iDrawMode == modSelect))
   {
     if(GetPtDist(&m_cLastDownPt, xPos, yPos) > 4) return;
+
+    int iExtend = 0;
 
     switch(m_iToolMode)
     {
@@ -4114,8 +4117,14 @@ void CDApplication::MouseLButtonUp(GtkWidget *widget, GdkEventButton *event)
       }
       break;
     case tolExtend:
-      if(m_pDrawObjects->ExtendSelected(m_cLastDrawPt, dTol, &cdr))
+      iExtend = m_pDrawObjects->ExtendSelected(m_cLastDrawPt, dTol, &cdr);
+      if(iExtend > 0)
       {
+        if(iExtend > 1)
+        {
+          m_iDrawMode = modSpline;
+          m_pActiveObject = m_pDrawObjects->GetSelected(0);
+        }
         bUpdate = TRUE;
         gdk_window_invalidate_rect(event->window, NULL, FALSE);
         SetTitle(m_pMainWnd, false);
@@ -4653,13 +4662,20 @@ void CDApplication::MouseLDblClick(GtkWidget *widget, GdkEventButton *event)
     {
       if(m_pActiveObject->HasEnoughPoints())
       {
-        m_pDrawObjects->Add(m_pActiveObject);
+        if(m_iToolMode == tolExtend)
+        {
+          m_iDrawMode = modSelect;
+          m_iToolMode = tolNone;
+          m_pActiveObject = NULL;
+        }
+        else
+        {
+          m_pDrawObjects->Add(m_pActiveObject);
+          m_pActiveObject = NULL;
+          StartNewObject(TRUE);
+        }
         SetTitle(m_pMainWnd, false);
-        m_pActiveObject = NULL;
-
         gdk_window_invalidate_rect(event->window, NULL, FALSE);
-
-        StartNewObject(TRUE);
       }
     }
   }

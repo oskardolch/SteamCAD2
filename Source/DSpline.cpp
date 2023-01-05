@@ -405,9 +405,9 @@ bool BuildSplineCache(CDLine cTmpPt, int iMode, PDPointList pPoints, PDPointList
     if(iMode == 1) cPt2 = cTmpPt.cOrigin;
     else cPt2 = pPoints->GetPoint(iDim + 1, 0).cPoint;
     dx[iDim - 1] = ((cPt1.x - cPt2.x*dt[n - 3]*dt[n - 3]) -
-    pdDiag2[iDim - 2]*dx[iDim - 2])/pdDiag[iDim - 1];
+      pdDiag2[iDim - 2]*dx[iDim - 2])/pdDiag[iDim - 1];
     dy[iDim - 1] = ((cPt1.y - cPt2.y*dt[n - 3]*dt[n - 3]) -
-    pdDiag2[iDim - 2]*dy[iDim - 2])/pdDiag[iDim - 1];
+      pdDiag2[iDim - 2]*dy[iDim - 2])/pdDiag[iDim - 1];
 
     dx2[iDim - 1] = dx[iDim - 1]/pdDiag[iDim - 1];
     dy2[iDim - 1] = dy[iDim - 1]/pdDiag[iDim - 1];

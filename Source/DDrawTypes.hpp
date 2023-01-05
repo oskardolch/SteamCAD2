@@ -183,7 +183,7 @@ public:
   int GetRestrictPoint(CDPoint cPt, int iMode, int iRestrictMask, double *pdRestrictValue, PDPoint pSnapPt);
   CDObject* Copy();
   bool Split(CDPoint cPt, PDPtrList pNewObjects, PDRect pRect);
-  bool Extend(CDPoint cPt, double dDist, PDRect pRect);
+  int Extend(CDPoint cPt, double dDist, PDRect pRect, bool bAllowSplineExt);
   void SetBound(int iIndex, CDLine cBound);
   void SetBound(int iIndex, CDRefPoint cBound);
   void SaveToFile(FILE *pf, bool bSwapBytes, unsigned char cVersion);
@@ -246,6 +246,7 @@ public:
   void ChangeToPath();
   unsigned char* GetRasterData(int *piDataSize);
   void RegisterRaster(PDPoint pPoints);
+  void CancelSplineEdit();
 } *PDObject;
 
 typedef class CDataList
@@ -280,7 +281,7 @@ public:
   int GetSelectCount(unsigned char cVersion);
   PDObject GetSelected(int iIndex);
   bool CutSelected(CDPoint cPt, double dDist, PDRect pRect);
-  bool ExtendSelected(CDPoint cPt, double dDist, PDRect pRect);
+  int ExtendSelected(CDPoint cPt, double dDist, PDRect pRect);
   void ClearAll();
   void SaveToFile(FILE *pf, bool bSwapBytes, bool bSelectOnly, unsigned char cVersion);
   bool ReadFromFile(FILE *pf, bool bSwapBytes, bool bClear);

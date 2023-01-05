@@ -152,7 +152,7 @@ int GetSnapPointFromList(int iSnapMask, CDPoint cPt, double dDist, PDLine pSnapP
   while((iRes1 < 1) && (i < iCount))
   {
     pObj1 = pObjList[i++];
-    iRes1 = pObj1->GetSnapPoint(iSnapMask, cPt, dDist, &cPtSnap1, pDynObj, bHonorSnapTo);
+    if(pObj1 != pDynObj) iRes1 = pObj1->GetSnapPoint(iSnapMask, cPt, dDist, &cPtSnap1, pDynObj, bHonorSnapTo);
   }
   if(iRes1 > 1)
   {
@@ -168,7 +168,7 @@ int GetSnapPointFromList(int iSnapMask, CDPoint cPt, double dDist, PDLine pSnapP
   while((iRes2 < 1) && (i < iCount))
   {
     pObj2 = pObjList[i++];
-    iRes2 = pObj2->GetSnapPoint(iSnapMask, cPt, dDist, &cPtSnap2, pDynObj, bHonorSnapTo);
+    if(pObj2 != pDynObj) iRes2 = pObj2->GetSnapPoint(iSnapMask, cPt, dDist, &cPtSnap2, pDynObj, bHonorSnapTo);
   }
 
   if((iRes1 < 1) && (iRes2 < 1)) return 0;
@@ -4598,10 +4598,10 @@ bool CDObject::Split(CDPoint cPt, PDPtrList pNewObjects, PDRect pRect)
   return bSplitted || (pNewObjects->GetCount() > 0);
 }
 
-bool CDObject::Extend(CDPoint cPt, double dDist, PDRect pRect)
+int CDObject::Extend(CDPoint cPt, double dDist, PDRect pRect, bool bAllowSplineExt)
 {
   double d1;
-  bool bRes = false;
+  int iRes = 0;
   CDPoint cPt1;
   if(m_cBounds[0].bIsSet)
   {
@@ -4610,7 +4610,7 @@ bool CDObject::Extend(CDPoint cPt, double dDist, PDRect pRect)
     if(d1 < dDist)
     {
       m_cBounds[0].bIsSet = false;
-      bRes = true;
+      iRes = 1;
     }
   }
   if(m_cBounds[1].bIsSet)
@@ -4620,10 +4620,10 @@ bool CDObject::Extend(CDPoint cPt, double dDist, PDRect pRect)
     if(d1 < dDist)
     {
       m_cBounds[1].bIsSet = false;
-      bRes = true;
+      iRes = 1;
     }
   }
-  if(bRes)
+  if(iRes > 0)
   {
     if(IsClosedShape() && !m_cBounds[0].bIsSet && m_cBounds[1].bIsSet)
     {
@@ -4634,7 +4634,42 @@ bool CDObject::Extend(CDPoint cPt, double dDist, PDRect pRect)
     cLn.bIsSet = false;
     BuildPrimitives(cLn, 0, pRect, 0, NULL, NULL);
   }
-  return bRes;
+  else if((m_iType == dtSpline) && (GetOffset() < g_dPrec) && bAllowSplineExt)
+  {
+    GetNativeRefPoint(0.0, 0.0, &cPt1);
+    d1 = GetDist(cPt1, cPt);
+    if(d1 < dDist)
+    {
+      PDPointList pNewPoints = new CDPointList();
+      CDInputPoint cInPt1;
+      int iCnt = m_pInputPoints->GetCount(-1);
+      for(int i = iCnt - 1; i >= 0; i--)
+      {
+        cInPt1 = m_pInputPoints->GetPoint(i, -1);
+        if(cInPt1.iCtrl < 2) pNewPoints->AddPoint(cInPt1.cPoint.x, cInPt1.cPoint.y, cInPt1.iCtrl);
+      }
+      m_pInputPoints->ClearAll();
+      for(int i = 0; i < pNewPoints->GetCount(-1); i++)
+      {
+        cInPt1 = pNewPoints->GetPoint(i, -1);
+        AddSplinePoint(cInPt1.cPoint.x, cInPt1.cPoint.y, cInPt1.iCtrl, m_pInputPoints);
+      }
+      delete pNewPoints;
+      CDLine cTmpPt;
+      cTmpPt.bIsSet = false;
+      BuildCache(cTmpPt, 0);
+      iRes = 2;
+    }
+    else
+    {
+      int iParts = GetSplineNumSegments(m_pCachePoints);
+      GetNativeRefPoint((double)iParts, 0.0, &cPt1);
+      d1 = GetDist(cPt1, cPt);
+      if(d1 < dDist) iRes = 2;
+    }
+    m_iAuxInt = m_pInputPoints->GetCount(0);
+  }
+  return iRes;
 }
 
 void CDObject::SaveLineStyle(FILE *pf, bool bSwapBytes, CDLineStyle cLineStyle, unsigned char cVersion)
@@ -7594,6 +7629,16 @@ void CDObject::RegisterRaster(PDPoint pPoints)
   RegisterRasterRaw(m_pInputPoints, m_pRasterCache, pPoints);
 }
 
+void CDObject::CancelSplineEdit()
+{
+  int iCnt = m_pInputPoints->GetCount(0);
+  while(iCnt > m_iAuxInt) m_pInputPoints->Remove(--iCnt, 0);
+  CDLine cTmpPt;
+  cTmpPt.bIsSet = false;
+  BuildCache(cTmpPt, 0);
+}
+
+
 // CDataList
 
 CDataList::CDataList()
@@ -7863,20 +7908,22 @@ bool CDataList::CutSelected(CDPoint cPt, double dDist, PDRect pRect)
   return bRes;
 }
 
-bool CDataList::ExtendSelected(CDPoint cPt, double dDist, PDRect pRect)
+int CDataList::ExtendSelected(CDPoint cPt, double dDist, PDRect pRect)
 {
-  bool bRes = false;
+  bool bAllowSplineExt = GetSelectCount(2) == 1;
+  int iRes = 0, iLocRes;
   PDObject pObj;
   for(int i = 0; i < m_iDataLen; i++)
   {
     pObj = m_ppObjects[i];
     if(pObj->GetSelected())
     {
-      bRes |= pObj->Extend(cPt, dDist, pRect);
+      iLocRes = pObj->Extend(cPt, dDist, pRect, bAllowSplineExt);
+      if(iLocRes > iRes) iRes = iLocRes;
     }
   }
-  if(bRes) m_bHasChanged = true;
-  return bRes;
+  if(iRes == 1) m_bHasChanged = true;
+  return iRes;
 }
 
 void CDataList::ClearAll()
