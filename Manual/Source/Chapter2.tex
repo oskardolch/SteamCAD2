@@ -88,7 +88,7 @@ All the copy commands keep the original select set selected.
 \section{Clipboard}
 \special{pdf: out 2 << /Title (\thesection. Clipboard) /Dest [ @thispage /FitH @ypos ] >>}
 
-SteamCAD2 provides standard clipboard both on Linux and Windows. Sice from SteamCAD the
+SteamCAD2 provides standard clipboard both on Linux and Windows. Since from SteamCAD the
 shortcut ``Ctrl + C'' is reserved for the copy parallel command, the standard Copy to
 clipboard command is invoked by ``Alt + C''. The other two accompanying commands, Cut and
 Paste, can be invoked by standard ``Ctrl + X'' and ``Ctrl + V'' shortcuts respectivelly.
@@ -96,12 +96,15 @@ Paste, can be invoked by standard ``Ctrl + X'' and ``Ctrl + V'' shortcuts respec
 \section{Deleting and Undoing Changes}
 \special{pdf: out 2 << /Title (\thesection. Deleting and Undoing Changes) /Dest [ @thispage /FitH @ypos ] >>}
 
-Similarly as with clipboard, SteamCAD implements very little from usual Undo/Redo
+SteamCAD2 implements very little from usual Undo/Redo
 commands. Here Undo and Redo only applies to deleted objects. You can delete the selected
-objects simply by pressing the ``Delete'' key. All other SteamCAD operations can be
+objects simply by pressing the ``Delete'' key. All other SteamCAD2 operations can be
 undone quite easily in a natural way, how we will see later.
 
-\section{Cutting and Extending Objects}
+A special case is when you are in the spline drawing mode. In this case, pressing the delete
+key removes the last inserted point in the spline.
+
+\section{Cutting and Extending Objects}\label{sec:extend}
 \special{pdf: out 2 << /Title (\thesection. Cutting and Extending Objects) /Dest [ @thispage /FitH @ypos ] >>}
 
 A line spanned accros all the paper is usually not what we would like to see in technical
@@ -117,14 +120,10 @@ at a wrong place, and the line is actually ``shorter'' than it should be, you ca
 activate the Extend command and click the end of the line, which should be extended.
 The clicked half of the line is then restored to the original, unbounded shape.
 
-\section{Break apart}
-\special{pdf: out 2 << /Title (\thesection. Break apart) /Dest [ @thispage /FitH @ypos ] >>}
-This command is available with the shortcut ``Alt + B''. When you copy one of the curves
-mention in the section~\ref{sec:copyobj}, item~\ref{sec:copypar}, and you will move the
-copy beyond the smallest curve radius, the curve is not smooth anymore. Invoking this
-command while such a curve is selected, the curve will be decomposed into smooth parts only.
-This can be usefull when trying to snap to the curve itself, since SteamCAD does not support
-anything like self crossing curves.
+SteamCAD2 moreover adds the abilitity to extend splines. If the spline is cut and the
+user clicks on the cutted end, the spline is extended to its original state. However,
+if the user clicks on the native start or end, the system gets into spline drawing mode
+and new points can be added. This only holds for open splines, not for closed curves.
 
 \section{Rounding Objects}
 \special{pdf: out 2 << /Title (\thesection. Rounding Objects) /Dest [ @thispage /FitH @ypos ] >>}
@@ -133,7 +132,7 @@ The last command for creating shapes is called \textbf{Round} (``Ctrl + B'' - sh
 been ``Bevel'' originaly, but later I realized that such a command can easily be replaced
 by other tools). Selecting any two primitives, the command attempts to place a circular
 arc tangent to both curves. You can also specify the radius of the arc. Unlike round
-command in similar CAD system, the SteamCAD's version does not modify the original
+command in similar CAD system, the SteamCAD2's version does not modify the original
 selected shapes. It's up to the user to trim them as appropriate.
 
 \section{Line Shaping}
@@ -142,8 +141,14 @@ selected shapes. It's up to the user to trim them as appropriate.
 Finally, when you finish drawing your shapes, you may want to specify the line
 thickness and pattern. You can do this for the whole selected set at once, invoking
 the \textbf{Line Style} dialog (``Alt + S''). Here you can specify the line width,
-excentricity and pattern. The pattern should contain even number of values, every
-pair represents the length of the line segment and the length of the hole.
+excentricity, translucency, blur (not implemented yet, maybe in the future), line
+cap, line join, color and pattern.
+
+The pattern should contain even number of values, every pair represents the length
+of the line segment and the length of the hole. The odd numbers can also be zero,
+in this case the pattern element is drawn as a point. Depending on the line cap,
+it is either drawn like a circle or like a square. Don't use the zero length elements
+with the line cap type ``Butt''. The line would dissapear.
 
 The line excentricity means how much is the line set off its mathematical origin.
 A typical usage of this parameter is whan drawing rails. Look at the introductory
@@ -156,7 +161,7 @@ The line thickness can be an arbitrary decimal value. A positive value sets the
 real line thickness in paper units. Lines with positive thickness are scaled
 accordingly to the current zoom. A line with thickness zero is always drawn
 as 1 pixel width, regardless the zoom. Lines with negative thicknes are drawn
-scaled as positive lines, but only in SteamCAD. Lines with negative
+scaled as positive lines, but only in SteamCAD2. Lines with negative
 thicknes are not exported to the target format. Exports will be discussed later
 in the section~\ref{sec:export}.
 

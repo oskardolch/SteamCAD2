@@ -1,15 +1,15 @@
 \chapter{Drawing Basics}\label{chap:chap1}
 \special{pdf: out 1 << /Title (\thechapter. Drawing Basics) /Dest [ @thispage /FitH @ypos ] >>}
 
-There are 8 line types available in SteamCAD - line, circle, ellipse, ``arc ellipse'',
+There are 8 line types available in SteamCAD2 - line, circle, ellipse, ``arc ellipse'',
 which is an ellipse-like shape composed from circular arcs, parabola, hyperbola,
 spline and evolventa.
 
 Before we discuss each of the basic elements, we should mention one aspect also
-(probably) unique to SteamCAD. From geometry point of view, the elements can be either
+(probably) unique to SteamCAD2. From geometry point of view, the elements can be either
 bound or unbound. To draw a bound element, like circle or ellipse, it is quite easy.
 However, the question is what to do with unbound elements, like line, parabola or
-hyperbola? In SteamCAD, when you draw an unbound element, it exists in the drawing
+hyperbola? In SteamCAD2, when you draw an unbound element, it exists in the drawing
 as a ``whole''. What does it mean? It means that if you draw for example a hyperbola,
 and then zoom out, the hyberbola ends at the drawing view. You can zoom out as
 much as you want and the whole hyperbola is still there. And it remains like that
@@ -112,15 +112,21 @@ Spline places a second order B-spline curve. The curve is designed so that it go
 the clicked points. The points are placed by left mouse button click and the number of
 points is not limited. Clicking the right mouse whenever during the curve creation toggles
 the closeness. Initially, the spline is open. When clicking the right mouse button, the spline
-becomes a closed curve.
+becomes a closed curve. Spline can be invoked by pressing ``S'' shortcut.
 
 Double click the left mouse button to finish the curve. The double clicked point becomes
-part of the curve definition. Spline can be invoked by pressing ``S'' shortcut.
+part of the curve definition. Sometimes it may happen that you make single click instead
+of double. In this case, you can still save the spline with the last placed point by
+pressing the ``Enter'' key. You can also remove last point from the spline by pressing
+the ``Delete'' button.
+
+In SteamCAD2 you can also extend already finished saved spline using the Extend command,
+this will be discussed more in the section~\ref{sec:extend}.
 
 \section{Evolventa}
 \special{pdf: out 2 << /Title (\thesection. Evolventa) /Dest [ @thispage /FitH @ypos ] >>}
 
-This is a curve created by rolling out a line along a circle. This is included in SteamCAD
+This is a curve created by rolling out a line along a circle. This is included in SteamCAD2
 as a gear creation helper. To start evolventa, one circle must be selected. Start evolventa
 by pressing ``V'' shortcut and place two points by left mouse button click to define two
 points on the evolventa.
@@ -139,7 +145,7 @@ If a primitive is selected and you put the first line point on that curve, holdi
 key will restrict to angle of the line with respect to the tangent of the selected curve.
 
 A special and quite frequent task in mechanical engineering is to draw a line which is tangent
-to two selected curves, usually circles. SteamCAD can do this, even not restricting the curve
+to two selected curves, usually circles. SteamCAD2 can do this, even not restricting the curve
 type to circle. The procedure can be as folows:
 \begin{enumerate}
 \item Select one curve you want to place the line as a tangent.
@@ -158,13 +164,13 @@ to find either the tangent or the perpendicular point.
 \section{Snapping}
 \special{pdf: out 2 << /Title (\thesection. Snapping) /Dest [ @thispage /FitH @ypos ] >>}
 
-When designing SteamCAD, the first idea was to put various options for snapping as we can
+When designing SteamCAD2, the first idea was to put various options for snapping as we can
 see in other CAD systems, like snap on lines, intersections, line ends etc. In the end
-I decided that SteamCAD has a fixed snap logic. It snappes to curves, curve ends,
+I decided that SteamCAD2 has a fixed snap logic. It snappes to curves, curve ends,
 intersections, tangent points and perpendicular points. The snap to pure curve element has
 approximatelly half gravity than the other elements.
 
-Considering that an arbitrary zoom is available in SteamCAD, it gives you an oportunity
+Considering that an arbitrary zoom is available in SteamCAD2, it gives you an oportunity
 to snap at the intended point in most situations. When it happens that the snap is
 impossible - usually due to too many elements close each other, one can right click the
 unwanted element and select ``Disable snap'' from the pop-up menu. It is also possible to
@@ -180,8 +186,8 @@ it will clear all the dissabled snaps.
 As a final topic of this chapter, let's look at the view manipulation. There are two commands
 for manipulating the view available in the menu - it is the \textbf{Best Fit} and
 \textbf{Normal Size}. The best fit in most drawing applications calculates the minimal bounding
-box of all objects in the view and zooms to this. Since SteamCAD can contain unbounded objects,
-there is no meaning for such a command. So the best fit in SteamCAD simple zooms to the whole
+box of all objects in the view and zooms to this. Since SteamCAD2 can contain unbounded objects,
+there is no meaning for such a command. So the best fit in SteamCAD2 simple zooms to the whole
 drawing area (representing the defined paper) with some margin.
 
 The normal size command tries to zoom the view so that it's physical units correspond to the
