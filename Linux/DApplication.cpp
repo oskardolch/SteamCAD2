@@ -1449,10 +1449,20 @@ void CDApplication::DrawObject(cairo_t *cr, PDObject pObj, int iMode, int iDimen
           {
             double dDash[6];
             double dSegLen;
+            double dDashOffset = 0.0;
             for(int i = 0; i < cStyle.iSegments; i++)
             {
               dSegLen = cStyle.dPattern[i];
-              if((i % 2 == 0) && (dSegLen < g_dDashMin)) dSegLen = g_dDashMin;
+              if((i % 2 == 0) && (dSegLen < g_dDashMin))
+              {
+                dSegLen = g_dDashMin;
+                dDashOffset = g_dDashMin;
+              }
+              else
+              {
+                dSegLen -= dDashOffset;
+                dDashOffset = 0.0;
+              }
               dDash[i] = m_dUnitScale*cPrim.cPt2.x*dSegLen;
             }
             cairo_set_dash(cr, dDash, cStyle.iSegments, cPrim.cPt2.y);
