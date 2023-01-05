@@ -1606,7 +1606,8 @@ LRESULT CMainWnd::ModeCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl, int iMode)
     SelectClipRgn(hdc, NULL);
     ReleaseDC(hwnd, NULL);*/
 
-    delete m_pActiveObject;
+    if(m_iToolMode == tolExtend) m_pActiveObject->CancelSplineEdit();
+    else delete m_pActiveObject;
     m_pActiveObject = NULL;
   }
   else if(m_pSelForDimen)
@@ -2043,7 +2044,7 @@ LRESULT CMainWnd::EditConfirmCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl)
         CDLine cTmpPt;
         cTmpPt.bIsSet = false;
         m_pActiveObject->BuildCache(cTmpPt, 0);
-        if(m_iToolMode != tolEditSpline)
+        if((m_iToolMode != tolEditSpline) && (m_iToolMode != tolExtend))
         {
           m_pDrawObjects->Add(m_pActiveObject);
           m_pActiveObject = NULL;
@@ -2218,7 +2219,8 @@ LRESULT CMainWnd::ToolsCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl, int iTool)
     SelectClipRgn(hdc, NULL);
     ReleaseDC(hwnd, NULL);*/
 
-    delete m_pActiveObject;
+    if(m_iToolMode == tolExtend) m_pActiveObject->CancelSplineEdit();
+    else delete m_pActiveObject;
     m_pActiveObject = NULL;
   }
   else if(m_pSelForDimen)
@@ -2371,9 +2373,11 @@ LRESULT CMainWnd::WMLButtonUp(HWND hwnd, WPARAM fwKeys, int xPos, int yPos)
     }
     InvalidateRect(hwnd, &rc, FALSE);
   }
-  else if((m_iToolMode > 20) && (m_iToolMode != tolRound))
+  else if((m_iToolMode > 20) && (m_iToolMode != tolRound) && (m_iDrawMode == modSelect))
   {
     if(GetPtDist(&m_cLastDownPt, xPos, yPos) > 4) return 0;
+
+    int iExtend = 0;
 
     switch(m_iToolMode)
     {
@@ -2385,8 +2389,14 @@ LRESULT CMainWnd::WMLButtonUp(HWND hwnd, WPARAM fwKeys, int xPos, int yPos)
       }
       break;
     case tolExtend:
-      if(m_pDrawObjects->ExtendSelected(m_cLastDrawPt, dTol, &cdr))
+      iExtend = m_pDrawObjects->ExtendSelected(m_cLastDrawPt, dTol, &cdr);
+      if(iExtend > 0)
       {
+        if(iExtend > 1)
+        {
+          m_iDrawMode = modSpline;
+          m_pActiveObject = m_pDrawObjects->GetSelected(0);
+        }
         InvalidateRect(hwnd, &rc, FALSE);
         SetTitle(hwnd, false);
       }
@@ -4096,17 +4106,25 @@ LRESULT CMainWnd::WMLButtonDblClk(HWND hwnd, WPARAM fwKeys, int xPos, int yPos)
     {
       if(m_pActiveObject->HasEnoughPoints())
       {
+        if(m_iToolMode == tolExtend)
+        {
+          m_iDrawMode = modSelect;
+          m_iToolMode = tolNone;
+          m_pActiveObject = NULL;
+        }
+        else
+        {
+          m_pDrawObjects->Add(m_pActiveObject);
+          m_pActiveObject = NULL;
+          StartNewObject(hwnd);
+        }
         RECT rc;
         GetClientRect(hwnd, &rc);
         rc.top += m_iToolBarHeight;
         rc.bottom -= m_iStatusHeight;
-
-        m_pDrawObjects->Add(m_pActiveObject);
-        SetTitle(hwnd, false);
-        m_pActiveObject = NULL;
-
         InvalidateRect(hwnd, &rc, FALSE);
-        StartNewObject(hwnd);
+
+        SetTitle(hwnd, false);
       }
     }
   }
