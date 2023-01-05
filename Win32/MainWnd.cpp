@@ -3409,25 +3409,25 @@ void CMainWnd::DrawObject(HWND hWnd, Graphics *graphics, PDObject pObj, int iMod
           if(cPrim.cPt2.x > g_dPrec)
           {
             //REAL dDash[6];
-            if(cStyle.cCapType == 1)
+            double dSegLen;
+            double dCapOffset = 0.0;
+            for(int i = 0; i < cStyle.iSegments; i++)
             {
-              double dSegLen;
-              for(int i = 0; i < cStyle.iSegments; i++)
+              dSegLen = cStyle.dPattern[i];
+              if(i % 2 == 0)
               {
-                dSegLen = cStyle.dPattern[i];
-                if(i % 2 == 0)
+                if(dSegLen < g_dDashMin)
                 {
-                  if(dSegLen < g_dDashMin) dSegLen = g_dDashMin;
-                  m_pdDashPattern[i] = (REAL)(1.0 + m_dUnitScale*cPrim.cPt2.x*dSegLen/rDashFactor);
+                  dSegLen = g_dDashMin;
+                  dCapOffset = g_dDashMin;
                 }
-                else
-                  m_pdDashPattern[i] = (REAL)(-1.0 + m_dUnitScale*cPrim.cPt2.x*dSegLen/rDashFactor);
+                m_pdDashPattern[i] = (REAL)(1.0 + m_dUnitScale*cPrim.cPt2.x*dSegLen/rDashFactor);
               }
-            }
-            else
-            {
-              for(int i = 0; i < cStyle.iSegments; i++)
-                m_pdDashPattern[i] = (REAL)m_dUnitScale*cPrim.cPt2.x*cStyle.dPattern[i]/rDashFactor;
+              else
+              {
+                m_pdDashPattern[i] = (REAL)(-1.0 + m_dUnitScale*cPrim.cPt2.x*(dSegLen - dCapOffset)/rDashFactor);
+                dCapOffset = 0.0;
+              }
             }
             hPen.SetDashPattern(m_pdDashPattern, cStyle.iSegments);
             hPen.SetDashOffset((REAL)cPrim.cPt2.y/rDashFactor);
