@@ -1756,6 +1756,42 @@ int CDObject::GetSimpleViewBounds(CDLine cTmpPt, int iMode, double dOffset, doub
   return iRes;
 }
 
+void CDObject::AddSplineExtPrim(PDRect pRect, PDPrimObject pPrimList)
+{
+  int iCnt = m_pInputPoints->GetCount(0);
+  int i = 0, iToAdd;
+  CDInputPoint cInPt;
+  CDPrimitive cPrim;
+  cPrim.iType = 14;
+  cPrim.cPt4 = 0;
+  while(i < iCnt)
+  {
+    cPrim.cPt1 = 0;
+    cPrim.cPt2 = 0;
+    cPrim.cPt3 = 0;
+    iToAdd = iCnt - i;
+    if(iToAdd > 3) iToAdd = 3;
+    for(int j = 0; j < iToAdd; j++)
+    {
+      cInPt = m_pInputPoints->GetPoint(i++, 0);
+      switch(j)
+      {
+      case 0:
+        cPrim.cPt1 = cInPt.cPoint;
+        break;
+      case 1:
+        cPrim.cPt2 = cInPt.cPoint;
+        break;
+      case 2:
+        cPrim.cPt3 = cInPt.cPoint;
+        break;
+      }
+    }
+    cPrim.cPt4.x = iToAdd;
+    pPrimList->AddPrimitive(cPrim);
+  }
+}
+
 void CDObject::AddExtraPrimitives(PDRect pRect, PDPrimObject pPrimList)
 {
   switch(m_iType)
@@ -1772,6 +1808,8 @@ void CDObject::AddExtraPrimitives(PDRect pRect, PDPrimObject pPrimList)
   case dtHyperbola:
   case dtParabola:
   case dtSpline:
+    AddSplineExtPrim(pRect, pPrimList);
+    break;
   case dtEvolvent:
   case dtLogSpiral:
   case dtArchSpiral:
@@ -2885,7 +2923,10 @@ void CDObject::GetNextPrimitive(PDPrimitive pPrim, double dScale, int iDimen)
   while(!bFound && (i < iDimCount))
   {
     cStPrim = m_pPrimitive->GetPrimitive(i++);
-    if(iDimen < -1) bFound = (cStPrim.iType < 9) || (cStPrim.iType == 11) || (cStPrim.iType == 12) || (cStPrim.iType == 13);
+    if(iDimen < -1)
+    {
+      bFound = (cStPrim.iType < 9) || ((cStPrim.iType >= 11) && (cStPrim.iType <= 14));
+    }
     else
     {
       if(cStPrim.iType == 9)
@@ -2920,12 +2961,12 @@ void CDObject::GetNextPrimitive(PDPrimitive pPrim, double dScale, int iDimen)
       //pPrim->cPt2.y = dScale*cStPrim.cPt2.y;
       //pPrim->cPt3 = dScale*cStPrim.cPt3;
     }
-    else if(cStPrim.iType == 13)
+    else if((cStPrim.iType == 13) || (cStPrim.iType == 14))
     {
       pPrim->cPt1 = dScale*cStPrim.cPt1;
       pPrim->cPt2 = dScale*cStPrim.cPt2;
       pPrim->cPt3 = dScale*cStPrim.cPt3;
-      pPrim->cPt4 = cStPrim.cPt3;
+      pPrim->cPt4 = cStPrim.cPt4;
     }
     else
     {
@@ -7633,6 +7674,7 @@ void CDObject::CancelSplineEdit()
 {
   int iCnt = m_pInputPoints->GetCount(0);
   while(iCnt > m_iAuxInt) m_pInputPoints->Remove(--iCnt, 0);
+  m_iAuxInt = 0;
   CDLine cTmpPt;
   cTmpPt.bIsSet = false;
   BuildCache(cTmpPt, 0);

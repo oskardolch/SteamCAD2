@@ -146,6 +146,7 @@ private:
   int BuildAreaPrimitives(CDLine cTmpPt, int iMode, PDRect pRect, PDFileAttrs pAttrs);
   int BuildGroupPrimitives(CDLine cTmpPt, int iMode, PDRect pRect, PDFileAttrs pAttrs);
   int BuildRasterPrimitives(CDLine cTmpPt, int iMode, PDRect pRect, PDFileAttrs pAttrs);
+  void AddSplineExtPrim(PDRect pRect, PDPrimObject pPrimList);
 public:
   CDObject(CDDrawType iType, double dWidth);
   ~CDObject();

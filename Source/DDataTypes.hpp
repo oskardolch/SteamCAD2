@@ -202,8 +202,9 @@ typedef struct CDGetBoundsRec
 typedef struct CDPrimitive
 {
   int iType; // 1 line, 2 circ arc, 3 circle, 4 quad, 5 bezier, 6 bound points, 7 center points,
-    // 8 - cross point, 9 - dim arrow, 10 - dim text, 11 - path, 12 - area, 13 - raster
+    // 8 - cross point, 9 - dim arrow, 10 - dim text, 11 - path, 12 - area, 13 - raster, 14 - spline points
     // 0 no other primitive available
+    // -----------------------------------------------
     // in case of path (11) the points have special meaning:
     //   cPt1.x:
     //     0 - do a subpath operation
@@ -229,6 +230,9 @@ typedef struct CDPrimitive
     // if cPt1.x == 2, cPt2 should carry information about dash pattern:
     //   cPt2.x = dash scale, if set to 0, there is no dash pattern applied for this segment
     //   cPt2.y = dash offest
+    // -----------------------------------------------
+    // spline points (14):
+    // cPt4.x: number of points in primitive (can be 1 .. 3)
   CDPoint cPt1;
   CDPoint cPt2;
   CDPoint cPt3;

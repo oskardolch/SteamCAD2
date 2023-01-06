@@ -1406,7 +1406,7 @@ void CDApplication::DrawObject(cairo_t *cr, PDObject pObj, int iMode, int iDimen
         cairo_set_line_width(cr, 0.7);
         cairo_new_path(cr);
         cairo_rectangle(cr, cPrim.cPt1.x + m_cViewOrigin.x - dPtRad,
-        cPrim.cPt1.y + m_cViewOrigin.y - dPtRad, 2.0*dPtRad, 2.0*dPtRad);
+          cPrim.cPt1.y + m_cViewOrigin.y - dPtRad, 2.0*dPtRad, 2.0*dPtRad);
         cairo_stroke(cr);
         cairo_fill(cr);
         cairo_set_line_width(cr, dWidth);
@@ -1531,6 +1531,35 @@ void CDApplication::DrawObject(cairo_t *cr, PDObject pObj, int iMode, int iDimen
             g_error_free(pErr);
           }
           g_input_stream_close(pStream, NULL, NULL);
+        }
+      }
+      else if(cPrim.iType == 14)
+      {
+        if((m_iDrawMode == modSpline) || (m_iToolMode == tolEditSpline))
+        {
+          int iCnt = (int)cPrim.cPt4.x;
+          CDPoint cPt;
+          cairo_set_line_width(cr, 0.7);
+          for(int i = 0; i < iCnt; i++)
+          {
+            switch(i)
+            {
+            case 0:
+              cPt = cPrim.cPt1;
+              break;
+            case 1:
+              cPt = cPrim.cPt2;
+              break;
+            case 2:
+              cPt = cPrim.cPt3;
+              break;
+            }
+            cairo_new_path(cr);
+            cairo_rectangle(cr, cPt.x + m_cViewOrigin.x - dPtRad, cPt.y + m_cViewOrigin.y - dPtRad, 2.0*dPtRad, 2.0*dPtRad);
+            cairo_stroke(cr);
+            cairo_fill(cr);
+          }
+          cairo_set_line_width(cr, dWidth);
         }
       }
       else
@@ -2601,7 +2630,7 @@ void CDApplication::SetMode(int iNewMode, bool bFromAccel)
 
   if(m_pActiveObject)
   {
-    if(m_iToolMode == tolExtend) m_pActiveObject->CancelSplineEdit();
+    if((m_iToolMode == tolExtend) || (m_iToolMode == tolEditSpline)) m_pActiveObject->CancelSplineEdit();
     else delete m_pActiveObject;
     m_pActiveObject = NULL;
   }
@@ -2738,7 +2767,7 @@ void CDApplication::SetTool(int iNewTool)
 
   if(m_pActiveObject && (m_iToolMode == tolEditSpline))
   {
-    m_iDrawMode = modSpline;
+    //m_iDrawMode = modSpline;
     return;
   }
 
@@ -3121,6 +3150,7 @@ void CDApplication::EditConfirmCmd(GtkWidget *widget)
         }
         else
         {
+          m_pActiveObject->SetAuxInt(0);
           m_pActiveObject = NULL;
           m_pDrawObjects->SetChanged();
           m_iDrawMode = modSelect;
