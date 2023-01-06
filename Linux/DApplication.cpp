@@ -2707,6 +2707,23 @@ void CDApplication::SetTool(int iNewTool)
     else m_pSelForDimen = m_pDrawObjects->GetSelected(0);
   }
 
+  if(iNewTool == tolEditSpline)
+  {
+    int iCnt = m_pDrawObjects->GetSelectCount(2);
+    if(iCnt == 1) m_pActiveObject = m_pDrawObjects->GetSelected(0);
+    if(!m_pActiveObject || (m_pActiveObject->GetType() != dtSpline))
+    {
+      m_pActiveObject = NULL;
+      GtkWidget *msg_dlg = gtk_message_dialog_new(GTK_WINDOW(m_pMainWnd), GTK_DIALOG_MODAL,
+        GTK_MESSAGE_WARNING, GTK_BUTTONS_OK,
+        _("Exactly one spline must be selected to edit it"));
+      gtk_dialog_run(GTK_DIALOG(msg_dlg));
+      gtk_widget_destroy(msg_dlg);
+      return;
+    }
+  }
+
+
   GtkWidget *draw = GetDrawing();
   cairo_t *cr = gdk_cairo_create(draw->window);
   if(m_pcs)
@@ -2718,6 +2735,12 @@ void CDApplication::SetTool(int iNewTool)
   cairo_destroy(cr);
 
   m_iToolMode = iNewTool;
+
+  if(m_pActiveObject && (m_iToolMode == tolEditSpline))
+  {
+    m_iDrawMode = modSpline;
+    return;
+  }
 
   StartNewObject(TRUE);
   if(!m_pActiveObject && (m_iToolMode == tolRound)) m_iToolMode = tolNone;
@@ -3235,6 +3258,9 @@ void CDApplication::ToolsCommand(int iCmd, bool bFromAccel)
     break;
   case IDM_TOOLSCONFLICTS:
     SetTool(tolConflict);
+    break;
+  case IDM_TOOLSEDITSPLINE:
+    SetTool(tolEditSpline);
     break;
   case IDM_TOOLSMEASURE:
     SetTool(tolMeas);

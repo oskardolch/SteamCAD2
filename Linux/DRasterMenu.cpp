@@ -103,7 +103,7 @@ void CreateRasterMenu(void *pPtr, GtkMenuShell *pMenuBar, GtkAccelGroup *pAccel)
   gtk_widget_show(menu_item);
 
   char buf[128];
-  strcpy(buf, _("Ra_sters"));
+  strcpy(buf, _("Ras_ters"));
   GtkWidget *raster_menu = gtk_menu_item_new_with_mnemonic(buf);
   gtk_widget_show(raster_menu);
   gtk_menu_item_set_submenu(GTK_MENU_ITEM(raster_menu), GTK_WIDGET(menu));
