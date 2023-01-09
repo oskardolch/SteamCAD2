@@ -604,6 +604,11 @@ CDPrimitive CDPrimObject::GetPrimitive(int iIndex)
   return m_pData[iIndex];
 }
 
+void CDPrimObject::SetPrimitive(int iIndex, CDPrimitive cPrim)
+{
+  m_pData[iIndex] = cPrim;
+}
+
 void CDPrimObject::Clear()
 {
   m_iDataLen = 0;

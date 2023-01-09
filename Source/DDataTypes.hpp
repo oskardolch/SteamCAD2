@@ -252,6 +252,7 @@ public:
   void AddPrimitive(CDPrimitive cPrim);
   void InsertPrimitive(int iIndex, CDPrimitive cPrim);
   CDPrimitive GetPrimitive(int iIndex);
+  void SetPrimitive(int iIndex, CDPrimitive cPrim);
   void Clear();
   void Delete(int iIndex);
   void ClearLines();

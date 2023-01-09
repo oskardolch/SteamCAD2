@@ -2636,6 +2636,41 @@ int CDObject::BuildPrimitives(CDLine cTmpPt, int iMode, PDRect pRect, int iTemp,
   return iRes;
 }
 
+int CDObject::SelSplinePoint(CDLine cTmpPt, double dTol)
+{
+  CDPrimitive cPrim;
+  int iCnt, iMask;
+  int iRes = 0;
+  for(int i = 0; i < m_pPrimitive->GetCount(); i++)
+  {
+    cPrim = m_pPrimitive->GetPrimitive(i);
+    if(cPrim.iType == 14)
+    {
+      iCnt = (int)cPrim.cPt4.x;
+      iMask = 0;
+      for(int j = 0; j < iCnt; j++)
+      {
+        switch(j)
+        {
+        case 0:
+          if(GetDist(cPrim.cPt1, cTmpPt.cOrigin) < dTol) iMask |= 1;
+          break;
+        case 1:
+          if(GetDist(cPrim.cPt2, cTmpPt.cOrigin) < dTol) iMask |= 2;
+          break;
+        case 2:
+          if(GetDist(cPrim.cPt3, cTmpPt.cOrigin) < dTol) iMask |= 4;
+          break;
+        }
+      }
+      cPrim.cPt4.y = (double)iMask;
+      m_pPrimitive->SetPrimitive(i, cPrim);
+      if(iMask > 0) iRes = 1;
+    }
+  }
+  return iRes;
+}
+
 /*int CDObject::BuildPrimitives(CDLine cTmpPt, int iMode, PDRect pRect, int iTemp, PDFileAttrs pAttrs)
 {
   PDPrimObject plPrimitive = m_pPrimitive;

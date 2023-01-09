@@ -427,11 +427,17 @@ CDApplication::CDApplication(const char *psConfDir)
   m_iSelectTolerance = (int)1.0*m_dDeviceToUnitScale;
   m_iSnapTolerance = (int)2.0*m_dDeviceToUnitScale;
 
+  GdkDisplay *pDisp = gdk_window_get_display(m_pMainWnd->window);
+  m_pArrowCursor = gdk_window_get_cursor(m_pMainWnd->window); //gdk_cursor_new_for_display(pDisp, GDK_ARROW);
+  m_pPlusCursor = gdk_cursor_new_for_display(pDisp, GDK_PLUS);
+
   ViewFitCmd(m_pMainWnd);
 }
 
 CDApplication::~CDApplication()
 {
+  gdk_cursor_unref(m_pPlusCursor);
+  //gdk_cursor_unref(m_pArrowCursor);
   if(m_pcp) cairo_pattern_destroy(m_pcp);
   if(m_pcs) cairo_surface_destroy(m_pcs);
   m_pcs = NULL;
@@ -1360,7 +1366,7 @@ void CDApplication::DrawObject(cairo_t *cr, PDObject pObj, int iMode, int iDimen
   else if(bSel) dwColor = m_lSelColor;
 
   long dwFillColor = CodeRGBColor(cStyle.cFillColor);
-  if(iMode == 1) dwFillColor = m_lActiveFillColor;
+  if((iMode == 1) || (m_iToolMode == tolEditSpline)) dwFillColor = m_lActiveFillColor;
   else if(iMode == 2) dwFillColor = m_lHighFillColor;
   else if(bSel) dwFillColor = m_lSelFillColor;
 
@@ -1538,26 +1544,35 @@ void CDApplication::DrawObject(cairo_t *cr, PDObject pObj, int iMode, int iDimen
         if((m_iDrawMode == modSpline) || (m_iToolMode == tolEditSpline))
         {
           int iCnt = (int)cPrim.cPt4.x;
+          int iMask = (int)cPrim.cPt4.y;
+          double dSquareSize = 1.5*dWidth;
+          if(dSquareSize < 3.0) dSquareSize = 3.0;
           CDPoint cPt;
+          bool bFill;
           cairo_set_line_width(cr, 0.7);
+          cairo_set_fill_rule(cr, CAIRO_FILL_RULE_EVEN_ODD);
           for(int i = 0; i < iCnt; i++)
           {
             switch(i)
             {
             case 0:
               cPt = cPrim.cPt1;
+              bFill = iMask & 1;
               break;
             case 1:
               cPt = cPrim.cPt2;
+              bFill = iMask & 2;
               break;
             case 2:
               cPt = cPrim.cPt3;
+              bFill = iMask & 4;
               break;
             }
             cairo_new_path(cr);
-            cairo_rectangle(cr, cPt.x + m_cViewOrigin.x - dPtRad, cPt.y + m_cViewOrigin.y - dPtRad, 2.0*dPtRad, 2.0*dPtRad);
+            cairo_rectangle(cr, cPt.x + m_cViewOrigin.x - dSquareSize,
+              cPt.y + m_cViewOrigin.y - dSquareSize, 2.0*dSquareSize, 2.0*dSquareSize);
+            if(bFill) cairo_fill(cr);
             cairo_stroke(cr);
-            cairo_fill(cr);
           }
           cairo_set_line_width(cr, dWidth);
         }
@@ -3995,6 +4010,30 @@ void CDApplication::MouseMove(GtkWidget *widget, GdkEventMotion *event, gboolean
       }
 
       m_pActiveObject->BuildPrimitives(cPtX, iDynMode, &cdr, 0, NULL, NULL);
+
+      if(m_iToolMode == tolEditSpline)
+      {
+        dTol = (double)m_iSelectTolerance/m_dUnitScale;
+        if(m_pActiveObject->SelSplinePoint(cPtX, dTol) > 0)
+        {
+          if(gdk_window_get_cursor(event->window) != m_pArrowCursor)
+            gdk_window_set_cursor(event->window, m_pArrowCursor);
+        }
+        else
+        {
+          CDLine cSplinePt;
+          if(fabs(m_pActiveObject->GetDistFromPt(cPtX.cOrigin, cPtX.cOrigin, 0, &cSplinePt, NULL)) < dTol)
+          {
+            if(gdk_window_get_cursor(event->window) != m_pPlusCursor)
+              gdk_window_set_cursor(event->window, m_pPlusCursor);
+          }
+          else
+          {
+            if(gdk_window_get_cursor(event->window) != m_pArrowCursor)
+              gdk_window_set_cursor(event->window, m_pArrowCursor);
+          }
+        }
+      }
 
       DrawObject(cr, m_pActiveObject, 1, -2);
     }

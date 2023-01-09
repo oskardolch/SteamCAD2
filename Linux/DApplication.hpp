@@ -89,6 +89,9 @@ private:
   double m_dSavedAngle;
   double m_dSavedDist;
 
+  GdkCursor *m_pArrowCursor;
+  GdkCursor *m_pPlusCursor;
+
   PDFileSetupDlg m_pFileSetupDlg;
   PDLineStyleDlg m_pLineStyleDlg;
   PDDimEditDlg m_pDimEditDlg;
