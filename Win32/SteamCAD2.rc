@@ -85,6 +85,7 @@ BEGIN
     IDS_BOUNDPATHTODISTR "The path to distribute about must be bound"
     IDS_NOCLOSEDPATHFORRUBBER "Closed path cannot be distributed in rubber mode"
     IDS_ONERASTERFORREG "Exactly one image must be selected to register raster"
+    IDS_ONESPLINETOEDIT "Exactly one spline must be selected to edit it"
     IDS_INFOBASE "Information"
 END
 
@@ -163,6 +164,8 @@ BEGIN
         MENUITEM "&Round\tCtrl+B", IDM_TOOLSROUND
         MENUITEM "&Extend\tCtrl+E", IDM_TOOLSEXTEND
         MENUITEM "Mark con&flicts\tCtrl+F", IDM_TOOLSCONFLICTS
+        MENUITEM "Edit &spline\tCtrl+Shift+S", IDM_TOOLSEDITSPLINE
+        MENUITEM SEPARATOR
         MENUITEM "Measure &distance\tAlt+D", IDM_TOOLSMEASURE
         MENUITEM "Measure &angle\tAlt+A", IDM_TOOLSMEASUREANGLE
         MENUITEM "Measure &length\tAlt+L", IDM_TOOLSMEASURELENGTH
@@ -233,6 +236,7 @@ BEGIN
     "^B", IDM_TOOLSROUND
     "^E", IDM_TOOLSEXTEND
     "^F", IDM_TOOLSCONFLICTS
+    "S", IDM_TOOLSEDITSPLINE, CONTROL, SHIFT, VIRTKEY
     "D", IDM_TOOLSMEASURE, ALT, VIRTKEY
     "A", IDM_TOOLSMEASUREANGLE, ALT, VIRTKEY
     "H", IDM_PATHCREATE, ALT, VIRTKEY

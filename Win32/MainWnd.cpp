@@ -455,6 +455,8 @@ LRESULT CMainWnd::WMCommand(HWND hwnd, WORD wNotifyCode, WORD wID, HWND hwndCtl)
     return ToolsCmd(hwnd, wNotifyCode, hwndCtl, tolExtend);
   case IDM_TOOLSCONFLICTS:
     return ToolsCmd(hwnd, wNotifyCode, hwndCtl, tolConflict);
+  case IDM_TOOLSEDITSPLINE:
+    return ToolsCmd(hwnd, wNotifyCode, hwndCtl, tolEditSpline);
   case IDM_TOOLSMEASURE:
     return ToolsCmd(hwnd, wNotifyCode, hwndCtl, tolMeas);
   case IDM_TOOLSMEASUREANGLE:
@@ -1607,7 +1609,7 @@ LRESULT CMainWnd::ModeCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl, int iMode)
     ReleaseDC(hwnd, NULL);*/
 
     if(m_iToolMode == tolExtend) m_pActiveObject->CancelSplineEdit();
-    else delete m_pActiveObject;
+    else if(m_iToolMode != tolEditSpline) delete m_pActiveObject;
     m_pActiveObject = NULL;
   }
   else if(m_pSelForDimen)
@@ -1713,6 +1715,17 @@ LRESULT CMainWnd::EditDeleteCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl)
   if(m_iDrawMode == modSpline)
   {
     m_pActiveObject->RemoveLastPoint();
+    return 0;
+  }
+
+  if(m_iToolMode == tolEditSpline)
+  {
+    if(m_pActiveObject->RemoveSplinePoint())
+    {
+      m_pDrawObjects->SetChanged();
+      InvalidateRect(hwnd, NULL, FALSE);
+      SetTitle(hwnd, false);
+    }
     return 0;
   }
 
@@ -2052,6 +2065,7 @@ LRESULT CMainWnd::EditConfirmCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl)
         }
         else
         {
+          m_pActiveObject->SetAuxInt(0);
           m_pActiveObject = NULL;
           m_pDrawObjects->SetChanged();
           m_iDrawMode = modSelect;
@@ -2220,7 +2234,7 @@ LRESULT CMainWnd::ToolsCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl, int iTool)
     ReleaseDC(hwnd, NULL);*/
 
     if(m_iToolMode == tolExtend) m_pActiveObject->CancelSplineEdit();
-    else delete m_pActiveObject;
+    else if(m_iToolMode != tolEditSpline) delete m_pActiveObject;
     m_pActiveObject = NULL;
   }
   else if(m_pSelForDimen)
@@ -2243,11 +2257,37 @@ LRESULT CMainWnd::ToolsCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl, int iTool)
     m_pSelForDimen = m_pDrawObjects->GetSelected(0);
   }
 
+  if(iTool == tolEditSpline)
+  {
+    int iCnt = m_pDrawObjects->GetSelectCount(2);
+    if(iCnt == 1) m_pActiveObject = m_pDrawObjects->GetSelected(0);
+    if(!m_pActiveObject || (m_pActiveObject->GetType() != dtSpline))
+    {
+      m_pActiveObject = NULL;
+      wchar_t sCap[64];
+      wchar_t sMsg[128];
+      LoadString(m_hInstance, IDS_WARNING, sCap, 64);
+      LoadString(m_hInstance, IDS_ONESPLINETOEDIT, sMsg, 128);
+      MessageBox(hwnd, sMsg, sCap, MB_OK | MB_ICONWARNING);
+      return 0;
+    }
+  }
+
   bool bDrawCross = ((m_iDrawMode + m_iToolMode > 0) && (iTool == 0)) ||
     ((m_iDrawMode + m_iToolMode == 0) && (iTool > 0));
+  if(bDrawCross)
+  {
+    DrawCross(hwnd);
+  }
 
   m_iToolMode = iTool;
   m_iDrawMode = modSelect;
+
+  if(m_pActiveObject && (m_iToolMode == tolEditSpline))
+  {
+    //m_iDrawMode = modSpline;
+    return 0;
+  }
 
   StartNewObject(hwnd);
   if(!m_pActiveObject && (m_iToolMode == tolRound))
@@ -2256,10 +2296,6 @@ LRESULT CMainWnd::ToolsCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl, int iTool)
     bDrawCross = false;
   }
 
-  if(bDrawCross)
-  {
-    DrawCross(hwnd);
-  }
   return 0;
 }
 
@@ -2319,6 +2355,14 @@ LRESULT CMainWnd::WMMButtonUp(HWND hwnd, WPARAM fwKeys, int xPos, int yPos)
 LRESULT CMainWnd::WMLButtonDown(HWND hwnd, WPARAM fwKeys, int xPos, int yPos)
 {
   if(m_iButton > 0) return 0;
+
+  if(m_iToolMode == tolEditSpline)
+  {
+    double dx = (xPos - m_cViewOrigin.x)/m_dUnitScale;
+    double dy = (yPos - m_cViewOrigin.y)/m_dUnitScale;
+    double dTol = (double)m_iSnapTolerance/m_dUnitScale;
+    m_pActiveObject->SelSplinePoint(dx, dy, dTol);
+  }
 
   m_cLastDownPt.x = xPos;
   m_cLastDownPt.y = yPos;
@@ -2728,6 +2772,14 @@ LRESULT CMainWnd::WMLButtonUp(HWND hwnd, WPARAM fwKeys, int xPos, int yPos)
         else if(m_iRegRasterCount < 4) LoadString(m_hInstance, IDS_REGSECONDLINE, sMessage, 64);
         else LoadString(m_hInstance, IDS_REGTHIRDLINE, sMessage, 64);
         SendMessage(m_hStatus, SB_SETTEXT, 1, (LPARAM)sMessage);
+      }
+    }
+    else if(m_iToolMode == tolEditSpline)
+    {
+      if(m_pActiveObject->InsertSplinePoint(m_cLastDrawPt.x, m_cLastDrawPt.y, dTol))
+      {
+        SetTitle(hwnd, false);
+        InvalidateRect(hwnd, NULL, FALSE);
       }
     }
     else
@@ -3301,7 +3353,7 @@ void CMainWnd::DrawObject(HWND hWnd, Graphics *graphics, PDObject pObj, int iMod
   else if(bSel) dwColor = m_lSelColor;
 
   DWORD dwFillColor = CodeRGBAColor(cStyle.cFillColor);
-  if(iMode == 1) dwFillColor = m_lActiveFillColor;
+  if((iMode == 1) || (m_iToolMode == tolEditSpline)) dwFillColor = m_lActiveFillColor;
   else if(iMode == 2) dwFillColor = m_lHighFillColor;
   else if(bSel) dwFillColor = m_lSelFillColor;
 
@@ -3502,6 +3554,44 @@ void CMainWnd::DrawObject(HWND hWnd, Graphics *graphics, PDObject pObj, int iMod
           delete matrix;
         }
       }
+      else if(cPrim.iType == 14)
+      {
+        if(((m_iDrawMode == modSpline) || (m_iToolMode == tolEditSpline)) && (pObj == m_pActiveObject))
+        {
+          int iCnt = (int)cPrim.cPt4.x;
+          int iMask = (int)cPrim.cPt4.y;
+          REAL rSquareSize = 1.5*rWidth;
+          if(rSquareSize < 3.0) rSquareSize = 3.0;
+          CDPoint cPt;
+          bool bFill;
+          for(int i = 0; i < iCnt; i++)
+          {
+            switch(i)
+            {
+            case 0:
+              cPt = cPrim.cPt1;
+              bFill = iMask & 1;
+              break;
+            case 1:
+              cPt = cPrim.cPt2;
+              bFill = iMask & 2;
+              break;
+            case 2:
+              cPt = cPrim.cPt3;
+              bFill = iMask & 4;
+              break;
+            }
+            hPath.StartFigure();
+            hPath.AddRectangle(Rect((INT)(cPt.x + m_cViewOrigin.x - rSquareSize),
+              (INT)(cPt.y + m_cViewOrigin.y - rSquareSize),
+              (INT)2.0*rSquareSize, (INT)2.0*rSquareSize));
+            hPath.CloseFigure();
+            if(bFill) graphics->FillPath(&hBrush, &hPath);
+            else graphics->DrawPath(&hPen, &hPath);
+            hPath.Reset();
+          }
+        }
+      }
       else DrawPrimitive(graphics, &hPen, &hPath, &cPrim);
       pObj->GetNextPrimitive(&cPrim, m_dUnitScale, iDimen);
     }
@@ -3657,7 +3747,7 @@ LRESULT CMainWnd::WMMouseMove(HWND hwnd, WPARAM fwKeys, int xPos, int yPos)
   swprintf(buf, L"%.3f, %.3f", dx/m_cFSR.cPaperUnit.dBaseToUnit, dy/m_cFSR.cPaperUnit.dBaseToUnit);
   SendMessage(m_hStatus, SB_SETTEXT, 0, (LPARAM)buf);
 
-  if(m_iButton > 0) return 0;
+  if((m_iButton > 0) && (m_iToolMode != tolEditSpline)) return 0;
 
   int iCnt = 0;
   PDObject pObj1, pObj2;
@@ -3974,6 +4064,41 @@ LRESULT CMainWnd::WMMouseMove(HWND hwnd, WPARAM fwKeys, int xPos, int yPos)
       cdr.cPt2.y = (rc.bottom - m_cViewOrigin.y)/m_dUnitScale;
 
       m_pActiveObject->BuildPrimitives(cPtX, iDynMode, &cdr, 0, NULL, NULL);
+
+      if(m_iToolMode == tolEditSpline)
+      {
+        if(m_iButton == 1)
+        {
+          if(m_pActiveObject->MoveSplinePoint(cPtX.cOrigin))
+          {
+            InvalidateRect(hwnd, NULL, FALSE);
+          }
+        }
+        else
+        {
+          dTol = (double)m_iSelectTolerance/m_dUnitScale;
+
+          if(m_pActiveObject->HighlightSplinePoint(cPtX, dTol) > 0)
+          {
+            //if(gdk_window_get_cursor(event->window) != m_pArrowCursor)
+            //  gdk_window_set_cursor(event->window, m_pArrowCursor);
+          }
+          else
+          {
+            CDLine cSplinePt;
+            if(fabs(m_pActiveObject->GetDistFromPt(cPtX.cOrigin, cPtX.cOrigin, 0, &cSplinePt, NULL)) < dTol)
+            {
+              //if(gdk_window_get_cursor(event->window) != m_pPlusCursor)
+              //  gdk_window_set_cursor(event->window, m_pPlusCursor);
+            }
+            else
+            {
+              //if(gdk_window_get_cursor(event->window) != m_pArrowCursor)
+              //  gdk_window_set_cursor(event->window, m_pArrowCursor);
+            }
+          }
+        }
+      }
 
       DrawObject(hwnd, &graphics, m_pActiveObject, 1, -2);
     }
