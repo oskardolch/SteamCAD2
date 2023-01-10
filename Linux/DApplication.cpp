@@ -1541,7 +1541,7 @@ void CDApplication::DrawObject(cairo_t *cr, PDObject pObj, int iMode, int iDimen
       }
       else if(cPrim.iType == 14)
       {
-        if((m_iDrawMode == modSpline) || (m_iToolMode == tolEditSpline))
+        if(((m_iDrawMode == modSpline) || (m_iToolMode == tolEditSpline)) && (pObj == m_pActiveObject))
         {
           int iCnt = (int)cPrim.cPt4.x;
           int iMask = (int)cPrim.cPt4.y;
@@ -2645,8 +2645,8 @@ void CDApplication::SetMode(int iNewMode, bool bFromAccel)
 
   if(m_pActiveObject)
   {
-    if((m_iToolMode == tolExtend) || (m_iToolMode == tolEditSpline)) m_pActiveObject->CancelSplineEdit();
-    else delete m_pActiveObject;
+    if(m_iToolMode == tolExtend) m_pActiveObject->CancelSplineEdit();
+    else if(m_iToolMode != tolEditSpline) delete m_pActiveObject;
     m_pActiveObject = NULL;
   }
   else if(m_pSelForDimen)
@@ -2875,10 +2875,22 @@ void CDApplication::EditDeleteCmd(GtkWidget *widget, bool bFromAccel)
     return;
   }
 
+  GtkWidget *draw = GetDrawing();
+
+  if(m_iToolMode == tolEditSpline)
+  {
+    if(m_pActiveObject->RemoveSplinePoint())
+    {
+      m_pDrawObjects->SetChanged();
+      gdk_window_invalidate_rect(draw->window, NULL, FALSE);
+      SetTitle(widget, false);
+    }
+    return;
+  }
+
   m_pActiveObject = NULL;
   m_pHighObject = NULL;
 
-  GtkWidget *draw = GetDrawing();
   int iWidth = gdk_window_get_width(draw->window);
   int iHeight = gdk_window_get_height(draw->window);
 
@@ -3701,7 +3713,7 @@ void CDApplication::MouseMove(GtkWidget *widget, GdkEventMotion *event, gboolean
   sprintf(buf, "%.3f, %.3f", dx/m_cFSR.cPaperUnit.dBaseToUnit, dy/m_cFSR.cPaperUnit.dBaseToUnit);
   SetStatusBarMsg(0, buf);
 
-  if(m_iButton > 0) return;
+  if((m_iButton > 0) && (m_iToolMode != tolEditSpline)) return;
 
   int iCnt = 0;
   PDObject pObj1, pObj2;
@@ -4013,24 +4025,35 @@ void CDApplication::MouseMove(GtkWidget *widget, GdkEventMotion *event, gboolean
 
       if(m_iToolMode == tolEditSpline)
       {
-        dTol = (double)m_iSelectTolerance/m_dUnitScale;
-        if(m_pActiveObject->SelSplinePoint(cPtX, dTol) > 0)
+        if(m_iButton == 1)
         {
-          if(gdk_window_get_cursor(event->window) != m_pArrowCursor)
-            gdk_window_set_cursor(event->window, m_pArrowCursor);
+          if(m_pActiveObject->MoveSplinePoint(cPtX.cOrigin))
+          {
+            gdk_window_invalidate_rect(event->window, NULL, FALSE);
+          }
         }
         else
         {
-          CDLine cSplinePt;
-          if(fabs(m_pActiveObject->GetDistFromPt(cPtX.cOrigin, cPtX.cOrigin, 0, &cSplinePt, NULL)) < dTol)
-          {
-            if(gdk_window_get_cursor(event->window) != m_pPlusCursor)
-              gdk_window_set_cursor(event->window, m_pPlusCursor);
-          }
-          else
+          dTol = (double)m_iSelectTolerance/m_dUnitScale;
+
+          if(m_pActiveObject->HighlightSplinePoint(cPtX, dTol) > 0)
           {
             if(gdk_window_get_cursor(event->window) != m_pArrowCursor)
               gdk_window_set_cursor(event->window, m_pArrowCursor);
+          }
+          else
+          {
+            CDLine cSplinePt;
+            if(fabs(m_pActiveObject->GetDistFromPt(cPtX.cOrigin, cPtX.cOrigin, 0, &cSplinePt, NULL)) < dTol)
+            {
+              if(gdk_window_get_cursor(event->window) != m_pPlusCursor)
+                gdk_window_set_cursor(event->window, m_pPlusCursor);
+            }
+            else
+            {
+              if(gdk_window_get_cursor(event->window) != m_pArrowCursor)
+                gdk_window_set_cursor(event->window, m_pArrowCursor);
+            }
           }
         }
       }
@@ -4148,6 +4171,14 @@ void CDApplication::MouseWheel(GtkWidget *widget, GdkEventScroll *event)
 void CDApplication::MouseLButtonDown(GtkWidget *widget, GdkEventButton *event)
 {
   if(m_iButton > 0) return;
+
+  if(m_iToolMode == tolEditSpline)
+  {
+    double dx = (event->x - m_cViewOrigin.x)/m_dUnitScale;
+    double dy = (event->y - m_cViewOrigin.y)/m_dUnitScale;
+    double dTol = (double)m_iSnapTolerance/m_dUnitScale;
+    m_pActiveObject->SelSplinePoint(dx, dy, dTol);
+  }
 
   m_cLastDownPt.x = event->x;
   m_cLastDownPt.y = event->y;
@@ -4567,6 +4598,15 @@ void CDApplication::MouseLButtonUp(GtkWidget *widget, GdkEventButton *event)
         else if(m_iRegRasterCount < 4) sprintf(m_sStatus1Msg, _("Draw second line to connect image"));
         else sprintf(m_sStatus1Msg, _("Draw third line to connect image"));
         SetStatusBarMsg(1, m_sStatus1Msg);
+      }
+    }
+    else if(m_iToolMode == tolEditSpline)
+    {
+      if(m_pActiveObject->InsertSplinePoint(m_cLastDrawPt.x, m_cLastDrawPt.y, dTol))
+      {
+        SetTitle(m_pMainWnd, false);
+        bUpdate = TRUE;
+        gdk_window_invalidate_rect(event->window, NULL, FALSE);
       }
     }
     else

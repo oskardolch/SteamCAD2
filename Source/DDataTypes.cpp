@@ -490,6 +490,33 @@ void CDPointList::SetPoint(int iIndex, char iCtrl, double x, double y, char iNew
   m_pPoints[iNewIdex].iCtrl = iNewCtrl;
 }
 
+void CDPointList::InsertPoint(int iIndex, char iCtrl, double x, double y)
+{
+  int iNewIdex = iIndex;
+  if(iCtrl > -1)
+  {
+    int i = 0;
+    int iCtrls = -1;
+    while((i < m_iDataLen) && (iCtrls < iIndex))
+    {
+      if(m_pPoints[i++].iCtrl == iCtrl) iCtrls++;
+    }
+    if(iCtrls == iIndex) iNewIdex = i - 1;
+  }
+
+  if(m_iDataLen >= m_iDataSize)
+  {
+    m_iDataSize += 16;
+    m_pPoints = (PDInputPoint)realloc(m_pPoints, m_iDataSize*sizeof(CDInputPoint));
+  }
+
+  if(iNewIdex < m_iDataLen) memmove(&m_pPoints[iNewIdex + 1], &m_pPoints[iNewIdex], (m_iDataLen - iNewIdex)*sizeof(CDInputPoint));
+  m_pPoints[iNewIdex].iCtrl = iCtrl;
+  m_pPoints[iNewIdex].cPoint.x = x;
+  m_pPoints[iNewIdex].cPoint.y = y;
+  m_iDataLen++;
+}
+
 
 // CDPtrList
 

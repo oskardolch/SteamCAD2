@@ -350,6 +350,7 @@ CDObject::CDObject(CDDrawType iType, double dWidth)
     m_pRasterCache->iFileSize = 0;
     m_pRasterCache->pData = NULL;
   }
+  m_iSelSplineNode = -1;
 }
 
 CDObject::~CDObject()
@@ -1769,6 +1770,7 @@ void CDObject::AddSplineExtPrim(PDRect pRect, PDPrimObject pPrimList)
     cPrim.cPt1 = 0;
     cPrim.cPt2 = 0;
     cPrim.cPt3 = 0;
+    cPrim.cPt4.y = 0;
     iToAdd = iCnt - i;
     if(iToAdd > 3) iToAdd = 3;
     for(int j = 0; j < iToAdd; j++)
@@ -1777,12 +1779,15 @@ void CDObject::AddSplineExtPrim(PDRect pRect, PDPrimObject pPrimList)
       switch(j)
       {
       case 0:
+        if(i - 1 == m_iSelSplineNode) cPrim.cPt4.y = (double)1;
         cPrim.cPt1 = cInPt.cPoint;
         break;
       case 1:
+        if(i - 1 == m_iSelSplineNode) cPrim.cPt4.y = (double)2;
         cPrim.cPt2 = cInPt.cPoint;
         break;
       case 2:
+        if(i - 1 == m_iSelSplineNode) cPrim.cPt4.y = (double)4;
         cPrim.cPt3 = cInPt.cPoint;
         break;
       }
@@ -2636,7 +2641,7 @@ int CDObject::BuildPrimitives(CDLine cTmpPt, int iMode, PDRect pRect, int iTemp,
   return iRes;
 }
 
-int CDObject::SelSplinePoint(CDLine cTmpPt, double dTol)
+int CDObject::HighlightSplinePoint(CDLine cTmpPt, double dTol)
 {
   CDPrimitive cPrim;
   int iCnt, iMask;
@@ -2654,12 +2659,15 @@ int CDObject::SelSplinePoint(CDLine cTmpPt, double dTol)
         {
         case 0:
           if(GetDist(cPrim.cPt1, cTmpPt.cOrigin) < dTol) iMask |= 1;
+          if(i == m_iSelSplineNode) iMask |= 1;
           break;
         case 1:
           if(GetDist(cPrim.cPt2, cTmpPt.cOrigin) < dTol) iMask |= 2;
+          if(i == m_iSelSplineNode) iMask |= 2;
           break;
         case 2:
           if(GetDist(cPrim.cPt3, cTmpPt.cOrigin) < dTol) iMask |= 4;
+          if(i == m_iSelSplineNode) iMask |= 4;
           break;
         }
       }
@@ -7713,6 +7721,99 @@ void CDObject::CancelSplineEdit()
   CDLine cTmpPt;
   cTmpPt.bIsSet = false;
   BuildCache(cTmpPt, 0);
+}
+
+bool CDObject::InsertSplinePoint(double dx, double dy, double dTolerance)
+{
+  int iCnt = m_pInputPoints->GetCount(0);
+  if(iCnt < 2) return false;
+
+  if(SelSplinePoint(dx, dy, dTolerance)) return true;
+
+  bool bRes = false;
+  if(m_iSelSplineNode > -1) bRes = true;
+  m_iSelSplineNode = -1;
+
+  CDPoint cPt = {dx, dy};
+  CDLine cPtX, cPtX1;
+  double dDist = GetDistFromPt(cPt, cPt, 0, &cPtX, NULL);
+  if(!cPtX.bIsSet) return bRes;
+  if(fabs(dDist) > dTolerance) return bRes;
+
+  bool bIsClosed = m_pInputPoints->GetCount(1) > 0;
+
+  int i = 0;
+  if(bIsClosed) i++;
+
+  CDInputPoint cInPt = m_pInputPoints->GetPoint(i++, 0);
+  GetDistFromPt(cInPt.cPoint, cInPt.cPoint, 0, &cPtX1, NULL);
+  bool bFound = cPtX1.dRef > cPtX.dRef;
+  while(!bFound && (i < iCnt))
+  {
+    cInPt = m_pInputPoints->GetPoint(i++, 0);
+    GetDistFromPt(cInPt.cPoint, cInPt.cPoint, 0, &cPtX1, NULL);
+    bFound = cPtX1.dRef > cPtX.dRef;
+  }
+  i--;
+
+  if(bIsClosed && !bFound)
+  {
+    cInPt = m_pInputPoints->GetPoint(0, 0);
+    GetDistFromPt(cInPt.cPoint, cInPt.cPoint, 0, &cPtX1, NULL);
+    if(cPtX1.dRef < cPtX.dRef) i = 1;
+    else i = 0;
+  }
+
+  m_pInputPoints->InsertPoint(i, 0, cPtX.cOrigin.x, cPtX.cOrigin.y);
+  BuildCache(cPtX, 0);
+  return true;
+}
+
+bool CDObject::RemoveSplinePoint()
+{
+  if(m_iSelSplineNode < 0) return false;
+
+  int iCnt = m_pInputPoints->GetCount(0);
+  if(iCnt < 3) return false;
+
+  m_pInputPoints->Remove(m_iSelSplineNode, 0);
+  CDLine cPtX;
+  BuildCache(cPtX, 0);
+  m_iSelSplineNode = -1;
+  return true;
+}
+
+bool CDObject::SelSplinePoint(double dx, double dy, double dTolerance)
+{
+  int iCnt = m_pInputPoints->GetCount(0);
+  if(iCnt < 2) return false;
+
+  int i = 0;
+  CDPoint cPt = {dx, dy};
+
+  CDInputPoint cInPt = m_pInputPoints->GetPoint(i++, 0);
+  bool bFound = GetDist(cInPt.cPoint, cPt) < dTolerance;
+  while(!bFound && (i < iCnt))
+  {
+    cInPt = m_pInputPoints->GetPoint(i++, 0);
+    bFound = GetDist(cInPt.cPoint, cPt) < dTolerance;
+  }
+
+  if(bFound)
+  {
+    m_iSelSplineNode = i - 1;
+    return true;
+  }
+  return false;
+}
+
+bool CDObject::MoveSplinePoint(CDPoint cNewPos)
+{
+  if(m_iSelSplineNode < 0) return false;
+  m_pInputPoints->SetPoint(m_iSelSplineNode, 0, cNewPos.x, cNewPos.y, 0);
+  CDLine cPtX;
+  BuildCache(cPtX, 0);
+  return true;
 }
 
 

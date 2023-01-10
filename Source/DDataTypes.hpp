@@ -120,6 +120,7 @@ public:
   CDInputPoint GetPoint(int iIndex, char iCtrl);
   void Remove(int iIndex, char iCtrl);
   void SetPoint(int iIndex, char iCtrl, double x, double y, char iNewCtrl);
+  void InsertPoint(int iIndex, char iCtrl, double x, double y);
   //PDInputPoint GetListPtr();
 } *PDPointList;
 

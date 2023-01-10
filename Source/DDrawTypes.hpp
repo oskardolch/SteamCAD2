@@ -70,6 +70,7 @@ private:
 
   int m_iAuxInt;
   PDPtrList m_pSubObjects;
+  int m_iSelSplineNode;
 
   bool IsClosedShape();
   int GetBoundType();
@@ -160,7 +161,7 @@ public:
   int GetViewBounds(CDLine cTmpPt, int iMode, PDRect pRect, PDRefList pBounds, PDPoint pDrawBnds, bool bMergeWithBounds);
   // returns 0 - not in rect, 1 - partially in rect, 2 - full in rect
   int BuildPrimitives(CDLine cTmpPt, int iMode, PDRect pRect, int iTemp, PDFileAttrs pAttrs, PDPrimObject pPrimitives);
-  int SelSplinePoint(CDLine cTmpPt, double dTol);
+  int HighlightSplinePoint(CDLine cTmpPt, double dTol);
   void GetFirstPrimitive(PDPrimitive pPrim, double dScale, int iDimen);
   void GetNextPrimitive(PDPrimitive pPrim, double dScale, int iDimen);
   int GetAttractors(CDPoint cPt, double dScale, PDPointList pPoints);
@@ -249,6 +250,10 @@ public:
   unsigned char* GetRasterData(int *piDataSize);
   void RegisterRaster(PDPoint pPoints);
   void CancelSplineEdit();
+  bool InsertSplinePoint(double dx, double dy, double dTolerance);
+  bool RemoveSplinePoint();
+  bool SelSplinePoint(double dx, double dy, double dTolerance);
+  bool MoveSplinePoint(CDPoint cNewPos);
 } *PDObject;
 
 typedef class CDataList
