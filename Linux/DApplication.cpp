@@ -2724,7 +2724,8 @@ void CDApplication::SetTool(int iNewTool)
 {
   if(m_pActiveObject)
   {
-    delete m_pActiveObject;
+    if(m_iToolMode == tolExtend) m_pActiveObject->CancelSplineEdit();
+    else if(m_iToolMode != tolEditSpline) delete m_pActiveObject;
     m_pActiveObject = NULL;
   }
   else if(m_pSelForDimen)
