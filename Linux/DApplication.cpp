@@ -2656,6 +2656,10 @@ void CDApplication::SetMode(int iNewMode, bool bFromAccel)
   }
 
   GtkWidget *draw = GetDrawing();
+
+  if(gdk_window_get_cursor(draw->window) != m_pArrowCursor)
+    gdk_window_set_cursor(draw->window, m_pArrowCursor);
+
   cairo_t *cr = gdk_cairo_create(draw->window);
 
   if(m_pcs)
@@ -2768,8 +2772,11 @@ void CDApplication::SetTool(int iNewTool)
     }
   }
 
-
   GtkWidget *draw = GetDrawing();
+
+  if(gdk_window_get_cursor(draw->window) != m_pArrowCursor)
+    gdk_window_set_cursor(draw->window, m_pArrowCursor);
+
   cairo_t *cr = gdk_cairo_create(draw->window);
   if(m_pcs)
   {
