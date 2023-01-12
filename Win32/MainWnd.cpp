@@ -107,6 +107,7 @@ CMainWnd::CMainWnd(HINSTANCE hInstance)
   m_hWnd = 0;
   //m_hToolBar = 0;
   m_hStatus = 0;
+  m_hPlusCur = LoadCursor(hInstance, L"CUR_PLUS");
 
   m_iDrawMode = modSelect;
   m_iButton = 0;
@@ -1584,6 +1585,8 @@ LRESULT CMainWnd::ModeCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl, int iMode)
     return 0;
   }
 
+  if(GetCursor() == m_hPlusCur) SetCursor(LoadCursor(NULL, IDC_ARROW));
+
   ShowWindow(m_hEdt1, SW_HIDE);
   ShowWindow(m_hEdt2, SW_HIDE);
   ShowWindow(m_hLab1, SW_HIDE);
@@ -2213,6 +2216,8 @@ LRESULT CMainWnd::ToolsCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl, int iTool)
     }
     return 0;
   }
+
+  if(GetCursor() == m_hPlusCur) SetCursor(LoadCursor(NULL, IDC_ARROW));
 
   RECT rc;
   GetClientRect(hwnd, &rc);
@@ -4080,21 +4085,18 @@ LRESULT CMainWnd::WMMouseMove(HWND hwnd, WPARAM fwKeys, int xPos, int yPos)
 
           if(m_pActiveObject->HighlightSplinePoint(cPtX, dTol) > 0)
           {
-            //if(gdk_window_get_cursor(event->window) != m_pArrowCursor)
-            //  gdk_window_set_cursor(event->window, m_pArrowCursor);
+            if(GetCursor() == m_hPlusCur) SetCursor(LoadCursor(NULL, IDC_ARROW));
           }
           else
           {
             CDLine cSplinePt;
             if(fabs(m_pActiveObject->GetDistFromPt(cPtX.cOrigin, cPtX.cOrigin, 0, &cSplinePt, NULL)) < dTol)
             {
-              //if(gdk_window_get_cursor(event->window) != m_pPlusCursor)
-              //  gdk_window_set_cursor(event->window, m_pPlusCursor);
+              if(GetCursor() != m_hPlusCur) SetCursor(m_hPlusCur);
             }
             else
             {
-              //if(gdk_window_get_cursor(event->window) != m_pArrowCursor)
-              //  gdk_window_set_cursor(event->window, m_pArrowCursor);
+              if(GetCursor() == m_hPlusCur) SetCursor(LoadCursor(NULL, IDC_ARROW));
             }
           }
         }

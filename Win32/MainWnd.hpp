@@ -120,6 +120,7 @@ private:
 
   int m_iRegRasterCount;
   CDPoint m_cRegRasterPoints[6];
+  HCURSOR m_hPlusCur;
 
   void GetAppPath();
   void LoadSettings(HWND hwnd);
