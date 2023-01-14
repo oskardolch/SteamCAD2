@@ -3561,7 +3561,9 @@ void CMainWnd::DrawObject(HWND hWnd, Graphics *graphics, PDObject pObj, int iMod
       }
       else if(cPrim.iType == 14)
       {
-        if(((m_iDrawMode == modSpline) || (m_iToolMode == tolEditSpline)) && (pObj == m_pActiveObject))
+        //if(((m_iDrawMode == modSpline) || (m_iToolMode == tolEditSpline)) && (pObj == m_pActiveObject))
+        // only draw handles when editing spline
+        if((m_iToolMode == tolEditSpline) && (pObj == m_pActiveObject))
         {
           int iCnt = (int)cPrim.cPt4.x;
           int iMask = (int)cPrim.cPt4.y;
