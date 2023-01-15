@@ -5213,6 +5213,11 @@ bool CDObject::ReadFromFile(FILE *pf, bool bSwapBytes, unsigned char cVersion)
     m_pInputPoints->AddPoint(cInPt.cPoint.x, cInPt.cPoint.y, cInPt.iCtrl);
   }
 
+  if(m_iType == dtSpline)
+  {
+    if(!ValidateSplinePoints(m_pInputPoints)) return false;
+  }
+
   if((cVersion == 1) && (m_iType == dtLine))
   {
     if((m_pInputPoints->GetCount(0) == 1) && (m_pInputPoints->GetCount(1) == 1))
@@ -5393,6 +5398,8 @@ int CDObject::ReadFromStream(unsigned char *pBuf, unsigned char cVersion)
     iCurPos += LoadInputPointFromStream(&pBuf[iCurPos], &cInPt);
     m_pInputPoints->AddPoint(cInPt.cPoint.x, cInPt.cPoint.y, cInPt.iCtrl);
   }
+
+  if(m_iType == dtSpline) ValidateSplinePoints(m_pInputPoints);
 
   memcpy(&lCnt, &pBuf[iCurPos], 4);
   iCurPos += 4;

@@ -4,6 +4,7 @@
 #include "DDataTypes.hpp"
 
 bool AddSplinePoint(double x, double y, char iCtrl, PDPointList pPoints);
+bool ValidateSplinePoints(PDPointList pPoints);
 bool BuildSplineCache(CDLine cTmpPt, int iMode, PDPointList pPoints, PDPointList pCache);
 int GetSplineNumSegments(PDPointList pCache);
 double GetSplineDistFromPt(CDPoint cPt, CDPoint cRefPt, int iSrchMask, PDPointList pCache, PDLine pPtX);

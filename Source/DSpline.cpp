@@ -22,8 +22,52 @@ bool AddSplinePoint(double x, double y, char iCtrl, PDPointList pPoints)
     return false;
   }
 
+  int iCnt = pPoints->GetCount(0);
+  if(iCnt > 0)
+  {
+    CDPoint cPt = {x, y};
+    CDInputPoint cLastPt = pPoints->GetPoint(iCnt - 1, 0);
+    if(GetDist(cPt, cLastPt.cPoint) < 10.0*g_dPrec) return false;
+  }
   pPoints->AddPoint(x, y, 0);
   return false;
+}
+
+bool ValidateSplinePoints(PDPointList pPoints)
+{
+  int nCtrl = pPoints->GetCount(1);
+  int iCnt = pPoints->GetCount(0);
+  if(iCnt < 2) return false;
+  int i = 0;
+  double dLimit = 10.0*g_dPrec;
+  CDPoint cPt1;
+  CDPoint cPt2 = pPoints->GetPoint(i++, 0).cPoint;
+  while(i < iCnt)
+  {
+    cPt1 = cPt2;
+    cPt2 = pPoints->GetPoint(i++, 0).cPoint;
+    if(GetDist(cPt1, cPt2) < dLimit)
+    {
+      i--;
+      pPoints->Remove(i, 0);
+      iCnt--;
+      cPt2 = cPt1;
+    }
+  }
+  if(iCnt < 2) return false;
+  if(nCtrl > 0)
+  {
+    if(iCnt < 3) return false;
+    cPt1 = pPoints->GetPoint(0, 0).cPoint;
+    cPt2 = pPoints->GetPoint(iCnt - 1, 0).cPoint;
+    if(GetDist(cPt1, cPt2) < dLimit)
+    {
+      pPoints->Remove(iCnt - 1, 0);
+      iCnt--;
+    }
+    if(iCnt < 3) return false;
+  }
+  return true;
 }
 
 int GetSplineNumSegments(PDPointList pCache)
