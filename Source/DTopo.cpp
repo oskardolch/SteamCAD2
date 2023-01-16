@@ -276,7 +276,11 @@ int LineXSeg(CDPoint cLnOrg, CDPoint cLnDir, CDPoint cPt1, CDPoint cPt2, PDPoint
 
 int CircXSegParams(CDPoint cOrig, double dRad, CDPoint cPt1, CDPoint cPt2, PDPoint pRes)
 {
+  if(fabs(dRad) < g_dPrec) return 0;
+
   double dLen = GetDist(cPt1, cPt2);
+  if(dLen < g_dPrec) return 0;
+
   CDPoint cNorm = (cPt2 - cPt1)/dLen;
   CDPoint cOrigRot = Rotate(cOrig - cPt1, cNorm, false);
   if(fabs(cOrigRot.y) > dRad + g_dPrec) return 0;

@@ -1750,8 +1750,8 @@ int GetQuadBufInterRect(int iPos, double dOffset, PDRect pRect, CDPoint cRefBoun
 {
   double dStart = cRefBounds.x - (double)iPos;
   double dEnd = cRefBounds.y - (double)iPos;
-  if(dStart > 1.0 - g_dPrec) return 2;
-  if(dEnd < 0.0 + g_dPrec) return 2;
+  if(dStart > 1.0 - g_dPrec) return -1;
+  if(dEnd < 0.0 + g_dPrec) return -1;
 
   if(dStart < 0.0 + g_dPrec) dStart = 0.0;
   if(dEnd > 1.0 + g_dPrec) dEnd = 1.0;
@@ -1828,6 +1828,21 @@ int GetQuadBufInterRect(int iPos, double dOffset, PDRect pRect, CDPoint cRefBoun
     }
   }
 
+  double dBreaks[4];
+  int iBreaks = GetQuadBreaks(cQuad, dOffset, dStart, dEnd, dBreaks);
+  if(iBreaks > 0)
+  {
+    cPt2 = GetQuadBufPoint(cQuad, dOffset, dBreaks[0]);
+    if(DPtInDRect(cPt2, pRect)) iRes = 1;
+    else iOut++;
+  }
+  if(iBreaks > 1)
+  {
+    cPt2 = GetQuadBufPoint(cQuad, dOffset, dBreaks[1]);
+    if(DPtInDRect(cPt2, pRect)) iRes = 1;
+    else iOut++;
+  }
+
   if((iRes > 0) && (iOut < 1)) iRes = 2;
   return iRes;
 }
@@ -1853,8 +1868,11 @@ int GetSplineInterRect(PDRect pRect, CDPoint cRefBounds, PDPointList pCache)
   {
     cQuad = GetSplineNthSegment(i, pCache);
     iLocRes = GetQuadBufInterRect(i, dr, pRect, cRefBounds, cQuad);
-    if(iRes < 0) iRes = iLocRes;
-    else if(iRes != iLocRes) iRes = 1;
+    if(iLocRes > -1)
+    {
+      if(iRes < 0) iRes = iLocRes;
+      else if(iRes != iLocRes) iRes = 1;
+    }
   }
   if(iRes < 0) iRes = 0;
   return iRes;
