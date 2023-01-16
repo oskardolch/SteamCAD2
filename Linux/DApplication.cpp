@@ -1771,12 +1771,12 @@ void CDApplication::Paint(GtkWidget *widget, GdkEventExpose *event)
 
   double dOffset = 0.0;
 // for debuggin purpose
-//dOffset = 10.0;
+dOffset = 10.0;
 //if(bNotWholeWindow) dOffset = 0.0;
-//cairo_set_source_rgb(cr, 0.3, 0.3, 0.3);
-//cairo_new_path(cr);
-//cairo_rectangle(cr, dOffset, dOffset, iWidth - 2*dOffset, iHeight - 2*dOffset);
-//cairo_stroke(cr);
+cairo_set_source_rgb(cr, 0.3, 0.3, 0.3);
+cairo_new_path(cr);
+cairo_rectangle(cr, dOffset, dOffset, iWidth - 2*dOffset, iHeight - 2*dOffset);
+cairo_stroke(cr);
   CDRect cdr;
   cdr.cPt1.x = (event->area.x - m_cViewOrigin.x + dOffset)/m_dUnitScale;
   cdr.cPt1.y = (event->area.y - m_cViewOrigin.y + dOffset)/m_dUnitScale;

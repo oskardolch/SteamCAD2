@@ -1626,6 +1626,13 @@ int CDObject::GetSimpleViewBounds(CDLine cTmpPt, int iMode, double dOffset, doub
     return 2;
   }
 
+  if(m_iType == dtSpline)
+  {
+    pBounds->AddPoint(pDrawBnds->x);
+    pBounds->AddPoint(pDrawBnds->y);
+    return GetSplineInterRect(pRect, *pDrawBnds, m_pCachePoints);
+  }
+
   int iRectFlag = 0;
   double dCornerRefs[4] = {0.0, 0.0, 0.0, 0.0};
   CDLine cPtX;

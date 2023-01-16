@@ -19,6 +19,7 @@ bool GetSplineRestrictPoint(CDPoint cPt, int iMode, double dRestrictValue, PDPoi
 bool GetSplineRefDir(double dRef, PDPointList pCache, PDPoint pPt);
 bool GetSplineReference(double dDist, double dOffset, PDPointList pCache, double *pdRef);
 int AddSplineInterLine(CDPoint cPt1, CDPoint cPt2, double dOffset, PDPointList pCache, PDRefList pBounds);
+int GetSplineInterRect(PDRect pRect, CDPoint cRefBounds, PDPointList pCache);
 int GetSplineSnapPoints(CDPoint cPt, double dDist, PDPointList pCache, PDRefList pRefs);
 bool GetSplineBoundRefPoints(PDPointList pCache, PDRefList pBnds);
 

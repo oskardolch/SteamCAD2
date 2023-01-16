@@ -1746,6 +1746,120 @@ int AddSplineInterLine(CDPoint cPt1, CDPoint cPt2, double dOffset, PDPointList p
   return iRes;
 }
 
+int GetQuadBufInterRect(int iPos, double dOffset, PDRect pRect, CDPoint cRefBounds, CDPrimitive cQuad)
+{
+  double dStart = cRefBounds.x - (double)iPos;
+  double dEnd = cRefBounds.y - (double)iPos;
+  if(dStart > 1.0 - g_dPrec) return 2;
+  if(dEnd < 0.0 + g_dPrec) return 2;
+
+  if(dStart < 0.0 + g_dPrec) dStart = 0.0;
+  if(dEnd > 1.0 + g_dPrec) dEnd = 1.0;
+
+  int iRes = 0;
+  int iOut = 0;
+  double dt;
+  CDPoint cPt1 = pRect->cPt1;
+  CDPoint cPt2;
+  GetQuadDistFromPoint(cPt1, dOffset, cQuad, &dt);
+  if((dt > dStart - g_dPrec) && (dt < dEnd + g_dPrec))
+  {
+    cPt2 = GetQuadBufPoint(cQuad, dOffset, dt);
+    if(DPtInDRect(cPt2, pRect)) iRes = 1;
+    else iOut++;
+  }
+
+  cPt1.x = pRect->cPt2.x;
+  GetQuadDistFromPoint(cPt1, dOffset, cQuad, &dt);
+  if((dt > dStart - g_dPrec) && (dt < dEnd + g_dPrec))
+  {
+    cPt2 = GetQuadBufPoint(cQuad, dOffset, dt);
+    if(DPtInDRect(cPt2, pRect)) iRes = 1;
+    else iOut++;
+  }
+
+  cPt1 = pRect->cPt2;
+  GetQuadDistFromPoint(cPt1, dOffset, cQuad, &dt);
+  if((dt > dStart - g_dPrec) && (dt < dEnd + g_dPrec))
+  {
+    cPt2 = GetQuadBufPoint(cQuad, dOffset, dt);
+    if(DPtInDRect(cPt2, pRect)) iRes = 1;
+    else iOut++;
+  }
+
+  cPt1.x = pRect->cPt1.x;
+  GetQuadDistFromPoint(cPt1, dOffset, cQuad, &dt);
+  if((dt > dStart - g_dPrec) && (dt < dEnd + g_dPrec))
+  {
+    cPt2 = GetQuadBufPoint(cQuad, dOffset, dt);
+    if(DPtInDRect(cPt2, pRect)) iRes = 1;
+    else iOut++;
+  }
+
+  cPt2 = GetQuadBufPoint(cQuad, dOffset, dStart);
+  if(DPtInDRect(cPt2, pRect)) iRes = 1;
+  else iOut++;
+
+  cPt2 = GetQuadBufPoint(cQuad, dOffset, dEnd);
+  if(DPtInDRect(cPt2, pRect)) iRes = 1;
+  else iOut++;
+
+  double dDenom = cQuad.cPt1.x - 2.0*cQuad.cPt2.x + cQuad.cPt3.x;
+  if(fabs(dDenom) > g_dPrec)
+  {
+    dt = (cQuad.cPt1.x - cQuad.cPt2.x)/dDenom;
+    if((dt > dStart - g_dPrec) && (dt < dEnd + g_dPrec))
+    {
+      cPt2 = GetQuadBufPoint(cQuad, dOffset, dt);
+      if(DPtInDRect(cPt2, pRect)) iRes = 1;
+      else iOut++;
+    }
+  }
+
+  dDenom = cQuad.cPt1.y - 2.0*cQuad.cPt2.y + cQuad.cPt3.y;
+  if(fabs(dDenom) > g_dPrec)
+  {
+    dt = (cQuad.cPt1.y - cQuad.cPt2.y)/dDenom;
+    if((dt > dStart - g_dPrec) && (dt < dEnd + g_dPrec))
+    {
+      cPt2 = GetQuadBufPoint(cQuad, dOffset, dt);
+      if(DPtInDRect(cPt2, pRect)) iRes = 1;
+      else iOut++;
+    }
+  }
+
+  if((iRes > 0) && (iOut < 1)) iRes = 2;
+  return iRes;
+}
+
+int GetSplineInterRect(PDRect pRect, CDPoint cRefBounds, PDPointList pCache)
+{
+  int iCnt = pCache->GetCount(0);
+  if(iCnt < 2) return 0;
+
+  //int nCtrl = pCache->GetCount(1);
+  //bool bClosed = (nCtrl > 0);
+
+  int iRes = -1;
+
+  double dr = 0.0;
+  int nOffs = pCache->GetCount(2);
+  if(nOffs > 0) dr += pCache->GetPoint(0, 2).cPoint.x;
+
+  int iSegs = GetSplineNumSegments(pCache);
+  CDPrimitive cQuad;
+  int iLocRes;
+  for(int i = 0; i < iSegs; i++)
+  {
+    cQuad = GetSplineNthSegment(i, pCache);
+    iLocRes = GetQuadBufInterRect(i, dr, pRect, cRefBounds, cQuad);
+    if(iRes < 0) iRes = iLocRes;
+    else if(iRes != iLocRes) iRes = 1;
+  }
+  if(iRes < 0) iRes = 0;
+  return iRes;
+}
+
 bool GetValidInterRefs(double dt1, double dt2, bool bNeigbours)
 {
   if(bNeigbours)
