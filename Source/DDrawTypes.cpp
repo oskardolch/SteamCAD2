@@ -5910,7 +5910,19 @@ bool CDObject::MovePoints(CDPoint cDir, double dDist, int iDimFlag)
       BuildCache(cPtX, 0);
       return bRes;
     }
-    else if(m_iType == dtArea)
+
+    if(m_iType == dtRaster)
+    {
+      CDPoint cPt = m_pInputPoints->GetPoint(0, 1).cPoint;
+      m_pInputPoints->SetPoint(0, 1, cPt.x + cDir.x*dDist, cPt.y + cDir.y*dDist, 1);
+      cPt = m_pInputPoints->GetPoint(1, 1).cPoint;
+      m_pInputPoints->SetPoint(1, 1, cPt.x + cDir.x*dDist, cPt.y + cDir.y*dDist, 1);
+      cPt = m_pInputPoints->GetPoint(2, 1).cPoint;
+      m_pInputPoints->SetPoint(2, 1, cPt.x + cDir.x*dDist, cPt.y + cDir.y*dDist, 1);
+      BuildRasterCacheRaw(m_pInputPoints, m_pRasterCache, 0, 0, NULL);
+      return true;
+    }
+    /*else if(m_iType == dtArea)
     {
       bRes = true;
       iCnt = m_pSubObjects->GetCount();
@@ -5930,7 +5942,9 @@ bool CDObject::MovePoints(CDPoint cDir, double dDist, int iDimFlag)
       BuildCache(cPtX, 0);
       return bRes;
     }
-    else if(m_iType == dtGroup)
+    else if(m_iType == dtGroup)*/
+
+    if(m_iType > dtPath)
     {
       bRes = true;
       iCnt = m_pSubObjects->GetCount();
@@ -5943,17 +5957,6 @@ bool CDObject::MovePoints(CDPoint cDir, double dDist, int iDimFlag)
       }
       BuildCache(cPtX, 0);
       return bRes;
-    }
-    else if(m_iType == dtRaster)
-    {
-      CDPoint cPt = m_pInputPoints->GetPoint(0, 1).cPoint;
-      m_pInputPoints->SetPoint(0, 1, cPt.x + cDir.x*dDist, cPt.y + cDir.y*dDist, 1);
-      cPt = m_pInputPoints->GetPoint(1, 1).cPoint;
-      m_pInputPoints->SetPoint(1, 1, cPt.x + cDir.x*dDist, cPt.y + cDir.y*dDist, 1);
-      cPt = m_pInputPoints->GetPoint(2, 1).cPoint;
-      m_pInputPoints->SetPoint(2, 1, cPt.x + cDir.x*dDist, cPt.y + cDir.y*dDist, 1);
-      BuildRasterCacheRaw(m_pInputPoints, m_pRasterCache, 0, 0, NULL);
-      return true;
     }
   }
 
@@ -6686,6 +6689,30 @@ void CDObject::Rescale(double dRatio, bool bWidths, bool bPatterns, bool bArrows
 
   CDLine cLine;
   BuildCache(cLine, 0);
+
+  if(m_iType > dtPath)
+  {
+    PDObject pObj;
+    int iCnt = m_pSubObjects->GetCount();
+    for(int i = 0; i < iCnt; i++)
+    {
+      pObj = (PDObject)m_pSubObjects->GetItem(i);
+      pObj->Rescale(dRatio, bWidths, bPatterns, bArrows, bLabels);
+    }
+    BuildCache(cLine, 0);
+  }
+
+  if(m_iType == dtPath)
+  {
+    PDPathSeg pSeg;
+    int iCnt = m_pSubObjects->GetCount();
+    for(int i = 0; i < iCnt; i++)
+    {
+      pSeg = (PDPathSeg)m_pSubObjects->GetItem(i);
+      pSeg->pSegment->Rescale(dRatio, bWidths, bPatterns, bArrows, bLabels);
+    }
+    BuildCache(cLine, 0);
+  }
 
   for(int i = 0; i < m_pDimens->GetCount(); i++)
   {
@@ -7913,6 +7940,88 @@ bool CDObject::MoveSplinePoint(CDPoint cNewPos)
   return true;
 }
 
+bool CDObject::IsNullCircle()
+{
+  if(m_iType != dtCircle) return false;
+  double dRad;
+  if(!GetCircRad(m_pCachePoints, &dRad)) return true;
+  return(fabs(dRad) < g_dPrec);
+}
+
+CDObject* CDObject::ReleaseLast()
+{
+  if(m_iType != dtPath) return NULL;
+  int iCnt = m_pSubObjects->GetCount();
+  int i = iCnt;
+  PDObject pRes = NULL;
+  PDPathSeg pSeg;
+  bool bFound = false;
+  while(!bFound && (i > 2))
+  {
+    pSeg = (PDPathSeg)m_pSubObjects->GetItem(--i);
+    bFound = !pSeg->pSegment->IsNullCircle();
+  }
+  if(bFound)
+  {
+    while(iCnt > i + 1)
+    {
+      pSeg = (PDPathSeg)m_pSubObjects->GetItem(--iCnt);
+      m_pSubObjects->Remove(iCnt);
+      delete pSeg->pSegment;
+      free(pSeg);
+    }
+    pSeg = (PDPathSeg)m_pSubObjects->GetItem(--iCnt);
+    m_pSubObjects->Remove(iCnt);
+    pRes = pSeg->pSegment;
+    free(pSeg);
+    pSeg = (PDPathSeg)m_pSubObjects->GetItem(iCnt - 1);
+    if(pSeg->pSegment->IsNullCircle())
+    {
+      m_pSubObjects->Remove(iCnt - 1);
+      delete pSeg->pSegment;
+      free(pSeg);
+    }
+  }
+  return pRes;
+}
+
+CDObject* CDObject::ReleaseFirst()
+{
+  if(m_iType != dtPath) return NULL;
+  int iCnt = m_pSubObjects->GetCount();
+  PDObject pRes = NULL;
+  PDPathSeg pSeg;
+  bool bFound = false;
+  int i = 0;
+  while(!bFound && (i < iCnt - 2))
+  {
+    pSeg = (PDPathSeg)m_pSubObjects->GetItem(i++);
+    bFound = !pSeg->pSegment->IsNullCircle();
+  }
+  if(bFound)
+  {
+    for(int j = 0; j < i - 1; j++)
+    {
+      pSeg = (PDPathSeg)m_pSubObjects->GetItem(0);
+      m_pSubObjects->Remove(0);
+      delete pSeg->pSegment;
+      free(pSeg);
+    }
+    pSeg = (PDPathSeg)m_pSubObjects->GetItem(0);
+    m_pSubObjects->Remove(0);
+    pRes = pSeg->pSegment;
+    free(pSeg);
+    pSeg = (PDPathSeg)m_pSubObjects->GetItem(0);
+    if(pSeg->pSegment->IsNullCircle())
+    {
+      m_pSubObjects->Remove(0);
+      delete pSeg->pSegment;
+      free(pSeg);
+    }
+  }
+  return pRes;
+}
+
 
 // CDataList
 
@@ -8794,11 +8903,11 @@ void CDataList::ChangeUnitMask(int iUnitType, char *psMask, PDUnitList pUnits)
   return;
 }
 
-void CDataList::RescaleDrawing(double dNewScaleNom, double dNewScaleDenom, bool bWidths,
+bool CDataList::RescaleDrawing(double dNewScaleNom, double dNewScaleDenom, bool bWidths,
   bool bPatterns, bool bArrows, bool bLabels)
 {
   double dScaleRatio = dNewScaleNom*m_cFileAttrs.dScaleDenom/(dNewScaleDenom*m_cFileAttrs.dScaleNom);
-  if(fabs(dScaleRatio - 1.0) < g_dPrec) return;
+  if(fabs(dScaleRatio - 1.0) < g_dPrec) return false;
 
   PDObject pObj;
   for(int i = 0; i < m_iDataLen; i++)
@@ -8810,7 +8919,7 @@ void CDataList::RescaleDrawing(double dNewScaleNom, double dNewScaleDenom, bool 
   m_cFileAttrs.dScaleNom = dNewScaleNom;
   m_cFileAttrs.dScaleDenom = dNewScaleDenom;
   m_bHasChanged = true;
-  return;
+  return true;
 }
 
 bool CDataList::GetSelSnapEnabled()
@@ -9110,6 +9219,37 @@ bool CDataList::BreakSelObjects()
         Remove(--i, true);
         iLen--;
       }*/
+    }
+  }
+  return bRes;
+}
+
+bool CDataList::ReleaseFrontSelObjects()
+{
+  PDObject pObj, pObj1;
+  int iLen = m_iDataLen;
+  bool bRes = false;
+
+  for(int i = 0; i < iLen; i++)
+  {
+    pObj = m_ppObjects[i];
+    if(pObj->GetSelected())
+    {
+      if(pObj->GetType() == dtPath)
+      {
+        pObj1 = pObj->ReleaseLast();
+        if(pObj1)
+        {
+          Add(pObj1);
+          bRes = true;
+        }
+        pObj1 = pObj->ReleaseFirst();
+        if(pObj1)
+        {
+          Add(pObj1);
+          bRes = true;
+        }
+      }
     }
   }
   return bRes;

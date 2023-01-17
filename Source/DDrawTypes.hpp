@@ -254,6 +254,9 @@ public:
   bool RemoveSplinePoint();
   bool SelSplinePoint(double dx, double dy, double dTolerance);
   bool MoveSplinePoint(CDPoint cNewPos);
+  bool IsNullCircle();
+  CDObject* ReleaseLast();
+  CDObject* ReleaseFirst();
 } *PDObject;
 
 typedef class CDataList
@@ -314,12 +317,13 @@ public:
   // 0 - success, -1 - no mask found
   int GetUnitMask(int iUnitType, char *psBuf, PDUnitList pUnits);
   void ChangeUnitMask(int iUnitType, char *psMask, PDUnitList pUnits);
-  void RescaleDrawing(double dNewScaleNom, double dNewScaleDenom, bool bWidths, bool bPatterns,
-      bool bArrows, bool bLabels);
+  bool RescaleDrawing(double dNewScaleNom, double dNewScaleDenom, bool bWidths, bool bPatterns,
+    bool bArrows, bool bLabels);
   bool GetSelSnapEnabled();
   void SetSelSnapEnabled(bool bEnable);
   int CreatePath();
   bool BreakSelObjects();
+  bool ReleaseFrontSelObjects();
   bool CreateArea();
   int GetSelectedLength(double *pdLength);
   bool Group();

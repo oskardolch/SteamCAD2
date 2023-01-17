@@ -3357,6 +3357,9 @@ void CDApplication::PathCommand(int iCmd, bool bFromAccel)
   case IDM_PATHBREAK:
     PathBreakCmd();
     break;
+  case IDM_PATHRELEASEFRONT:
+    PathReleaseCmd();
+    break;
   case IDM_PATHAREA:
     PathAreaCmd();
     break;
@@ -4952,6 +4955,7 @@ void CDApplication::ToolsScaleCmd()
     {
       GtkWidget *draw = GetDrawing();
       gdk_window_invalidate_rect(draw->window, NULL, FALSE);
+      SetTitle(m_pMainWnd, false);
     }
   }
   return;
@@ -4970,6 +4974,16 @@ void CDApplication::PathCreateCmd()
 void CDApplication::PathBreakCmd()
 {
   if(m_pDrawObjects->BreakSelObjects())
+  {
+    GtkWidget *draw = GetDrawing();
+    gdk_window_invalidate_rect(draw->window, NULL, FALSE);
+    SetTitle(m_pMainWnd, false);
+  }
+}
+
+void CDApplication::PathReleaseCmd()
+{
+  if(m_pDrawObjects->ReleaseFrontSelObjects())
   {
     GtkWidget *draw = GetDrawing();
     gdk_window_invalidate_rect(draw->window, NULL, FALSE);

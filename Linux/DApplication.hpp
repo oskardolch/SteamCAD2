@@ -168,6 +168,7 @@ private:
 
   void PathCreateCmd();
   void PathBreakCmd();
+  void PathReleaseCmd();
   void PathAreaCmd();
   void PathGroupCmd();
   void PathUngroupCmd();
