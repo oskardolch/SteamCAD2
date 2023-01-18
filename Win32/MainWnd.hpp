@@ -162,6 +162,7 @@ private:
   LRESULT ToolsStatCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl);
   LRESULT PathCreateCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl);
   LRESULT PathBreakCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl);
+  LRESULT PathReleaseCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl);
   LRESULT PathAreaCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl);
   LRESULT PathGroupCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl);
   LRESULT PathUngroupCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl);

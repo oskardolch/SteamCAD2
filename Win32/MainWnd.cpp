@@ -474,6 +474,8 @@ LRESULT CMainWnd::WMCommand(HWND hwnd, WORD wNotifyCode, WORD wID, HWND hwndCtl)
     return PathCreateCmd(hwnd, wNotifyCode, hwndCtl);
   case IDM_PATHBREAK:
     return PathBreakCmd(hwnd, wNotifyCode, hwndCtl);
+  case IDM_PATHRELEASEFRONT:
+    return PathReleaseCmd(hwnd, wNotifyCode, hwndCtl);
   case IDM_PATHAREA:
     return PathAreaCmd(hwnd, wNotifyCode, hwndCtl);
   case IDM_PATHGROUP:
@@ -4699,6 +4701,16 @@ LRESULT CMainWnd::PathCreateCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl)
 LRESULT CMainWnd::PathBreakCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl)
 {
   if(m_pDrawObjects->BreakSelObjects())
+  {
+    InvalidateRect(hwnd, NULL, FALSE);
+    SetTitle(hwnd, false);
+  }
+  return 0;
+}
+
+LRESULT CMainWnd::PathReleaseCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl)
+{
+  if(m_pDrawObjects->ReleaseFrontSelObjects())
   {
     InvalidateRect(hwnd, NULL, FALSE);
     SetTitle(hwnd, false);
