@@ -19,13 +19,31 @@ it will be extended by other segments.
 
 Attempts to create area from selected paths or segments. First it attempts to create paths,
 then area object. The winding rule is alternative, the paths should not cross. For selfcrossing
-paths or crossing paths, the result is unpredicable.
+paths or crossing paths, the result is unpredicable. The usage of paths and areas are demonstrated
+in the figure~\ref{fig:csd_mark}.
+
+\begin{figure}[h]
+\begin{center}
+\includegraphics[scale=0.3]{Images/csd_mark.eps}
+\end{center}
+\caption{The emblem of Czechoslovak railways used from 1920 to 1939}
+\label{fig:csd_mark}
+\end{figure}
 
 \section{Break apart}\label{sec:breakapart}
-\special{pdf: out 2 << /Title (\thesection. Create area) /Dest [ @thispage /FitH @ypos ] >>}
+\special{pdf: out 2 << /Title (\thesection. Break apart) /Dest [ @thispage /FitH @ypos ] >>}
 
 Breaks a path or area. In case of a path, it is decomposed to the original segments. An area
 is decomposed to the paths which defines it.
+
+\section{Release frontiers}\label{sec:releasefront}
+\special{pdf: out 2 << /Title (\thesection. Release frontiers) /Dest [ @thispage /FitH @ypos ] >>}
+
+If you create a path sequentially, it may happen that the next segment is not properly aligned
+with the last segment of a path. Since it is impossible to edit path, braking the whole path
+might result in a lots of lost work. This command can be used to release the first and last
+segment of a path, which allows to edit the last segment to properly align with the next
+segment to be added to the path.
 
 \section{Group}\label{sec:group}
 \special{pdf: out 2 << /Title (\thesection. Group) /Dest [ @thispage /FitH @ypos ] >>}
