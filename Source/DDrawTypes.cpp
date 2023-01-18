@@ -3609,6 +3609,7 @@ PDPathSeg CDObject::GetPathRefSegment(double dRef, double dOffset, double *pdSeg
         return pSeg;
       }
     }
+    return NULL;
   }
 
   if(fabs(dRef - dTotLen) < g_dPrec)
@@ -3646,6 +3647,7 @@ PDPathSeg CDObject::GetPathRefSegment(double dRef, double dOffset, double *pdSeg
         return pSeg;
       }
     }
+    return NULL;
   }
 
   if(dRef < -g_dPrec)
@@ -7311,27 +7313,33 @@ int CDObject::GetSnapPoint(int iSnapMask, CDPoint cPt, double dDist, PDLine pSna
     int iRefBounds = GetRefBounds(&cLocBnds);
     if(iRefBounds > 0)
     {
-      GetNativeRefPoint(cLocBnds.x, 0.0, &cPt1);
-      if(GetDist(cPt, cPt1) < dblDist)
+      if(IsValidRef(cLocBnds.x))
       {
-        pSnapPt->bIsSet = true;
-        pSnapPt->cOrigin = cPt1;
-        pSnapPt->dRef = cLocBnds.x;
-        GetNativeRefDir(cLocBnds.x, &cPt1);
-        pSnapPt->cDirection = GetNormal(cPt1);
-        return 2;
-      }
-      if(iRefBounds > 1)
-      {
-        GetNativeRefPoint(cLocBnds.y, 0.0, &cPt1);
+        GetNativeRefPoint(cLocBnds.x, 0.0, &cPt1);
         if(GetDist(cPt, cPt1) < dblDist)
         {
           pSnapPt->bIsSet = true;
           pSnapPt->cOrigin = cPt1;
-          pSnapPt->dRef = cLocBnds.y;
-          GetNativeRefDir(cLocBnds.y, &cPt1);
+          pSnapPt->dRef = cLocBnds.x;
+          GetNativeRefDir(cLocBnds.x, &cPt1);
           pSnapPt->cDirection = GetNormal(cPt1);
           return 2;
+        }
+      }
+      if(iRefBounds > 1)
+      {
+        if(IsValidRef(cLocBnds.y))
+        {
+          GetNativeRefPoint(cLocBnds.y, 0.0, &cPt1);
+          if(GetDist(cPt, cPt1) < dblDist)
+          {
+            pSnapPt->bIsSet = true;
+            pSnapPt->cOrigin = cPt1;
+            pSnapPt->dRef = cLocBnds.y;
+            GetNativeRefDir(cLocBnds.y, &cPt1);
+            pSnapPt->cDirection = GetNormal(cPt1);
+            return 2;
+          }
         }
       }
     }

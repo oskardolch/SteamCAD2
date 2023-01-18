@@ -802,7 +802,7 @@ double GetQuadPointAtDist(PDPrimitive pQuad, double t1, double dDist)
         {
           a1 = GetQuadLength(pQuad, t1, dRes);
           a2 = GetQuadLength(pQuad, t1, dRoots[1]);
-          if(fabs(dDist - a2) < fabs(dDist - a1)) dRes = dRoots[1];
+          if((fabs(dDist - a2) < fabs(dDist - a1)) || (dRes < 0)) dRes = dRoots[1];
         }
       }
     }
