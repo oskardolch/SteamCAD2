@@ -18,6 +18,7 @@ will improve the performance and also the postprocessing in export formats
 * the lines can have an arbitrary colour in SteamCAD2
 * filled areas can be created
 * raster images can be imported and registered for the drawing
+* spline editing capability added
 
 SteamCAD2 is 2D CAD especially designed to draw steam locomotives like this example:
 ![264.0](/Images/264_0.svg)
