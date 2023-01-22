@@ -3722,7 +3722,7 @@ void CDApplication::MouseMove(GtkWidget *widget, GdkEventMotion *event, gboolean
   }
 
   gchar buf[64];
-  sprintf(buf, "%.3f, %.3f", dx/m_cFSR.cPaperUnit.dBaseToUnit, dy/m_cFSR.cPaperUnit.dBaseToUnit);
+  sprintf(buf, "%s - %.3f, %.3f", m_bPaperUnits ? "P" : "W", dx/m_cFSR.cPaperUnit.dBaseToUnit, dy/m_cFSR.cPaperUnit.dBaseToUnit);
   SetStatusBarMsg(0, buf);
 
   if((m_iButton > 0) && (m_iToolMode != tolEditSpline)) return;
