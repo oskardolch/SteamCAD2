@@ -3751,7 +3751,8 @@ LRESULT CMainWnd::WMMouseMove(HWND hwnd, WPARAM fwKeys, int xPos, int yPos)
   }
 
   wchar_t buf[64];
-  swprintf(buf, L"%.3f, %.3f", dx/m_cFSR.cPaperUnit.dBaseToUnit, dy/m_cFSR.cPaperUnit.dBaseToUnit);
+  swprintf(buf, L"%s - %.3f, %.3f", m_bPaperUnits ? L"P" : L"W",
+    dx/m_cFSR.cPaperUnit.dBaseToUnit, dy/m_cFSR.cPaperUnit.dBaseToUnit);
   SendMessage(m_hStatus, SB_SETTEXT, 0, (LPARAM)buf);
 
   if((m_iButton > 0) && (m_iToolMode != tolEditSpline)) return 0;
