@@ -1549,28 +1549,31 @@ LRESULT CMainWnd::ModeCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl, int iMode)
     char c = 0;
     switch(iMode)
     {
-    case 1:
+    case modLine:
       c = 'l';
       break;
-    case 2:
+    case modRectangle:
+      c = 'r';
+      break;
+    case modCircle:
       c = 'c';
       break;
-    case 3:
+    case modEllipse:
       c = 'e';
       break;
-    case 4:
+    case modArcElps:
       c = 'a';
       break;
-    case 5:
+    case modHyperbola:
       c = 'h';
       break;
-    case 6:
+    case modParabola:
       c = 'p';
       break;
-    case 7:
+    case modSpline:
       c = 's';
       break;
-    case 8:
+    case modEvolvent:
       c = 'v';
       break;
     }
@@ -4335,207 +4338,207 @@ LRESULT CMainWnd::WMKeyDown(HWND hwnd, int nVirtKey, LPARAM lKeyData)
 
 void CMainWnd::StartNewObject(HWND hWnd)
 {
-    ShowWindow(m_hEdt1, SW_HIDE);
-    ShowWindow(m_hEdt2, SW_HIDE);
-    ShowWindow(m_hLab1, SW_HIDE);
-    ShowWindow(m_hChB1, SW_HIDE);
-    SendMessage(m_hStatus, SB_SETTEXT, 2, (LPARAM)L"");
+  ShowWindow(m_hEdt1, SW_HIDE);
+  ShowWindow(m_hEdt2, SW_HIDE);
+  ShowWindow(m_hLab1, SW_HIDE);
+  ShowWindow(m_hChB1, SW_HIDE);
+  SendMessage(m_hStatus, SB_SETTEXT, 2, (LPARAM)L"");
 
-    m_pActiveObject = NULL;
-    m_iRestrictSet = -1;
-    m_iRestrictSet2 = -1;
+  m_pActiveObject = NULL;
+  m_iRestrictSet = -1;
+  m_iRestrictSet2 = -1;
 
-    m_cMeasPoint1.bIsSet = false;
-    m_cMeasPoint2.bIsSet = false;
-    m_cMeasPoint3.bIsSet = false;
+  m_cMeasPoint1.bIsSet = false;
+  m_cMeasPoint2.bIsSet = false;
+  m_cMeasPoint3.bIsSet = false;
 
-    int iLines = m_pDrawObjects->GetNumOfSelectedLines();
-    CDLine cLine1, cLine2;
-    int iLinesFlag = 0;
+  int iLines = m_pDrawObjects->GetNumOfSelectedLines();
+  CDLine cLine1, cLine2;
+  int iLinesFlag = 0;
 
-    wchar_t sCap[32];
-    wchar_t sMsg[128];
-    PDObject pLineObj;
+  wchar_t sCap[32];
+  wchar_t sMsg[128];
+  PDObject pLineObj;
 
-    m_wsStatus2Base[0] = 0;
+  m_wsStatus2Base[0] = 0;
 
-    if(iLines > 0)
+  if(iLines > 0)
+  {
+    pLineObj = m_pDrawObjects->GetSelectedLine(0);
+    cLine1 = pLineObj->GetLine();
+    if(cLine1.bIsSet) iLinesFlag |= 1;
+  }
+
+  if(iLines > 1)
+  {
+    pLineObj = m_pDrawObjects->GetSelectedLine(1);
+    cLine2 = pLineObj->GetLine();
+    if(cLine2.bIsSet) iLinesFlag |= 2;
+  }
+
+  switch(m_iDrawMode)
+  {
+  case modLine:
+    LoadString(m_hInstance, IDS_ANGLE, m_wsStatus2Base, 64);
+    m_pActiveObject = new CDObject(dtLine, m_cFSR.dDefLineWidth);
+    ShowWindow(m_hEdt1, SW_SHOW);
+    SendMessage(m_hEdt1, EM_SETSEL, 0, (LPARAM)-1);
+    SetFocus(m_hEdt1);
+    break;
+  case modCircle:
+    LoadString(m_hInstance, IDS_RADIUS, m_wsStatus2Base, 64);
+    m_pActiveObject = new CDObject(dtCircle, m_cFSR.dDefLineWidth);
+    if(iLinesFlag & 1) m_pActiveObject->SetInputLine(0, cLine1);
+    //if(iLinesFlag & 2) m_pActiveObject->SetInputLine(1, cLine2);
+    ShowWindow(m_hEdt1, SW_SHOW);
+    SendMessage(m_hEdt1, EM_SETSEL, 0, (LPARAM)-1);
+    SetFocus(m_hEdt1);
+    break;
+  case modEllipse:
+    m_pActiveObject = new CDObject(dtEllipse, m_cFSR.dDefLineWidth);
+    if(iLines == 2)
     {
-        pLineObj = m_pDrawObjects->GetSelectedLine(0);
-        cLine1 = pLineObj->GetLine();
-        if(cLine1.bIsSet) iLinesFlag |= 1;
+      if(iLinesFlag & 1) m_pActiveObject->SetInputLine(0, cLine1);
+      if(iLinesFlag & 2) m_pActiveObject->SetInputLine(1, cLine2);
     }
-
-    if(iLines > 1)
+    break;
+  case modArcElps:
+    if(iLines == 2)
     {
-        pLineObj = m_pDrawObjects->GetSelectedLine(1);
-        cLine2 = pLineObj->GetLine();
-        if(cLine2.bIsSet) iLinesFlag |= 2;
+      m_pActiveObject = new CDObject(dtArcEllipse, m_cFSR.dDefLineWidth);
+      if(iLinesFlag & 1) m_pActiveObject->SetInputLine(0, cLine1);
+      if(iLinesFlag & 2) m_pActiveObject->SetInputLine(1, cLine2);
     }
-
-    switch(m_iDrawMode)
+    else
     {
-    case modLine:
-        LoadString(m_hInstance, IDS_ANGLE, m_wsStatus2Base, 64);
-        m_pActiveObject = new CDObject(dtLine, m_cFSR.dDefLineWidth);
-        ShowWindow(m_hEdt1, SW_SHOW);
-        SendMessage(m_hEdt1, EM_SETSEL, 0, (LPARAM)-1);
-        SetFocus(m_hEdt1);
-        break;
-    case modCircle:
-        LoadString(m_hInstance, IDS_RADIUS, m_wsStatus2Base, 64);
-        m_pActiveObject = new CDObject(dtCircle, m_cFSR.dDefLineWidth);
-        if(iLinesFlag & 1) m_pActiveObject->SetInputLine(0, cLine1);
-        //if(iLinesFlag & 2) m_pActiveObject->SetInputLine(1, cLine2);
-        ShowWindow(m_hEdt1, SW_SHOW);
-        SendMessage(m_hEdt1, EM_SETSEL, 0, (LPARAM)-1);
-        SetFocus(m_hEdt1);
-        break;
-    case modEllipse:
-        m_pActiveObject = new CDObject(dtEllipse, m_cFSR.dDefLineWidth);
-        if(iLines == 2)
-        {
-            if(iLinesFlag & 1) m_pActiveObject->SetInputLine(0, cLine1);
-            if(iLinesFlag & 2) m_pActiveObject->SetInputLine(1, cLine2);
-        }
-        break;
-    case modArcElps:
-        if(iLines == 2)
-        {
-            m_pActiveObject = new CDObject(dtArcEllipse, m_cFSR.dDefLineWidth);
-            if(iLinesFlag & 1) m_pActiveObject->SetInputLine(0, cLine1);
-            if(iLinesFlag & 2) m_pActiveObject->SetInputLine(1, cLine2);
-        }
-        else
-        {
-            LoadString(m_hInstance, IDS_WARNING, sCap, 32);
-            LoadString(m_hInstance, IDS_TWOLINESFORARCELLIPSE, sMsg, 128);
-            MessageBox(hWnd, sMsg, sCap, MB_OK | MB_ICONWARNING);
-        }
-        break;
-    case modHyperbola:
-        if(iLines == 2)
-        {
-            m_pActiveObject = new CDObject(dtHyperbola, m_cFSR.dDefLineWidth);
-            if(iLinesFlag & 1) m_pActiveObject->SetInputLine(0, cLine1);
-            if(iLinesFlag & 2) m_pActiveObject->SetInputLine(1, cLine2);
-        }
-        else
-        {
-            LoadString(m_hInstance, IDS_WARNING, sCap, 32);
-            LoadString(m_hInstance, IDS_TWOLINESFORHYPERBOLA, sMsg, 128);
-            MessageBox(hWnd, sMsg, sCap, MB_OK | MB_ICONWARNING);
-        }
-        break;
-    case modParabola:
-        if(iLines == 1)
-        {
-            m_pActiveObject = new CDObject(dtParabola, m_cFSR.dDefLineWidth);
-            if(iLinesFlag & 1) m_pActiveObject->SetInputLine(0, cLine1);
-        }
-        else
-        {
-            LoadString(m_hInstance, IDS_WARNING, sCap, 32);
-            LoadString(m_hInstance, IDS_ONELINEFORPARABOLA, sMsg, 128);
-            MessageBox(hWnd, sMsg, sCap, MB_OK | MB_ICONWARNING);
-        }
-        break;
-    case modSpline:
-        m_pActiveObject = new CDObject(dtSpline, m_cFSR.dDefLineWidth);
-        break;
-    case modEvolvent:
-        iLines = m_pDrawObjects->GetNumOfSelectedCircles();
-        if(iLines == 1)
-        {
-            pLineObj = m_pDrawObjects->GetSelectedCircle(0);
-            cLine1 = pLineObj->GetCircle();
-            if(cLine1.bIsSet) iLinesFlag |= 1;
-            m_pActiveObject = new CDObject(dtEvolvent, m_cFSR.dDefLineWidth);
-            if(iLinesFlag & 1) m_pActiveObject->SetInputLine(0, cLine1);
-        }
-        else
-        {
-            LoadString(m_hInstance, IDS_WARNING, sCap, 32);
-            LoadString(m_hInstance, IDS_ONECIRCFOREVOLV, sMsg, 128);
-            MessageBox(hWnd, sMsg, sCap, MB_OK | MB_ICONWARNING);
-        }
-        break;
-    case modRectangle:
-        LoadString(m_hInstance, IDS_WIDTH, m_wsStatus2Base, 64);
-        LoadString(m_hInstance, IDS_HEIGHT, m_wsStatus3Base, 64);
-        wcscpy(m_wsStatus3Msg, m_wsStatus3Base);
-        //SendMessage(m_hStatus, SB_SETTEXT, 2, (LPARAM)m_wsStatus3Msg);
-        SendMessage(m_hLab1, WM_SETTEXT, 0, (LPARAM)m_wsStatus3Msg);
-        m_pActiveObject = new CDObject(dtRect, m_cFSR.dDefLineWidth);
-        ShowWindow(m_hEdt1, SW_SHOW);
-        SendMessage(m_hEdt1, EM_SETSEL, 0, (LPARAM)-1);
-        ShowWindow(m_hEdt2, SW_SHOW);
-        SendMessage(m_hEdt2, EM_SETSEL, 0, (LPARAM)-1);
-        ShowWindow(m_hLab1, SW_SHOW);
-        SetFocus(m_hEdt1);
-        break;
+      LoadString(m_hInstance, IDS_WARNING, sCap, 32);
+      LoadString(m_hInstance, IDS_TWOLINESFORARCELLIPSE, sMsg, 128);
+      MessageBox(hWnd, sMsg, sCap, MB_OK | MB_ICONWARNING);
     }
-
-    if(m_iToolMode == tolRound)
+    break;
+  case modHyperbola:
+    if(iLines == 2)
     {
-        int iCnt = m_pDrawObjects->GetSelectCount(2);
-        if(iCnt == 2)
-        {
-            m_pActiveObject = new CDObject(dtCircle, m_cFSR.dDefLineWidth);
-            LoadString(m_hInstance, IDS_RADIUS, m_wsStatus2Base, 64);
-            ShowWindow(m_hEdt1, SW_SHOW);
-            SendMessage(m_hEdt1, EM_SETSEL, 0, (LPARAM)-1);
-            SetFocus(m_hEdt1);
-        }
-        else
-        {
-            LoadString(m_hInstance, IDS_WARNING, sCap, 32);
-            LoadString(m_hInstance, IDS_TWOOBJSFORROUND, sMsg, 128);
-            MessageBox(hWnd, sMsg, sCap, MB_OK | MB_ICONWARNING);
-        }
+      m_pActiveObject = new CDObject(dtHyperbola, m_cFSR.dDefLineWidth);
+      if(iLinesFlag & 1) m_pActiveObject->SetInputLine(0, cLine1);
+      if(iLinesFlag & 2) m_pActiveObject->SetInputLine(1, cLine2);
     }
+    else
+    {
+      LoadString(m_hInstance, IDS_WARNING, sCap, 32);
+      LoadString(m_hInstance, IDS_TWOLINESFORHYPERBOLA, sMsg, 128);
+      MessageBox(hWnd, sMsg, sCap, MB_OK | MB_ICONWARNING);
+    }
+    break;
+  case modParabola:
+    if(iLines == 1)
+    {
+      m_pActiveObject = new CDObject(dtParabola, m_cFSR.dDefLineWidth);
+      if(iLinesFlag & 1) m_pActiveObject->SetInputLine(0, cLine1);
+    }
+    else
+    {
+      LoadString(m_hInstance, IDS_WARNING, sCap, 32);
+      LoadString(m_hInstance, IDS_ONELINEFORPARABOLA, sMsg, 128);
+      MessageBox(hWnd, sMsg, sCap, MB_OK | MB_ICONWARNING);
+    }
+    break;
+  case modSpline:
+    m_pActiveObject = new CDObject(dtSpline, m_cFSR.dDefLineWidth);
+    break;
+  case modEvolvent:
+    iLines = m_pDrawObjects->GetNumOfSelectedCircles();
+    if(iLines == 1)
+    {
+      pLineObj = m_pDrawObjects->GetSelectedCircle(0);
+      cLine1 = pLineObj->GetCircle();
+      if(cLine1.bIsSet) iLinesFlag |= 1;
+      m_pActiveObject = new CDObject(dtEvolvent, m_cFSR.dDefLineWidth);
+      if(iLinesFlag & 1) m_pActiveObject->SetInputLine(0, cLine1);
+    }
+    else
+    {
+      LoadString(m_hInstance, IDS_WARNING, sCap, 32);
+      LoadString(m_hInstance, IDS_ONECIRCFOREVOLV, sMsg, 128);
+      MessageBox(hWnd, sMsg, sCap, MB_OK | MB_ICONWARNING);
+    }
+    break;
+  case modRectangle:
+    LoadString(m_hInstance, IDS_WIDTH, m_wsStatus2Base, 64);
+    LoadString(m_hInstance, IDS_HEIGHT, m_wsStatus3Base, 64);
+    wcscpy(m_wsStatus3Msg, m_wsStatus3Base);
+    //SendMessage(m_hStatus, SB_SETTEXT, 2, (LPARAM)m_wsStatus3Msg);
+    SendMessage(m_hLab1, WM_SETTEXT, 0, (LPARAM)m_wsStatus3Msg);
+    m_pActiveObject = new CDObject(dtRect, m_cFSR.dDefLineWidth);
+    ShowWindow(m_hEdt1, SW_SHOW);
+    SendMessage(m_hEdt1, EM_SETSEL, 0, (LPARAM)-1);
+    ShowWindow(m_hEdt2, SW_SHOW);
+    SendMessage(m_hEdt2, EM_SETSEL, 0, (LPARAM)-1);
+    ShowWindow(m_hLab1, SW_SHOW);
+    SetFocus(m_hEdt1);
+    break;
+  }
 
-    wcscpy(m_wsStatus2Msg, m_wsStatus2Base);
-    SendMessage(m_hStatus, SB_SETTEXT, 1, (LPARAM)m_wsStatus2Msg);
+  if(m_iToolMode == tolRound)
+  {
+    int iCnt = m_pDrawObjects->GetSelectCount(2);
+    if(iCnt == 2)
+    {
+      m_pActiveObject = new CDObject(dtCircle, m_cFSR.dDefLineWidth);
+      LoadString(m_hInstance, IDS_RADIUS, m_wsStatus2Base, 64);
+      ShowWindow(m_hEdt1, SW_SHOW);
+      SendMessage(m_hEdt1, EM_SETSEL, 0, (LPARAM)-1);
+      SetFocus(m_hEdt1);
+    }
+    else
+    {
+      LoadString(m_hInstance, IDS_WARNING, sCap, 32);
+      LoadString(m_hInstance, IDS_TWOOBJSFORROUND, sMsg, 128);
+      MessageBox(hWnd, sMsg, sCap, MB_OK | MB_ICONWARNING);
+    }
+  }
+
+  wcscpy(m_wsStatus2Msg, m_wsStatus2Base);
+  SendMessage(m_hStatus, SB_SETTEXT, 1, (LPARAM)m_wsStatus2Msg);
 }
 
 void CMainWnd::GetDeviceToUnitScale(HWND hWnd)
 {
-    HDC hdc = GetDC(0);
-    int iLogPizelsX = GetDeviceCaps(hdc, LOGPIXELSX);
-    //int iLogPixelsY = GetDeviceCaps(hdc, LOGPIXELSY);
-    ReleaseDC(0, NULL);
+  HDC hdc = GetDC(0);
+  int iLogPizelsX = GetDeviceCaps(hdc, LOGPIXELSX);
+  //int iLogPixelsY = GetDeviceCaps(hdc, LOGPIXELSY);
+  ReleaseDC(0, NULL);
 
-    m_iSelectTolerance = (int)1.0*iLogPizelsX/g_dMmToIn;
-    m_iSnapTolerance = (int)2.0*iLogPizelsX/g_dMmToIn;
+  m_iSelectTolerance = (int)1.0*iLogPizelsX/g_dMmToIn;
+  m_iSnapTolerance = (int)2.0*iLogPizelsX/g_dMmToIn;
 
-    m_dDeviceToUnitScale = (double)iLogPizelsX/g_dMmToIn;
+  m_dDeviceToUnitScale = (double)iLogPizelsX/g_dMmToIn;
 }
 
 LRESULT CMainWnd::Edit1Cmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl)
 {
-    if(wNotifyCode == EN_CHANGE)
+  if(wNotifyCode == EN_CHANGE)
+  {
+    wchar_t wBuf[64];
+    SendMessage(hwndCtl, WM_GETTEXT, 64, (LPARAM)wBuf);
+
+    int iOldRest = m_iRestrictSet;
+
+    char sBuf[64];
+    WideCharToMultiByte(CP_UTF8, 0, wBuf, -1, sBuf, 64, NULL, NULL);
+    m_iRestrictSet = ParseInputString(sBuf, m_pFileSetupDlg->GetUnitList(), &m_dRestrictValue);
+
+    WMMouseMove(hwnd, 0, m_cLastSnapPt.x, m_cLastSnapPt.y);
+
+    if((m_iToolMode == tolMove) && !m_cMeasPoint1.bIsSet && (iOldRest != m_iRestrictSet))
     {
-        wchar_t wBuf[64];
-        SendMessage(hwndCtl, WM_GETTEXT, 64, (LPARAM)wBuf);
-
-        int iOldRest = m_iRestrictSet;
-
-        char sBuf[64];
-        WideCharToMultiByte(CP_UTF8, 0, wBuf, -1, sBuf, 64, NULL, NULL);
-        m_iRestrictSet = ParseInputString(sBuf, m_pFileSetupDlg->GetUnitList(), &m_dRestrictValue);
-
-        WMMouseMove(hwnd, 0, m_cLastSnapPt.x, m_cLastSnapPt.y);
-
-        if((m_iToolMode == tolMove) && !m_cMeasPoint1.bIsSet && (iOldRest != m_iRestrictSet))
-        {
-            if(IS_LENGTH_VAL(m_iRestrictSet))
-                LoadString(m_hInstance, IDS_SELLINETOMOVE, m_wsStatus2Msg, 128);
-            else LoadString(m_hInstance, IDS_SELPOINTFROMMOVE, m_wsStatus2Msg, 128);
-            SendMessage(m_hStatus, SB_SETTEXT, 2, (LPARAM)m_wsStatus2Msg);
-        }
+      if(IS_LENGTH_VAL(m_iRestrictSet))
+        LoadString(m_hInstance, IDS_SELLINETOMOVE, m_wsStatus2Msg, 128);
+      else LoadString(m_hInstance, IDS_SELPOINTFROMMOVE, m_wsStatus2Msg, 128);
+        SendMessage(m_hStatus, SB_SETTEXT, 2, (LPARAM)m_wsStatus2Msg);
     }
-    return 0;
+  }
+  return 0;
 }
 
 LRESULT CMainWnd::Edit2Cmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl)
@@ -4618,51 +4621,51 @@ void CMainWnd::SetTitle(HWND hWnd, bool bForce)
 
 LRESULT CMainWnd::ToolsScaleCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl)
 {
-    CDFileAttrs cFA;
-    m_pDrawObjects->GetFileAttrs(&cFA);
+  CDFileAttrs cFA;
+  m_pDrawObjects->GetFileAttrs(&cFA);
 
-    CDScaleRec cSR;
-    cSR.bScaleDraw = false;
-    cSR.dScaleNom = cFA.dScaleNom;
-    cSR.dScaleDenom = cFA.dScaleDenom;
-    cSR.bScaleWidth = true;
-    cSR.bScalePattern = true;
-    cSR.bScaleArrows = true;
-    cSR.bScaleLabels = true;
-    cSR.bChangeDimUnits = false;
+  CDScaleRec cSR;
+  cSR.bScaleDraw = false;
+  cSR.dScaleNom = cFA.dScaleNom;
+  cSR.dScaleDenom = cFA.dScaleDenom;
+  cSR.bScaleWidth = true;
+  cSR.bScalePattern = true;
+  cSR.bScaleArrows = true;
+  cSR.bScaleLabels = true;
+  cSR.bChangeDimUnits = false;
 
-    char sMaskBuf[64];
+  char sMaskBuf[64];
 
-    int iRes = m_pDrawObjects->GetUnitMask(1, sMaskBuf, m_pFileSetupDlg->GetUnitList());
-    if(iRes < 0) wcscpy(cSR.wsLenMask, m_cFSR.wsLengthMask);
-    else MultiByteToWideChar(CP_UTF8, 0, sMaskBuf, -1, cSR.wsLenMask, 64);
+  int iRes = m_pDrawObjects->GetUnitMask(1, sMaskBuf, m_pFileSetupDlg->GetUnitList());
+  if(iRes < 0) wcscpy(cSR.wsLenMask, m_cFSR.wsLengthMask);
+  else MultiByteToWideChar(CP_UTF8, 0, sMaskBuf, -1, cSR.wsLenMask, 64);
 
-    iRes = m_pDrawObjects->GetUnitMask(2, sMaskBuf, m_pFileSetupDlg->GetUnitList());
-    if(iRes < 0) wcscpy(cSR.wsAngMask, m_cFSR.wsAngleMask);
-    else MultiByteToWideChar(CP_UTF8, 0, sMaskBuf, -1, cSR.wsAngMask, 64);
+  iRes = m_pDrawObjects->GetUnitMask(2, sMaskBuf, m_pFileSetupDlg->GetUnitList());
+  if(iRes < 0) wcscpy(cSR.wsAngMask, m_cFSR.wsAngleMask);
+  else MultiByteToWideChar(CP_UTF8, 0, sMaskBuf, -1, cSR.wsAngMask, 64);
 
-    if(m_pScaleDlg->ShowDialog(hwnd, &cSR) == IDOK)
+  if(m_pScaleDlg->ShowDialog(hwnd, &cSR) == IDOK)
+  {
+    bool bRedraw = false;
+    if(cSR.bScaleDraw)
     {
-        bool bRedraw = false;
-        if(cSR.bScaleDraw)
-        {
-            bRedraw = true;
-            m_pDrawObjects->RescaleDrawing(cSR.dScaleNom, cSR.dScaleDenom,
-                cSR.bScaleWidth, cSR.bScalePattern, cSR.bScaleArrows, cSR.bScaleLabels);
-            m_pUndoObjects->ClearAll();
-            DataToFileProps();
-        }
-        if(cSR.bChangeDimUnits)
-        {
-            bRedraw = true;
-            WideCharToMultiByte(CP_UTF8, 0, cSR.wsLenMask, -1, sMaskBuf, 64, NULL, NULL);
-            m_pDrawObjects->ChangeUnitMask(1, sMaskBuf, m_pFileSetupDlg->GetUnitList());
-            WideCharToMultiByte(CP_UTF8, 0, cSR.wsAngMask, -1, sMaskBuf, 64, NULL, NULL);
-            m_pDrawObjects->ChangeUnitMask(2, sMaskBuf, m_pFileSetupDlg->GetUnitList());
-        }
-        if(bRedraw) InvalidateRect(hwnd, NULL, FALSE);
+      bRedraw = true;
+      m_pDrawObjects->RescaleDrawing(cSR.dScaleNom, cSR.dScaleDenom,
+      cSR.bScaleWidth, cSR.bScalePattern, cSR.bScaleArrows, cSR.bScaleLabels);
+      m_pUndoObjects->ClearAll();
+      DataToFileProps();
     }
-    return 0;
+    if(cSR.bChangeDimUnits)
+    {
+      bRedraw = true;
+      WideCharToMultiByte(CP_UTF8, 0, cSR.wsLenMask, -1, sMaskBuf, 64, NULL, NULL);
+      m_pDrawObjects->ChangeUnitMask(1, sMaskBuf, m_pFileSetupDlg->GetUnitList());
+      WideCharToMultiByte(CP_UTF8, 0, cSR.wsAngMask, -1, sMaskBuf, 64, NULL, NULL);
+      m_pDrawObjects->ChangeUnitMask(2, sMaskBuf, m_pFileSetupDlg->GetUnitList());
+    }
+    if(bRedraw) InvalidateRect(hwnd, NULL, FALSE);
+  }
+  return 0;
 }
 
 LRESULT CMainWnd::ToolsStatCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl)
