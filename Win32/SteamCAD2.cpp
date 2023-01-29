@@ -55,9 +55,9 @@ SetConsoleActiveScreenBuffer(g_hConsole);*/
   while(!finish)
   {
     res = GetMessage(&msg, 0, 0, 0);
-    if (!TranslateAccelerator(wnd, hAccel, &msg))
+    if(!TranslateAccelerator(wnd, hAccel, &msg))
     {
-      switch (res)
+      switch(res)
       {
       case -1:
         MessageBox(wnd, L"Error?", L"Debug", MB_OK);

@@ -153,6 +153,7 @@ private:
   LRESULT EditUndoCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl);
   LRESULT EditRedoCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl);
   LRESULT EditConfirmCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl);
+  LRESULT NextWindowCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl);
   LRESULT ViewFitCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl);
   LRESULT ViewActSizeCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl);
   LRESULT ViewGridCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl, int iType);

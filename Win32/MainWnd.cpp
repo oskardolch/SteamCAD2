@@ -60,7 +60,9 @@ LRESULT CALLBACK MainWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     return mw->WMClose(hwnd);
   case WM_DESTROY:
     return mw->WMDestroy(hwnd);
-  /*case WM_CHAR:
+  /*case WM_GETDLGCODE:
+    return DLGC_WANTTAB;
+  case WM_CHAR:
     return mw->WMChar(hwnd, (wchar_t)wParam, lParam);
   case WM_KEYDOWN:
     return mw->WMKeyDown(hwnd, (int)wParam, lParam);*/
@@ -76,6 +78,7 @@ LRESULT CALLBACK StatusWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPara
   switch(uMsg)
   {
   case WM_COMMAND:
+  case WM_KEYDOWN:
     return SendMessage(GetParent(hwnd), uMsg, wParam, lParam);
   default:
     return CallWindowProc(pwPrevProc, hwnd, uMsg, wParam, lParam);
@@ -291,9 +294,8 @@ LRESULT CMainWnd::WMCreate(HWND hwnd, LPCREATESTRUCT lpcs)
   m_pToolBar = new CDToolbar(m_hToolBar, m_hInstance, GetMenu(hwnd));*/
 
   m_hStatus = CreateWindowEx(WS_EX_CONTROLPARENT, STATUSCLASSNAME, (LPCTSTR)NULL,
-    WS_CHILD | WS_VISIBLE, 0, 0, 0, 0, hwnd, (HMENU)IDC_STATUS,
-    m_hInstance, NULL);
-    SendMessage(m_hStatus, SB_SETUNICODEFORMAT, (WPARAM)TRUE, 0);
+    WS_CHILD | WS_VISIBLE, 0, 0, 0, 0, hwnd, (HMENU)IDC_STATUS, m_hInstance, NULL);
+  SendMessage(m_hStatus, SB_SETUNICODEFORMAT, (WPARAM)TRUE, 0);
 //g_hStatus = m_hStatus;
 
   INT iWidth[3] = {150, 480, -1};
@@ -317,12 +319,13 @@ LRESULT CMainWnd::WMCreate(HWND hwnd, LPCREATESTRUCT lpcs)
   HFONT hFnt = (HFONT)SendMessage(m_hStatus, WM_GETFONT, 0, 0);
 
   m_hEdt1 = CreateWindowEx(WS_EX_CONTROLPARENT, L"EDIT", NULL,
-    WS_CHILD | WS_BORDER | ES_AUTOHSCROLL | WS_TABSTOP, 280, 2, 50,
+    WS_CHILD | WS_BORDER | ES_AUTOHSCROLL, 280, 2, 50,
     m_iStatusHeight - 3, m_hStatus, (HMENU)IDC_EDT1, m_hInstance, NULL);
   SendMessage(m_hEdt1, WM_SETFONT, (WPARAM)hFnt, 0);
   SendMessage(m_hEdt1, EM_LIMITTEXT, 64, 0);
+
   m_hEdt2 = CreateWindowEx(WS_EX_CONTROLPARENT, L"EDIT", NULL,
-    WS_CHILD | WS_BORDER | ES_AUTOHSCROLL | WS_TABSTOP, 425, 2, 50, m_iStatusHeight - 3,
+    WS_CHILD | WS_BORDER | ES_AUTOHSCROLL, 425, 2, 50, m_iStatusHeight - 3,
     m_hStatus, (HMENU)IDC_EDT2, m_hInstance, NULL);
   SendMessage(m_hEdt2, WM_SETFONT, (WPARAM)hFnt, 0);
   SendMessage(m_hEdt2, EM_LIMITTEXT, 64, 0);
@@ -435,6 +438,8 @@ LRESULT CMainWnd::WMCommand(HWND hwnd, WORD wNotifyCode, WORD wID, HWND hwndCtl)
     return EditRedoCmd(hwnd, wNotifyCode, hwndCtl);
   case IDM_EDITCONFIRM:
     return EditConfirmCmd(hwnd, wNotifyCode, hwndCtl);
+  case IDM_NEXTWINDOW:
+    return NextWindowCmd(hwnd, wNotifyCode, hwndCtl);
   case IDM_VIEWFITALL:
     return ViewFitCmd(hwnd, wNotifyCode, hwndCtl);
   case IDM_VIEWACTSIZE:
@@ -1695,6 +1700,20 @@ LRESULT CMainWnd::EditCutCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl)
 
 LRESULT CMainWnd::EditPasteCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl)
 {
+  if(IsWindowVisible(m_hEdt1) || IsWindowVisible(m_hEdt2))
+  {
+    HWND hFocus = GetFocus();
+    if(hFocus == m_hEdt1)
+    {
+      SendMessage(m_hEdt1, WM_PASTE, 0, 0);
+    }
+    else if(hFocus == m_hEdt2)
+    {
+      SendMessage(m_hEdt2, WM_PASTE, 0, 0);
+    }
+    return 0;
+  }
+
   if(!IsClipboardFormatAvailable(m_iClipboardFormat)) return 0;
   if(!OpenClipboard(m_hWnd)) return 0;
 
@@ -2103,6 +2122,25 @@ LRESULT CMainWnd::EditConfirmCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl)
   return 0;
 }
 
+LRESULT CMainWnd::NextWindowCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl)
+{
+  if(IsWindowVisible(m_hEdt1) && IsWindowVisible(m_hEdt2))
+  {
+    HWND wndFocus = GetFocus();
+    if(wndFocus != m_hEdt1)
+    {
+      SendMessage(m_hEdt1, EM_SETSEL, 0, (LPARAM)-1);
+      SetFocus(m_hEdt1);
+    }
+    else
+    {
+      SendMessage(m_hEdt2, EM_SETSEL, 0, (LPARAM)-1);
+      SetFocus(m_hEdt2);
+    }
+  }
+  return 0;
+}
+
 void CMainWnd::GetPageDims()
 {
   m_dwPage = m_cFSR.cPaperSize.dPaperWidth;
@@ -2486,6 +2524,23 @@ LRESULT CMainWnd::WMLButtonUp(HWND hwnd, WPARAM fwKeys, int xPos, int yPos)
         swprintf(wsBuf, L"dx: %.3f, dy: %.3f, dist: %.4f (%s)", fabs(cDistPt.x),
           fabs(cDistPt.y), dNorm, wsUnit);
         SendMessage(m_hStatus, SB_SETTEXT, 1, (LPARAM)wsBuf);
+
+        if(OpenClipboard(m_hWnd))
+        {
+          swprintf(wsBuf, L"%.4f", dNorm);
+          int iLen = wcslen(wsBuf);
+          HGLOBAL hglbCopy = GlobalAlloc(GMEM_MOVEABLE, (iLen + 1)*sizeof(wchar_t));
+          if(hglbCopy)
+          {
+            LPWSTR lptstrCopy = (LPWSTR)GlobalLock(hglbCopy);
+            memcpy(lptstrCopy, wsBuf, iLen*sizeof(wchar_t));
+            lptstrCopy[iLen] = 0;
+            GlobalUnlock(hglbCopy);
+            EmptyClipboard();
+            SetClipboardData(CF_UNICODETEXT, hglbCopy);
+          }
+          CloseClipboard();
+        }
       }
       else
       {
@@ -2522,6 +2577,23 @@ LRESULT CMainWnd::WMLButtonUp(HWND hwnd, WPARAM fwKeys, int xPos, int yPos)
           wsUnit = m_cFSR.cAngUnit.wsAbbrev;
           swprintf(wsBuf, L"angle: %.4f (%s)", dAng*m_cFSR.cAngUnit.dBaseToUnit, wsUnit);
           SendMessage(m_hStatus, SB_SETTEXT, 1, (LPARAM)wsBuf);
+
+          if(OpenClipboard(m_hWnd))
+          {
+            swprintf(wsBuf, L"%.4f", dAng*m_cFSR.cAngUnit.dBaseToUnit);
+            int iLen = wcslen(wsBuf);
+            HGLOBAL hglbCopy = GlobalAlloc(GMEM_MOVEABLE, (iLen + 1)*sizeof(wchar_t));
+            if(hglbCopy)
+            {
+              LPWSTR lptstrCopy = (LPWSTR)GlobalLock(hglbCopy);
+              memcpy(lptstrCopy, wsBuf, iLen*sizeof(wchar_t));
+              lptstrCopy[iLen] = 0;
+              GlobalUnlock(hglbCopy);
+              EmptyClipboard();
+              SetClipboardData(CF_TEXT, hglbCopy);
+            }
+            CloseClipboard();
+          }
         }
       }
       else
@@ -2555,6 +2627,22 @@ LRESULT CMainWnd::WMLButtonUp(HWND hwnd, WPARAM fwKeys, int xPos, int yPos)
           dNorm /= m_dDrawScale;
           dNorm /= m_cFSR.cLenUnit.dBaseToUnit;
           wsUnit = m_cFSR.cLenUnit.wsAbbrev;
+        }
+        if(OpenClipboard(m_hWnd))
+        {
+          swprintf(wsBuf, L"%.4f", dNorm);
+          int iLen = wcslen(wsBuf);
+          HGLOBAL hglbCopy = GlobalAlloc(GMEM_MOVEABLE, (iLen + 1)*sizeof(wchar_t));
+          if(hglbCopy)
+          {
+            LPWSTR lptstrCopy = (LPWSTR)GlobalLock(hglbCopy);
+            memcpy(lptstrCopy, wsBuf, iLen*sizeof(wchar_t));
+            lptstrCopy[iLen] = 0;
+            GlobalUnlock(hglbCopy);
+            EmptyClipboard();
+            SetClipboardData(CF_UNICODETEXT, hglbCopy);
+          }
+          CloseClipboard();
         }
         swprintf(wsBuf, L"Length: %.4f (%s)", dNorm, wsUnit);
       }
@@ -4299,41 +4387,60 @@ LRESULT CMainWnd::WMLButtonDblClk(HWND hwnd, WPARAM fwKeys, int xPos, int yPos)
 
 LRESULT CMainWnd::WMKeyDown(HWND hwnd, int nVirtKey, LPARAM lKeyData)
 {
-    float f;
-    int iLen;
-    bool bRedraw = false;
-
-    if((nVirtKey == VK_DECIMAL) || (nVirtKey == VK_OEM_PERIOD))
+  if(nVirtKey == VK_TAB)
+  {
+    if(IsWindowVisible(m_hEdt1) && IsWindowVisible(m_hEdt2))
     {
-        iLen = wcslen(m_wsStatus2Msg);
-        if(iLen < 127)
-        {
-            m_wsStatus2Msg[iLen] = '.';
-            m_wsStatus2Msg[iLen + 1] = 0;
-        }
-        m_bRestrictSet = true;
-        iLen = wcslen(m_wsStatus2Base);
-        if(swscanf(&m_wsStatus2Msg[iLen], L"%f", &f) == 1) m_dRestrictValue = f;
-        else m_bRestrictSet = false;
-        bRedraw = true;
-    }
-    else if(nVirtKey == VK_BACK)
-    {
-        iLen = wcslen(m_wsStatus2Msg);
-        if(iLen > wcslen(m_wsStatus2Base)) m_wsStatus2Msg[iLen - 1] = 0;
-
-        m_bRestrictSet = true;
-        iLen = wcslen(m_wsStatus2Base);
-        if(swscanf(&m_wsStatus2Msg[iLen], L"%f", &f) == 1) m_dRestrictValue = f;
-        else m_bRestrictSet = false;
-        bRedraw = true;
-    }
-    if(bRedraw)
-    {
-        SendMessage(m_hStatus, SB_SETTEXT, 1, (LPARAM)m_wsStatus2Msg);
-        WMMouseMove(hwnd, 0, m_cLastMovePt.x, m_cLastMovePt.y);
+      HWND wndFocus = GetFocus();
+      if(wndFocus != m_hEdt1)
+      {
+        SendMessage(m_hEdt1, EM_SETSEL, 0, (LPARAM)-1);
+        SetFocus(m_hEdt1);
+      }
+      else
+      {
+        SendMessage(m_hEdt2, EM_SETSEL, 0, (LPARAM)-1);
+        SetFocus(m_hEdt2);
+      }
     }
     return 0;
+  }
+
+  float f;
+  int iLen;
+  bool bRedraw = false;
+
+  if((nVirtKey == VK_DECIMAL) || (nVirtKey == VK_OEM_PERIOD))
+  {
+    iLen = wcslen(m_wsStatus2Msg);
+    if(iLen < 127)
+    {
+      m_wsStatus2Msg[iLen] = '.';
+      m_wsStatus2Msg[iLen + 1] = 0;
+    }
+    m_bRestrictSet = true;
+    iLen = wcslen(m_wsStatus2Base);
+    if(swscanf(&m_wsStatus2Msg[iLen], L"%f", &f) == 1) m_dRestrictValue = f;
+    else m_bRestrictSet = false;
+    bRedraw = true;
+  }
+  else if(nVirtKey == VK_BACK)
+  {
+    iLen = wcslen(m_wsStatus2Msg);
+    if(iLen > wcslen(m_wsStatus2Base)) m_wsStatus2Msg[iLen - 1] = 0;
+
+    m_bRestrictSet = true;
+    iLen = wcslen(m_wsStatus2Base);
+    if(swscanf(&m_wsStatus2Msg[iLen], L"%f", &f) == 1) m_dRestrictValue = f;
+    else m_bRestrictSet = false;
+    bRedraw = true;
+  }
+  if(bRedraw)
+  {
+    SendMessage(m_hStatus, SB_SETTEXT, 1, (LPARAM)m_wsStatus2Msg);
+    WMMouseMove(hwnd, 0, m_cLastMovePt.x, m_cLastMovePt.y);
+  }
+  return 0;
 }*/
 
 void CMainWnd::StartNewObject(HWND hWnd)
