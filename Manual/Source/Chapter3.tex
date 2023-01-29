@@ -320,9 +320,25 @@ the driver's cab.
 There are few more commands left, which we haven't discussed yet.
 \begin{enumerate}
 \item \textbf{Mesure distance} (``Alt + D'') - you can measure any distance
-by clicking two consequent points. The distance and angle is reported on
-the status bar in the default units and depending on the Paper units switch,
-they are reported either in world default units, or paper default units.
+by clicking two consequent points. The vertical, horizontal and total distance
+are reported on the status bar in the default units and depending on the Paper
+units switch, they are reported either in world default units, or paper default
+units.
+
+Also the string representing the total distance is copied to the clipboard so that
+it can be reused in further operations.
+
+\item \textbf{Mesure angle} (``Alt + A'') - you can measure an angle by clicking
+two points by left mouse button - one the angle origin and the secon any point
+to measure the angle from. Third click displays the final value and copies its
+string representation to the clipboard.
+
+\item \textbf{Mesure leangth} (``Alt + L'') - this command measures the sum of
+lengths of all selected segments. The measure is calculate upon left mouse button
+click. The clicked point is irrelevant. If an unbound object is in the select set,
+it will report ``Infinity'' on the status bar. Otherwise the value is dislplayed
+in the status bar and its string representation is copied to the clipboard.
+
 \item \textbf{Tools \lar{} Rescale and Units} - this command can be used to
 both change the default length and angular mask for the whole drawing and to
 change the scale of the whole drawing. To change the mask can be useful if you

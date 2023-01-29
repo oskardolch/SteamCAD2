@@ -4226,6 +4226,8 @@ void CDApplication::MouseLButtonUp(GtkWidget *widget, GdkEventButton *event)
   int i;
 
   gboolean bUpdate = FALSE;
+  GtkClipboard *pClip;
+  gchar sClipBuf[64];
 
   if(m_iDrawMode + m_iToolMode < 1) // selection
   {
@@ -4312,6 +4314,10 @@ void CDApplication::MouseLButtonUp(GtkWidget *widget, GdkEventButton *event)
         sprintf(sBuf, "dx: %.3f, dy: %.3f, dist: %.4f (%s)", fabs(cDistPt.x),
           fabs(cDistPt.y), dNorm, sUnit);
         SetStatusBarMsg(1, sBuf);
+
+        sprintf(sClipBuf, "%.4f", dNorm);
+        pClip = gtk_clipboard_get(GDK_SELECTION_CLIPBOARD);
+        gtk_clipboard_set_text(pClip, sClipBuf, -1);
       }
       else
       {
@@ -4348,6 +4354,10 @@ void CDApplication::MouseLButtonUp(GtkWidget *widget, GdkEventButton *event)
           gchar *sUnit = m_cFSR.cAngUnit.sAbbrev;
           sprintf(m_sStatus1Msg, "angle: %.4f (%s)", dAng*m_cFSR.cAngUnit.dBaseToUnit, sUnit);
           SetStatusBarMsg(1, m_sStatus1Msg);
+
+          sprintf(sClipBuf, "%.4f", dAng*m_cFSR.cAngUnit.dBaseToUnit);
+          pClip = gtk_clipboard_get(GDK_SELECTION_CLIPBOARD);
+          gtk_clipboard_set_text(pClip, sClipBuf, -1);
         }
       }
       else
@@ -4382,6 +4392,9 @@ void CDApplication::MouseLButtonUp(GtkWidget *widget, GdkEventButton *event)
           dNorm /= m_cFSR.cLenUnit.dBaseToUnit;
           sUnit = m_cFSR.cLenUnit.sAbbrev;
         }
+        sprintf(sClipBuf, "%.4f", dNorm);
+        pClip = gtk_clipboard_get(GDK_SELECTION_CLIPBOARD);
+        gtk_clipboard_set_text(pClip, sClipBuf, -1);
         sprintf(m_sStatus1Msg, "Length: %.4f (%s)", dNorm, sUnit);
       }
       SetStatusBarMsg(1, m_sStatus1Msg);
