@@ -59,7 +59,7 @@ double GetRasterDistFromPt(CDPoint cPt, PDRasterCache pCache, PDLine pPtX)
   double dDet = pCache->cMatrixRow1.x*pCache->cMatrixRow2.y - pCache->cMatrixRow1.y*pCache->cMatrixRow2.x;
   if(fabs(dDet) < g_dPrec) return -1.0;
   CDPoint cPt1;
-  // it is much better if the raster canbe selected on the boundary only
+  // it is much better if the raster can be selected on the boundary only
   /*cPt1.x = (pCache->cMatrixRow2.y*(cPt.x - pCache->cTranslate.x) - pCache->cMatrixRow2.x*(cPt.y - pCache->cTranslate.y))/dDet;
   cPt1.y = (pCache->cMatrixRow1.x*(cPt.y - pCache->cTranslate.y) - pCache->cMatrixRow1.y*(cPt.x - pCache->cTranslate.x))/dDet;
   if((cPt1.x > -g_dPrec) && (cPt1.x < pCache->iImageWidth + g_dPrec) &&
@@ -138,5 +138,46 @@ bool RegisterRasterRaw(PDPointList pPoints, PDRasterCache pCache, PDPoint pRegPo
   pPoints->SetPoint(2, 1, pRegPoints[5].x, pRegPoints[5].y, 1);
 
   return BuildRasterCacheRaw(pPoints, pCache, 0, 0, NULL);
+}
+
+int GetRasterViewBounds(PDRect pRect, PDRasterCache pCache)
+{
+  int iRes = 0;
+  CDPoint cPt1, cCorner;
+
+  cCorner.x = 0.0;
+  cCorner.y = 0.0;
+  cPt1.x = pCache->cMatrixRow1*cCorner + pCache->cTranslate.x;
+  cPt1.y = pCache->cMatrixRow2*cCorner + pCache->cTranslate.y;
+  if(DPtInDRect(cPt1, pRect)) iRes = 2;
+
+  cCorner.x = (double)pCache->iImageWidth;
+  cPt1.x = pCache->cMatrixRow1*cCorner + pCache->cTranslate.x;
+  cPt1.y = pCache->cMatrixRow2*cCorner + pCache->cTranslate.y;
+  if(DPtInDRect(cPt1, pRect))
+  {
+    if(iRes < 2) iRes = 1;
+  }
+  else if(iRes > 0) iRes = 1;
+
+  cCorner.y = (double)pCache->iImageHeight;
+  cPt1.x = pCache->cMatrixRow1*cCorner + pCache->cTranslate.x;
+  cPt1.y = pCache->cMatrixRow2*cCorner + pCache->cTranslate.y;
+  if(DPtInDRect(cPt1, pRect))
+  {
+    if(iRes < 2) iRes = 1;
+  }
+  else if(iRes > 0) iRes = 1;
+
+  cCorner.x = 0.0;
+  cPt1.x = pCache->cMatrixRow1*cCorner + pCache->cTranslate.x;
+  cPt1.y = pCache->cMatrixRow2*cCorner + pCache->cTranslate.y;
+  if(DPtInDRect(cPt1, pRect))
+  {
+    if(iRes < 2) iRes = 1;
+  }
+  else if(iRes > 0) iRes = 1;
+
+  return iRes;
 }
 

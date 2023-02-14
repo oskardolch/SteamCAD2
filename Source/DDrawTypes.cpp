@@ -2148,6 +2148,9 @@ int CDObject::GetViewBounds(CDLine cTmpPt, int iMode, PDRect pRect, PDRefList pB
   case dtArea:
     iRes = GetAreaViewBounds(cTmpPt, iMode, pRect, pBounds, pDrawBnds, bMergeWithBounds);
     break;
+  case dtRaster:
+    iRes = GetRasterViewBounds(pRect, m_pRasterCache);
+    break;
   case dtGroup:
     iRes = GetGroupViewBounds(cTmpPt, iMode, pRect, pBounds, pDrawBnds, bMergeWithBounds);
     break;
@@ -6686,7 +6689,30 @@ void CDObject::Rescale(double dRatio, bool bWidths, bool bPatterns, bool bArrows
   m_pUndoPoints->ClearAll();
   m_pCachePoints->ClearAll();
 
+  if(bWidths) m_cLineStyle.dWidth *= dRatio;
+
+  if(bPatterns)
+  {
+    for(int i = 0; i < m_cLineStyle.iSegments; i++) m_cLineStyle.dPattern[i] *= dRatio;
+    for(int i = m_cLineStyle.iSegments; i < 6; i++) m_cLineStyle.dPattern[i] = 0.0;
+  }
+
+  CDLine cLine;
   CDInputPoint cInPt;
+
+  if(m_iType == dtRaster)
+  {
+    for(int i = 0; i < m_pInputPoints->GetCount(1); i++)
+    {
+      cInPt = m_pInputPoints->GetPoint(i, 1);
+      cInPt.cPoint *= dRatio;
+      m_pInputPoints->SetPoint(i, 1, cInPt.cPoint.x, cInPt.cPoint.y, 1);
+    }
+    BuildCache(cLine, 0);
+    BuildRasterCache(0, 0, NULL);
+    return;
+  }
+
   for(int i = 0; i < m_pInputPoints->GetCount(-1); i++)
   {
     cInPt = m_pInputPoints->GetPoint(i, -1);
@@ -6694,7 +6720,6 @@ void CDObject::Rescale(double dRatio, bool bWidths, bool bPatterns, bool bArrows
     m_pInputPoints->SetPoint(i, -1, cInPt.cPoint.x, cInPt.cPoint.y, cInPt.iCtrl);
   }
 
-  CDLine cLine;
   BuildCache(cLine, 0);
 
   if(m_iType > dtPath)
@@ -6768,14 +6793,6 @@ void CDObject::Rescale(double dRatio, bool bWidths, bool bPatterns, bool bArrows
     GetDistFromPt(cBnds[1], cBnds[1], 0, &cLine, NULL);
     m_cBounds[1].dRef = cLine.dRef;
     m_cBounds[1].bIsSet = true;
-  }
-
-  if(bWidths) m_cLineStyle.dWidth *= dRatio;
-
-  if(bPatterns)
-  {
-    for(int i = 0; i < m_cLineStyle.iSegments; i++) m_cLineStyle.dPattern[i] *= dRatio;
-    for(int i = m_cLineStyle.iSegments; i < 6; i++) m_cLineStyle.dPattern[i] = 0.0;
   }
 }
 
