@@ -253,6 +253,8 @@ INT_PTR CDLineStyleDlg::WMCommand(HWND hWnd, WORD wNotifyCode, WORD wID, HWND hw
   case LSD_EDT_LINEPAT5:
   case LSD_EDT_LINEPAT6:
     return LinePatChange(hWnd, wNotifyCode, wID - LSD_EDT_LINEPAT1, hwndCtl);
+  case LSD_BTN_CLEARDASH:
+    return ClearDashBtnClick(hWnd, wNotifyCode, hwndCtl);
   default:
     return FALSE;
   }
@@ -521,4 +523,16 @@ INT_PTR CDLineStyleDlg::LinePatChange(HWND hWnd, WORD wNotifyCode, int iSeg, HWN
   if(m_bSettingUp) return 0;
   if(wNotifyCode == EN_CHANGE) m_pLSR->bPatChanged = true;
   return TRUE;
+}
+
+INT_PTR CDLineStyleDlg::ClearDashBtnClick(HWND hWnd, WORD wNotifyCode, HWND hwndCtl)
+{
+  if(m_bSettingUp) return 0;
+  HWND wnd;
+  for(int i = 0; i < 6; i++)
+  {
+    wnd = GetDlgItem(hWnd, LSD_EDT_LINEPAT1 + i);
+    SendMessage(wnd, WM_SETTEXT, 0, (LPARAM)L"");
+  }
+  m_pLSR->bPatChanged = true;
 }

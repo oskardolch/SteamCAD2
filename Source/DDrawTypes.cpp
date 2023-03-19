@@ -5555,6 +5555,7 @@ int CDObject::ReadFromStream(unsigned char *pBuf, unsigned char cVersion)
       }
       iCurPos += iLen;
     }
+    BuildCache(cPtX, 0);
   }
   else if(m_iType == dtRaster)
   {
@@ -5582,6 +5583,7 @@ int CDObject::ReadFromStream(unsigned char *pBuf, unsigned char cVersion)
       else delete pObj;
       iCurPos += iLen;
     }
+    BuildCache(cPtX, 0);
   }
   //if(m_cBounds[0].bIsSet && m_cBounds[1].bIsSet && (fabs(m_cBounds[0].dRef - m_cBounds[1].dRef) < 0.00001)) return false;
   return iCurPos;
@@ -8482,7 +8484,7 @@ bool CDataList::ReadFromFile(FILE *pf, bool bSwapBytes, bool bClear)
 
 int CDataList::GetStreamSize(unsigned char cVersion)
 {
-  int iRes = 11;
+  int iRes = 27;
 
   for(int i = 0; i < m_iDataLen; i++)
   {
@@ -8511,6 +8513,12 @@ void CDataList::SaveToStream(unsigned char *pBuf, unsigned char cVersion)
   unsigned long lDataLen = GetSelectCount(cVersion);
   memcpy(&pBuf[7], &lDataLen, 4);
 
+  memcpy(&pBuf[iCurPos], &m_cFileAttrs.dScaleNom, 8);
+  iCurPos += 8;
+
+  memcpy(&pBuf[iCurPos], &m_cFileAttrs.dScaleDenom, 8);
+  iCurPos += 8;
+
   for(int i = 0; i < m_iDataLen; i++)
   {
     if(m_ppObjects[i]->GetSelected())
@@ -8537,6 +8545,17 @@ bool CDataList::ReadFromStream(unsigned char *pBuf, unsigned char cVersion)
   memcpy(&lDataLen, &pBuf[iCurPos], 4);
   iCurPos += 4;
 
+  double dNewScaleNom = 0.0;
+  memcpy(&dNewScaleNom, &pBuf[iCurPos], 8);
+  iCurPos += 8;
+
+  double dNewScaleDenom = 0.0;
+  memcpy(&dNewScaleDenom, &pBuf[iCurPos], 8);
+  iCurPos += 8;
+
+  double dScaleRatio = dNewScaleDenom*m_cFileAttrs.dScaleNom/(dNewScaleNom*m_cFileAttrs.dScaleDenom);
+  bool bRescale = fabs(dScaleRatio - 1.0) > g_dPrec;
+
   PDObject pObj;
 
   for(unsigned int i = 0; i < lDataLen; i++)
@@ -8545,6 +8564,7 @@ bool CDataList::ReadFromStream(unsigned char *pBuf, unsigned char cVersion)
     iLen = pObj->ReadFromStream(&pBuf[iCurPos], cVer);
     if(iLen > 0)
     {
+      if(bRescale) pObj->Rescale(dScaleRatio, false, true, true, false);
       pObj->SetSelected(true, false, -1);
       Add(pObj);
       iCurPos += iLen;

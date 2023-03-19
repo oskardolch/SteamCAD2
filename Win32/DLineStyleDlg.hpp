@@ -52,6 +52,7 @@ private:
   INT_PTR FillColorChange(HWND hWnd, WORD wNotifyCode, HWND hwndCtl);
   INT_PTR BlurChange(HWND hWnd, WORD wNotifyCode, HWND hwndCtl);
   INT_PTR LinePatChange(HWND hWnd, WORD wNotifyCode, int iSeg, HWND hwndCtl);
+  INT_PTR ClearDashBtnClick(HWND hWnd, WORD wNotifyCode, HWND hwndCtl);
   void SetButtonColor(HWND hWnd, COLORREF cColor);
 public:
   CDLineStyleDlg(HINSTANCE hInstance);
