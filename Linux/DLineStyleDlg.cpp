@@ -16,6 +16,11 @@ void lsd_okbtn_clicked(GtkButton *button, PDLineStyleDlg pApp)
   pApp->OKBtnClick(button);
 }
 
+void lsd_cleardashbtn_clicked(GtkButton *button, PDLineStyleDlg pApp)
+{
+  pApp->ClearDashBtnClick(button);
+}
+
 void lsd_linewidthedt_changed(GtkEntry *entry, PDLineStyleDlg pApp)
 {
   pApp->LineWidthChange(entry);
@@ -249,6 +254,11 @@ gboolean CDLineStyleDlg::ShowDialog(GtkWidget *pWndParent, PDLineStyleRec pLSR)
   g_signal_connect(G_OBJECT(m_pFillColorBtn), "color-set", G_CALLBACK(lsd_fill_color_changed), this);
   gtk_table_attach_defaults(GTK_TABLE(pTbl), m_pFillColorBtn, 9, 12, 3, 4);
   if(m_pLSR->cLineStyle.bShowFill) gtk_widget_show(m_pFillColorBtn);
+
+  GtkWidget *pClearBtn = gtk_button_new_with_label(_("Clear dash"));
+  gtk_table_attach_defaults(GTK_TABLE(pTbl), pClearBtn, 0, 3, 5, 6);
+  g_signal_connect(G_OBJECT(pClearBtn), "clicked", G_CALLBACK(lsd_cleardashbtn_clicked), this);
+  gtk_widget_show(pClearBtn);
 
   gtk_widget_grab_default(pBtn);
   gtk_window_set_default(GTK_WINDOW(m_pDlg), pBtn);
@@ -496,5 +506,15 @@ void CDLineStyleDlg::FillColorChange(GtkColorButton *entry)
 {
   if(m_bSettingUp) return;
   m_pLSR->bFillColorChanged = TRUE;
+}
+
+void CDLineStyleDlg::ClearDashBtnClick(GtkButton *button)
+{
+  if(m_bSettingUp) return;
+  for(int i = 0; i < 6; i++)
+  {
+    gtk_entry_set_text(GTK_ENTRY(m_pPatternEdt[i]), "");
+  }
+  m_pLSR->bPatChanged = TRUE;
 }
 

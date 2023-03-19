@@ -65,6 +65,7 @@ public:
   void LineColorChange(GtkColorButton *entry);
   void FillColorChange(GtkColorButton *entry);
   void OKBtnClick(GtkButton *button);
+  void ClearDashBtnClick(GtkButton *button);
 } *PDLineStyleDlg;
 
 #endif
