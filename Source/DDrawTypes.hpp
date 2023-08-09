@@ -298,7 +298,7 @@ public:
   int GetStreamSize(unsigned char cVersion);
   void SaveToStream(unsigned char *pBuf, unsigned char cVersion);
   bool ReadFromStream(unsigned char *pBuf, unsigned char cVersion);
-  void SelectByRectangle(PDRect pRect, int iMode);
+  void SelectByRectangle(PDRect pRect, int iMode, bool bCtrl);
   bool RotateSelected(CDPoint cOrig, double dRot, int iCop, PDRect pRect);
   bool MoveSelected(CDLine cLine, double dDist, int iCop, PDRect pRect, bool bPreserveDir);
   bool MirrorSelected(CDLine cLine, PDRect pRect);

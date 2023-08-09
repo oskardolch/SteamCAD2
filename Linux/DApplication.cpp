@@ -4231,7 +4231,8 @@ void CDApplication::MouseLButtonUp(GtkWidget *widget, GdkEventButton *event)
 
   if(m_iDrawMode + m_iToolMode < 1) // selection
   {
-    if(!(event->state & GDK_CONTROL_MASK)) m_pDrawObjects->ClearSelection();
+    bool bCtrl = event->state & GDK_CONTROL_MASK;
+    if(!bCtrl) m_pDrawObjects->ClearSelection();
 
     if(GetPtDist(&m_cLastDownPt, xPos, yPos) > 4) // select by rectangle
     {
@@ -4240,12 +4241,12 @@ void CDApplication::MouseLButtonUp(GtkWidget *widget, GdkEventButton *event)
       cdr1.cPt1.y = (m_cLastDownPt.y - m_cViewOrigin.y)/m_dUnitScale;
       cdr1.cPt2.x = (xPos - m_cViewOrigin.x)/m_dUnitScale;
       cdr1.cPt2.y = (yPos - m_cViewOrigin.y)/m_dUnitScale;
-      m_pDrawObjects->SelectByRectangle(&cdr1, 2);
+      m_pDrawObjects->SelectByRectangle(&cdr1, 2, bCtrl);
     }
     else
     {
       if(m_pHighObject)
-        m_pHighObject->SetSelected(true, event->state & GDK_CONTROL_MASK, m_iHighDimen);
+        m_pHighObject->SetSelected(true, bCtrl, m_iHighDimen);
     }
 
     gdk_window_invalidate_rect(event->window, NULL, FALSE);
@@ -4753,13 +4754,14 @@ void CDApplication::MouseRButtonUp(GtkWidget *widget, GdkEventButton *event)
   {
     if(GetPtDist(&m_cLastDownPt, xPos, yPos) > 4) // select by rectangle
     {
-      if(!(event->state & GDK_CONTROL_MASK)) m_pDrawObjects->ClearSelection();
+      bool bCtrl = event->state & GDK_CONTROL_MASK;
+      if(!bCtrl) m_pDrawObjects->ClearSelection();
       CDRect cdr1;
       cdr1.cPt1.x = (m_cLastDownPt.x - m_cViewOrigin.x)/m_dUnitScale;
       cdr1.cPt1.y = (m_cLastDownPt.y - m_cViewOrigin.y)/m_dUnitScale;
       cdr1.cPt2.x = (xPos - m_cViewOrigin.x)/m_dUnitScale;
       cdr1.cPt2.y = (yPos - m_cViewOrigin.y)/m_dUnitScale;
-      m_pDrawObjects->SelectByRectangle(&cdr1, 1);
+      m_pDrawObjects->SelectByRectangle(&cdr1, 1, bCtrl);
 
       bUpdate = TRUE;
       gdk_window_invalidate_rect(event->window, NULL, FALSE);

@@ -8575,7 +8575,7 @@ bool CDataList::ReadFromStream(unsigned char *pBuf, unsigned char cVersion)
   return true;
 }
 
-void CDataList::SelectByRectangle(PDRect pRect, int iMode)
+void CDataList::SelectByRectangle(PDRect pRect, int iMode, bool bCtrl)
 {
   double x;
   if(pRect->cPt1.x > pRect->cPt2.x)
@@ -8603,7 +8603,7 @@ void CDataList::SelectByRectangle(PDRect pRect, int iMode)
     //k = pObj->BuildPrimitives(cLn, 0, pRect, 2, NULL, NULL);
     pBounds->Clear();
     k = pObj->GetViewBounds(cLn, 0, pRect, pBounds, &cBnds, true);
-    if(k == iMode) pObj->SetSelected(true, false, -1);
+    if(k == iMode) pObj->SetSelected(true, bCtrl, -1);
   }
   delete pBounds;
 }
