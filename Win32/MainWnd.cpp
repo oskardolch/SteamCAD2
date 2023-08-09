@@ -2445,7 +2445,8 @@ LRESULT CMainWnd::WMLButtonUp(HWND hwnd, WPARAM fwKeys, int xPos, int yPos)
 
   if(m_iDrawMode + m_iToolMode < 1)
   {
-    if(!(fwKeys & MK_CONTROL)) m_pDrawObjects->ClearSelection();
+    bool bCtrl = fwKeys & MK_CONTROL;
+    if(!bCtrl) m_pDrawObjects->ClearSelection();
 
     if(GetPtDist(&m_cLastDownPt, xPos, yPos) > 4) // select by rectangle
     {
@@ -2454,12 +2455,12 @@ LRESULT CMainWnd::WMLButtonUp(HWND hwnd, WPARAM fwKeys, int xPos, int yPos)
       cdr1.cPt1.y = (m_cLastDownPt.y - m_cViewOrigin.y)/m_dUnitScale;
       cdr1.cPt2.x = (xPos - m_cViewOrigin.x)/m_dUnitScale;
       cdr1.cPt2.y = (yPos - m_cViewOrigin.y)/m_dUnitScale;
-      m_pDrawObjects->SelectByRectangle(&cdr1, 2);
+      m_pDrawObjects->SelectByRectangle(&cdr1, 2, bCtrl);
     }
     else
     {
       if(m_pHighObject)
-        m_pHighObject->SetSelected(true, fwKeys & MK_CONTROL, m_iHighDimen);
+        m_pHighObject->SetSelected(true, bCtrl, m_iHighDimen);
     }
     InvalidateRect(hwnd, &rc, FALSE);
   }
@@ -2954,14 +2955,15 @@ LRESULT CMainWnd::WMRButtonUp(HWND hwnd, WPARAM fwKeys, int xPos, int yPos)
   {
     if(GetPtDist(&m_cLastDownPt, xPos, yPos) > 4) // select by rectangle
     {
-      if(!(fwKeys & MK_CONTROL)) m_pDrawObjects->ClearSelection();
+      bool bCtrl = fwKeys & MK_CONTROL;
+      if(!bCtrl) m_pDrawObjects->ClearSelection();
       //MessageBox(0, L"Dobry", L"Debug", MB_OK);
       CDRect cdr1;
       cdr1.cPt1.x = (m_cLastDownPt.x - m_cViewOrigin.x)/m_dUnitScale;
       cdr1.cPt1.y = (m_cLastDownPt.y - m_cViewOrigin.y)/m_dUnitScale;
       cdr1.cPt2.x = (xPos - m_cViewOrigin.x)/m_dUnitScale;
       cdr1.cPt2.y = (yPos - m_cViewOrigin.y)/m_dUnitScale;
-      m_pDrawObjects->SelectByRectangle(&cdr1, 1); //, pRegions);
+      m_pDrawObjects->SelectByRectangle(&cdr1, 1, bCtrl); //, pRegions);
 
       InvalidateRect(hwnd, &rc, FALSE);
     }
