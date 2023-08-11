@@ -4552,7 +4552,8 @@ void CDApplication::MouseLButtonUp(GtkWidget *widget, GdkEventButton *event)
     }
     else if(m_iToolMode == tolDistribute)
     {
-      int iRes = m_pDrawObjects->Distribute(iCop, bKeepOrient, m_cLastDrawPt);
+      pSelLine = m_pDrawObjects->SelectByPoint(m_cLastDrawPt, dTol, NULL);
+      int iRes = m_pDrawObjects->Distribute(iCop, bKeepOrient, pSelLine);
       GtkWidget *msg_dlg;
       switch(iRes)
       {
@@ -4566,14 +4567,14 @@ void CDApplication::MouseLButtonUp(GtkWidget *widget, GdkEventButton *event)
       case 1:
         msg_dlg = gtk_message_dialog_new(GTK_WINDOW(m_pMainWnd), GTK_DIALOG_MODAL,
           GTK_MESSAGE_WARNING, GTK_BUTTONS_OK,
-          _("Exactly one bound object to be distributed must be selected"));
+          _("Nothing was selected to distribute"));
         gtk_dialog_run(GTK_DIALOG(msg_dlg));
         gtk_widget_destroy(msg_dlg);
         break;
       case 2:
         msg_dlg = gtk_message_dialog_new(GTK_WINDOW(m_pMainWnd), GTK_DIALOG_MODAL,
           GTK_MESSAGE_WARNING, GTK_BUTTONS_OK,
-          _("The object to be distributed must be single bound object or path"));
+          _("Only objects consisting of linear segments can be distributed in rubber mode"));
         gtk_dialog_run(GTK_DIALOG(msg_dlg));
         gtk_widget_destroy(msg_dlg);
         break;
@@ -4587,7 +4588,7 @@ void CDApplication::MouseLButtonUp(GtkWidget *widget, GdkEventButton *event)
       case 4:
         msg_dlg = gtk_message_dialog_new(GTK_WINDOW(m_pMainWnd), GTK_DIALOG_MODAL,
           GTK_MESSAGE_WARNING, GTK_BUTTONS_OK,
-          _("Closed path cannot be distributed in rubber mode"));
+          _("Cannot distribute objects about areas, paths etc."));
         gtk_dialog_run(GTK_DIALOG(msg_dlg));
         gtk_widget_destroy(msg_dlg);
         break;

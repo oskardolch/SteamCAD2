@@ -8054,6 +8054,107 @@ CDObject* CDObject::ReleaseFirst()
   return pRes;
 }
 
+bool CDObject::IsScalable()
+{
+  if(m_iType == dtLine) return m_cBounds[0].bIsSet && m_cBounds[1].bIsSet;
+  if(m_iType < dtRect) return false;
+  if(m_iType == dtRect) return true;
+  if(m_iType == dtPath)
+  {
+    bool bRes = true;
+    PDPathSeg pObj;
+    int i = 0;
+    int n = m_pSubObjects->GetCount();
+    while(bRes && (i < n))
+    {
+      pObj = (PDPathSeg)m_pSubObjects->GetItem(i++);
+      bRes = pObj->pSegment->IsScalable();
+    }
+    return bRes;
+  }
+  if(m_iType > dtPath)
+  {
+    bool bRes = true;
+    PDObject pObj;
+    int i = 0;
+    int n = m_pSubObjects->GetCount();
+    while(bRes && (i < n))
+    {
+      pObj = (PDObject)m_pSubObjects->GetItem(i++);
+      bRes = pObj->IsScalable();
+    }
+    return bRes;
+  }
+  return false;
+}
+
+CDPoint CDObject::GetAnchorPoint()
+{
+  CDPrimitive cRect = GetBBOX();
+  if(cRect.iType == 1)
+  {
+    CDPoint cRes = {(cRect.cPt1.x + cRect.cPt2.x)/2.0, (cRect.cPt1.y + cRect.cPt2.y)/2.0};
+    return cRes;
+  }
+  if(m_pInputPoints->GetCount(0) > 0) return m_pInputPoints->GetPoint(0, 0).cPoint;
+  if(m_pInputPoints->GetCount(1) > 0) return m_pInputPoints->GetPoint(0, 1).cPoint;
+  return {0.0, 0.0};
+}
+
+void CDObject::DistributeObject(CDObject *pObject, CDataList *pDataList, int iCopies, bool bKeepOrient, double dSegLen)
+{
+  CDObject *pNewObj;
+  CDPoint cAnchor = pObject->GetAnchorPoint();
+  CDLine cProj;
+  CDPoint cDir, cNewDir, cPt, cNewPt, cNorm, cMoveDir, cAngle;
+  double dDist = GetDistFromPt(cAnchor, cAnchor, 0.0, &cProj, NULL);
+  double dOffset, dRef, dNorm;
+  if(m_cBounds[0].bIsSet && m_cBounds[1].bIsSet)
+  {
+    if(fabs(m_cBounds[1].dRef - cProj.dRef) < fabs(m_cBounds[0].dRef - cProj.dRef)) dSegLen *= -1.0;
+  }
+  GetPointRefDist(cProj.dRef, 0.0, &dOffset);
+  double dCurLen = dOffset;
+  GetNativeRefDir(cProj.dRef, &cDir);
+  for(int i = 0; i < iCopies; i++)
+  {
+    pNewObj = pObject->Copy();
+    dCurLen += dSegLen;
+    GetNativeReference(dCurLen, 0.0, &dRef);
+    GetNativeRefPoint(dRef, 0.0, &cPt);
+    GetNativeRefDir(dRef, &cNewDir);
+    cNorm = GetNormal(cNewDir);
+    cNewPt = cPt + dDist*cNorm;
+    cMoveDir = cNewPt - cAnchor;
+    dNorm = GetNorm(cMoveDir);
+    cMoveDir /= dNorm;
+    pNewObj->MovePoints(cMoveDir, dNorm, 0);
+    if(!bKeepOrient)
+    {
+      cAngle = Rotate(cNewDir, cDir, false);
+      pNewObj->RotatePoints(cNewPt, atan2(cAngle.y, cAngle.x), 0);
+    }
+    pDataList->Add(pNewObj);
+  }
+}
+
+void CDObject::DistributeObjects(PDIntList pList, CDataList *pDataList, int iCopies, bool bKeepOrient)
+{
+  CDObject *pObj;
+  int i2;
+  int n = pList->GetCount();
+  double dLen = GetLength(0.0);
+  double dSegLen;
+  if(IsClosedShape()) dSegLen = dLen/(double)(iCopies + 1);
+  else dSegLen = dLen/(double)iCopies;
+  for(int i = 0; i < n; i++)
+  {
+    i2 = pList->GetItem(i);
+    pObj = pDataList->GetItem(i2);
+    DistributeObject(pObj, pDataList, iCopies, bKeepOrient, dSegLen);
+  }
+}
+
 
 // CDataList
 
@@ -9599,8 +9700,62 @@ bool CDataList::MoveBottom()
   return n > 0;
 }
 
-int CDataList::Distribute(int iCopies, bool bKeepOrient, CDPoint cPt)
+int CDataList::Distribute(int iCopies, bool bKeepOrient, PDObject pPath)
 {
+  PDObject pObj;
+  int n, i = m_iDataLen;
+  PDIntList pSelObjs = new CDIntList();
+
+  while(i > 0)
+  {
+    pObj = m_ppObjects[--i];
+    if(pObj->GetSelected()) pSelObjs->AddItem(i);
+  }
+
+  n = pSelObjs->GetCount();
+  if(n < 1)
+  {
+    delete pSelObjs;
+    return 1;
+  }
+  
+  int i2;
+  if(iCopies < 1)
+  {
+    bool bScalable = true;
+    i = 0;
+    while(bScalable && (i < n))
+    {
+      i2 = pSelObjs->GetItem(i++);
+      pObj = m_ppObjects[i2];
+      bScalable = pObj->IsScalable();
+    }
+    if(!bScalable)
+    {
+      delete pSelObjs;
+      return 2;
+    }
+  }
+  
+  if(!pPath->IsBoundShape())
+  {
+    delete pSelObjs;
+    return 3;
+  }
+  if(pPath->GetType() > dtPath)
+  {
+    delete pSelObjs;
+    return 4;
+  }
+  
+  if(iCopies > 0)
+  {
+    pPath->DistributeObjects(pSelObjs, this, iCopies, bKeepOrient);
+    delete pSelObjs;
+    return 0;
+  }
+
+  delete pSelObjs;
   return 0;
 }
 

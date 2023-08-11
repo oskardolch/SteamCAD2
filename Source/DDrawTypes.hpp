@@ -8,6 +8,7 @@
 //#include <gio/gio.h>
 
 class CDObject;
+class CDataList;
 
 enum CDDrawType
 {
@@ -148,6 +149,7 @@ private:
   int BuildGroupPrimitives(CDLine cTmpPt, int iMode, PDRect pRect, PDFileAttrs pAttrs);
   int BuildRasterPrimitives(CDLine cTmpPt, int iMode, PDRect pRect, PDFileAttrs pAttrs);
   void AddSplineExtPrim(PDRect pRect, PDPrimObject pPrimList);
+  void DistributeObject(CDObject *pObject, CDataList *pDataList, int iCopies, bool bKeepOrient, double dSegLen);
 public:
   CDObject(CDDrawType iType, double dWidth);
   ~CDObject();
@@ -257,6 +259,9 @@ public:
   bool IsNullCircle();
   CDObject* ReleaseLast();
   CDObject* ReleaseFirst();
+  bool IsScalable();
+  CDPoint GetAnchorPoint();
+  void DistributeObjects(PDIntList pList, CDataList *pDataList, int iCopies, bool bKeepOrient);
 } *PDObject;
 
 typedef class CDataList
@@ -333,10 +338,9 @@ public:
   bool MoveTop();
   bool MoveBottom();
   // returns:
-  // 0 - success, 1 - either no path selected or more than 1 path selected,
-  // 2 - unbound object selected, 3 - unbound path selected to distribute about,
-  // 4 - closed object to distribute in rubber mode
-  int Distribute(int iCopies, bool bKeepOrient, CDPoint cPt);
+  // 0 - success, 1 - nothing is selected, 2 - only linear segments allowed in rubber mode
+  // 3 - unbound path selected to distribute about, 4 - unsupported object type to distribute about
+  int Distribute(int iCopies, bool bKeepOrient, PDObject pPath);
 } *PDataList;
 
 #endif
