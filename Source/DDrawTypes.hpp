@@ -150,6 +150,10 @@ private:
   int BuildRasterPrimitives(CDLine cTmpPt, int iMode, PDRect pRect, PDFileAttrs pAttrs);
   void AddSplineExtPrim(PDRect pRect, PDPrimObject pPrimList);
   void DistributeObject(CDObject *pObject, CDataList *pDataList, int iCopies, bool bKeepOrient, double dSegLen);
+  void GetObjectSpan(CDObject *pObject, PDLine pSpans, int iNodes, int iTotNodes, PDIntList pAdjacentNodes);
+  double GetObjectsSpan(PDIntList pList, CDataList *pDataList, PDLine pSpans, PDIntList pAdjacentNodes);
+  void DistributeRubberObject(CDObject *pObject, CDataList *pDataList, CDPoint cRefBounds, CDLine cDistrAttr,
+    double dRefSeg, int iCount, bool bAdjustCurvature);
 public:
   CDObject(CDDrawType iType, double dWidth);
   ~CDObject();
@@ -262,6 +266,10 @@ public:
   bool IsScalable();
   CDPoint GetAnchorPoint();
   void DistributeObjects(PDIntList pList, CDataList *pDataList, int iCopies, bool bKeepOrient);
+  void DistributeRubberObjects(PDIntList pList, CDataList *pDataList, bool bAdjustCurvature);
+  void Schrink(PDLine pSchrinkData);
+  int GetNodesCount();
+  CDPoint GetNode(int iIndex);
 } *PDObject;
 
 typedef class CDataList

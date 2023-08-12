@@ -3005,18 +3005,27 @@ void CDApplication::EditDistributeCmd(GtkWidget *widget)
 {
   strcpy(m_sStatus1Base, _("# of copies: "));
   SetStatusBarMsg(1, m_sStatus1Base);
+
+  const gchar *sBuf = gtk_entry_get_text(GTK_ENTRY(m_pStatEdt1));
+  int iCop = 0;
+  int i;
+  if(sBuf && sscanf(sBuf, "%d", &i) == 1) iCop = i;
+
+  if(iCop > 0) gtk_button_set_label(GTK_BUTTON(m_pStatChB1), _("keep orientation"));
+  else gtk_button_set_label(GTK_BUTTON(m_pStatChB1), _("adjust to curvature"));
+
   if(!gtk_widget_get_visible(m_pStatEdt1))
   {
     gtk_widget_show(m_pStatEdt1);
     gtk_window_remove_accel_group(GTK_WINDOW(m_pMainWnd), m_pAccelGroup);
   }
   gtk_widget_show(m_pStatChB1);
-
   gtk_widget_grab_focus(m_pStatEdt1);
 
   strcpy(m_sStatus3Msg, _("Click a path to distribute about"));
   SetStatusBarMsg(3, m_sStatus3Msg);
   m_iToolMode = tolDistribute;
+
   return;
 }
 
@@ -4888,6 +4897,14 @@ void CDApplication::Edit1Changed(GtkEntry *entry)
     if(IS_LENGTH_VAL(m_iRestrictSet)) strcpy(m_sStatus3Msg, _("Click a line to move along"));
     else strcpy(m_sStatus3Msg, _("Click a point to move from"));
     SetStatusBarMsg(3, m_sStatus3Msg);
+  }
+  if(m_iToolMode == tolDistribute)
+  {
+    int iCop = 0;
+    int i;
+    if(sscanf(sBuf, "%d", &i) == 1) iCop = i;
+    if(iCop > 0) gtk_button_set_label(GTK_BUTTON(m_pStatChB1), _("keep orientation"));
+    else gtk_button_set_label(GTK_BUTTON(m_pStatChB1), _("adjust to curvature"));
   }
   return;
 }

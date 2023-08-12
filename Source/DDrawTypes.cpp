@@ -8068,7 +8068,7 @@ bool CDObject::IsScalable()
     while(bRes && (i < n))
     {
       pObj = (PDPathSeg)m_pSubObjects->GetItem(i++);
-      bRes = pObj->pSegment->IsScalable();
+      if(!pObj->pSegment->IsNullCircle()) bRes = pObj->pSegment->IsScalable();
     }
     return bRes;
   }
@@ -8153,6 +8153,323 @@ void CDObject::DistributeObjects(PDIntList pList, CDataList *pDataList, int iCop
     pObj = pDataList->GetItem(i2);
     DistributeObject(pObj, pDataList, iCopies, bKeepOrient, dSegLen);
   }
+}
+
+void CDObject::GetObjectSpan(CDObject *pObject, PDLine pSpans, int iNodes, int iTotNodes, PDIntList pAdjacentNodes)
+{
+  pSpans->bIsSet = false;
+  
+  if(iNodes < 2) return;
+
+  CDLine cProj;
+  CDPoint cPt = pObject->GetNode(0);
+  double dDist = GetDistFromPt(cPt, cPt, 0.0, &cProj, NULL);
+  pSpans->cOrigin.x = cProj.dRef;
+  pSpans->cOrigin.y = cProj.dRef;
+  pSpans->bIsSet = true;
+  
+  if(fabs(dDist) < g_dPrec) pAdjacentNodes->AddItem(iTotNodes);
+  
+  for(int i = 1; i < iNodes; i++)
+  {
+    cPt = pObject->GetNode(i);
+    dDist = GetDistFromPt(cPt, cPt, 0.0, &cProj, NULL);
+    if(cProj.dRef < pSpans->cOrigin.x) pSpans->cOrigin.x = cProj.dRef;
+    if(cProj.dRef > pSpans->cOrigin.y) pSpans->cOrigin.y = cProj.dRef;
+    if(fabs(dDist) < g_dPrec) pAdjacentNodes->AddItem(iTotNodes + i);
+  }
+}
+
+double CDObject::GetObjectsSpan(PDIntList pList, CDataList *pDataList, PDLine pSpans, PDIntList pAdjacentNodes)
+{
+  pSpans->bIsSet = false;
+  int n = pList->GetCount();
+  if(n < 1) return 0.0;
+  
+  CDLine cSpan;
+  cSpan.bIsSet = false;
+  int i2;
+  CDObject *pObj;
+  int iCurNodes;
+  int iTotNodes = 0;
+  int i = 0;
+  while(!cSpan.bIsSet && (i < n))
+  {
+    i2 = pList->GetItem(i++);
+    pObj = pDataList->GetItem(i2);
+    iCurNodes = pObj->GetNodesCount();
+    GetObjectSpan(pObj, &cSpan, iCurNodes, iTotNodes, pAdjacentNodes);
+    iTotNodes += iCurNodes;
+  }
+  if(cSpan.bIsSet)
+  {
+    pSpans->bIsSet = true;
+    pSpans->cOrigin = cSpan.cOrigin;
+  }
+  while(i < n)
+  {
+    i2 = pList->GetItem(i++);
+    pObj = pDataList->GetItem(i2);
+    iCurNodes = pObj->GetNodesCount();
+    GetObjectSpan(pObj, &cSpan, iCurNodes, iTotNodes, pAdjacentNodes);
+    
+    if(cSpan.bIsSet)
+    {
+      if(cSpan.cOrigin.x < pSpans->cOrigin.x) pSpans->cOrigin.x = cSpan.cOrigin.x;
+      if(cSpan.cOrigin.y > pSpans->cOrigin.y) pSpans->cOrigin.y = cSpan.cOrigin.y;
+    }
+
+    iTotNodes += iCurNodes;
+  }
+  if(!pSpans->bIsSet) return 0.0;
+  
+  double d1, d2;
+  GetPointRefDist(pSpans->cOrigin.x, 0.0, &d1);
+  GetPointRefDist(pSpans->cOrigin.y, 0.0, &d2);
+  return fabs(d2 - d1);
+}
+
+void CDObject::DistributeRubberObject(CDObject *pObject, CDataList *pDataList, CDPoint cRefBounds, CDLine cDistrAttr,
+  double dRefSeg, int iCount, bool bAdjustCurvature)
+{
+  double dCurRef = cRefBounds.x + dRefSeg/2.0;
+  CDPoint cCurPt, cCurDir, cMoveDir, cRotDir;
+  PDObject pNewObj;
+  double dNorm;
+  for(int i = 0; i < iCount; i++)
+  {
+    pNewObj = pObject->Copy();
+    GetNativeRefPoint(dCurRef, 0.0, &cCurPt);
+    GetNativeRefDir(dCurRef, &cCurDir);
+    cMoveDir = cCurPt - cDistrAttr.cOrigin;
+    dNorm = GetNorm(cMoveDir);
+    if(dNorm > g_dPrec)
+    {
+      cMoveDir /= dNorm;
+      pNewObj->MovePoints(cMoveDir, dNorm, 0);
+      cRotDir = Rotate(cCurDir, cDistrAttr.cDirection, false);
+      pNewObj->RotatePoints(cCurPt, atan2(cRotDir.y, cRotDir.x), 0);
+    }
+    pDataList->Add(pNewObj);
+    dCurRef += dRefSeg;
+  }
+}
+
+void CDObject::DistributeRubberObjects(PDIntList pList, CDataList *pDataList, bool bAdjustCurvature)
+{
+  PDIntList pAdjacentList = new CDIntList();
+  CDLine cSpan;
+  double dSpan = GetObjectsSpan(pList, pDataList, &cSpan, pAdjacentList);
+  if(!cSpan.bIsSet)
+  {
+    delete pAdjacentList;
+    return;
+  }
+
+  double dLen = GetLength(0.0);
+  double dCount = dLen/dSpan;
+  int iCount = (int)(dCount + 0.5);
+  //double dSegLen = dLen/(double)iCount;
+  
+  double dBaseRef = (cSpan.cOrigin.x + cSpan.cOrigin.y)/2.0;
+  CDLine cDistrBase;
+  GetNativeRefPoint(dBaseRef, 0.0, &cDistrBase.cOrigin);
+  GetNativeRefDir(dBaseRef, &cDistrBase.cDirection);
+  
+  CDPoint cBnds, cStart, cEnd;
+  GetBoundsRef(&cBnds, 0.0, true);
+  double dBndsSeg = (cBnds.y - cBnds.x)/(double)iCount;
+  GetNativeRefPoint(dBaseRef - dBndsSeg/2.0, 0.0, &cStart);
+  GetNativeRefPoint(dBaseRef + dBndsSeg/2.0, 0.0, &cEnd);
+  double dDist = GetDist(cStart, cEnd);
+  
+  cDistrBase.dRef = dDist/dSpan; // the schrink ratio
+  
+  CDObject *pObj, *pNewObj;
+  int i2;
+  int n = pList->GetCount();
+  for(int i = 0; i < n; i++)
+  {
+    i2 = pList->GetItem(i);
+    pObj = pDataList->GetItem(i2);
+    pNewObj = pObj->Copy();
+    pNewObj->Schrink(&cDistrBase);
+    DistributeRubberObject(pNewObj, pDataList, cBnds, cDistrBase, dBndsSeg, iCount, bAdjustCurvature);
+    delete pNewObj;
+  }
+  delete pAdjacentList;
+}
+
+void SchrinkPoint(PDLine pSchrinkData, PDPoint pPoint)
+{
+  CDPoint cProj;
+  GetLineProj(*pPoint, pSchrinkData->cOrigin, pSchrinkData->cDirection, &cProj);
+  CDPoint cDir = *pPoint - cProj;
+  double d1 = GetNorm(cDir);
+  if(d1 < g_dPrec) return;
+  cDir /= d1;
+  d1 *= pSchrinkData->dRef;
+  *pPoint = cProj + d1*cDir;
+}
+
+void CDObject::Schrink(PDLine pSchrinkData)
+{
+  CDPoint cStartPt, cEndPt;
+  if(GetStartPoint(&cStartPt, 0.0)) SchrinkPoint(pSchrinkData, &cStartPt);
+  if(GetEndPoint(&cEndPt, 0.0)) SchrinkPoint(pSchrinkData, &cEndPt);
+
+  CDLine cPtX;
+  cPtX.bIsSet = false;
+    
+  if(m_iType == dtLine)
+  {
+    CDInputPoint cInPt;
+    int n = m_pInputPoints->GetCount(0);
+    for(int i = 0; i < n; i++)
+    {
+      cInPt = m_pInputPoints->GetPoint(i, 0);
+      SchrinkPoint(pSchrinkData, &cInPt.cPoint);
+      m_pInputPoints->SetPoint(i, 0, cInPt.cPoint.x, cInPt.cPoint.y, 0);
+    }
+    n = m_pInputPoints->GetCount(1);
+    for(int i = 0; i < n; i++)
+    {
+      cInPt = m_pInputPoints->GetPoint(i, 1);
+      SchrinkPoint(pSchrinkData, &cInPt.cPoint);
+      m_pInputPoints->SetPoint(i, 1, cInPt.cPoint.x, cInPt.cPoint.y, 1);
+    }
+    
+    BuildCache(cPtX, 0);
+    GetDistFromPt(cStartPt, cStartPt, 0, &cPtX, NULL);
+    m_cBounds[0].dRef = cPtX.dRef;
+    GetDistFromPt(cEndPt, cEndPt, 0, &cPtX, NULL);
+    m_cBounds[1].dRef = cPtX.dRef;
+    return;
+  }
+  if(m_iType == dtPath)
+  {
+    PDPathSeg pObj;
+    int n = m_pSubObjects->GetCount();
+    for(int i = 0; i < n; i++)
+    {
+      pObj = (PDPathSeg)m_pSubObjects->GetItem(i);
+      if(!pObj->pSegment->IsNullCircle()) pObj->pSegment->Schrink(pSchrinkData);
+    }
+    
+    BuildCache(cPtX, 0);
+    
+    if(m_cBounds[0].bIsSet)
+    {
+      GetDistFromPt(cStartPt, cStartPt, 0, &cPtX, NULL);
+      m_cBounds[0].dRef = cPtX.dRef;
+    }
+    if(m_cBounds[1].bIsSet)
+    {
+      GetDistFromPt(cEndPt, cEndPt, 0, &cPtX, NULL);
+      m_cBounds[1].dRef = cPtX.dRef;
+    }
+    return;
+  }
+  if(m_iType > dtPath)
+  {
+    PDObject pObj;
+    int n = m_pSubObjects->GetCount();
+    for(int i = 0; i < n; i++)
+    {
+      pObj = (PDObject)m_pSubObjects->GetItem(i);
+      pObj->Schrink(pSchrinkData);
+    }
+    
+    BuildCache(cPtX, 0);
+    
+    if(m_cBounds[0].bIsSet)
+    {
+      GetDistFromPt(cStartPt, cStartPt, 0, &cPtX, NULL);
+      m_cBounds[0].dRef = cPtX.dRef;
+    }
+    if(m_cBounds[1].bIsSet)
+    {
+      GetDistFromPt(cEndPt, cEndPt, 0, &cPtX, NULL);
+      m_cBounds[1].dRef = cPtX.dRef;
+    }
+    return;
+  }
+}
+
+int CDObject::GetNodesCount()
+{
+  if(m_iType == dtLine) return 2;
+  if(m_iType < dtRect) return 0;
+  if(m_iType == dtRect) return 8;
+  if(m_iType == dtPath)
+  {
+    int iRes = 0;
+    PDPathSeg pObj;
+    int n = m_pSubObjects->GetCount();
+    for(int i = 0; i < n; i++)
+    {
+      pObj = (PDPathSeg)m_pSubObjects->GetItem(i);
+      if(!pObj->pSegment->IsNullCircle()) iRes += pObj->pSegment->GetNodesCount();
+    }
+    return iRes;
+  }
+  if(m_iType > dtPath)
+  {
+    int iRes = 0;
+    PDObject pObj;
+    int n = m_pSubObjects->GetCount();
+    for(int i = 0; i < n; i++)
+    {
+      pObj = (PDObject)m_pSubObjects->GetItem(i);
+      iRes += pObj->GetNodesCount();
+    }
+    return iRes;
+  }
+  return 0;
+}
+
+CDPoint CDObject::GetNode(int iIndex)
+{
+  CDPoint cRes = {0.0, 0.0};
+  if(m_iType == dtLine)
+  {
+    if(iIndex == 0) GetStartPoint(&cRes, 0.0);
+    else GetEndPoint(&cRes, 0.0);
+    return cRes;
+  }
+  if(m_iType <= dtRect) return cRes;
+  if(m_iType == dtPath)
+  {
+    int iRes = 0;
+    int iCurCount;
+    PDPathSeg pObj = NULL;
+    int n = m_pSubObjects->GetCount();
+    int i = 0;
+    while((iRes <= iIndex) && (i < n))
+    {
+      pObj = (PDPathSeg)m_pSubObjects->GetItem(i++);
+      if(pObj->pSegment->IsNullCircle()) pObj = (PDPathSeg)m_pSubObjects->GetItem(i++);
+      iCurCount = pObj->pSegment->GetNodesCount();
+      iRes += iCurCount;
+    }
+    if(pObj && !pObj->pSegment->IsNullCircle()) cRes = pObj->pSegment->GetNode(iRes - iIndex - iCurCount);
+    return cRes;
+  }
+  if(m_iType > dtPath)
+  {
+    int iRes = 0;
+    PDObject pObj = NULL;
+    int n = m_pSubObjects->GetCount();
+    int i = 0;
+    while((iRes < iIndex) && (i < n))
+    {
+      pObj = (PDObject)m_pSubObjects->GetItem(i++);
+      iRes += pObj->GetNodesCount();
+    }
+    if(pObj) cRes = pObj->GetNode(iRes - iIndex);
+    return cRes;
+  }
+  return cRes;
 }
 
 
@@ -9755,6 +10072,7 @@ int CDataList::Distribute(int iCopies, bool bKeepOrient, PDObject pPath)
     return 0;
   }
 
+  pPath->DistributeRubberObjects(pSelObjs, this, bKeepOrient);
   delete pSelObjs;
   return 0;
 }
