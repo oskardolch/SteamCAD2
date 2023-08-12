@@ -5833,7 +5833,6 @@ bool CDObject::RotatePoints(CDPoint cOrig, double dRot, int iDimFlag)
 
   m_cBounds[0].bIsSet = false;
   m_cBounds[1].bIsSet = false;
-
   if(b1) GetNativeRefPoint(m_cBounds[0].dRef, 0.0, &bPt1);
   if(b2) GetNativeRefPoint(m_cBounds[1].dRef, 0.0, &bPt2);
 
@@ -5862,26 +5861,33 @@ bool CDObject::RotatePoints(CDPoint cOrig, double dRot, int iDimFlag)
 
   BuildCache(cPtX, 0);
 
-  if(b1)
+  if(IsNullCircle())
   {
-    cDir = bPt1 - cOrig;
-    dNorm = GetNorm(cDir);
-    if(dNorm > g_dPrec) cPt2 = cOrig + Rotate(dNorm*cPt1, cDir/dNorm, true);
-    else cPt2 = bPt1;
-
-    GetDistFromPt(cPt2, cPt2, 0, &cPtX, NULL);
-    m_cBounds[0].dRef = cPtX.dRef;
+    if(b1) m_cBounds[0].dRef += dRot;
+    if(b2) m_cBounds[1].dRef += dRot;
   }
-
-  if(b2)
+  else
   {
-    cDir = bPt2 - cOrig;
-    dNorm = GetNorm(cDir);
-    if(dNorm > g_dPrec) cPt2 = cOrig + Rotate(dNorm*cPt1, cDir/dNorm, true);
-    else cPt2 = bPt2;
+    if(b1)
+    {
+      cDir = bPt1 - cOrig;
+      dNorm = GetNorm(cDir);
+      if(dNorm > g_dPrec) cPt2 = cOrig + Rotate(dNorm*cPt1, cDir/dNorm, true);
+      else cPt2 = bPt1;
 
-    GetDistFromPt(cPt2, cPt2, 0, &cPtX, NULL);
-    m_cBounds[1].dRef = cPtX.dRef;
+      GetDistFromPt(cPt2, cPt2, 0, &cPtX, NULL);
+      m_cBounds[0].dRef = cPtX.dRef;
+    }
+    if(b2)
+    {
+      cDir = bPt2 - cOrig;
+      dNorm = GetNorm(cDir);
+      if(dNorm > g_dPrec) cPt2 = cOrig + Rotate(dNorm*cPt1, cDir/dNorm, true);
+      else cPt2 = bPt2;
+
+      GetDistFromPt(cPt2, cPt2, 0, &cPtX, NULL);
+      m_cBounds[1].dRef = cPtX.dRef;
+    }
   }
 
   m_cBounds[0].bIsSet = b1;
