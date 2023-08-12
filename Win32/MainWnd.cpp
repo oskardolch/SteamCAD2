@@ -1909,6 +1909,16 @@ LRESULT CMainWnd::EditDistributeCmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl)
   DrawCross(hwnd);
   LoadString(m_hInstance, IDS_NUMCOPIES, m_wsStatus2Base, 64);
   SendMessage(m_hStatus, SB_SETTEXT, 1, (LPARAM)m_wsStatus2Base);
+
+  wchar_t buf1[64];
+  SendMessage(m_hEdt1, WM_GETTEXT, 64, (LPARAM)buf1);
+  int iCop = 0;
+  int i;
+  if(swscanf(buf1, L"%d", &i) == 1) iCop = i;
+  if(iCop > 0) LoadString(m_hInstance, IDS_DISTKEEPORIENT, buf1, 64);
+  else LoadString(m_hInstance, IDS_DISTADJUSTCURVE, buf1, 64);
+  SendMessage(m_hChB1, WM_SETTEXT, 0, (LPARAM)buf1);
+
   ShowWindow(m_hEdt1, SW_SHOW);
   ShowWindow(m_hChB1, SW_SHOW);
   SendMessage(m_hEdt1, EM_SETSEL, 0, (LPARAM)-1);
@@ -2806,7 +2816,8 @@ LRESULT CMainWnd::WMLButtonUp(HWND hwnd, WPARAM fwKeys, int xPos, int yPos)
     }
     else if(m_iToolMode == tolDistribute)
     {
-      int iRes = m_pDrawObjects->Distribute(iCop, bKeepOrient, m_cLastDrawPt);
+      pSelLine = m_pDrawObjects->SelectByPoint(m_cLastDrawPt, dTol, NULL);
+      int iRes = m_pDrawObjects->Distribute(iCop, bKeepOrient, pSelLine);
       if(iRes > 0)
       {
         wchar_t sCap[64];
@@ -2815,16 +2826,16 @@ LRESULT CMainWnd::WMLButtonUp(HWND hwnd, WPARAM fwKeys, int xPos, int yPos)
         switch(iRes)
         {
         case 1:
-          LoadString(m_hInstance, IDS_ONEOBJECTFORDISTR, sMsg, 128);
+          LoadString(m_hInstance, IDS_DISTRNOTSELECTED, sMsg, 128);
           break;
         case 2:
-          LoadString(m_hInstance, IDS_BOUNDOBJFORDIST, sMsg, 128);
+          LoadString(m_hInstance, IDS_DISTRNOTSCALABLE, sMsg, 128);
           break;
         case 3:
-          LoadString(m_hInstance, IDS_BOUNDPATHTODISTR, sMsg, 128);
+          LoadString(m_hInstance, IDS_DISTRNOTBOUND, sMsg, 128);
           break;
         case 4:
-          LoadString(m_hInstance, IDS_NOCLOSEDPATHFORRUBBER, sMsg, 128);
+          LoadString(m_hInstance, IDS_DISTRNOTPATH, sMsg, 128);
           break;
         }
         MessageBox(hwnd, sMsg, sCap, MB_OK | MB_ICONWARNING);
@@ -4645,6 +4656,17 @@ LRESULT CMainWnd::Edit1Cmd(HWND hwnd, WORD wNotifyCode, HWND hwndCtl)
         LoadString(m_hInstance, IDS_SELLINETOMOVE, m_wsStatus2Msg, 128);
       else LoadString(m_hInstance, IDS_SELPOINTFROMMOVE, m_wsStatus2Msg, 128);
         SendMessage(m_hStatus, SB_SETTEXT, 2, (LPARAM)m_wsStatus2Msg);
+    }
+    if(m_iToolMode = tolDistribute)
+    {
+      wchar_t buf1[64];
+      SendMessage(m_hEdt1, WM_GETTEXT, 64, (LPARAM)buf1);
+      int iCop = 0;
+      int i;
+      if(swscanf(buf1, L"%d", &i) == 1) iCop = i;
+      if(iCop > 0) LoadString(m_hInstance, IDS_DISTKEEPORIENT, buf1, 64);
+      else LoadString(m_hInstance, IDS_DISTADJUSTCURVE, buf1, 64);
+      SendMessage(m_hChB1, WM_SETTEXT, 0, (LPARAM)buf1);
     }
   }
   return 0;
