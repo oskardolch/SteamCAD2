@@ -150,10 +150,17 @@ private:
   int BuildRasterPrimitives(CDLine cTmpPt, int iMode, PDRect pRect, PDFileAttrs pAttrs);
   void AddSplineExtPrim(PDRect pRect, PDPrimObject pPrimList);
   void DistributeObject(CDObject *pObject, CDataList *pDataList, int iCopies, bool bKeepOrient, double dSegLen);
-  void GetObjectSpan(CDObject *pObject, PDLine pSpans, int iNodes, int iTotNodes, PDIntList pAdjacentNodes);
-  double GetObjectsSpan(PDIntList pList, CDataList *pDataList, PDLine pSpans, PDIntList pAdjacentNodes);
-  void DistributeRubberObject(CDObject *pObject, CDataList *pDataList, CDPoint cRefBounds, CDLine cDistrAttr,
-    double dRefSeg, int iCount, bool bAdjustCurvature);
+  void GetObjectSpan(CDObject *pObject, PDLine pSpans, int iNodes, int iTotNodes, PDIntList pAdjacentNodes, PDIntPoint pBndNodes);
+  void GetObjectsSpan(PDIntList pList, CDataList *pDataList, PDLine pSpans, PDIntList pAdjacentNodes, PDIntPoint pBndNodes);
+  void AdjustDistrObject(CDObject *pObject, CDPoint dRefs, CDIntPoint cCntNodes, CDIntPoint cBndNodes);
+  void DistributeRubberObjectRef(CDObject *pObject, CDataList *pDataList, CDLine cDistrAttr, PDRefList pNodes,
+    CDIntPoint cCntNodes, CDIntPoint cBndNodes);
+  void DistributeRubberObjectLen(CDObject *pObject, CDataList *pDataList, CDLine cDistrAttr, double dSeg, int iCount,
+    CDIntPoint cCntNodes, CDIntPoint cBndNodes);
+  double GetNextRef(double dLastRef, double dRefSeg, double dAngle);
+  void GetRubberNodePoints(PDRefList pNodes, CDPoint cRefBnds, double dRefSeg, double dAngle);
+  void DistributeRubberObjectsRef(PDIntList pList, CDataList *pDataList, CDLine cSpan, PDIntList pAdjacentList, CDIntPoint cBndNodes);
+  void DistributeRubberObjectsLen(PDIntList pList, CDataList *pDataList, CDLine cSpan, PDIntList pAdjacentList, CDIntPoint cBndNodes);
 public:
   CDObject(CDDrawType iType, double dWidth);
   ~CDObject();
@@ -270,6 +277,7 @@ public:
   void Schrink(PDLine pSchrinkData);
   int GetNodesCount();
   CDPoint GetNode(int iIndex);
+  void AdjustPoint(CDPoint cPt, CDIntPoint cCntNodes, int iNode);
 } *PDObject;
 
 typedef class CDataList

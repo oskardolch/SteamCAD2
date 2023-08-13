@@ -8133,12 +8133,15 @@ void CDObject::DistributeObject(CDObject *pObject, CDataList *pDataList, int iCo
     cNewPt = cPt + dDist*cNorm;
     cMoveDir = cNewPt - cAnchor;
     dNorm = GetNorm(cMoveDir);
-    cMoveDir /= dNorm;
-    pNewObj->MovePoints(cMoveDir, dNorm, 0);
-    if(!bKeepOrient)
+    if(dNorm > g_dPrec)
     {
-      cAngle = Rotate(cNewDir, cDir, false);
-      pNewObj->RotatePoints(cNewPt, atan2(cAngle.y, cAngle.x), 0);
+      cMoveDir /= dNorm;
+      pNewObj->MovePoints(cMoveDir, dNorm, 0);
+      if(!bKeepOrient)
+      {
+        cAngle = Rotate(cNewDir, cDir, false);
+        pNewObj->RotatePoints(cNewPt, atan2(cAngle.y, cAngle.x), 0);
+      }
     }
     pDataList->Add(pNewObj);
   }
@@ -8161,36 +8164,63 @@ void CDObject::DistributeObjects(PDIntList pList, CDataList *pDataList, int iCop
   }
 }
 
-void CDObject::GetObjectSpan(CDObject *pObject, PDLine pSpans, int iNodes, int iTotNodes, PDIntList pAdjacentNodes)
+void CDObject::GetObjectSpan(CDObject *pObject, PDLine pSpans, int iNodes, int iTotNodes, PDIntList pAdjacentNodes, PDIntPoint pBndNodes)
 {
   pSpans->bIsSet = false;
+  pBndNodes->i = -1;
+  pBndNodes->j = -1;
   
   if(iNodes < 2) return;
 
   CDLine cProj;
+  pSpans->cDirection = {-0.99, -0.99};
   CDPoint cPt = pObject->GetNode(0);
   double dDist = GetDistFromPt(cPt, cPt, 0.0, &cProj, NULL);
   pSpans->cOrigin.x = cProj.dRef;
   pSpans->cOrigin.y = cProj.dRef;
   pSpans->bIsSet = true;
   
-  if(fabs(dDist) < g_dPrec) pAdjacentNodes->AddItem(iTotNodes);
+  if(fabs(dDist) < g_dPrec)
+  {
+    pAdjacentNodes->AddItem(iTotNodes);
+    pSpans->cDirection.x = cProj.dRef;
+    pSpans->cDirection.y = cProj.dRef;
+    pBndNodes->i = iTotNodes;
+    pBndNodes->j = iTotNodes;
+  }
   
+  bool bIsAdjust;
   for(int i = 1; i < iNodes; i++)
   {
     cPt = pObject->GetNode(i);
     dDist = GetDistFromPt(cPt, cPt, 0.0, &cProj, NULL);
+    bIsAdjust = fabs(dDist) < g_dPrec;
+    if(bIsAdjust) pAdjacentNodes->AddItem(iTotNodes + i);
     if(cProj.dRef < pSpans->cOrigin.x) pSpans->cOrigin.x = cProj.dRef;
+    if(bIsAdjust && ((pSpans->cDirection.x < -0.5) || (cProj.dRef < pSpans->cDirection.x)))
+    {
+      pSpans->cDirection.x = cProj.dRef;
+      pBndNodes->i = iTotNodes + i;
+    }
     if(cProj.dRef > pSpans->cOrigin.y) pSpans->cOrigin.y = cProj.dRef;
-    if(fabs(dDist) < g_dPrec) pAdjacentNodes->AddItem(iTotNodes + i);
+    if(bIsAdjust && ((pSpans->cDirection.y < -0.5) || (cProj.dRef > pSpans->cDirection.y)))
+    {
+      pSpans->cDirection.y = cProj.dRef;
+      pBndNodes->j = iTotNodes + i;
+    }
   }
 }
 
-double CDObject::GetObjectsSpan(PDIntList pList, CDataList *pDataList, PDLine pSpans, PDIntList pAdjacentNodes)
+void CDObject::GetObjectsSpan(PDIntList pList, CDataList *pDataList, PDLine pSpans, PDIntList pAdjacentNodes, PDIntPoint pBndNodes)
 {
+  pBndNodes->i = -1;
+  pBndNodes->j = -1;
   pSpans->bIsSet = false;
   int n = pList->GetCount();
-  if(n < 1) return 0.0;
+  if(n < 1) return;
+  
+  pSpans->cDirection = {-0.99, -0.99};
+  CDIntPoint cBndNodes;
   
   CDLine cSpan;
   cSpan.bIsSet = false;
@@ -8204,42 +8234,122 @@ double CDObject::GetObjectsSpan(PDIntList pList, CDataList *pDataList, PDLine pS
     i2 = pList->GetItem(i++);
     pObj = pDataList->GetItem(i2);
     iCurNodes = pObj->GetNodesCount();
-    GetObjectSpan(pObj, &cSpan, iCurNodes, iTotNodes, pAdjacentNodes);
+    GetObjectSpan(pObj, &cSpan, iCurNodes, iTotNodes, pAdjacentNodes, &cBndNodes);
     iTotNodes += iCurNodes;
   }
   if(cSpan.bIsSet)
   {
     pSpans->bIsSet = true;
     pSpans->cOrigin = cSpan.cOrigin;
+    pSpans->cDirection = cSpan.cDirection;
+    *pBndNodes = cBndNodes;
   }
   while(i < n)
   {
     i2 = pList->GetItem(i++);
     pObj = pDataList->GetItem(i2);
     iCurNodes = pObj->GetNodesCount();
-    GetObjectSpan(pObj, &cSpan, iCurNodes, iTotNodes, pAdjacentNodes);
+    GetObjectSpan(pObj, &cSpan, iCurNodes, iTotNodes, pAdjacentNodes, &cBndNodes);
     
     if(cSpan.bIsSet)
     {
       if(cSpan.cOrigin.x < pSpans->cOrigin.x) pSpans->cOrigin.x = cSpan.cOrigin.x;
       if(cSpan.cOrigin.y > pSpans->cOrigin.y) pSpans->cOrigin.y = cSpan.cOrigin.y;
+      if((cSpan.cDirection.x > -0.5) && ((pSpans->cDirection.x < -0.5) || (cSpan.cDirection.x < pSpans->cDirection.x)))
+      {
+        pSpans->cDirection.x = cSpan.cDirection.x;
+        pBndNodes->i = cBndNodes.i;
+      }
+      if((cSpan.cDirection.y > -0.5) && ((pSpans->cDirection.y < -0.5) || (cSpan.cDirection.y > pSpans->cDirection.y)))
+      {
+        pSpans->cDirection.y = cSpan.cDirection.y;
+        pBndNodes->j = cBndNodes.j;
+      }
     }
 
     iTotNodes += iCurNodes;
   }
-  if(!pSpans->bIsSet) return 0.0;
-  
-  double d1, d2;
-  GetPointRefDist(pSpans->cOrigin.x, 0.0, &d1);
-  GetPointRefDist(pSpans->cOrigin.y, 0.0, &d2);
-  return fabs(d2 - d1);
 }
 
-void CDObject::DistributeRubberObject(CDObject *pObject, CDataList *pDataList, CDPoint cRefBounds, CDLine cDistrAttr,
-  double dRefSeg, int iCount, bool bAdjustCurvature)
+void CDObject::AdjustDistrObject(CDObject *pObject, CDPoint dRefs, CDIntPoint cCntNodes, CDIntPoint cBndNodes)
 {
-  double dCurRef = cRefBounds.x + dRefSeg/2.0;
-  CDPoint cCurPt, cCurDir, cMoveDir, cRotDir;
+  CDPoint cPt;
+  if(cBndNodes.i > -1)
+  {
+    GetNativeRefPoint(dRefs.x, 0.0, &cPt);
+    pObject->AdjustPoint(cPt, cCntNodes, cBndNodes.i);
+  }
+  if(cBndNodes.j > -1)
+  {
+    GetNativeRefPoint(dRefs.y, 0.0, &cPt);
+    pObject->AdjustPoint(cPt, cCntNodes, cBndNodes.j);
+  }
+}
+
+void CDObject::DistributeRubberObjectRef(CDObject *pObject, CDataList *pDataList, CDLine cDistrAttr, PDRefList pNodes,
+  CDIntPoint cCntNodes, CDIntPoint cBndNodes)
+{
+  int iCount = pNodes->GetCount();
+  if(iCount < 2) return;
+  
+  double dLastRef = pNodes->GetPoint(0);
+  double dNewRef = pNodes->GetPoint(1);
+  double dCurRef;
+  
+  CDPoint cCurDir, cMoveDir, cRotDir, cPt1, cPt2;
+  GetNativeRefPoint(dLastRef, 0.0, &cPt2);
+  
+  PDObject pNewObj;
+  double dNorm, d1;
+  CDLine cShrinkAttr;
+  for(int i = 1; i < iCount; i++)
+  {
+    dCurRef = (dLastRef + dNewRef)/2.0;
+    
+    cPt1 = cPt2;
+    GetNativeRefPoint(dNewRef, 0.0, &cPt2);
+    d1 = GetDist(cPt1, cPt2);
+    
+    pNewObj = pObject->Copy();
+    GetNativeRefPoint(dCurRef, 0.0, &cShrinkAttr.cOrigin);
+    GetNativeRefDir(dCurRef, &cCurDir);
+    cShrinkAttr.cDirection = GetNormal(cCurDir);
+    
+    cMoveDir = cShrinkAttr.cOrigin - cDistrAttr.cOrigin;
+    dNorm = GetNorm(cMoveDir);
+    
+    if(dNorm > g_dPrec)
+    {
+      cMoveDir /= dNorm;
+      pNewObj->MovePoints(cMoveDir, dNorm, 0);
+      cRotDir = Rotate(cShrinkAttr.cDirection, cDistrAttr.cDirection, false);
+      pNewObj->RotatePoints(cShrinkAttr.cOrigin, atan2(cRotDir.y, cRotDir.x), 0);
+    }
+    
+    cShrinkAttr.dRef = d1/cDistrAttr.dRef;
+    pNewObj->Schrink(&cShrinkAttr);
+    
+    AdjustDistrObject(pNewObj, {dLastRef, dNewRef}, cCntNodes, cBndNodes);
+    
+    pDataList->Add(pNewObj);
+
+    if(i < iCount - 1)
+    {
+      dLastRef = dNewRef;
+      dNewRef = pNodes->GetPoint(i + 1);
+      dCurRef = (dLastRef + dNewRef)/2.0;
+    }
+  }
+}
+
+void CDObject::DistributeRubberObjectLen(CDObject *pObject, CDataList *pDataList, CDLine cDistrAttr, double dSeg, int iCount,
+  CDIntPoint cCntNodes, CDIntPoint cBndNodes)
+{
+  double dCurDist = dSeg/2.0;
+  double dCurRef;
+  GetNativeReference(dCurDist, 0.0, &dCurRef);
+  
+  CDPoint cCurPt, cCurDir, cMoveDir, cRotDir, dRefs;
   PDObject pNewObj;
   double dNorm;
   for(int i = 0; i < iCount; i++)
@@ -8253,11 +8363,219 @@ void CDObject::DistributeRubberObject(CDObject *pObject, CDataList *pDataList, C
     {
       cMoveDir /= dNorm;
       pNewObj->MovePoints(cMoveDir, dNorm, 0);
-      cRotDir = Rotate(cCurDir, cDistrAttr.cDirection, false);
+      cRotDir = Rotate(GetNormal(cCurDir), cDistrAttr.cDirection, false);
       pNewObj->RotatePoints(cCurPt, atan2(cRotDir.y, cRotDir.x), 0);
     }
+    
+    GetNativeReference(dCurDist - dSeg/2.0, 0.0, &dRefs.x);
+    GetNativeReference(dCurDist + dSeg/2.0, 0.0, &dRefs.y);
+    AdjustDistrObject(pNewObj, dRefs, cCntNodes, cBndNodes);
+    
     pDataList->Add(pNewObj);
-    dCurRef += dRefSeg;
+    dCurDist += dSeg;
+    GetNativeReference(dCurDist, 0.0, &dCurRef);
+  }
+}
+
+double CDObject::GetNextRef(double dLastRef, double dRefSeg, double dAngle)
+{
+  double dRes = dLastRef + dRefSeg;
+  CDPoint cDir1, cDir2, cDir;
+  GetNativeRefDir(dLastRef, &cDir1);
+  GetNativeRefDir(dRes, &cDir2);
+  cDir = Rotate(cDir2, cDir1, false);
+  double dCurAngle = fabs(atan2(cDir.y, cDir.x));
+  
+  CDLine cLn1, cRad1, cRad2;
+  CDPoint cRot1, cRot2;
+  
+  GetNativeRefPoint(dLastRef, 0.0, &cLn1.cOrigin);
+  GetRadiusAtPt(cLn1, &cRad1, false);
+  GetNativeRefPoint(dRes, 0.0, &cLn1.cOrigin);
+  GetRadiusAtPt(cLn1, &cRad2, false);
+  cRot1 = Rotate(cRad1.cDirection, cDir1, false);
+  cRot2 = Rotate(cRad2.cDirection, cDir2, false);
+  double dOrient = cRot1.y*cRot2.y;
+  
+  int i = 0;
+  while((dCurAngle < dAngle) && (i < 5) && (dOrient > -g_dPrec))
+  {
+    dRes += dRefSeg;
+    GetNativeRefDir(dRes, &cDir2);
+    cDir = Rotate(cDir2, cDir1, false);
+    dCurAngle = fabs(atan2(cDir.y, cDir.x));
+    i++;
+    
+    GetNativeRefPoint(dRes, 0.0, &cLn1.cOrigin);
+    cRad1 = cRad2;
+    GetRadiusAtPt(cLn1, &cRad2, false);
+    
+    cRot1 = Rotate(cRad1.cDirection, cDir1, false);
+    cRot2 = Rotate(cRad2.cDirection, cDir2, false);
+    dOrient = cRot1.y*cRot2.y;
+  }
+  double dFact = 2.0;
+  i = 0;
+  while(i < 5)
+  {
+    if((dCurAngle < dAngle) && (dOrient > -g_dPrec)) dRes += dRefSeg/dFact;
+    else dRes -= dRefSeg/dFact;
+    dFact *= 2.0;
+    GetNativeRefDir(dRes, &cDir2);
+    cDir = Rotate(cDir2, cDir1, false);
+    dCurAngle = fabs(atan2(cDir.y, cDir.x));
+    i++;
+
+    GetNativeRefPoint(dRes, 0.0, &cLn1.cOrigin);
+    cRad1 = cRad2;
+    GetRadiusAtPt(cLn1, &cRad2, false);
+    
+    cRot1 = Rotate(cRad1.cDirection, cDir1, false);
+    cRot2 = Rotate(cRad2.cDirection, cDir2, false);
+    dOrient = cRot1.y*cRot2.y;
+  }
+  return dRes;
+}
+
+void CDObject::GetRubberNodePoints(PDRefList pNodes, CDPoint cRefBnds, double dRefSeg, double dAngle)
+{
+  double dLastRef = cRefBnds.x;
+  pNodes->AddPoint(dLastRef);
+  double dCurRef = GetNextRef(dLastRef, dRefSeg, dAngle);
+  pNodes->AddPoint(dCurRef);
+  while(dCurRef < cRefBnds.y)
+  {
+    dLastRef = dCurRef;
+    dCurRef = GetNextRef(dLastRef, dRefSeg, dAngle);
+    pNodes->AddPoint(dCurRef);
+  }
+  int n = pNodes->GetCount();
+  if(dCurRef - cRefBnds.y < dRefSeg/2.0)
+  {
+    n--;
+    pNodes->Remove(n);
+    dCurRef = pNodes->GetPoint(n - 1);
+  }
+  double dFact = (cRefBnds.y - cRefBnds.x)/(dCurRef - cRefBnds.x);
+  double d1;
+  for(int i = 0; i < n; i++)
+  {
+    d1 = pNodes->GetPoint(i);
+    pNodes->SetPoint(i, cRefBnds.x + dFact*(d1 - cRefBnds.x));
+  }
+}
+
+void CDObject::DistributeRubberObjectsRef(PDIntList pList, CDataList *pDataList, CDLine cSpan, PDIntList pAdjacentList, CDIntPoint cBndNodes)
+{
+  double dSpanStart = cSpan.cOrigin.x;
+  double dSpanEnd = cSpan.cOrigin.y;
+  if(cSpan.cDirection.x > -0.5) dSpanStart = cSpan.cDirection.x;
+  if(cSpan.cDirection.y > -0.5) dSpanEnd = cSpan.cDirection.y;
+  
+  double dRefSpan = dSpanEnd - dSpanStart;
+  CDPoint cBnds;
+  GetBoundsRef(&cBnds, 0.0, true);
+  double dRefLen = cBnds.y - cBnds.x;
+
+  double dCount = dRefLen/dRefSpan;
+  int iCount = (int)(dCount + 0.5);
+  double dSegLen = dRefLen/(double)iCount;
+  
+  CDPoint cDir1, cDir2, cDir;
+  GetNativeRefDir(dSpanStart, &cDir1);
+  GetNativeRefDir(dSpanEnd, &cDir2);
+  cDir = Rotate(cDir2, cDir1, false);
+  double dAngle = fabs(atan2(cDir.y, cDir.x));
+  
+  PDRefList pNodePoints = new CDRefList();
+  GetRubberNodePoints(pNodePoints, cBnds, dSegLen, dAngle);
+  
+  double dBaseRef = (dSpanStart + dSpanEnd)/2.0;
+  CDLine cDistrBase;
+  GetNativeRefPoint(dBaseRef, 0.0, &cDistrBase.cOrigin);
+  GetNativeRefDir(dBaseRef, &cDir);
+  cDistrBase.cDirection = GetNormal(cDir);
+  
+  CDPoint cStart, cEnd;
+  GetNativeRefPoint(dSpanStart, 0.0, &cStart);
+  GetNativeRefPoint(dSpanEnd, 0.0, &cEnd);
+  double dDist1 = GetDist(cStart, cEnd);
+  
+  cDistrBase.dRef = dDist1; // the base width
+  
+  CDObject *pObj;
+  int i2;
+  int n = pList->GetCount();
+  
+  CDIntPoint cCntNodes = {0, 0};
+  for(int i = 0; i < n; i++)
+  {
+    i2 = pList->GetItem(i);
+    pObj = pDataList->GetItem(i2);
+    cCntNodes.j = pObj->GetNodesCount();
+    DistributeRubberObjectRef(pObj, pDataList, cDistrBase, pNodePoints, cCntNodes, cBndNodes);
+    cCntNodes.i += cCntNodes.j;
+  }
+  
+  delete pNodePoints;
+}
+
+void CDObject::DistributeRubberObjectsLen(PDIntList pList, CDataList *pDataList, CDLine cSpan, PDIntList pAdjacentList, CDIntPoint cBndNodes)
+{
+  double dSpanStart = cSpan.cOrigin.x;
+  double dSpanEnd = cSpan.cOrigin.y;
+  if(cSpan.cDirection.x > -0.5) dSpanStart = cSpan.cDirection.x;
+  if(cSpan.cDirection.y > -0.5) dSpanEnd = cSpan.cDirection.y;
+  
+  double d1, d2;
+  GetPointRefDist(dSpanStart, 0.0, &d1);
+  GetPointRefDist(dSpanEnd, 0.0, &d2);
+  double dSpan = fabs(d2 - d1);
+  double dLen = GetLength(0.0);
+  double dBaseDist = (d1 + d2)/2.0;
+  
+  double dCount = dLen/dSpan;
+  int iCount = (int)(dCount + 0.5);
+  double dSegLen = dLen/(double)iCount;
+  
+  double dBaseRef;
+  GetNativeReference(dBaseDist, 0.0, &dBaseRef);
+  CDLine cDistrBase;
+  GetNativeRefPoint(dBaseRef, 0.0, &cDistrBase.cOrigin);
+  CDPoint cDir;
+  GetNativeRefDir(dBaseRef, &cDir);
+  cDistrBase.cDirection = GetNormal(cDir);
+
+  CDPoint cStart, cEnd;
+  GetNativeRefPoint(dSpanStart, 0.0, &cStart);
+  GetNativeRefPoint(dSpanEnd, 0.0, &cEnd);
+  double dDist1 = GetDist(cStart, cEnd);
+  
+  double dStartRef, dEndRef;
+  GetNativeReference(dBaseDist - dSegLen/2.0, 0.0, &dStartRef);
+  GetNativeReference(dBaseDist + dSegLen/2.0, 0.0, &dEndRef);
+  
+  GetNativeRefPoint(dStartRef, 0.0, &cStart);
+  GetNativeRefPoint(dEndRef, 0.0, &cEnd);
+  double dDist2 = GetDist(cStart, cEnd);
+  
+  cDistrBase.dRef = dDist2/dDist1; // the schrink ratio
+  
+  CDObject *pObj, *pNewObj;
+  int i2;
+  int n = pList->GetCount();
+  CDIntPoint cCntNodes = {0, 0};
+
+  for(int i = 0; i < n; i++)
+  {
+    i2 = pList->GetItem(i);
+    pObj = pDataList->GetItem(i2);
+    cCntNodes.j = pObj->GetNodesCount();
+    pNewObj = pObj->Copy();
+    pNewObj->Schrink(&cDistrBase);
+    DistributeRubberObjectLen(pNewObj, pDataList, cDistrBase, dSegLen, iCount, cCntNodes, cBndNodes);
+    cCntNodes.i += cCntNodes.j;
+    delete pNewObj;
   }
 }
 
@@ -8265,44 +8583,17 @@ void CDObject::DistributeRubberObjects(PDIntList pList, CDataList *pDataList, bo
 {
   PDIntList pAdjacentList = new CDIntList();
   CDLine cSpan;
-  double dSpan = GetObjectsSpan(pList, pDataList, &cSpan, pAdjacentList);
+  CDIntPoint cBndNodes;
+  GetObjectsSpan(pList, pDataList, &cSpan, pAdjacentList, &cBndNodes);
   if(!cSpan.bIsSet)
   {
     delete pAdjacentList;
     return;
   }
+  
+  if(bAdjustCurvature) DistributeRubberObjectsRef(pList, pDataList, cSpan, pAdjacentList, cBndNodes);
+  else DistributeRubberObjectsLen(pList, pDataList, cSpan, pAdjacentList, cBndNodes);
 
-  double dLen = GetLength(0.0);
-  double dCount = dLen/dSpan;
-  int iCount = (int)(dCount + 0.5);
-  //double dSegLen = dLen/(double)iCount;
-  
-  double dBaseRef = (cSpan.cOrigin.x + cSpan.cOrigin.y)/2.0;
-  CDLine cDistrBase;
-  GetNativeRefPoint(dBaseRef, 0.0, &cDistrBase.cOrigin);
-  GetNativeRefDir(dBaseRef, &cDistrBase.cDirection);
-  
-  CDPoint cBnds, cStart, cEnd;
-  GetBoundsRef(&cBnds, 0.0, true);
-  double dBndsSeg = (cBnds.y - cBnds.x)/(double)iCount;
-  GetNativeRefPoint(dBaseRef - dBndsSeg/2.0, 0.0, &cStart);
-  GetNativeRefPoint(dBaseRef + dBndsSeg/2.0, 0.0, &cEnd);
-  double dDist = GetDist(cStart, cEnd);
-  
-  cDistrBase.dRef = dDist/dSpan; // the schrink ratio
-  
-  CDObject *pObj, *pNewObj;
-  int i2;
-  int n = pList->GetCount();
-  for(int i = 0; i < n; i++)
-  {
-    i2 = pList->GetItem(i);
-    pObj = pDataList->GetItem(i2);
-    pNewObj = pObj->Copy();
-    pNewObj->Schrink(&cDistrBase);
-    DistributeRubberObject(pNewObj, pDataList, cBnds, cDistrBase, dBndsSeg, iCount, bAdjustCurvature);
-    delete pNewObj;
-  }
   delete pAdjacentList;
 }
 
@@ -8346,9 +8637,9 @@ void CDObject::Schrink(PDLine pSchrinkData)
     }
     
     BuildCache(cPtX, 0);
-    GetDistFromPt(cStartPt, cStartPt, 0, &cPtX, NULL);
+    GetRawDistFromPt(cStartPt, cStartPt, 0, &cPtX);
     m_cBounds[0].dRef = cPtX.dRef;
-    GetDistFromPt(cEndPt, cEndPt, 0, &cPtX, NULL);
+    GetRawDistFromPt(cEndPt, cEndPt, 0, &cPtX);
     m_cBounds[1].dRef = cPtX.dRef;
     return;
   }
@@ -8359,7 +8650,8 @@ void CDObject::Schrink(PDLine pSchrinkData)
     for(int i = 0; i < n; i++)
     {
       pObj = (PDPathSeg)m_pSubObjects->GetItem(i);
-      if(!pObj->pSegment->IsNullCircle()) pObj->pSegment->Schrink(pSchrinkData);
+      //if(!pObj->pSegment->IsNullCircle()) 
+      pObj->pSegment->Schrink(pSchrinkData);
     }
     
     BuildCache(cPtX, 0);
@@ -8476,6 +8768,78 @@ CDPoint CDObject::GetNode(int iIndex)
     return cRes;
   }
   return cRes;
+}
+
+void CDObject::AdjustPoint(CDPoint cPt, CDIntPoint cCntNodes, int iNode)
+{
+  int iIndex = iNode - cCntNodes.i;
+  if(iIndex < 0) return;
+  if(iIndex >= cCntNodes.j) return;
+
+  if(m_iType == dtLine)
+  {
+    CDPoint cStartPt;
+    if(iIndex == 0)
+    {
+      GetEndPoint(&cStartPt, 0.0);
+      m_pInputPoints->ClearAll();
+      AddLinePoint(cPt.x, cPt.y, 0, m_pInputPoints);
+      AddLinePoint(cStartPt.x, cStartPt.y, 0, m_pInputPoints);
+    }
+    else
+    {
+      GetStartPoint(&cStartPt, 0.0);
+      m_pInputPoints->ClearAll();
+      AddLinePoint(cStartPt.x, cStartPt.y, 0, m_pInputPoints);
+      AddLinePoint(cPt.x, cPt.y, 0, m_pInputPoints);
+    }
+    m_cBounds[0].dRef = 0.0;
+    m_cBounds[1].dRef = GetDist(cStartPt, cPt);
+    
+    CDLine cOffL;
+    cOffL.bIsSet = false;
+    BuildCache(cOffL, 0);
+    return;
+  }
+  if(m_iType <= dtRect) return;
+  if(m_iType == dtPath)
+  {
+    cCntNodes.i = 0;
+    PDPathSeg pObj = NULL;
+    int n = m_pSubObjects->GetCount();
+    int i = 0;
+    while((cCntNodes.i <= iIndex) && (i < n))
+    {
+      pObj = (PDPathSeg)m_pSubObjects->GetItem(i++);
+      if(pObj->pSegment->IsNullCircle()) pObj = (PDPathSeg)m_pSubObjects->GetItem(i++);
+      cCntNodes.j = pObj->pSegment->GetNodesCount();
+      cCntNodes.i += cCntNodes.j;
+    }
+    if(pObj && !pObj->pSegment->IsNullCircle())
+    {
+      cCntNodes.i -= cCntNodes.j;
+      pObj->pSegment->AdjustPoint(cPt, cCntNodes, iIndex);
+    }
+    return;
+  }
+  if(m_iType > dtPath)
+  {
+    cCntNodes.i = 0;
+    PDObject pObj = NULL;
+    int n = m_pSubObjects->GetCount();
+    int i = 0;
+    while((cCntNodes.i < iIndex) && (i < n))
+    {
+      pObj = (PDObject)m_pSubObjects->GetItem(i++);
+      cCntNodes.j = pObj->GetNodesCount();
+      cCntNodes.i += cCntNodes.j;
+    }
+    if(pObj)
+    {
+      cCntNodes.i -= cCntNodes.j;
+      pObj->AdjustPoint(cPt, cCntNodes, iIndex);
+    }
+  }
 }
 
 
@@ -10025,6 +10389,8 @@ bool CDataList::MoveBottom()
 
 int CDataList::Distribute(int iCopies, bool bKeepOrient, PDObject pPath)
 {
+  if(!pPath) return 5;
+
   PDObject pObj;
   int n, i = m_iDataLen;
   PDIntList pSelObjs = new CDIntList();
