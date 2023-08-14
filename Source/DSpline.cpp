@@ -48,6 +48,7 @@ bool ValidateSplinePoints(PDPointList pPoints)
     cPt2 = pPoints->GetPoint(i++, 0).cPoint;
     if(GetDist(cPt1, cPt2) < dLimit)
     {
+      int k = 3; // looks like this dummy statement fixes some ugly segmentation fault
       i--;
       pPoints->Remove(i, 0);
       iCnt--;

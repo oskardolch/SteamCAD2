@@ -81,6 +81,41 @@ for 360 - 36 degrees with 9 copies.
 \item \textbf{Mirror} - this command is available with the shortcut ``Alt + I''.
 This command is activated by clicking a line object to mirror the selected objects
 around.
+\item \textbf{Distribute} - this command is available with the shortcut ``Ctrl + D''.
+It distributes selected objects along a curve or path. It has two variants.
+If you put a positive number to the toolbar edit box, it create the requested number
+of copies and distribute them along the clicked path. If ``keep orientation'' is
+checked, then the objects are not rotated. Otherwise they are rotated by the curve
+direction. Any object type including group and raster can be selected in this mode.
+
+\begin{figure}[h]
+\begin{center}
+\includegraphics[scale=0.2]{Images/distr_fixed.eps}
+\caption{Distribute in fixed mode with keeping orientation and without, the
+original shape is blue}
+\end{center}
+\end{figure}
+
+If the number of copies is zero or unspecified, then it attempts to distribute
+the selected objects so that they are adjucent and fill the whole curve. We call
+this \textbf{rubber mode}. The meaning should be clearer from the
+figure~\ref{fig:distr_rubber}.
+This mode has also two subvariants - when ``adjust to curvature'' is checked, then
+the curve curvature (or radius) at given place is taken into account to make the
+segments shorter or longer. Otherwise all the segments have the same length, so that
+it fills the whole curve. This means that the shape can be slightly modified. The
+selected objects to be distributed in rubber mode can only be linear segments or
+paths consisting of linear segments only.
+
+\begin{figure}[h]
+\begin{center}
+\includegraphics[scale=0.2]{Images/distr_rubber.eps}
+\caption{Distribute in rubber mode with curvature adjustment and without, the
+original shape is blue}
+\label{fig:distr_rubber}
+\end{center}
+\end{figure}
+
 \end{enumerate}
 
 All the copy commands keep the original select set selected.
